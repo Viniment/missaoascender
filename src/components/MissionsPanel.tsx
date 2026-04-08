@@ -296,6 +296,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
               <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 🪙` : ''}</span>
             )}
             {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
+            {isFailed && <span className="text-destructive">❌ Falhada</span>}
             {mission.videoUrl && (
               <button
                 onClick={() => setShowVideo(!showVideo)}
