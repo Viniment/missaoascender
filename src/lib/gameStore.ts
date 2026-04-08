@@ -90,24 +90,62 @@ export interface PlayerState {
   reflections: Reflection[];
 }
 
-function getRank(level: number): string {
-  if (level < 5) return 'E';
-  if (level < 10) return 'D';
-  if (level < 20) return 'C';
-  if (level < 35) return 'B';
-  if (level < 50) return 'A';
-  if (level < 75) return 'S';
-  return 'Monarca';
+const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
+
+const TITLES: Record<string, string[]> = {
+  E: ['Desperto', 'Iniciante', 'Em Evolução', 'Persistente', 'À Beira da Ascensão'],
+  D: ['Renascendo das Cinzas', 'Forjando Disciplina', 'Ritmo Inquebrável', 'Consistência Afiada', 'Prestes a Transcender'],
+  C: ['Domínio Inicial', 'Controle Crescente', 'Mente Estruturada', 'Foco Implacável', 'Quase Inabalável'],
+  B: ['Força Interior', 'Disciplina Elevada', 'Execução Precisa', 'Alta Performance', 'Elite Emergente'],
+  A: ['Presença Dominante', 'Controle Absoluto', 'Mentalidade de Aço', 'Operando no Limite', 'À Beira da Elite'],
+  S: ['Além do Comum', 'Força Anormal', 'Instinto Superior', 'Domínio Total', 'Quase Lendário'],
+  Monarca: ['Ascendido', 'Portador do Poder', 'Entidade em Evolução', 'Presença Absoluta', 'Forma Final'],
+};
+
+function getTitle(rank: string, level: number): string {
+  return TITLES[rank]?.[level - 1] || 'Desperto';
 }
 
-// New escalating XP curve
-function getXpToNext(level: number): number {
-  if (level === 1) return 100;
-  if (level === 2) return 250;
-  if (level === 3) return 500;
-  if (level === 4) return 900;
-  // After level 4: each level adds ~60% more
-  return Math.floor(900 * Math.pow(1.6, level - 4));
+// Base XP per level, scaled by rank (+20% per rank tier)
+const BASE_XP = [100, 200, 350, 550, 800];
+
+function getXpToNext(level: number, rank: string): number {
+  const rankIndex = RANKS.indexOf(rank as typeof RANKS[number]);
+  const multiplier = Math.pow(1.2, Math.max(0, rankIndex));
+  return Math.floor(BASE_XP[level - 1] * multiplier);
+}
+
+function processLevelUp(xp: number, level: number, rank: string): { xp: number; level: number; rank: string; title: string; xpToNext: number } {
+  let newXp = xp;
+  let newLevel = level;
+  let newRank = rank;
+
+  while (newXp >= getXpToNext(newLevel, newRank)) {
+    newXp -= getXpToNext(newLevel, newRank);
+    if (newLevel >= 5) {
+      // Rank up
+      const rankIdx = RANKS.indexOf(newRank as typeof RANKS[number]);
+      if (rankIdx < RANKS.length - 1) {
+        newRank = RANKS[rankIdx + 1];
+        newLevel = 1;
+      } else {
+        // Already Monarca max — stay at level 5, cap XP
+        newLevel = 5;
+        newXp = Math.min(newXp, getXpToNext(5, newRank) - 1);
+        break;
+      }
+    } else {
+      newLevel++;
+    }
+  }
+
+  return {
+    xp: newXp,
+    level: newLevel,
+    rank: newRank,
+    title: getTitle(newRank, newLevel),
+    xpToNext: getXpToNext(newLevel, newRank),
+  };
 }
 
 const defaultState: PlayerState = {
