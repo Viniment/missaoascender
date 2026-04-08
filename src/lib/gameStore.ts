@@ -209,23 +209,13 @@ export function useGameStore() {
   const addXp = useCallback((amount: number, action: string) => {
     setState(prev => {
       let newXp = prev.xp + amount;
-      let newLevel = prev.level;
-      let newXpToNext = prev.xpToNext;
-
-      while (newXp >= newXpToNext && amount > 0) {
-        newXp -= newXpToNext;
-        newLevel++;
-        newXpToNext = getXpToNext(newLevel);
-      }
-
       if (newXp < 0) newXp = 0;
+
+      const result = processLevelUp(newXp, prev.level, prev.rank);
 
       return {
         ...prev,
-        xp: newXp,
-        level: newLevel,
-        xpToNext: newXpToNext,
-        rank: getRank(newLevel),
+        ...result,
         log: [{ date: new Date().toISOString(), action, xp: amount, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
