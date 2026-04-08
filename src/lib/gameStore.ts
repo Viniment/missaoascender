@@ -90,29 +90,67 @@ export interface PlayerState {
   reflections: Reflection[];
 }
 
-function getRank(level: number): string {
-  if (level < 5) return 'E';
-  if (level < 10) return 'D';
-  if (level < 20) return 'C';
-  if (level < 35) return 'B';
-  if (level < 50) return 'A';
-  if (level < 75) return 'S';
-  return 'Monarca';
+const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
+
+const TITLES: Record<string, string[]> = {
+  E: ['Desperto', 'Iniciante', 'Em Evolução', 'Persistente', 'À Beira da Ascensão'],
+  D: ['Renascendo das Cinzas', 'Forjando Disciplina', 'Ritmo Inquebrável', 'Consistência Afiada', 'Prestes a Transcender'],
+  C: ['Domínio Inicial', 'Controle Crescente', 'Mente Estruturada', 'Foco Implacável', 'Quase Inabalável'],
+  B: ['Força Interior', 'Disciplina Elevada', 'Execução Precisa', 'Alta Performance', 'Elite Emergente'],
+  A: ['Presença Dominante', 'Controle Absoluto', 'Mentalidade de Aço', 'Operando no Limite', 'À Beira da Elite'],
+  S: ['Além do Comum', 'Força Anormal', 'Instinto Superior', 'Domínio Total', 'Quase Lendário'],
+  Monarca: ['Ascendido', 'Portador do Poder', 'Entidade em Evolução', 'Presença Absoluta', 'Forma Final'],
+};
+
+function getTitle(rank: string, level: number): string {
+  return TITLES[rank]?.[level - 1] || 'Desperto';
 }
 
-// New escalating XP curve
-function getXpToNext(level: number): number {
-  if (level === 1) return 100;
-  if (level === 2) return 250;
-  if (level === 3) return 500;
-  if (level === 4) return 900;
-  // After level 4: each level adds ~60% more
-  return Math.floor(900 * Math.pow(1.6, level - 4));
+// Base XP per level, scaled by rank (+20% per rank tier)
+const BASE_XP = [100, 200, 350, 550, 800];
+
+function getXpToNext(level: number, rank: string): number {
+  const rankIndex = RANKS.indexOf(rank as typeof RANKS[number]);
+  const multiplier = Math.pow(1.2, Math.max(0, rankIndex));
+  return Math.floor(BASE_XP[level - 1] * multiplier);
+}
+
+function processLevelUp(xp: number, level: number, rank: string): { xp: number; level: number; rank: string; title: string; xpToNext: number } {
+  let newXp = xp;
+  let newLevel = level;
+  let newRank = rank;
+
+  while (newXp >= getXpToNext(newLevel, newRank)) {
+    newXp -= getXpToNext(newLevel, newRank);
+    if (newLevel >= 5) {
+      // Rank up
+      const rankIdx = RANKS.indexOf(newRank as typeof RANKS[number]);
+      if (rankIdx < RANKS.length - 1) {
+        newRank = RANKS[rankIdx + 1];
+        newLevel = 1;
+      } else {
+        // Already Monarca max — stay at level 5, cap XP
+        newLevel = 5;
+        newXp = Math.min(newXp, getXpToNext(5, newRank) - 1);
+        break;
+      }
+    } else {
+      newLevel++;
+    }
+  }
+
+  return {
+    xp: newXp,
+    level: newLevel,
+    rank: newRank,
+    title: getTitle(newRank, newLevel),
+    xpToNext: getXpToNext(newLevel, newRank),
+  };
 }
 
 const defaultState: PlayerState = {
   name: 'Jogador',
-  title: 'Renascendo das Cinzas',
+  title: 'Desperto',
   avatar: null,
   level: 1,
   xp: 0,
@@ -171,23 +209,13 @@ export function useGameStore() {
   const addXp = useCallback((amount: number, action: string) => {
     setState(prev => {
       let newXp = prev.xp + amount;
-      let newLevel = prev.level;
-      let newXpToNext = prev.xpToNext;
-
-      while (newXp >= newXpToNext && amount > 0) {
-        newXp -= newXpToNext;
-        newLevel++;
-        newXpToNext = getXpToNext(newLevel);
-      }
-
       if (newXp < 0) newXp = 0;
+
+      const result = processLevelUp(newXp, prev.level, prev.rank);
 
       return {
         ...prev,
-        xp: newXp,
-        level: newLevel,
-        xpToNext: newXpToNext,
-        rank: getRank(newLevel),
+        ...result,
         log: [{ date: new Date().toISOString(), action, xp: amount, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
@@ -230,13 +258,14 @@ export function useGameStore() {
       const xpGain = 10;
       const totalXp = xpGain + xpPenalty;
 
+      const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank);
       return {
         ...prev,
         todayCheckedIn: true,
         lastLogin: today,
         streak,
         missedDays,
-        xp: Math.max(0, prev.xp + totalXp),
+        ...prog,
         log: [
           { date: new Date().toISOString(), action: `Check-in diário${xpPenalty < 0 ? ` (penalidade: ${xpPenalty} XP)` : ''}`, xp: totalXp, gold: 0 },
           ...prev.log
@@ -271,9 +300,10 @@ export function useGameStore() {
       const xp = Math.floor(executedHours * XP_PER_HOUR[mission.difficulty]);
       const gold = Math.floor(executedHours * GOLD_PER_HOUR);
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null } : m
@@ -295,9 +325,10 @@ export function useGameStore() {
       const xp = mission.dailyXp || 5;
       const gold = mission.dailyGold || 5;
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? { ...m, lastCompletedDate: today, xpEarned: xp, goldEarned: gold } : m
@@ -323,9 +354,10 @@ export function useGameStore() {
         xp += 5; // Bonus for completing all
       }
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? {
@@ -358,9 +390,10 @@ export function useGameStore() {
     const today = new Date().toISOString().split('T')[0];
     setState(prev => {
       const xp = status === 'done' ? 50 : -100;
+      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank);
       return {
         ...prev,
-        xp: Math.max(0, prev.xp + xp),
+        ...prog,
         habits: prev.habits.map(h =>
           h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
         ),
@@ -382,9 +415,10 @@ export function useGameStore() {
       if (entry.text.length > 500) xp += 10;
       if (entry.deepMode) xp += 30;
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         journal: [{ ...entry, id: crypto.randomUUID() }, ...prev.journal],
         log: [{ date: new Date().toISOString(), action: `Diário${entry.deepMode ? ' (Modo Profundo)' : ''}`, xp, gold: 0 }, ...prev.log].slice(0, 100),
       };
@@ -460,12 +494,15 @@ export function useGameStore() {
   }, []);
 
   const addReflection = useCallback((entry: Omit<Reflection, 'id'>) => {
-    setState(prev => ({
-      ...prev,
-      xp: prev.xp + 15,
-      reflections: [{ ...entry, id: crypto.randomUUID() }, ...prev.reflections],
-      log: [{ date: new Date().toISOString(), action: 'Reflexão (Despertar)', xp: 15, gold: 0 }, ...prev.log].slice(0, 100),
-    }));
+    setState(prev => {
+      const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank);
+      return {
+        ...prev,
+        ...prog,
+        reflections: [{ ...entry, id: crypto.randomUUID() }, ...prev.reflections],
+        log: [{ date: new Date().toISOString(), action: 'Reflexão (Despertar)', xp: 15, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
   }, []);
 
   const deleteReflection = useCallback((id: string) => {
