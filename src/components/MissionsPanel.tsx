@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, ExternalLink, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 const CATEGORIES: MissionCategory[] = ['Estudo', 'Trabalho', 'Treino', 'Leitura', 'Espiritual', 'Social', 'Saúde', 'Mental', 'Financeiro', 'Criatividade'];
@@ -34,7 +35,7 @@ function formatTime(date: Date): string {
 }
 
 export default function MissionsPanel() {
-  const { state, addMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, deleteMission } = useGame();
+  const { state, addMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, failMission, deleteMission } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<MissionCategory>('Estudo');
@@ -106,6 +107,7 @@ export default function MissionsPanel() {
   const today = new Date().toISOString().split('T')[0];
   const active = state.missions.filter(m => m.status === 'Ativa');
   const completed = state.missions.filter(m => m.status === 'Concluída');
+  const failed = state.missions.filter(m => m.status === 'Falhada');
 
   // Get start time for dialog display
   const dialogMission = finishDialog ? state.missions.find(m => m.id === finishDialog) : null;
@@ -187,6 +189,7 @@ export default function MissionsPanel() {
             onFinish={() => handleOpenFinishDialog(m)}
             onCompleteDaily={() => { completeDailyMission(m.id); toast.success('Diária concluída!'); }}
             onIncrementCount={() => { incrementCountMission(m.id); toast.success('+2 XP!'); }}
+            onFail={() => failMission(m.id)}
             onDelete={() => deleteMission(m.id)}
           />
         ))}
@@ -199,6 +202,15 @@ export default function MissionsPanel() {
         <div className="space-y-2">
           <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Concluídas</h3>
           {completed.slice(0, 5).map(m => (
+            <MissionCard key={m.id} mission={m} today={today} />
+          ))}
+        </div>
+      )}
+
+      {failed.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs text-destructive uppercase tracking-wider">Falhadas</h3>
+          {failed.slice(0, 5).map(m => (
             <MissionCard key={m.id} mission={m} today={today} />
           ))}
         </div>
@@ -244,24 +256,27 @@ interface MissionCardProps {
   onFinish?: () => void;
   onCompleteDaily?: () => void;
   onIncrementCount?: () => void;
+  onFail?: () => void;
   onDelete?: () => void;
 }
 
-function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onDelete }: MissionCardProps) {
+function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete }: MissionCardProps) {
   const [showVideo, setShowVideo] = useState(false);
+  const [showFailConfirm, setShowFailConfirm] = useState(false);
   const isDone = mission.status === 'Concluída';
+  const isFailed = mission.status === 'Falhada';
   const isDailyDone = mission.missionType === 'Diária' && mission.lastCompletedDate === today;
   const isRunning = mission.missionType === 'Tempo' && !!mission.startedAt;
   const embedUrl = mission.videoUrl ? getEmbedUrl(mission.videoUrl) : null;
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''}`}
+      className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''} ${isFailed ? 'opacity-50 border-destructive/30' : ''}`}
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+            <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : isFailed ? 'line-through text-destructive' : 'text-foreground'}`}>
               {mission.name}
             </span>
             <span className={`text-[10px] font-display ${diffColors[mission.difficulty]}`}>{mission.difficulty}</span>
@@ -281,6 +296,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
               <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 🪙` : ''}</span>
             )}
             {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
+            {isFailed && <span className="text-destructive">❌ Falhada</span>}
             {mission.videoUrl && (
               <button
                 onClick={() => setShowVideo(!showVideo)}
@@ -293,7 +309,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
           </div>
         </div>
 
-        {!isDone && (
+        {!isDone && !isFailed && (
           <div className="flex gap-1 flex-shrink-0">
             {mission.missionType === 'Tempo' && !isRunning && (
               <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onStart} title="Iniciar">
@@ -315,12 +331,39 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                 <Plus className="w-4 h-4" />
               </Button>
             )}
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-destructive" onClick={() => setShowFailConfirm(true)} title="Marcar como falhada">
+              <XCircle className="w-4 h-4" />
+            </Button>
             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         )}
       </div>
+
+      {/* Fail confirmation dialog */}
+      <AlertDialog open={showFailConfirm} onOpenChange={setShowFailConfirm}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-destructive">Marcar como Falhada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja marcar esta missão como falhada? Você perderá XP e um Protocolo de Falha será ativado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                onFail?.();
+                toast.error('Missão marcada como falhada. Protocolo de Falha ativado.');
+              }}
+            >
+              Confirmar Falha
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Video embed */}
       <AnimatePresence>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
 export type MissionDifficulty = 'Fácil' | 'Normal' | 'Difícil';
-export type MissionStatus = 'Ativa' | 'Concluída';
+export type MissionStatus = 'Ativa' | 'Concluída' | 'Falhada';
 
 export interface Mission {
   id: string;
@@ -388,6 +388,37 @@ export function useGameStore() {
     });
   }, []);
 
+  const failMission = useCallback((id: string) => {
+    setState(prev => {
+      const mission = prev.missions.find(m => m.id === id);
+      if (!mission || mission.status !== 'Ativa') return prev;
+
+      const baseXp = XP_PER_HOUR[mission.difficulty];
+      const penaltyXp = -(baseXp * 2);
+      const prog = processLevelUp(Math.max(0, prev.xp + penaltyXp), prev.level, prev.rank);
+
+      const now = new Date();
+      const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+      return {
+        ...prev,
+        ...prog,
+        missions: prev.missions.map(m =>
+          m.id === id ? { ...m, status: 'Falhada' as const, startedAt: null } : m
+        ),
+        failureProtocols: [...prev.failureProtocols, {
+          id: crypto.randomUUID(),
+          triggeredAt: now.toISOString(),
+          deadline: deadline.toISOString(),
+          reason: `Missão falhada: ${mission.name}`,
+          penaltyType: 'Exercício' as FailurePenaltyType,
+          status: 'Pendente' as const,
+        }],
+        log: [{ date: now.toISOString(), action: `❌ Missão falhada: ${mission.name}`, xp: penaltyXp, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
   const deleteMission = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
@@ -605,6 +636,7 @@ export function useGameStore() {
     completeTimeMission,
     completeDailyMission,
     incrementCountMission,
+    failMission,
     deleteMission,
     addHabit,
     markHabit,
