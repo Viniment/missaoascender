@@ -150,7 +150,7 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
 
 const defaultState: PlayerState = {
   name: 'Jogador',
-  title: 'Renascendo das Cinzas',
+  title: 'Desperto',
   avatar: null,
   level: 1,
   xp: 0,
