@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,20 @@ const typeIcons: Record<MissionType, React.ReactNode> = {
   'Contagem': <Hash className="w-3 h-3" />,
 };
 
+function getEmbedUrl(url: string): string | null {
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  return null;
+}
+
+function formatTime(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
 export default function MissionsPanel() {
   const { state, addMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, deleteMission } = useGame();
   const [showForm, setShowForm] = useState(false);
@@ -29,10 +43,12 @@ export default function MissionsPanel() {
   const [targetCount, setTargetCount] = useState(2);
   const [dailyXp, setDailyXp] = useState(10);
   const [dailyGold, setDailyGold] = useState(5);
+  const [videoUrl, setVideoUrl] = useState('');
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
-  const [executedHours, setExecutedHours] = useState('');
+  const [finishTime, setFinishTime] = useState('');
+  const [finishStartedAt, setFinishStartedAt] = useState('');
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -41,6 +57,7 @@ export default function MissionsPanel() {
       category,
       difficulty,
       missionType,
+      videoUrl: videoUrl.trim() || undefined,
       startedAt: null,
       executedHours: 0,
       lastCompletedDate: null,
@@ -50,26 +67,48 @@ export default function MissionsPanel() {
       currentCount: missionType === 'Contagem' ? 0 : undefined,
     });
     setName('');
+    setVideoUrl('');
     setShowForm(false);
     toast.success('Missão adicionada!');
   };
 
+  const handleOpenFinishDialog = (mission: Mission) => {
+    const now = new Date();
+    setFinishTime(formatTime(now));
+    setFinishStartedAt(mission.startedAt || now.toISOString());
+    setFinishDialog(mission.id);
+  };
+
   const handleFinishTimeMission = () => {
     if (!finishDialog) return;
-    const hours = parseFloat(executedHours);
-    if (isNaN(hours) || hours <= 0) {
-      toast.error('Informe um tempo válido.');
+
+    const startDate = new Date(finishStartedAt);
+    const [endH, endM] = finishTime.split(':').map(Number);
+
+    // Build end date using same day as start, with user-provided time
+    const endDate = new Date(startDate);
+    endDate.setHours(endH, endM, 0, 0);
+
+    // If end time is earlier than start, check if it's next day scenario
+    if (endDate.getTime() <= startDate.getTime()) {
+      toast.error('Horário inválido — o horário final deve ser posterior ao início.');
       return;
     }
+
+    const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
     completeTimeMission(finishDialog, hours);
-    toast.success(`Missão concluída! ${hours.toFixed(1)}h executada(s)`);
+
+    const startStr = formatTime(startDate);
+    toast.success(`Missão concluída! ${startStr} → ${finishTime} (${hours.toFixed(1)}h)`);
     setFinishDialog(null);
-    setExecutedHours('');
   };
 
   const today = new Date().toISOString().split('T')[0];
   const active = state.missions.filter(m => m.status === 'Ativa');
   const completed = state.missions.filter(m => m.status === 'Concluída');
+
+  // Get start time for dialog display
+  const dialogMission = finishDialog ? state.missions.find(m => m.id === finishDialog) : null;
 
   return (
     <div className="space-y-4">
@@ -127,6 +166,12 @@ export default function MissionsPanel() {
               </div>
             )}
 
+            {/* Video URL */}
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+              <Input placeholder="https://youtube.com/watch?v=..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
+
             <Button className="w-full" onClick={handleAdd}>Adicionar Missão</Button>
           </motion.div>
         )}
@@ -139,13 +184,7 @@ export default function MissionsPanel() {
             mission={m}
             today={today}
             onStart={() => startTimeMission(m.id)}
-            onFinish={() => {
-              if (m.startedAt) {
-                const elapsed = (Date.now() - new Date(m.startedAt).getTime()) / 3600000;
-                setExecutedHours(elapsed.toFixed(1));
-              }
-              setFinishDialog(m.id);
-            }}
+            onFinish={() => handleOpenFinishDialog(m)}
             onCompleteDaily={() => { completeDailyMission(m.id); toast.success('Diária concluída!'); }}
             onIncrementCount={() => { incrementCountMission(m.id); toast.success('+2 XP!'); }}
             onDelete={() => deleteMission(m.id)}
@@ -169,19 +208,24 @@ export default function MissionsPanel() {
       <Dialog open={!!finishDialog} onOpenChange={() => setFinishDialog(null)}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="font-display text-primary">Quanto tempo você realmente executou?</DialogTitle>
+            <DialogTitle className="font-display text-primary">Finalizar Missão</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">Tempo em horas (ex: 0.5 = 30min, 1.5 = 1h30)</label>
-            <Input
-              type="number"
-              step="0.1"
-              min="0.1"
-              value={executedHours}
-              onChange={e => setExecutedHours(e.target.value)}
-              className="bg-secondary border-border"
-              placeholder="Ex: 1.5"
-            />
+          <div className="space-y-3">
+            {dialogMission?.startedAt && (
+              <div className="text-sm text-muted-foreground">
+                ⏱ Início: <span className="text-foreground font-display">{formatTime(new Date(dialogMission.startedAt))}</span>
+              </div>
+            )}
+            <div>
+              <label className="text-sm text-muted-foreground">Hora que finalizei a tarefa</label>
+              <Input
+                type="time"
+                value={finishTime}
+                onChange={e => setFinishTime(e.target.value)}
+                className="bg-secondary border-border"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Ajuste se necessário. O sistema calcula a duração automaticamente.</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setFinishDialog(null)}>Cancelar</Button>
@@ -204,62 +248,112 @@ interface MissionCardProps {
 }
 
 function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onDelete }: MissionCardProps) {
+  const [showVideo, setShowVideo] = useState(false);
   const isDone = mission.status === 'Concluída';
   const isDailyDone = mission.missionType === 'Diária' && mission.lastCompletedDate === today;
   const isRunning = mission.missionType === 'Tempo' && !!mission.startedAt;
+  const embedUrl = mission.videoUrl ? getEmbedUrl(mission.videoUrl) : null;
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className={`rpg-panel flex items-center gap-3 ${isDone || isDailyDone ? 'opacity-60' : ''}`}
+      className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''}`}
     >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-            {mission.name}
-          </span>
-          <span className={`text-[10px] font-display ${diffColors[mission.difficulty]}`}>{mission.difficulty}</span>
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+              {mission.name}
+            </span>
+            <span className={`text-[10px] font-display ${diffColors[mission.difficulty]}`}>{mission.difficulty}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
+            <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
+            <span>{mission.category}</span>
+            {isRunning && (
+              <span className="text-primary animate-pulse-glow">
+                ⏱ Iniciado às {formatTime(new Date(mission.startedAt!))}
+              </span>
+            )}
+            {mission.missionType === 'Contagem' && (
+              <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
+            )}
+            {isDone && mission.xpEarned !== undefined && (
+              <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 🪙` : ''}</span>
+            )}
+            {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
+            {mission.videoUrl && (
+              <button
+                onClick={() => setShowVideo(!showVideo)}
+                className="flex items-center gap-1 text-neon-blue hover:text-primary transition-colors"
+              >
+                <Video className="w-3 h-3" />
+                {showVideo ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-          <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
-          <span>{mission.category}</span>
-          {isRunning && <span className="text-primary animate-pulse-glow">⏱ Em andamento</span>}
-          {mission.missionType === 'Contagem' && (
-            <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
-          )}
-          {isDone && mission.xpEarned !== undefined && (
-            <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 🪙` : ''}</span>
-          )}
-          {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
-        </div>
+
+        {!isDone && (
+          <div className="flex gap-1 flex-shrink-0">
+            {mission.missionType === 'Tempo' && !isRunning && (
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onStart} title="Iniciar">
+                <Play className="w-4 h-4" />
+              </Button>
+            )}
+            {mission.missionType === 'Tempo' && isRunning && (
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-warning" onClick={onFinish} title="Finalizar">
+                <Square className="w-4 h-4" />
+              </Button>
+            )}
+            {mission.missionType === 'Diária' && !isDailyDone && (
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onCompleteDaily} title="Completar">
+                <Check className="w-4 h-4" />
+              </Button>
+            )}
+            {mission.missionType === 'Contagem' && (mission.currentCount || 0) < (mission.targetCount || 0) && (
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onIncrementCount} title="+1">
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
-      {!isDone && (
-        <div className="flex gap-1 flex-shrink-0">
-          {mission.missionType === 'Tempo' && !isRunning && (
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onStart} title="Iniciar">
-              <Play className="w-4 h-4" />
-            </Button>
-          )}
-          {mission.missionType === 'Tempo' && isRunning && (
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-warning" onClick={onFinish} title="Finalizar">
-              <Square className="w-4 h-4" />
-            </Button>
-          )}
-          {mission.missionType === 'Diária' && !isDailyDone && (
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onCompleteDaily} title="Completar">
-              <Check className="w-4 h-4" />
-            </Button>
-          )}
-          {mission.missionType === 'Contagem' && (mission.currentCount || 0) < (mission.targetCount || 0) && (
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onIncrementCount} title="+1">
-              <Plus className="w-4 h-4" />
-            </Button>
-          )}
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
+      {/* Video embed */}
+      <AnimatePresence>
+        {showVideo && mission.videoUrl && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="pt-2 border-t border-border"
+          >
+            {embedUrl ? (
+              <div className="aspect-video rounded-md overflow-hidden border border-border">
+                <iframe
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Video"
+                />
+              </div>
+            ) : (
+              <a
+                href={mission.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-neon-blue hover:text-primary transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" /> Abrir vídeo
+              </a>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
