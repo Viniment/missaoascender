@@ -256,12 +256,15 @@ interface MissionCardProps {
   onFinish?: () => void;
   onCompleteDaily?: () => void;
   onIncrementCount?: () => void;
+  onFail?: () => void;
   onDelete?: () => void;
 }
 
-function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onDelete }: MissionCardProps) {
+function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete }: MissionCardProps) {
   const [showVideo, setShowVideo] = useState(false);
+  const [showFailConfirm, setShowFailConfirm] = useState(false);
   const isDone = mission.status === 'Concluída';
+  const isFailed = mission.status === 'Falhada';
   const isDailyDone = mission.missionType === 'Diária' && mission.lastCompletedDate === today;
   const isRunning = mission.missionType === 'Tempo' && !!mission.startedAt;
   const embedUrl = mission.videoUrl ? getEmbedUrl(mission.videoUrl) : null;
