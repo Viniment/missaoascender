@@ -207,6 +207,15 @@ export default function MissionsPanel() {
         </div>
       )}
 
+      {failed.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-xs text-destructive uppercase tracking-wider">Falhadas</h3>
+          {failed.slice(0, 5).map(m => (
+            <MissionCard key={m.id} mission={m} today={today} />
+          ))}
+        </div>
+      )}
+
       {/* Finish Time Mission Dialog */}
       <Dialog open={!!finishDialog} onOpenChange={() => setFinishDialog(null)}>
         <DialogContent className="bg-card border-border">
