@@ -497,11 +497,12 @@ export function useGameStore() {
     setState(prev => {
       const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank);
       return {
-      ...prev,
-      ...prog,
-      reflections: [{ ...entry, id: crypto.randomUUID() }, ...prev.reflections],
-      log: [{ date: new Date().toISOString(), action: 'Reflexão (Despertar)', xp: 15, gold: 0 }, ...prev.log].slice(0, 100),
-    }));
+        ...prev,
+        ...prog,
+        reflections: [{ ...entry, id: crypto.randomUUID() }, ...prev.reflections],
+        log: [{ date: new Date().toISOString(), action: 'Reflexão (Despertar)', xp: 15, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
   }, []);
 
   const deleteReflection = useCallback((id: string) => {
