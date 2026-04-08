@@ -30,6 +30,7 @@ type TabId = typeof TABS[number]['id'];
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
+  const navigate = useNavigate();
 
   const renderContent = () => {
     switch (activeTab) {
