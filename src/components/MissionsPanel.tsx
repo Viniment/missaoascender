@@ -107,6 +107,7 @@ export default function MissionsPanel() {
   const today = new Date().toISOString().split('T')[0];
   const active = state.missions.filter(m => m.status === 'Ativa');
   const completed = state.missions.filter(m => m.status === 'Concluída');
+  const failed = state.missions.filter(m => m.status === 'Falhada');
 
   // Get start time for dialog display
   const dialogMission = finishDialog ? state.missions.find(m => m.id === finishDialog) : null;
@@ -188,6 +189,7 @@ export default function MissionsPanel() {
             onFinish={() => handleOpenFinishDialog(m)}
             onCompleteDaily={() => { completeDailyMission(m.id); toast.success('Diária concluída!'); }}
             onIncrementCount={() => { incrementCountMission(m.id); toast.success('+2 XP!'); }}
+            onFail={() => failMission(m.id)}
             onDelete={() => deleteMission(m.id)}
           />
         ))}
