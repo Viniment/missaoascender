@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 export default function SystemPanel() {
   const { state, dailyCheckIn } = useGame();
 
-  const pendingMissions = state.missions.filter(m => !m.completed).length;
+  const pendingMissions = state.missions.filter(m => m.status === 'Ativa').length;
   const nextLevel = state.level + 1;
   const xpNeeded = state.xpToNext - state.xp;
 

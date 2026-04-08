@@ -1,14 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 
 // Types
+export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
+export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
+export type MissionDifficulty = 'Fácil' | 'Normal' | 'Difícil';
+export type MissionStatus = 'Ativa' | 'Concluída';
+
 export interface Mission {
   id: string;
   name: string;
-  type: 'Estudo' | 'Treino' | 'Leitura' | 'Trabalho' | 'Pessoal';
-  difficulty: 'Fácil' | 'Normal' | 'Difícil';
-  startTime: string;
-  endTime: string;
-  completed: boolean;
+  category: MissionCategory;
+  difficulty: MissionDifficulty;
+  missionType: MissionType;
+  status: MissionStatus;
+  // Time mission
+  startedAt?: string | null;
+  executedHours?: number;
+  // Daily mission
+  lastCompletedDate?: string | null;
+  dailyXp?: number;
+  dailyGold?: number;
+  // Count mission
+  targetCount?: number;
+  currentCount?: number;
+  // Results
   xpEarned?: number;
   goldEarned?: number;
 }
@@ -38,6 +53,13 @@ export interface Challenge {
   failed: boolean;
 }
 
+export interface Reward {
+  id: string;
+  name: string;
+  cost: number;
+  redeemed: boolean;
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -57,10 +79,8 @@ export interface PlayerState {
   challenges: Challenge[];
   log: { date: string; action: string; xp: number; gold: number }[];
   awakening: { become: string; reject: string; pain: string };
-  rewards: { id: string; name: string; cost: number; icon: string }[];
+  rewards: Reward[];
 }
-
-const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'];
 
 function getRank(level: number): string {
   if (level < 5) return 'E';
@@ -72,8 +92,14 @@ function getRank(level: number): string {
   return 'Monarca';
 }
 
+// New escalating XP curve
 function getXpToNext(level: number): number {
-  return Math.floor(100 * Math.pow(1.3, level - 1));
+  if (level === 1) return 100;
+  if (level === 2) return 250;
+  if (level === 3) return 500;
+  if (level === 4) return 900;
+  // After level 4: each level adds ~60% more
+  return Math.floor(900 * Math.pow(1.6, level - 4));
 }
 
 const defaultState: PlayerState = {
@@ -95,12 +121,7 @@ const defaultState: PlayerState = {
   challenges: [],
   log: [],
   awakening: { become: '', reject: '', pain: '' },
-  rewards: [
-    { id: '1', name: 'Tempo Livre (1h)', cost: 150, icon: '🕐' },
-    { id: '2', name: 'Jogar', cost: 50, icon: '🎮' },
-    { id: '3', name: 'Filme / Série', cost: 100, icon: '🎬' },
-    { id: '4', name: 'Lanche Especial', cost: 75, icon: '🍕' },
-  ],
+  rewards: [],
 };
 
 function loadState(): PlayerState {
@@ -108,20 +129,28 @@ function loadState(): PlayerState {
     const saved = localStorage.getItem('ascensao-state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Check daily reset
       const today = new Date().toISOString().split('T')[0];
       if (parsed.lastLogin && parsed.lastLogin !== today) {
         parsed.todayCheckedIn = false;
       }
       return { ...defaultState, ...parsed };
     }
-  } catch {}
+  } catch { /* ignore */ }
   return defaultState;
 }
 
 function saveState(state: PlayerState) {
   localStorage.setItem('ascensao-state', JSON.stringify(state));
 }
+
+// XP per hour by difficulty
+const XP_PER_HOUR: Record<MissionDifficulty, number> = {
+  'Fácil': 5,
+  'Normal': 10,
+  'Difícil': 20,
+};
+
+const GOLD_PER_HOUR = 20;
 
 export function useGameStore() {
   const [state, setState] = useState<PlayerState>(loadState);
@@ -144,24 +173,22 @@ export function useGameStore() {
 
       if (newXp < 0) newXp = 0;
 
-      const newRank = getRank(newLevel);
-
       return {
         ...prev,
         xp: newXp,
         level: newLevel,
         xpToNext: newXpToNext,
-        rank: newRank,
+        rank: getRank(newLevel),
         log: [{ date: new Date().toISOString(), action, xp: amount, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
   }, []);
 
-  const addGold = useCallback((amount: number, action: string) => {
+  const addGold = useCallback((_amount: number, _action: string) => {
     setState(prev => ({
       ...prev,
-      gold: Math.max(0, prev.gold + amount),
-      log: [{ date: new Date().toISOString(), action, xp: 0, gold: amount }, ...prev.log].slice(0, 100),
+      gold: Math.max(0, prev.gold + _amount),
+      log: [{ date: new Date().toISOString(), action: _action, xp: 0, gold: _amount }, ...prev.log].slice(0, 100),
     }));
   }, []);
 
@@ -209,32 +236,97 @@ export function useGameStore() {
     });
   }, []);
 
-  const addMission = useCallback((mission: Omit<Mission, 'id' | 'completed'>) => {
+  const addMission = useCallback((mission: Omit<Mission, 'id' | 'status'>) => {
     setState(prev => ({
       ...prev,
-      missions: [...prev.missions, { ...mission, id: crypto.randomUUID(), completed: false }],
+      missions: [...prev.missions, { ...mission, id: crypto.randomUUID(), status: 'Ativa' }],
     }));
   }, []);
 
-  const completeMission = useCallback((id: string) => {
+  // Start a time-based mission
+  const startTimeMission = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      missions: prev.missions.map(m =>
+        m.id === id ? { ...m, startedAt: new Date().toISOString() } : m
+      ),
+    }));
+  }, []);
+
+  // Complete a time-based mission with manually adjusted hours
+  const completeTimeMission = useCallback((id: string, executedHours: number) => {
     setState(prev => {
       const mission = prev.missions.find(m => m.id === id);
-      if (!mission || mission.completed) return prev;
+      if (!mission || mission.status === 'Concluída') return prev;
 
-      const start = new Date(`2000-01-01T${mission.startTime}`);
-      const end = new Date(`2000-01-01T${mission.endTime}`);
-      const minutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
-
-      const multiplier = mission.difficulty === 'Fácil' ? 0.2 : mission.difficulty === 'Normal' ? 0.5 : 1;
-      const xp = Math.floor(minutes * multiplier);
-      const gold = Math.floor((minutes / 60) * 50);
+      const xp = Math.floor(executedHours * XP_PER_HOUR[mission.difficulty]);
+      const gold = Math.floor(executedHours * GOLD_PER_HOUR);
 
       return {
         ...prev,
         xp: prev.xp + xp,
         gold: prev.gold + gold,
-        missions: prev.missions.map(m => m.id === id ? { ...m, completed: true, xpEarned: xp, goldEarned: gold } : m),
-        log: [{ date: new Date().toISOString(), action: `Missão: ${mission.name}`, xp, gold }, ...prev.log].slice(0, 100),
+        missions: prev.missions.map(m =>
+          m.id === id ? { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null } : m
+        ),
+        log: [{ date: new Date().toISOString(), action: `Missão: ${mission.name} (${executedHours.toFixed(1)}h)`, xp, gold }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // Complete a daily mission
+  const completeDailyMission = useCallback((id: string) => {
+    setState(prev => {
+      const mission = prev.missions.find(m => m.id === id);
+      if (!mission || mission.status === 'Concluída') return prev;
+
+      const today = new Date().toISOString().split('T')[0];
+      if (mission.lastCompletedDate === today) return prev;
+
+      const xp = mission.dailyXp || 5;
+      const gold = mission.dailyGold || 5;
+
+      return {
+        ...prev,
+        xp: prev.xp + xp,
+        gold: prev.gold + gold,
+        missions: prev.missions.map(m =>
+          m.id === id ? { ...m, lastCompletedDate: today, xpEarned: xp, goldEarned: gold } : m
+        ),
+        log: [{ date: new Date().toISOString(), action: `Diária: ${mission.name}`, xp, gold }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // Increment count mission
+  const incrementCountMission = useCallback((id: string) => {
+    setState(prev => {
+      const mission = prev.missions.find(m => m.id === id);
+      if (!mission || mission.status === 'Concluída') return prev;
+
+      const newCount = (mission.currentCount || 0) + 1;
+      const target = mission.targetCount || 1;
+      const isComplete = newCount >= target;
+
+      let xp = 2; // Each execution
+      let gold = 0;
+      if (isComplete) {
+        xp += 5; // Bonus for completing all
+      }
+
+      return {
+        ...prev,
+        xp: prev.xp + xp,
+        gold: prev.gold + gold,
+        missions: prev.missions.map(m =>
+          m.id === id ? {
+            ...m,
+            currentCount: newCount,
+            status: isComplete ? 'Concluída' as const : 'Ativa' as const,
+            xpEarned: (m.xpEarned || 0) + xp,
+          } : m
+        ),
+        log: [{ date: new Date().toISOString(), action: `Contagem: ${mission.name} (${newCount}/${target})${isComplete ? ' ✔️' : ''}`, xp, gold }, ...prev.log].slice(0, 100),
       };
     });
   }, []);
@@ -290,17 +382,33 @@ export function useGameStore() {
     });
   }, []);
 
+  // Custom rewards
+  const addReward = useCallback((reward: Omit<Reward, 'id' | 'redeemed'>) => {
+    setState(prev => ({
+      ...prev,
+      rewards: [...prev.rewards, { ...reward, id: crypto.randomUUID(), redeemed: false }],
+    }));
+  }, []);
+
   const redeemReward = useCallback((id: string) => {
     setState(prev => {
       const reward = prev.rewards.find(r => r.id === id);
-      if (!reward || prev.gold < reward.cost) return prev;
+      if (!reward || prev.gold < reward.cost || reward.redeemed) return prev;
 
       return {
         ...prev,
         gold: prev.gold - reward.cost,
+        rewards: prev.rewards.map(r => r.id === id ? { ...r, redeemed: true } : r),
         log: [{ date: new Date().toISOString(), action: `Resgate: ${reward.name}`, xp: 0, gold: -reward.cost }, ...prev.log].slice(0, 100),
       };
     });
+  }, []);
+
+  const deleteReward = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      rewards: prev.rewards.filter(r => r.id !== id),
+    }));
   }, []);
 
   const updateAwakening = useCallback((field: 'become' | 'reject' | 'pain', value: string) => {
@@ -348,13 +456,18 @@ export function useGameStore() {
     addGold,
     dailyCheckIn,
     addMission,
-    completeMission,
+    startTimeMission,
+    completeTimeMission,
+    completeDailyMission,
+    incrementCountMission,
     deleteMission,
     addHabit,
     markHabit,
     deleteHabit,
     addJournalEntry,
+    addReward,
     redeemReward,
+    deleteReward,
     updateAwakening,
     updateProfile,
     addChallenge,
