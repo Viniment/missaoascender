@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useGame, type Mission } from '@/lib/GameContext';
+import { useGame } from '@/lib/GameContext';
+import type { Mission } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, Trash2, Clock, Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
