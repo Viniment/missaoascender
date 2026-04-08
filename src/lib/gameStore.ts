@@ -258,13 +258,14 @@ export function useGameStore() {
       const xpGain = 10;
       const totalXp = xpGain + xpPenalty;
 
+      const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank);
       return {
         ...prev,
         todayCheckedIn: true,
         lastLogin: today,
         streak,
         missedDays,
-        xp: Math.max(0, prev.xp + totalXp),
+        ...prog,
         log: [
           { date: new Date().toISOString(), action: `Check-in diário${xpPenalty < 0 ? ` (penalidade: ${xpPenalty} XP)` : ''}`, xp: totalXp, gold: 0 },
           ...prev.log
@@ -299,9 +300,10 @@ export function useGameStore() {
       const xp = Math.floor(executedHours * XP_PER_HOUR[mission.difficulty]);
       const gold = Math.floor(executedHours * GOLD_PER_HOUR);
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null } : m
@@ -323,9 +325,10 @@ export function useGameStore() {
       const xp = mission.dailyXp || 5;
       const gold = mission.dailyGold || 5;
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? { ...m, lastCompletedDate: today, xpEarned: xp, goldEarned: gold } : m
@@ -351,9 +354,10 @@ export function useGameStore() {
         xp += 5; // Bonus for completing all
       }
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? {
@@ -386,9 +390,10 @@ export function useGameStore() {
     const today = new Date().toISOString().split('T')[0];
     setState(prev => {
       const xp = status === 'done' ? 50 : -100;
+      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank);
       return {
         ...prev,
-        xp: Math.max(0, prev.xp + xp),
+        ...prog,
         habits: prev.habits.map(h =>
           h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
         ),
@@ -410,9 +415,10 @@ export function useGameStore() {
       if (entry.text.length > 500) xp += 10;
       if (entry.deepMode) xp += 30;
 
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
         ...prev,
-        xp: prev.xp + xp,
+        ...prog,
         journal: [{ ...entry, id: crypto.randomUUID() }, ...prev.journal],
         log: [{ date: new Date().toISOString(), action: `Diário${entry.deepMode ? ' (Modo Profundo)' : ''}`, xp, gold: 0 }, ...prev.log].slice(0, 100),
       };
@@ -488,9 +494,11 @@ export function useGameStore() {
   }, []);
 
   const addReflection = useCallback((entry: Omit<Reflection, 'id'>) => {
-    setState(prev => ({
+    setState(prev => {
+      const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank);
+      return {
       ...prev,
-      xp: prev.xp + 15,
+      ...prog,
       reflections: [{ ...entry, id: crypto.randomUUID() }, ...prev.reflections],
       log: [{ date: new Date().toISOString(), action: 'Reflexão (Despertar)', xp: 15, gold: 0 }, ...prev.log].slice(0, 100),
     }));
