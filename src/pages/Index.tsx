@@ -1,16 +1,143 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import PlayerCard from '@/components/PlayerCard';
+import SystemPanel from '@/components/SystemPanel';
+import MissionsPanel from '@/components/MissionsPanel';
+import PomodoroTimer from '@/components/PomodoroTimer';
+import HabitsPanel from '@/components/HabitsPanel';
+import JournalPanel from '@/components/JournalPanel';
+import AwakeningPage from '@/components/AwakeningPage';
+import RewardsShop from '@/components/RewardsShop';
+import HistoryLog from '@/components/HistoryLog';
+import ChallengesPanel from '@/components/ChallengesPanel';
+import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const TABS = [
+  { id: 'missions', label: 'Missões', icon: Swords },
+  { id: 'habits', label: 'Hábitos', icon: Sparkles },
+  { id: 'challenges', label: 'Desafios', icon: Shield },
+  { id: 'journal', label: 'Diário', icon: BookOpen },
+  { id: 'timer', label: 'Timer', icon: Timer },
+  { id: 'awakening', label: 'Despertar', icon: Eye },
+  { id: 'rewards', label: 'Loja', icon: Gift },
+  { id: 'history', label: 'Log', icon: ScrollText },
+] as const;
+
+type TabId = typeof TABS[number]['id'];
+
+export default function Index() {
+  const [activeTab, setActiveTab] = useState<TabId>('missions');
+  const [mobileMenu, setMobileMenu] = useState(false);
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'missions': return <MissionsPanel />;
+      case 'habits': return <HabitsPanel />;
+      case 'challenges': return <ChallengesPanel />;
+      case 'journal': return <JournalPanel />;
+      case 'timer': return <PomodoroTimer />;
+      case 'awakening': return <AwakeningPage />;
+      case 'rewards': return <RewardsShop />;
+      case 'history': return <HistoryLog />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
+          <h1 className="font-display text-lg tracking-widest text-primary glow-text-purple">
+            ⟐ ASCENSÃO
+          </h1>
+          <button
+            className="md:hidden text-foreground"
+            onClick={() => setMobileMenu(!mobileMenu)}
+          >
+            {mobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+          {/* Desktop nav */}
+          <nav className="hidden md:flex gap-1">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-body transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-primary/10 text-primary border-glow'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+              >
+                <tab.icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Mobile nav */}
+        <AnimatePresence>
+          {mobileMenu && (
+            <motion.nav
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-border bg-background"
+            >
+              <div className="grid grid-cols-4 gap-1 p-2">
+                {TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id); setMobileMenu(false); }}
+                    className={`flex flex-col items-center gap-1 py-2 rounded-md text-xs transition-colors ${
+                      activeTab === tab.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </motion.nav>
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left sidebar - Player */}
+          <div className="lg:col-span-3 space-y-4">
+            <PlayerCard />
+            <div className="hidden lg:block">
+              <SystemPanel />
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="lg:col-span-6">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </div>
+
+          {/* Right sidebar - System */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="lg:hidden">
+              <SystemPanel />
+            </div>
+            <div className="hidden lg:block">
+              <PomodoroTimer />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
