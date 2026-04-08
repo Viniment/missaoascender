@@ -271,12 +271,12 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''}`}
+      className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''} ${isFailed ? 'opacity-50 border-destructive/30' : ''}`}
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+            <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : isFailed ? 'line-through text-destructive' : 'text-foreground'}`}>
               {mission.name}
             </span>
             <span className={`text-[10px] font-display ${diffColors[mission.difficulty]}`}>{mission.difficulty}</span>
@@ -308,7 +308,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
           </div>
         </div>
 
-        {!isDone && (
+        {!isDone && !isFailed && (
           <div className="flex gap-1 flex-shrink-0">
             {mission.missionType === 'Tempo' && !isRunning && (
               <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onStart} title="Iniciar">
@@ -330,12 +330,39 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                 <Plus className="w-4 h-4" />
               </Button>
             )}
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-destructive" onClick={() => setShowFailConfirm(true)} title="Marcar como falhada">
+              <XCircle className="w-4 h-4" />
+            </Button>
             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         )}
       </div>
+
+      {/* Fail confirmation dialog */}
+      <AlertDialog open={showFailConfirm} onOpenChange={setShowFailConfirm}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-destructive">Marcar como Falhada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja marcar esta missão como falhada? Você perderá XP e um Protocolo de Falha será ativado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                onFail?.();
+                toast.error('Missão marcada como falhada. Protocolo de Falha ativado.');
+              }}
+            >
+              Confirmar Falha
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Video embed */}
       <AnimatePresence>
