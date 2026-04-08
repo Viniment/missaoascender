@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
 import MissionsPanel from '@/components/MissionsPanel';
@@ -10,7 +11,7 @@ import RewardsShop from '@/components/RewardsShop';
 import HistoryLog from '@/components/HistoryLog';
 import ChallengesPanel from '@/components/ChallengesPanel';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
-import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -29,6 +30,7 @@ type TabId = typeof TABS[number]['id'];
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
+  const navigate = useNavigate();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -51,12 +53,21 @@ export default function Index() {
           <h1 className="font-display text-lg tracking-widest text-primary glow-text-purple">
             ⟐ ASCENSÃO
           </h1>
-          <button
-            className="md:hidden text-foreground"
-            onClick={() => setMobileMenu(!mobileMenu)}
-          >
-            {mobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/settings')}
+              className="text-muted-foreground hover:text-primary transition-colors"
+              title="Configurações"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            <button
+              className="md:hidden text-foreground"
+              onClick={() => setMobileMenu(!mobileMenu)}
+            >
+              {mobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex gap-1">
