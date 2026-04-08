@@ -102,6 +102,7 @@ export interface PlayerState {
   awakening: { become: string; reject: string; pain: string };
   rewards: Reward[];
   reflections: Reflection[];
+  failureProtocols: FailureProtocol[];
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -183,6 +184,7 @@ const defaultState: PlayerState = {
   awakening: { become: '', reject: '', pain: '' },
   rewards: [],
   reflections: [],
+  failureProtocols: [],
 };
 
 function loadState(): PlayerState {
@@ -403,15 +405,35 @@ export function useGameStore() {
   const markHabit = useCallback((id: string, status: 'done' | 'failed') => {
     const today = new Date().toISOString().split('T')[0];
     setState(prev => {
-      const xp = status === 'done' ? 50 : -100;
+      const habit = prev.habits.find(h => h.id === id);
+      if (!habit) return prev;
+
+      const baseXp = XP_PER_HOUR[habit.difficulty] || 10;
+      const xp = status === 'done' ? baseXp : -(baseXp * 2);
       const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank);
+
+      let newProtocols = prev.failureProtocols;
+      if (status === 'failed') {
+        const now = new Date();
+        const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        newProtocols = [...prev.failureProtocols, {
+          id: crypto.randomUUID(),
+          triggeredAt: now.toISOString(),
+          deadline: deadline.toISOString(),
+          reason: `Hábito falhado: ${habit.name}`,
+          penaltyType: 'Exercício' as FailurePenaltyType,
+          status: 'Pendente' as const,
+        }];
+      }
+
       return {
         ...prev,
         ...prog,
         habits: prev.habits.map(h =>
           h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
         ),
-        log: [{ date: new Date().toISOString(), action: `Hábito ${status === 'done' ? '✔️' : '❌'}`, xp, gold: 0 }, ...prev.log].slice(0, 100),
+        failureProtocols: newProtocols,
+        log: [{ date: new Date().toISOString(), action: `Hábito ${status === 'done' ? '✔️' : '❌'}: ${habit.name}`, xp, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
   }, []);
@@ -526,6 +548,53 @@ export function useGameStore() {
     }));
   }, []);
 
+  const completeFailureProtocol = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      failureProtocols: prev.failureProtocols.map(fp =>
+        fp.id === id ? { ...fp, status: 'Concluído' as const } : fp
+      ),
+      log: [{ date: new Date().toISOString(), action: 'Protocolo de Falha concluído', xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+    }));
+  }, []);
+
+  const updateFailureProtocolPenalty = useCallback((id: string, penaltyType: FailurePenaltyType, customPenalty?: string) => {
+    setState(prev => ({
+      ...prev,
+      failureProtocols: prev.failureProtocols.map(fp =>
+        fp.id === id ? { ...fp, penaltyType, customPenalty } : fp
+      ),
+    }));
+  }, []);
+
+  // Check and apply expired failure protocols
+  const checkExpiredProtocols = useCallback(() => {
+    setState(prev => {
+      const now = new Date();
+      const pending = prev.failureProtocols.filter(fp => fp.status === 'Pendente' && new Date(fp.deadline) < now);
+      if (pending.length === 0) return prev;
+
+      // Apply heavy penalties: reset streak, lose 200 XP per expired protocol
+      const totalPenalty = pending.length * -200;
+      const prog = processLevelUp(Math.max(0, prev.xp + totalPenalty), prev.level, prev.rank);
+
+      return {
+        ...prev,
+        ...prog,
+        streak: 0,
+        failureProtocols: prev.failureProtocols.map(fp =>
+          fp.status === 'Pendente' && new Date(fp.deadline) < now
+            ? { ...fp, status: 'Concluído' as const }
+            : fp
+        ),
+        log: [
+          { date: now.toISOString(), action: `💀 Protocolo(s) de Falha expirado(s): ${totalPenalty} XP, streak resetado`, xp: totalPenalty, gold: 0 },
+          ...prev.log
+        ].slice(0, 100),
+      };
+    });
+  }, []);
+
   return {
     state,
     addXp,
@@ -551,5 +620,8 @@ export function useGameStore() {
     failChallenge,
     addReflection,
     deleteReflection,
+    completeFailureProtocol,
+    updateFailureProtocolPenalty,
+    checkExpiredProtocols,
   };
 }
