@@ -60,6 +60,13 @@ export interface Reward {
   redeemed: boolean;
 }
 
+export interface Reflection {
+  id: string;
+  question: string;
+  answerHtml: string;
+  date: string;
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -80,6 +87,7 @@ export interface PlayerState {
   log: { date: string; action: string; xp: number; gold: number }[];
   awakening: { become: string; reject: string; pain: string };
   rewards: Reward[];
+  reflections: Reflection[];
 }
 
 function getRank(level: number): string {
@@ -122,6 +130,7 @@ const defaultState: PlayerState = {
   log: [],
   awakening: { become: '', reject: '', pain: '' },
   rewards: [],
+  reflections: [],
 };
 
 function loadState(): PlayerState {
@@ -450,6 +459,22 @@ export function useGameStore() {
     }));
   }, []);
 
+  const addReflection = useCallback((entry: Omit<Reflection, 'id'>) => {
+    setState(prev => ({
+      ...prev,
+      xp: prev.xp + 15,
+      reflections: [{ ...entry, id: crypto.randomUUID() }, ...prev.reflections],
+      log: [{ date: new Date().toISOString(), action: 'Reflexão (Despertar)', xp: 15, gold: 0 }, ...prev.log].slice(0, 100),
+    }));
+  }, []);
+
+  const deleteReflection = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      reflections: prev.reflections.filter(r => r.id !== id),
+    }));
+  }, []);
+
   return {
     state,
     addXp,
@@ -473,5 +498,7 @@ export function useGameStore() {
     addChallenge,
     completeStep,
     failChallenge,
+    addReflection,
+    deleteReflection,
   };
 }
