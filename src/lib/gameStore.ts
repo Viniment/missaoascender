@@ -35,7 +35,20 @@ export interface Habit {
   icon: string;
   color: string;
   endDate: string;
+  difficulty: MissionDifficulty;
   history: Record<string, 'done' | 'failed'>;
+}
+
+export type FailurePenaltyType = 'Exercício' | 'Meditação' | 'Reflexão' | 'Outro';
+
+export interface FailureProtocol {
+  id: string;
+  triggeredAt: string;
+  deadline: string;
+  reason: string;
+  penaltyType: FailurePenaltyType;
+  customPenalty?: string;
+  status: 'Pendente' | 'Concluído';
 }
 
 export interface JournalEntry {
