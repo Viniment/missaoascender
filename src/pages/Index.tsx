@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
 import MissionsPanel from '@/components/MissionsPanel';
@@ -10,7 +11,7 @@ import RewardsShop from '@/components/RewardsShop';
 import HistoryLog from '@/components/HistoryLog';
 import ChallengesPanel from '@/components/ChallengesPanel';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
-import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [

@@ -163,7 +163,7 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
   };
 }
 
-const defaultState: PlayerState = {
+export const defaultState: PlayerState = {
   name: 'Jogador',
   title: 'Desperto',
   avatar: null,
