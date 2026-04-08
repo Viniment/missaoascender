@@ -13,6 +13,7 @@ export interface Mission {
   difficulty: MissionDifficulty;
   missionType: MissionType;
   status: MissionStatus;
+  videoUrl?: string;
   // Time mission
   startedAt?: string | null;
   executedHours?: number;
