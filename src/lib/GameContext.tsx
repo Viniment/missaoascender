@@ -14,7 +14,7 @@ const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const store = useGameStore();
-  const { user } = useAuth();
+  
   const { resetProgress, deleteAccount } = usePlayerData(
     store.state,
     store.setState,

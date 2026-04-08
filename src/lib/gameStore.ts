@@ -628,6 +628,8 @@ export function useGameStore() {
 
   return {
     state,
+    setState,
+    defaultState,
     addXp,
     addGold,
     dailyCheckIn,
