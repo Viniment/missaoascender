@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
+import type { MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, X, Trash2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
 const COLORS = ['#7B2FF7', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
+const DIFFICULTIES: MissionDifficulty[] = ['Fácil', 'Normal', 'Difícil'];
+const XP_MAP: Record<MissionDifficulty, number> = { 'Fácil': 5, 'Normal': 10, 'Difícil': 20 };
+const diffColors: Record<MissionDifficulty, string> = { 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' };
 
 export default function HabitsPanel() {
   const { state, addHabit, markHabit, deleteHabit } = useGame();
@@ -16,11 +21,12 @@ export default function HabitsPanel() {
   const [icon, setIcon] = useState('💪');
   const [color, setColor] = useState(COLORS[0]);
   const [endDate, setEndDate] = useState('');
+  const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
   const today = new Date().toISOString().split('T')[0];
 
   const handleAdd = () => {
     if (!name.trim()) return;
-    addHabit({ name, icon, color, endDate });
+    addHabit({ name, icon, color, endDate, difficulty });
     setName('');
     setShowForm(false);
     toast.success('Hábito criado!');
@@ -58,6 +64,15 @@ export default function HabitsPanel() {
               </div>
             </div>
             <div>
+              <label className="text-xs text-muted-foreground">Dificuldade</label>
+              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as MissionDifficulty)}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTIES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <label className="text-xs text-muted-foreground">Data final</label>
               <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-secondary border-border" />
             </div>
@@ -69,19 +84,23 @@ export default function HabitsPanel() {
       <div className="space-y-2">
         {state.habits.map(h => {
           const todayStatus = h.history[today];
+          const xp = XP_MAP[h.difficulty] || 10;
           return (
             <motion.div key={h.id} layout className="rpg-panel flex items-center gap-3">
               <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-semibold text-foreground">{h.name}</span>
-                <div className="text-xs text-muted-foreground">+50 XP / -100 XP</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground">{h.name}</span>
+                  <span className={`text-[10px] font-display ${diffColors[h.difficulty]}`}>{h.difficulty}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">+{xp} XP / -{xp * 2} XP</div>
               </div>
               {!todayStatus ? (
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => { markHabit(h.id, 'done'); toast.success('+50 XP!'); }}>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => { markHabit(h.id, 'done'); toast.success(`+${xp} XP!`); }}>
                     <Check className="w-4 h-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => { markHabit(h.id, 'failed'); toast.error('-100 XP!'); }}>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => { markHabit(h.id, 'failed'); toast.error(`-${xp * 2} XP!`); }}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
@@ -101,7 +120,6 @@ export default function HabitsPanel() {
         )}
       </div>
 
-      {/* Heatmap */}
       {state.habits.length > 0 && <HeatmapSection />}
     </div>
   );

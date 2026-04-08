@@ -9,6 +9,7 @@ import AwakeningPage from '@/components/AwakeningPage';
 import RewardsShop from '@/components/RewardsShop';
 import HistoryLog from '@/components/HistoryLog';
 import ChallengesPanel from '@/components/ChallengesPanel';
+import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -110,6 +111,7 @@ export default function Index() {
           {/* Left sidebar - Player */}
           <div className="lg:col-span-3 space-y-4">
             <PlayerCard />
+            <FailureProtocolAlert />
             <div className="hidden lg:block">
               <SystemPanel />
             </div>
