@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
 export type MissionDifficulty = 'Fácil' | 'Normal' | 'Difícil';
-export type MissionStatus = 'Ativa' | 'Concluída';
+export type MissionStatus = 'Ativa' | 'Concluída' | 'Falhada';
 
 export interface Mission {
   id: string;
