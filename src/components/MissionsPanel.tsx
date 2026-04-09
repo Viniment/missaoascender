@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, ExternalLink, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
+import RichEditor from '@/components/RichEditor';
 import { toast } from 'sonner';
 
 const CATEGORIES: MissionCategory[] = ['Estudo', 'Trabalho', 'Treino', 'Leitura', 'Espiritual', 'Social', 'Saúde', 'Mental', 'Financeiro', 'Criatividade'];
@@ -19,16 +22,6 @@ const typeIcons: Record<MissionType, React.ReactNode> = {
   'Diária': <Check className="w-3 h-3" />,
   'Contagem': <Hash className="w-3 h-3" />,
 };
-
-function getEmbedUrl(url: string): string | null {
-  // YouTube
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  // Vimeo
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-  return null;
-}
 
 function formatTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -45,6 +38,8 @@ export default function MissionsPanel() {
   const [dailyXp, setDailyXp] = useState(10);
   const [dailyGold, setDailyGold] = useState(5);
   const [videoUrl, setVideoUrl] = useState('');
+  const [hasDescription, setHasDescription] = useState(false);
+  const [description, setDescription] = useState('');
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
@@ -59,6 +54,7 @@ export default function MissionsPanel() {
       difficulty,
       missionType,
       videoUrl: videoUrl.trim() || undefined,
+      description: hasDescription && description.trim() ? description : undefined,
       startedAt: null,
       executedHours: 0,
       lastCompletedDate: null,
@@ -69,6 +65,8 @@ export default function MissionsPanel() {
     });
     setName('');
     setVideoUrl('');
+    setDescription('');
+    setHasDescription(false);
     setShowForm(false);
     toast.success('Missão adicionada!');
   };
@@ -86,11 +84,9 @@ export default function MissionsPanel() {
     const startDate = new Date(finishStartedAt);
     const [endH, endM] = finishTime.split(':').map(Number);
 
-    // Build end date using same day as start, with user-provided time
     const endDate = new Date(startDate);
     endDate.setHours(endH, endM, 0, 0);
 
-    // If end time is earlier than start, check if it's next day scenario
     if (endDate.getTime() <= startDate.getTime()) {
       toast.error('Horário inválido — o horário final deve ser posterior ao início.');
       return;
@@ -109,7 +105,6 @@ export default function MissionsPanel() {
   const completed = state.missions.filter(m => m.status === 'Concluída');
   const failed = state.missions.filter(m => m.status === 'Falhada');
 
-  // Get start time for dialog display
   const dialogMission = finishDialog ? state.missions.find(m => m.id === finishDialog) : null;
 
   return (
@@ -172,6 +167,17 @@ export default function MissionsPanel() {
             <div>
               <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
               <Input placeholder="https://youtube.com/watch?v=..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
+
+            {/* Description toggle + editor */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox checked={hasDescription} onCheckedChange={(v) => setHasDescription(!!v)} />
+                <FileText className="w-3 h-3" /> Adicionar descrição
+              </label>
+              {hasDescription && (
+                <RichEditor content={description} onChange={setDescription} placeholder="Descreva a missão..." />
+              )}
             </div>
 
             <Button className="w-full" onClick={handleAdd}>Adicionar Missão</Button>
@@ -262,12 +268,12 @@ interface MissionCardProps {
 
 function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete }: MissionCardProps) {
   const [showVideo, setShowVideo] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const [showFailConfirm, setShowFailConfirm] = useState(false);
   const isDone = mission.status === 'Concluída';
   const isFailed = mission.status === 'Falhada';
   const isDailyDone = mission.missionType === 'Diária' && mission.lastCompletedDate === today;
   const isRunning = mission.missionType === 'Tempo' && !!mission.startedAt;
-  const embedUrl = mission.videoUrl ? getEmbedUrl(mission.videoUrl) : null;
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -297,13 +303,24 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             )}
             {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
             {isFailed && <span className="text-destructive">❌ Falhada</span>}
+
+            {/* Content icons */}
             {mission.videoUrl && (
               <button
-                onClick={() => setShowVideo(!showVideo)}
-                className="flex items-center gap-1 text-neon-blue hover:text-primary transition-colors"
+                onClick={() => setShowVideo(true)}
+                className="flex items-center gap-0.5 text-neon-blue hover:text-primary transition-colors"
+                title="Ver vídeo"
               >
-                <Video className="w-3 h-3" />
-                {showVideo ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                <Video className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {mission.description && (
+              <button
+                onClick={() => setShowDescription(true)}
+                className="flex items-center gap-0.5 text-neon-blue hover:text-primary transition-colors"
+                title="Ver descrição"
+              >
+                <FileText className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -365,38 +382,25 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Video embed */}
-      <AnimatePresence>
-        {showVideo && mission.videoUrl && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="pt-2 border-t border-border"
-          >
-            {embedUrl ? (
-              <div className="aspect-video rounded-md overflow-hidden border border-border">
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="Video"
-                />
-              </div>
-            ) : (
-              <a
-                href={mission.videoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-neon-blue hover:text-primary transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" /> Abrir vídeo
-              </a>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Video modal */}
+      {mission.videoUrl && (
+        <VideoDialog
+          open={showVideo}
+          onOpenChange={setShowVideo}
+          videoUrl={mission.videoUrl}
+          title={`🎥 ${mission.name}`}
+        />
+      )}
+
+      {/* Description modal */}
+      {mission.description && (
+        <DescriptionDialog
+          open={showDescription}
+          onOpenChange={setShowDescription}
+          html={mission.description}
+          title={`📝 ${mission.name}`}
+        />
+      )}
     </motion.div>
   );
 }

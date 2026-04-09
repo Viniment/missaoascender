@@ -14,6 +14,7 @@ export interface Mission {
   missionType: MissionType;
   status: MissionStatus;
   videoUrl?: string;
+  description?: string;
   // Time mission
   startedAt?: string | null;
   executedHours?: number;
@@ -36,6 +37,7 @@ export interface Habit {
   color: string;
   endDate: string;
   difficulty: MissionDifficulty;
+  videoUrl?: string;
   history: Record<string, 'done' | 'failed'>;
 }
 

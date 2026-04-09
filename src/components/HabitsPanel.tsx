@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, X, Trash2, Sparkles } from 'lucide-react';
+import { Plus, Check, X, Trash2, Sparkles, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { VideoDialog } from '@/components/ContentViewerDialog';
 import { toast } from 'sonner';
 
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
@@ -22,12 +23,14 @@ export default function HabitsPanel() {
   const [color, setColor] = useState(COLORS[0]);
   const [endDate, setEndDate] = useState('');
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
+  const [videoUrl, setVideoUrl] = useState('');
   const today = new Date().toISOString().split('T')[0];
 
   const handleAdd = () => {
     if (!name.trim()) return;
-    addHabit({ name, icon, color, endDate, difficulty });
+    addHabit({ name, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
+    setVideoUrl('');
     setShowForm(false);
     toast.success('Hábito criado!');
   };
@@ -76,45 +79,19 @@ export default function HabitsPanel() {
               <label className="text-xs text-muted-foreground">Data final</label>
               <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-secondary border-border" />
             </div>
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+              <Input placeholder="https://youtube.com/watch?v=..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
             <Button className="w-full" onClick={handleAdd}>Criar Hábito</Button>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div className="space-y-2">
-        {state.habits.map(h => {
-          const todayStatus = h.history[today];
-          const xp = XP_MAP[h.difficulty] || 10;
-          return (
-            <motion.div key={h.id} layout className="rpg-panel flex items-center gap-3">
-              <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">{h.name}</span>
-                  <span className={`text-[10px] font-display ${diffColors[h.difficulty]}`}>{h.difficulty}</span>
-                </div>
-                <div className="text-xs text-muted-foreground">+{xp} XP / -{xp * 2} XP</div>
-              </div>
-              {!todayStatus ? (
-                <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => { markHabit(h.id, 'done'); toast.success(`+${xp} XP!`); }}>
-                    <Check className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => { markHabit(h.id, 'failed'); toast.error(`-${xp * 2} XP!`); }}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <span className={`text-xs font-display ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
-                  {todayStatus === 'done' ? '✔️' : '❌'}
-                </span>
-              )}
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => deleteHabit(h.id)}>
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
-            </motion.div>
-          );
-        })}
+        {state.habits.map(h => (
+          <HabitCard key={h.id} habit={h} today={today} />
+        ))}
         {state.habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum hábito criado.</p>
         )}
@@ -122,6 +99,62 @@ export default function HabitsPanel() {
 
       {state.habits.length > 0 && <HeatmapSection />}
     </div>
+  );
+}
+
+function HabitCard({ habit: h, today }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string }) {
+  const { markHabit, deleteHabit } = useGame();
+  const [showVideo, setShowVideo] = useState(false);
+  const todayStatus = h.history[today];
+  const xp = ({ 'Fácil': 5, 'Normal': 10, 'Difícil': 20 } as Record<string, number>)[h.difficulty] || 10;
+  const diffColor = ({ 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' } as Record<string, string>)[h.difficulty] || '';
+
+  return (
+    <motion.div layout className="rpg-panel flex items-center gap-3">
+      <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-foreground">{h.name}</span>
+          <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
+          {h.videoUrl && (
+            <button
+              onClick={() => setShowVideo(true)}
+              className="text-neon-blue hover:text-primary transition-colors"
+              title="Ver vídeo"
+            >
+              <Video className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground">+{xp} XP / -{xp * 2} XP</div>
+      </div>
+      {!todayStatus ? (
+        <div className="flex gap-1">
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => { markHabit(h.id, 'done'); toast.success(`+${xp} XP!`); }}>
+            <Check className="w-4 h-4" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => { markHabit(h.id, 'failed'); toast.error(`-${xp * 2} XP!`); }}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      ) : (
+        <span className={`text-xs font-display ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
+          {todayStatus === 'done' ? '✔️' : '❌'}
+        </span>
+      )}
+      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => deleteHabit(h.id)}>
+        <Trash2 className="w-3.5 h-3.5" />
+      </Button>
+
+      {h.videoUrl && (
+        <VideoDialog
+          open={showVideo}
+          onOpenChange={setShowVideo}
+          videoUrl={h.videoUrl}
+          title={`🎥 ${h.name}`}
+        />
+      )}
+    </motion.div>
   );
 }
 
