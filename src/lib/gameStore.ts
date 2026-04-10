@@ -55,6 +55,7 @@ export interface FailureProtocol {
 
 export interface JournalEntry {
   id: string;
+  title: string;
   date: string;
   text: string;
   emotion?: string;
