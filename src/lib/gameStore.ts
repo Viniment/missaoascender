@@ -661,6 +661,8 @@ export function useGameStore() {
     markHabit,
     deleteHabit,
     addJournalEntry,
+    updateJournalEntry,
+    deleteJournalEntry,
     addReward,
     redeemReward,
     deleteReward,
