@@ -495,7 +495,21 @@ export function useGameStore() {
     });
   }, []);
 
-  // Custom rewards
+  const updateJournalEntry = useCallback((id: string, updates: Partial<Omit<JournalEntry, 'id'>>) => {
+    setState(prev => ({
+      ...prev,
+      journal: prev.journal.map(e => e.id === id ? { ...e, ...updates } : e),
+    }));
+  }, []);
+
+  const deleteJournalEntry = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      journal: prev.journal.filter(e => e.id !== id),
+    }));
+  }, []);
+
+
   const addReward = useCallback((reward: Omit<Reward, 'id' | 'redeemed'>) => {
     setState(prev => ({
       ...prev,
