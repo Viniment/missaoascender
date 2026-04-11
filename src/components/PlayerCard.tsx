@@ -1,6 +1,6 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Crown, Flame, Coins, Star, Trophy } from 'lucide-react';
+import { Flame, Coins, Trophy } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 
 const rankColors: Record<string, string> = {
