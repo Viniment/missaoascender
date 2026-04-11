@@ -89,7 +89,7 @@ export default function Index() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex gap-1">
-            {TABS.map(tab => (
+            {visibleTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -116,7 +116,7 @@ export default function Index() {
               className="md:hidden border-t border-border bg-background"
             >
               <div className="grid grid-cols-4 gap-1 p-2">
-                {TABS.map(tab => (
+                {visibleTabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => { setActiveTab(tab.id); setMobileMenu(false); }}
