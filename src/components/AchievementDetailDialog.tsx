@@ -13,6 +13,7 @@ interface Props {
 
 export default function AchievementDetailDialog({ achievement, unlocked, open, onClose }: Props) {
   const { state } = useGame();
+
   if (!achievement) return null;
 
   const style = getRankStyle(achievement.rank);
