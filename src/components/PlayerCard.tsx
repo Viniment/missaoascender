@@ -35,8 +35,11 @@ export default function PlayerCard() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <h2 className="font-display text-lg text-foreground truncate">{state.name}</h2>
-            <span className={`font-display text-sm font-bold ${rankColors[state.rank]}`}>
-              [{state.rank}] Lv.{state.level}
+            <span className={`font-display text-xs font-bold ${rankColors[state.rank]} bg-secondary/80 px-1.5 py-0.5 rounded`}>
+              {state.rank}
+            </span>
+            <span className="font-display text-xs font-bold text-foreground bg-secondary/80 px-1.5 py-0.5 rounded">
+              Nível {state.level}
             </span>
           </div>
           <p className="text-xs text-muted-foreground italic mb-2">"{state.title}"</p>

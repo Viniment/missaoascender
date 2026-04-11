@@ -8,6 +8,7 @@ import { GameProvider } from "@/lib/GameContext";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import Settings from "./pages/Settings.tsx";
+import Help from "./pages/Help.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,13 @@ const App = () => (
               <ProtectedRoute>
                 <GameProvider>
                   <Settings />
+                </GameProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/help" element={
+              <ProtectedRoute>
+                <GameProvider>
+                  <Help />
                 </GameProvider>
               </ProtectedRoute>
             } />
