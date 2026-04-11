@@ -68,10 +68,11 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'rank-A', type: 'level', label: 'Rank A Alcançado', value: 0, rank: 'A', icon: '📈', check: s => ['A','S','Monarca'].includes(s.rank) },
   { id: 'rank-S', type: 'level', label: 'Rank S Alcançado', value: 0, rank: 'S', icon: '📈', check: s => ['S','Monarca'].includes(s.rank) },
   { id: 'rank-Monarca', type: 'level', label: 'Monarca Ascendido', value: 0, rank: 'Monarca', icon: '👑', check: s => s.rank === 'Monarca' },
-  { id: 'level-10', type: 'level', label: 'Nível 10 Alcançado', value: 10, rank: 'D', icon: '📈', check: s => s.level >= 10 },
-  { id: 'level-25', type: 'level', label: 'Nível 25 Alcançado', value: 25, rank: 'C', icon: '📈', check: s => s.level >= 25 },
-  { id: 'level-50', type: 'level', label: 'Nível 50 — Ascendente', value: 50, rank: 'B', icon: '📈', check: s => s.level >= 50 },
-  { id: 'level-100', type: 'level', label: 'Nível 100 — Lenda Viva', value: 100, rank: 'A', icon: '📈', check: s => s.level >= 100 },
+  { id: 'level-e3', type: 'level', label: 'Nível 3 no Rank E — Primeiros Passos', value: 3, rank: 'E', icon: '📈', check: s => (s.rank === 'E' && s.level >= 3) || ['D','C','B','A','S','Monarca'].includes(s.rank) },
+  { id: 'level-e5', type: 'level', label: 'Nível 5 no Rank E — Pronto para Ascender', value: 5, rank: 'E', icon: '📈', check: s => ['D','C','B','A','S','Monarca'].includes(s.rank) || (s.rank === 'E' && s.level >= 5) },
+  { id: 'level-b3', type: 'level', label: 'Nível 3 no Rank B — Elite em Formação', value: 3, rank: 'B', icon: '📈', check: s => (s.rank === 'B' && s.level >= 3) || ['A','S','Monarca'].includes(s.rank) },
+  { id: 'level-s5', type: 'level', label: 'Nível 5 no Rank S — Quase Lendário', value: 5, rank: 'S', icon: '📈', check: s => (s.rank === 'S' && s.level >= 5) || s.rank === 'Monarca' },
+  { id: 'level-m5', type: 'level', label: 'Nível 5 no Rank Monarca — Forma Final', value: 5, rank: 'Monarca', icon: '👑', check: s => s.rank === 'Monarca' && s.level >= 5 },
 
   // Discipline
   { id: 'protocol-done', type: 'discipline', label: 'Protocolo Concluído', value: 1, rank: 'D', icon: '💀', check: s => s.failureProtocols.some(fp => fp.status === 'Concluído') },
