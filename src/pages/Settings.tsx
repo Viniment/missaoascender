@@ -5,13 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Settings as SettingsIcon, User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Settings as SettingsIcon, User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
-  const { state, updateProfile, resetProgress, deleteAccount } = useGame();
+  const { state, updateProfile, resetProgress, deleteAccount, setState } = useGame();
   const navigate = useNavigate();
 
   const [name, setName] = useState(state.name);
