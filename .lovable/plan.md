@@ -1,30 +1,36 @@
 
 
-# Plano: Corrigir Conquistas de Nível Impossíveis
+# Plano: Melhorar Layout do PlayerCard no Mobile
 
 ## Problema
-O sistema de níveis funciona de 1 a 5, depois o rank sobe e o nível reseta. As conquistas `level-10`, `level-25`, `level-50` e `level-100` são impossíveis de alcançar.
+5 stats em `grid-cols-5` fica apertado no mobile — textos cortados, cards minúsculos.
 
-## Solução
-Remover essas 4 conquistas e substituí-las por conquistas baseadas em **nível dentro de cada rank**, que são alcançáveis:
+## Solução Recomendada: Layout Híbrido
 
-### Novas conquistas de progressão (substitutas):
-- **Nível 3 no Rank E** — "Primeiros Passos" (rank E)
-- **Nível 5 no Rank E** — "Pronto para Ascender" (rank E)
-- **Nível 3 no Rank B** — "Elite em Formação" (rank B)
-- **Nível 5 no Rank S** — "Quase Lendário" (rank S)
-- **Nível 5 no Rank Monarca** — "Forma Final" (rank Monarca)
+Manter **Nível e Rank inline** junto ao nome do jogador (já estão parcialmente lá) e usar um grid `grid-cols-3` para os 3 stats restantes (Ouro, Streak, Conquistas). No mobile fica limpo e legível.
 
-### Lógica dos checks:
-Cada check verificará tanto o `rank` quanto o `level` do jogador. Ex:
+### Estrutura proposta:
+
+```text
+┌─────────────────────────────────┐
+│  [Avatar]  Nome        [E] Lv.3│
+│            "Título"             │
+│            ████████░░ 120/200XP │
+├─────────────────────────────────┤
+│   🪙 Ouro   │  🔥 Streak │ 🏆 0/49│
+│     150     │     3      │ Conquistas│
+└─────────────────────────────────┘
 ```
-check: s => s.rank === 'E' && s.level >= 3
-```
-Para ranks superiores, verificar se já passou daquele rank também funciona.
 
-## Arquivo alterado
-- `src/lib/achievements.ts` — remover 4 conquistas impossíveis, adicionar 5 novas alcançáveis
+- **Nível e Rank** ficam ao lado do nome (já tem o rank, adicionar "Lv.X")
+- **Grid de 3 colunas** com Ouro, Streak e Conquistas — mais espaçoso e legível
+- Remove os stats de Nível e Rank do grid inferior (redundantes)
 
-## Também corrigir
-- O erro de runtime `useGame must be used within GameProvider` que está aparecendo no preview.
+### Arquivo alterado
+- `src/components/PlayerCard.tsx`
+
+### Mudanças:
+1. Adicionar "Lv.{level}" junto ao nome/rank na linha superior
+2. Mudar grid de `grid-cols-5` para `grid-cols-3` com apenas Ouro, Streak e Conquistas
+3. Remover Stat de Nível e Rank do grid inferior
 
