@@ -35,7 +35,9 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { newlyUnlocked, dismissAchievement } = useGame();
+  const { newlyUnlocked, dismissAchievement, state } = useGame();
+  const disabledTabs = state.disabledTabs || [];
+  const visibleTabs = TABS.filter(tab => !disabledTabs.includes(tab.id));
 
   const renderContent = () => {
     switch (activeTab) {
