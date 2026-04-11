@@ -175,6 +175,24 @@ const sections = [
       'Criar constância é o segredo do progresso real',
     ],
   },
+  {
+    icon: CheckCircle2,
+    title: 'Registrar Dia — Check-in Diário',
+    color: 'text-success',
+    content: `O botão "Registrar Dia" (⚔️) é essencial para manter sua jornada ativa. Você PRECISA apertar esse botão todo dia para registrar sua presença no sistema. Ao clicar, você ganha +10 XP imediatamente e mantém seu Streak ativo. Sem registrar, o sistema considera que você não jogou naquele dia e seu Streak pode ser resetado.`,
+    benefits: [
+      'Garante +10 XP diário garantido',
+      'Mantém o Streak ativo — sem registro, o streak zera',
+      'Ativa multiplicadores de XP: 1.2x após 3 dias, 1.5x após 7 dias consecutivos',
+      'É o primeiro passo para um dia produtivo no sistema',
+    ],
+    tips: [
+      'Registre logo ao abrir o app — faça disso seu primeiro hábito',
+      'O botão fica desabilitado ("✔️ Dia Registrado") após o uso, então não se preocupe em clicar duas vezes',
+      'Se esquecer de registrar, seu streak volta para 0 — não arrisque!',
+      'Combine com seus hábitos matinais para nunca esquecer',
+    ],
+  },
 ];
 
 const container = {
