@@ -157,6 +157,9 @@ export default function Index() {
           </div>
         </div>
       </div>
+
+      {/* Achievement unlock overlay */}
+      <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
     </div>
   );
 }
