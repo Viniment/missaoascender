@@ -51,6 +51,13 @@ const App = () => (
                 </GameProvider>
               </ProtectedRoute>
             } />
+            <Route path="/help" element={
+              <ProtectedRoute>
+                <GameProvider>
+                  <Help />
+                </GameProvider>
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
