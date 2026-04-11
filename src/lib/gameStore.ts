@@ -107,6 +107,7 @@ export interface PlayerState {
   reflections: Reflection[];
   failureProtocols: FailureProtocol[];
   achievements: { id: string; unlockedAt: string }[];
+  disabledTabs: string[];
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -190,6 +191,7 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
+  disabledTabs: [],
 };
 
 function loadState(): PlayerState {

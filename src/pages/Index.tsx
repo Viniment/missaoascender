@@ -56,9 +56,12 @@ export default function Index() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className="font-display text-lg tracking-widest text-primary glow-text-purple">
+          <button
+            onClick={() => setActiveTab('missions')}
+            className="font-display text-lg tracking-widest text-primary glow-text-purple hover:opacity-80 transition-opacity"
+          >
             ⟐ ASCENSÃO
-          </h1>
+          </button>
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/help')}
