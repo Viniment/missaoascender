@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Swords, Sparkles, Shield, Trophy, BookOpen, Timer, Eye, Gift, ScrollText, Star, Flame, Coins, HelpCircle, Target, Zap, Crown } from 'lucide-react';
+import { ArrowLeft, Swords, Sparkles, Shield, Trophy, BookOpen, Timer, Eye, Gift, ScrollText, Star, Flame, Coins, HelpCircle, Target, Zap, Crown, CheckCircle2 } from 'lucide-react';
 
 const sections = [
   {
