@@ -1,6 +1,7 @@
 import { useGame } from '@/lib/GameContext';
-import { ACHIEVEMENTS, type UnlockedAchievement } from '@/lib/achievements';
+import { ACHIEVEMENTS, type AchievementDef, type UnlockedAchievement } from '@/lib/achievements';
 import AchievementCard from './AchievementCard';
+import AchievementDetailDialog from './AchievementDetailDialog';
 import { useState } from 'react';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -19,10 +20,26 @@ export default function AchievementsPanel() {
   const unlocked: UnlockedAchievement[] = state.achievements || [];
   const unlockedMap = new Map(unlocked.map(u => [u.id, u]));
   const [filter, setFilter] = useState<string | null>(null);
+  const [selected, setSelected] = useState<AchievementDef | null>(null);
 
   const filtered = filter ? ACHIEVEMENTS.filter(a => a.type === filter) : ACHIEVEMENTS;
   const totalUnlocked = unlocked.length;
   const total = ACHIEVEMENTS.length;
+
+  // Sort: unlocked first, then by progress descending
+  const sorted = [...filtered].sort((a, b) => {
+    const aUnlocked = unlockedMap.has(a.id) ? 1 : 0;
+    const bUnlocked = unlockedMap.has(b.id) ? 1 : 0;
+    if (aUnlocked !== bUnlocked) return bUnlocked - aUnlocked;
+    if (!aUnlocked) {
+      const aProg = a.progress(state);
+      const bProg = b.progress(state);
+      const aPct = aProg.target > 0 ? aProg.current / aProg.target : 0;
+      const bPct = bProg.target > 0 ? bProg.current / bProg.target : 0;
+      return bPct - aPct;
+    }
+    return 0;
+  });
 
   return (
     <div className="space-y-4">
@@ -67,15 +84,24 @@ export default function AchievementsPanel() {
 
       {/* Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {filtered.map(a => (
+        {sorted.map(a => (
           <AchievementCard
             key={a.id}
             achievement={a}
             unlocked={unlockedMap.get(a.id)}
             compact
+            onClick={() => setSelected(a)}
           />
         ))}
       </div>
+
+      {/* Detail dialog */}
+      <AchievementDetailDialog
+        achievement={selected}
+        unlocked={selected ? unlockedMap.get(selected.id) : undefined}
+        open={!!selected}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }
