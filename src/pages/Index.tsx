@@ -14,7 +14,7 @@ import AchievementsPanel from '@/components/AchievementsPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings, Trophy } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -60,6 +60,13 @@ export default function Index() {
             ⟐ ASCENSÃO
           </h1>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/help')}
+              className="text-muted-foreground hover:text-primary transition-colors"
+              title="Ajuda"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
             <button
               onClick={() => navigate('/settings')}
               className="text-muted-foreground hover:text-primary transition-colors"
