@@ -1,6 +1,7 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Crown, Flame, Coins, Star } from 'lucide-react';
+import { Crown, Flame, Coins, Star, Trophy } from 'lucide-react';
+import { ACHIEVEMENTS } from '@/lib/achievements';
 
 const rankColors: Record<string, string> = {
   E: 'text-muted-foreground',
@@ -55,11 +56,12 @@ export default function PlayerCard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 mt-4">
+      <div className="grid grid-cols-5 gap-2 mt-4">
         <Stat icon={<Star className="w-3.5 h-3.5 text-primary" />} label="Nível" value={state.level} />
         <Stat icon={<Crown className="w-3.5 h-3.5 text-gold" />} label="Rank" value={state.rank} />
         <Stat icon={<Coins className="w-3.5 h-3.5 text-gold" />} label="Ouro" value={state.gold} />
         <Stat icon={<Flame className="w-3.5 h-3.5 text-destructive" />} label="Streak" value={state.streak} />
+        <Stat icon={<Trophy className="w-3.5 h-3.5 text-primary" />} label="Conquistas" value={`${(state.achievements || []).length}/${ACHIEVEMENTS.length}`} />
       </div>
     </motion.div>
   );
