@@ -1,6 +1,6 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Crown, Flame, Coins, Star, Trophy } from 'lucide-react';
+import { Flame, Coins, Trophy } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 
 const rankColors: Record<string, string> = {
@@ -36,7 +36,7 @@ export default function PlayerCard() {
           <div className="flex items-center gap-2 mb-0.5">
             <h2 className="font-display text-lg text-foreground truncate">{state.name}</h2>
             <span className={`font-display text-sm font-bold ${rankColors[state.rank]}`}>
-              [{state.rank}]
+              [{state.rank}] Lv.{state.level}
             </span>
           </div>
           <p className="text-xs text-muted-foreground italic mb-2">"{state.title}"</p>
@@ -56,9 +56,7 @@ export default function PlayerCard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-2 mt-4">
-        <Stat icon={<Star className="w-3.5 h-3.5 text-primary" />} label="Nível" value={state.level} />
-        <Stat icon={<Crown className="w-3.5 h-3.5 text-gold" />} label="Rank" value={state.rank} />
+      <div className="grid grid-cols-3 gap-2 mt-4">
         <Stat icon={<Coins className="w-3.5 h-3.5 text-gold" />} label="Ouro" value={state.gold} />
         <Stat icon={<Flame className="w-3.5 h-3.5 text-destructive" />} label="Streak" value={state.streak} />
         <Stat icon={<Trophy className="w-3.5 h-3.5 text-primary" />} label="Conquistas" value={`${(state.achievements || []).length}/${ACHIEVEMENTS.length}`} />
