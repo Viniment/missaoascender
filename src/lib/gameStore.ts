@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { checkNewAchievements, type AchievementDef } from './achievements';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
@@ -106,6 +106,7 @@ export interface PlayerState {
   rewards: Reward[];
   reflections: Reflection[];
   failureProtocols: FailureProtocol[];
+  achievements: { id: string; unlockedAt: string }[];
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -188,6 +189,7 @@ export const defaultState: PlayerState = {
   rewards: [],
   reflections: [],
   failureProtocols: [],
+  achievements: [],
 };
 
 function loadState(): PlayerState {
@@ -643,6 +645,27 @@ export function useGameStore() {
     });
   }, []);
 
+  // Achievement checking
+  const pendingAchievementRef = useRef<AchievementDef | null>(null);
+  const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
+
+  useEffect(() => {
+    const newOnes = checkNewAchievements(state, state.achievements || []);
+    if (newOnes.length > 0) {
+      const now = new Date().toISOString();
+      const newAchievements = newOnes.map(a => ({ id: a.id, unlockedAt: now }));
+      setState(prev => ({
+        ...prev,
+        achievements: [...(prev.achievements || []), ...newAchievements],
+      }));
+      // Show first new one as overlay
+      setNewlyUnlocked(newOnes[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.streak, state.level, state.rank, state.missions, state.habits, state.journal, state.gold, state.failureProtocols, state.awakening]);
+
+  const dismissAchievement = useCallback(() => setNewlyUnlocked(null), []);
+
   return {
     state,
     setState,
@@ -676,5 +699,7 @@ export function useGameStore() {
     completeFailureProtocol,
     updateFailureProtocolPenalty,
     checkExpiredProtocols,
+    newlyUnlocked,
+    dismissAchievement,
   };
 }

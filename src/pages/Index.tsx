@@ -10,14 +10,18 @@ import AwakeningPage from '@/components/AwakeningPage';
 import RewardsShop from '@/components/RewardsShop';
 import HistoryLog from '@/components/HistoryLog';
 import ChallengesPanel from '@/components/ChallengesPanel';
+import AchievementsPanel from '@/components/AchievementsPanel';
+import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
-import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings } from 'lucide-react';
+import { useGame } from '@/lib/GameContext';
+import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
   { id: 'missions', label: 'Missões', icon: Swords },
   { id: 'habits', label: 'Hábitos', icon: Sparkles },
   { id: 'challenges', label: 'Desafios', icon: Shield },
+  { id: 'achievements', label: 'Conquistas', icon: Trophy },
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'timer', label: 'Timer', icon: Timer },
   { id: 'awakening', label: 'Despertar', icon: Eye },
@@ -31,12 +35,14 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const navigate = useNavigate();
+  const { newlyUnlocked, dismissAchievement } = useGame();
 
   const renderContent = () => {
     switch (activeTab) {
       case 'missions': return <MissionsPanel />;
       case 'habits': return <HabitsPanel />;
       case 'challenges': return <ChallengesPanel />;
+      case 'achievements': return <AchievementsPanel />;
       case 'journal': return <JournalPanel />;
       case 'timer': return <PomodoroTimer />;
       case 'awakening': return <AwakeningPage />;
@@ -151,6 +157,9 @@ export default function Index() {
           </div>
         </div>
       </div>
+
+      {/* Achievement unlock overlay */}
+      <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
     </div>
   );
 }
