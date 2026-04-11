@@ -1,36 +1,21 @@
 
 
-# Plano: Melhorar Layout do PlayerCard no Mobile
+# Plano: Adicionar seção "Registrar Dia" na página de Ajuda
 
 ## Problema
-5 stats em `grid-cols-5` fica apertado no mobile — textos cortados, cards minúsculos.
+A página de ajuda não menciona o botão "Registrar Dia" e sua importância para o streak e bônus de XP.
 
-## Solução Recomendada: Layout Híbrido
+## Solução
+Adicionar uma nova seção no array `sections` em `src/pages/Help.tsx` explicando o check-in diário:
 
-Manter **Nível e Rank inline** junto ao nome do jogador (já estão parcialmente lá) e usar um grid `grid-cols-3` para os 3 stats restantes (Ouro, Streak, Conquistas). No mobile fica limpo e legível.
+- **Ícone:** `CheckCircle2` ou `Target`
+- **Título:** "Registrar Dia — Check-in Diário"
+- **Conteúdo:** Explicar que é necessário apertar o botão todo dia para manter o streak, ganhar +10 XP e ativar bônus
+- **Benefícios:** Manter streak, ganhar XP diário, ativar multiplicadores (1.2x após 3 dias, 1.5x após 7 dias)
+- **Dicas:** Registrar logo ao abrir o app, não esquecer ou o streak zera, combinar com hábitos
 
-### Estrutura proposta:
+Posicionar logo após a seção de "Streak" ou antes dela, já que são relacionados.
 
-```text
-┌─────────────────────────────────┐
-│  [Avatar]  Nome        [E] Lv.3│
-│            "Título"             │
-│            ████████░░ 120/200XP │
-├─────────────────────────────────┤
-│   🪙 Ouro   │  🔥 Streak │ 🏆 0/49│
-│     150     │     3      │ Conquistas│
-└─────────────────────────────────┘
-```
-
-- **Nível e Rank** ficam ao lado do nome (já tem o rank, adicionar "Lv.X")
-- **Grid de 3 colunas** com Ouro, Streak e Conquistas — mais espaçoso e legível
-- Remove os stats de Nível e Rank do grid inferior (redundantes)
-
-### Arquivo alterado
-- `src/components/PlayerCard.tsx`
-
-### Mudanças:
-1. Adicionar "Lv.{level}" junto ao nome/rank na linha superior
-2. Mudar grid de `grid-cols-5` para `grid-cols-3` com apenas Ouro, Streak e Conquistas
-3. Remover Stat de Nível e Rank do grid inferior
+## Arquivo alterado
+- `src/pages/Help.tsx` — adicionar 1 nova seção ao array `sections`
 
