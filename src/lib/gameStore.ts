@@ -454,6 +454,15 @@ export function useGameStore() {
     });
   }, []);
 
+  const pickPunishment = useCallback((prev: PlayerState): Punishment | undefined => {
+    const enabled = (prev.punishments || []).filter(p => p.enabled);
+    if (enabled.length === 0) return undefined;
+    if (prev.randomPunishmentMode) {
+      return enabled[Math.floor(Math.random() * enabled.length)];
+    }
+    return enabled[0];
+  }, []);
+
   const failMission = useCallback((id: string) => {
     setState(prev => {
       const mission = prev.missions.find(m => m.id === id);
@@ -465,6 +474,7 @@ export function useGameStore() {
 
       const now = new Date();
       const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const punishment = pickPunishment(prev);
 
       return {
         ...prev,
@@ -478,12 +488,13 @@ export function useGameStore() {
           deadline: deadline.toISOString(),
           reason: `Missão falhada: ${mission.name}`,
           penaltyType: 'Exercício' as FailurePenaltyType,
+          punishment,
           status: 'Pendente' as const,
         }],
         log: [{ date: now.toISOString(), action: `❌ Missão falhada: ${mission.name}`, xp: penaltyXp, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
-  }, []);
+  }, [pickPunishment]);
 
   const deleteMission = useCallback((id: string) => {
     setState(prev => ({
