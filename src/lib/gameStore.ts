@@ -108,6 +108,9 @@ export interface PlayerState {
   failureProtocols: FailureProtocol[];
   achievements: { id: string; unlockedAt: string }[];
   disabledTabs: string[];
+  pomodoroStartedAt: number | null;
+  pomodoroDuration: number | null;
+  pomodoroMode: string | null;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -192,6 +195,9 @@ export const defaultState: PlayerState = {
   failureProtocols: [],
   achievements: [],
   disabledTabs: [],
+  pomodoroStartedAt: null,
+  pomodoroDuration: null,
+  pomodoroMode: null,
 };
 
 function loadState(): PlayerState {
