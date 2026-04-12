@@ -244,7 +244,14 @@ function loadState(): PlayerState {
       if (parsed.lastLogin && parsed.lastLogin !== today) {
         parsed.todayCheckedIn = false;
       }
-      return { ...defaultState, ...parsed };
+      const VALID_CATEGORIES = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental'];
+      const merged = { ...defaultState, ...parsed };
+      if (merged.punishments) {
+        merged.punishments = merged.punishments.filter(
+          (p: any) => VALID_CATEGORIES.includes(p.category)
+        );
+      }
+      return merged;
     }
   } catch { /* ignore */ }
   return defaultState;
