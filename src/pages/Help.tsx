@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Swords, Sparkles, Shield, Trophy, BookOpen, Timer, Eye, Gift, ScrollText, Star, Flame, Coins, HelpCircle, Target, Zap, Crown, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Swords, Sparkles, Shield, Trophy, BookOpen, Timer, Eye, Gift, ScrollText, Star, Flame, Coins, HelpCircle, Target, Zap, Crown, CheckCircle2, Skull } from 'lucide-react';
 
 const sections = [
   {
@@ -162,6 +162,28 @@ const sections = [
       'Foque em subir de rank — é mais impactante que nível',
       'Ranks mais altos geram conquistas exclusivas',
       'O rank Monarca é o objetivo final — poucos chegam lá!',
+    ],
+  },
+  {
+    icon: Skull,
+    title: 'Protocolo de Falha',
+    color: 'text-destructive',
+    content: `O Protocolo de Falha é um sistema de consequências que você mesmo define. Quando você falha em uma missão, hábito ou desafio, o sistema ativa uma punição — uma ação corretiva que você precisa cumprir dentro de um prazo. A ideia é criar uma neuroassociação entre falhar e uma consequência real, tornando a procrastinação algo que seu cérebro quer evitar ativamente.
+
+Baseado em princípios de neurociência comportamental, o protocolo funciona porque o cérebro humano é programado para evitar dor mais do que buscar prazer. Ao associar a falha a uma ação desconfortável (um banho frio, prancha, doar dinheiro), você cria um circuito neural que torna a procrastinação "cara demais" para o seu cérebro.`,
+    benefits: [
+      'Neuroassociação: seu cérebro aprende a evitar falhas naturalmente',
+      'Quebra o ciclo da procrastinação com consequências reais',
+      'Aumenta a disciplina sem depender de motivação',
+      'Você define as regras — controle total sobre as consequências',
+      'Modo aleatório adiciona imprevisibilidade, aumentando o efeito psicológico',
+    ],
+    tips: [
+      'Comece com punições leves e aumente gradualmente',
+      'Use o modo aleatório para que seu cérebro não se acostume',
+      'Punições físicas (banho frio, prancha) são as mais eficazes por serem imediatas',
+      'Cumpra SEMPRE a punição — a consistência é o que cria a neuroassociação',
+      'Configure em: Configurações → Protocolo de Falha',
     ],
   },
   {
