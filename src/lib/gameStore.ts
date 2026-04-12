@@ -445,7 +445,9 @@ export function useGameStore() {
   }, []);
 
   const pickPunishment = useCallback((prev: PlayerState): Punishment | undefined => {
-    const enabled = (prev.punishments || []).filter(p => p.enabled);
+    const enabled = (prev.punishments || []).filter(
+      p => p.enabled && VALID_PUNISHMENT_CATEGORIES.includes(p.category)
+    );
     if (enabled.length === 0) return undefined;
     if (prev.randomPunishmentMode) {
       return enabled[Math.floor(Math.random() * enabled.length)];
