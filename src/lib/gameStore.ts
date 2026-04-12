@@ -43,6 +43,19 @@ export interface Habit {
 
 export type FailurePenaltyType = 'Exercício' | 'Meditação' | 'Reflexão' | 'Outro';
 
+export type PunishmentCategory = 'Restrição' | 'Financeira' | 'Física' | 'Esforço' | 'Mental' | 'Controle';
+export type PunishmentIntensity = 'Leve' | 'Média' | 'Pesada';
+
+export interface Punishment {
+  id: string;
+  name: string;
+  description?: string;
+  category: PunishmentCategory;
+  intensity: PunishmentIntensity;
+  enabled: boolean;
+  isCustom?: boolean;
+}
+
 export interface FailureProtocol {
   id: string;
   triggeredAt: string;
@@ -50,6 +63,7 @@ export interface FailureProtocol {
   reason: string;
   penaltyType: FailurePenaltyType;
   customPenalty?: string;
+  punishment?: Punishment;
   status: 'Pendente' | 'Concluído';
 }
 
