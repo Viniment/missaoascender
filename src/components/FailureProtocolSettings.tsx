@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skull, Plus, Trash2, Shuffle, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-const CATEGORIES: PunishmentCategory[] = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental', 'Controle'];
+const CATEGORIES: PunishmentCategory[] = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental'];
 const INTENSITIES: PunishmentIntensity[] = ['Leve', 'Média', 'Pesada'];
 
 const CATEGORY_EMOJI: Record<PunishmentCategory, string> = {
@@ -18,7 +18,6 @@ const CATEGORY_EMOJI: Record<PunishmentCategory, string> = {
   'Física': '🔴',
   'Esforço': '🧩',
   'Mental': '🧠',
-  'Controle': '⏳',
 };
 
 const INTENSITY_COLOR: Record<PunishmentIntensity, string> = {
