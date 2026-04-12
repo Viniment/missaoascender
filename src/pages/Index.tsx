@@ -32,10 +32,11 @@ const TABS = [
 type TabId = typeof TABS[number]['id'];
 
 export default function Index() {
-  const [activeTab, setActiveTab] = useState<TabId>('missions');
+  const { newlyUnlocked, dismissAchievement, state } = useGame();
+  const hasBgPomodoro = !!(state.pomodoroStartedAt && state.pomodoroDuration && state.pomodoroMode);
+  const [activeTab, setActiveTab] = useState<TabId>(hasBgPomodoro ? 'timer' : 'missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { newlyUnlocked, dismissAchievement, state } = useGame();
   const disabledTabs = state.disabledTabs || [];
   const visibleTabs = TABS.filter(tab => !disabledTabs.includes(tab.id));
 
