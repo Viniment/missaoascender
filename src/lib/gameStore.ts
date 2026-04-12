@@ -125,6 +125,8 @@ export interface PlayerState {
   pomodoroStartedAt: number | null;
   pomodoroDuration: number | null;
   pomodoroMode: string | null;
+  punishments: Punishment[];
+  randomPunishmentMode: boolean;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
