@@ -246,11 +246,10 @@ function loadState(): PlayerState {
       if (parsed.lastLogin && parsed.lastLogin !== today) {
         parsed.todayCheckedIn = false;
       }
-      const VALID_CATEGORIES = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental'];
       const merged = { ...defaultState, ...parsed };
       if (merged.punishments) {
         merged.punishments = merged.punishments.filter(
-          (p: any) => VALID_CATEGORIES.includes(p.category)
+          (p: any) => VALID_PUNISHMENT_CATEGORIES.includes(p.category)
         );
       }
       return merged;
