@@ -29,16 +29,19 @@ function playAlarm() {
 }
 
 export default function PomodoroTimer() {
-  const { state, dispatch } = useGame();
+  const { state, setState } = useGame();
   const [mode, setMode] = useState<Mode>('focus');
   const [running, setRunning] = useState(false);
   const [seconds, setSeconds] = useState(DURATIONS.focus);
   const [backgroundMode, setBackgroundMode] = useState(false);
   const interval = useRef<ReturnType<typeof setInterval> | null>(null);
   const alarmPlayed = useRef(false);
+  const restored = useRef(false);
 
   // Restore from background state on mount
   useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
     const ps = state.pomodoroStartedAt;
     const pd = state.pomodoroDuration;
     const pm = state.pomodoroMode as Mode | undefined;
@@ -56,7 +59,12 @@ export default function PomodoroTimer() {
         playAlarm();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const updatePomodoroBg = useCallback((startedAt: number | null, duration: number | null, bgMode: string | null) => {
+    setState(prev => ({ ...prev, pomodoroStartedAt: startedAt, pomodoroDuration: duration, pomodoroMode: bgMode }));
+  }, [setState]);
 
   // Tick logic
   useEffect(() => {
@@ -84,50 +92,43 @@ export default function PomodoroTimer() {
       setRunning(false);
       alarmPlayed.current = true;
       playAlarm();
-      // Clear background state
       if (backgroundMode) {
-        dispatch({ type: 'UPDATE_POMODORO_BG', startedAt: null, duration: null, mode: null });
+        updatePomodoroBg(null, null, null);
       }
     }
     if (seconds > 0) {
       alarmPlayed.current = false;
     }
-  }, [seconds, backgroundMode, dispatch]);
+  }, [seconds, backgroundMode, updatePomodoroBg]);
 
   const startTimer = useCallback(() => {
     setRunning(true);
     alarmPlayed.current = false;
     if (backgroundMode) {
-      const duration = seconds;
-      const startedAt = Date.now();
-      dispatch({ type: 'UPDATE_POMODORO_BG', startedAt, duration, mode });
+      updatePomodoroBg(Date.now(), seconds, mode);
     }
-  }, [backgroundMode, seconds, mode, dispatch]);
+  }, [backgroundMode, seconds, mode, updatePomodoroBg]);
 
   const pauseTimer = useCallback(() => {
     setRunning(false);
     if (backgroundMode) {
-      dispatch({ type: 'UPDATE_POMODORO_BG', startedAt: null, duration: seconds, mode });
+      updatePomodoroBg(null, seconds, mode);
     }
-  }, [backgroundMode, seconds, mode, dispatch]);
+  }, [backgroundMode, seconds, mode, updatePomodoroBg]);
 
   const switchMode = (m: Mode) => {
     setMode(m);
     setSeconds(DURATIONS[m]);
     setRunning(false);
     alarmPlayed.current = false;
-    if (backgroundMode) {
-      dispatch({ type: 'UPDATE_POMODORO_BG', startedAt: null, duration: null, mode: null });
-    }
+    if (backgroundMode) updatePomodoroBg(null, null, null);
   };
 
   const reset = () => {
     setSeconds(DURATIONS[mode]);
     setRunning(false);
     alarmPlayed.current = false;
-    if (backgroundMode) {
-      dispatch({ type: 'UPDATE_POMODORO_BG', startedAt: null, duration: null, mode: null });
-    }
+    if (backgroundMode) updatePomodoroBg(null, null, null);
   };
 
   const min = Math.floor(seconds / 60);
