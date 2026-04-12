@@ -35,7 +35,9 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { newlyUnlocked, dismissAchievement } = useGame();
+  const { newlyUnlocked, dismissAchievement, state } = useGame();
+  const disabledTabs = state.disabledTabs || [];
+  const visibleTabs = TABS.filter(tab => !disabledTabs.includes(tab.id));
 
   const renderContent = () => {
     switch (activeTab) {
@@ -56,9 +58,12 @@ export default function Index() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <h1 className="font-display text-lg tracking-widest text-primary glow-text-purple">
+          <button
+            onClick={() => setActiveTab('missions')}
+            className="font-display text-lg tracking-widest text-primary glow-text-purple hover:opacity-80 transition-opacity"
+          >
             ⟐ ASCENSÃO
-          </h1>
+          </button>
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/help')}
@@ -84,7 +89,7 @@ export default function Index() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex gap-1">
-            {TABS.map(tab => (
+            {visibleTabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -111,7 +116,7 @@ export default function Index() {
               className="md:hidden border-t border-border bg-background"
             >
               <div className="grid grid-cols-4 gap-1 p-2">
-                {TABS.map(tab => (
+                {visibleTabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => { setActiveTab(tab.id); setMobileMenu(false); }}

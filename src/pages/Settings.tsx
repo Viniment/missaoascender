@@ -5,13 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Settings as SettingsIcon, User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Settings as SettingsIcon, User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
-  const { state, updateProfile, resetProgress, deleteAccount } = useGame();
+  const { state, updateProfile, resetProgress, deleteAccount, setState } = useGame();
   const navigate = useNavigate();
 
   const [name, setName] = useState(state.name);
@@ -152,6 +153,38 @@ export default function Settings() {
           <div className="text-xs text-muted-foreground">
             Email: {user?.email}
           </div>
+        </div>
+
+        {/* Tab Visibility */}
+        <div className="rpg-panel space-y-4">
+          <h2 className="font-display text-sm text-primary flex items-center gap-2">
+            <Layout className="w-4 h-4" /> ABAS VISÍVEIS
+          </h2>
+          <p className="text-xs text-muted-foreground">Desative as abas que você não usa para simplificar a interface.</p>
+          {[
+            { id: 'challenges', label: 'Desafios' },
+            { id: 'journal', label: 'Diário' },
+            { id: 'timer', label: 'Timer' },
+            { id: 'awakening', label: 'Despertar' },
+            { id: 'history', label: 'Log' },
+          ].map(tab => {
+            const disabled = (state.disabledTabs || []).includes(tab.id);
+            return (
+              <div key={tab.id} className="flex items-center justify-between">
+                <span className="text-sm font-body">{tab.label}</span>
+                <Switch
+                  checked={!disabled}
+                  onCheckedChange={(checked) => {
+                    const current = state.disabledTabs || [];
+                    const next = checked
+                      ? current.filter(t => t !== tab.id)
+                      : [...current, tab.id];
+                    setState(prev => ({ ...prev, disabledTabs: next }));
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Actions */}
