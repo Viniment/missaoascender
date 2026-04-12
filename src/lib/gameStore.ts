@@ -187,6 +187,41 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
   };
 }
 
+export const DEFAULT_PUNISHMENTS: Punishment[] = [
+  // Restrição
+  { id: 'p1', name: 'Ficar sem redes sociais por 2h', category: 'Restrição', intensity: 'Leve', enabled: true },
+  { id: 'p2', name: 'Ficar sem jogar no dia', category: 'Restrição', intensity: 'Média', enabled: true },
+  { id: 'p3', name: 'Ficar sem conteúdo estimulante', category: 'Restrição', intensity: 'Média', enabled: true },
+  { id: 'p4', name: 'Comer apenas refeições básicas', category: 'Restrição', intensity: 'Pesada', enabled: false },
+  { id: 'p5', name: 'Ficar 1h sem celular', category: 'Restrição', intensity: 'Leve', enabled: true },
+  // Financeira
+  { id: 'p6', name: 'Perder dinheiro', category: 'Financeira', intensity: 'Pesada', enabled: false },
+  { id: 'p7', name: 'Doar dinheiro', category: 'Financeira', intensity: 'Média', enabled: false },
+  { id: 'p8', name: 'Doar para algo que não gosta', category: 'Financeira', intensity: 'Pesada', enabled: false },
+  { id: 'p9', name: 'Aumentar valor da próxima falha', category: 'Financeira', intensity: 'Média', enabled: false },
+  // Física
+  { id: 'p10', name: '20 flexões', category: 'Física', intensity: 'Leve', enabled: true },
+  { id: 'p11', name: '30 agachamentos', category: 'Física', intensity: 'Leve', enabled: true },
+  { id: 'p12', name: '1 minuto de prancha', category: 'Física', intensity: 'Média', enabled: true },
+  { id: 'p13', name: '10 minutos de caminhada', category: 'Física', intensity: 'Leve', enabled: true },
+  { id: 'p14', name: 'Banho frio', category: 'Física', intensity: 'Pesada', enabled: false },
+  // Esforço
+  { id: 'p15', name: 'Fazer 10 min de tarefa obrigatória', category: 'Esforço', intensity: 'Leve', enabled: true },
+  { id: 'p16', name: 'Fazer o dobro depois', category: 'Esforço', intensity: 'Pesada', enabled: false },
+  { id: 'p17', name: 'Limpar algo', category: 'Esforço', intensity: 'Leve', enabled: true },
+  { id: 'p18', name: 'Organizar ambiente', category: 'Esforço', intensity: 'Leve', enabled: true },
+  { id: 'p19', name: 'Resolver algo pendente', category: 'Esforço', intensity: 'Média', enabled: true },
+  // Mental
+  { id: 'p20', name: 'Escrever sobre a falha', category: 'Mental', intensity: 'Leve', enabled: true },
+  { id: 'p21', name: 'Registrar emoção', category: 'Mental', intensity: 'Leve', enabled: true },
+  { id: 'p22', name: 'Revisar objetivo', category: 'Mental', intensity: 'Leve', enabled: true },
+  { id: 'p23', name: 'Ficar 5 minutos em silêncio', category: 'Mental', intensity: 'Leve', enabled: true },
+  // Controle
+  { id: 'p24', name: 'Ativar modo foco por 1h', category: 'Controle', intensity: 'Média', enabled: true },
+  { id: 'p25', name: 'Bloquear recompensas', category: 'Controle', intensity: 'Média', enabled: false },
+  { id: 'p26', name: 'Adicionar tarefa extra no dia seguinte', category: 'Controle', intensity: 'Leve', enabled: true },
+];
+
 export const defaultState: PlayerState = {
   name: 'Jogador',
   title: 'Desperto',
@@ -214,6 +249,8 @@ export const defaultState: PlayerState = {
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,
+  punishments: DEFAULT_PUNISHMENTS,
+  randomPunishmentMode: true,
 };
 
 function loadState(): PlayerState {
