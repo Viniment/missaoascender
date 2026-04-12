@@ -163,9 +163,6 @@ export default function Index() {
             <div className="lg:hidden">
               <SystemPanel />
             </div>
-            <div className="hidden lg:block">
-              <PomodoroTimer />
-            </div>
           </div>
         </div>
       </div>
