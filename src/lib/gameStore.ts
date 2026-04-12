@@ -187,6 +187,8 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
   };
 }
 
+export const VALID_PUNISHMENT_CATEGORIES: PunishmentCategory[] = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental'];
+
 export const DEFAULT_PUNISHMENTS: Punishment[] = [
   // Restrição
   { id: 'p1', name: 'Ficar sem redes sociais', category: 'Restrição', intensity: 'Leve', enabled: true },
@@ -244,11 +246,10 @@ function loadState(): PlayerState {
       if (parsed.lastLogin && parsed.lastLogin !== today) {
         parsed.todayCheckedIn = false;
       }
-      const VALID_CATEGORIES = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental'];
       const merged = { ...defaultState, ...parsed };
       if (merged.punishments) {
         merged.punishments = merged.punishments.filter(
-          (p: any) => VALID_CATEGORIES.includes(p.category)
+          (p: any) => VALID_PUNISHMENT_CATEGORIES.includes(p.category)
         );
       }
       return merged;
@@ -444,7 +445,9 @@ export function useGameStore() {
   }, []);
 
   const pickPunishment = useCallback((prev: PlayerState): Punishment | undefined => {
-    const enabled = (prev.punishments || []).filter(p => p.enabled);
+    const enabled = (prev.punishments || []).filter(
+      p => p.enabled && VALID_PUNISHMENT_CATEGORIES.includes(p.category)
+    );
     if (enabled.length === 0) return undefined;
     if (prev.randomPunishmentMode) {
       return enabled[Math.floor(Math.random() * enabled.length)];
