@@ -72,6 +72,18 @@ export default function FailureProtocolAlert() {
 
               <p className="text-xs text-muted-foreground mb-2">{fp.reason}</p>
 
+              {fp.punishment && (
+                <div className="mb-2 p-2 rounded bg-secondary/50 border border-border">
+                  <p className="text-xs font-display text-warning">💀 PUNIÇÃO: {fp.punishment.name}</p>
+                  {fp.punishment.description && (
+                    <p className="text-[10px] text-muted-foreground">{fp.punishment.description}</p>
+                  )}
+                  <p className="text-[10px] text-muted-foreground">
+                    {fp.punishment.category} • {fp.punishment.intensity}
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className={`text-xs font-display ${isUrgent ? 'text-destructive' : 'text-warning'}`}>
@@ -79,29 +91,31 @@ export default function FailureProtocolAlert() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 mb-3">
-                <Select
-                  value={fp.penaltyType}
-                  onValueChange={(v) => updateFailureProtocolPenalty(fp.id, v as FailurePenaltyType)}
-                >
-                  <SelectTrigger className="bg-secondary h-8 text-xs flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PENALTY_TYPES.map(pt => (
-                      <SelectItem key={pt} value={pt}>{pt}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {fp.penaltyType === 'Outro' && (
-                  <Input
-                    placeholder="Descreva..."
-                    value={fp.customPenalty || ''}
-                    onChange={e => updateFailureProtocolPenalty(fp.id, 'Outro', e.target.value)}
-                    className="bg-secondary border-border h-8 text-xs flex-1"
-                  />
-                )}
-              </div>
+              {!fp.punishment && (
+                <div className="flex items-center gap-2 mb-3">
+                  <Select
+                    value={fp.penaltyType}
+                    onValueChange={(v) => updateFailureProtocolPenalty(fp.id, v as FailurePenaltyType)}
+                  >
+                    <SelectTrigger className="bg-secondary h-8 text-xs flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PENALTY_TYPES.map(pt => (
+                        <SelectItem key={pt} value={pt}>{pt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fp.penaltyType === 'Outro' && (
+                    <Input
+                      placeholder="Descreva..."
+                      value={fp.customPenalty || ''}
+                      onChange={e => updateFailureProtocolPenalty(fp.id, 'Outro', e.target.value)}
+                      className="bg-secondary border-border h-8 text-xs flex-1"
+                    />
+                  )}
+                </div>
+              )}
 
               <Button
                 size="sm"
