@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Settings as SettingsIcon, User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import FailureProtocolSettings from '@/components/FailureProtocolSettings';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -186,6 +187,9 @@ export default function Settings() {
             );
           })}
         </div>
+
+        {/* Failure Protocol */}
+        <FailureProtocolSettings />
 
         {/* Actions */}
         <div className="rpg-panel space-y-3">
