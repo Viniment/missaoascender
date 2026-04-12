@@ -524,12 +524,14 @@ export function useGameStore() {
       if (status === 'failed') {
         const now = new Date();
         const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const punishment = pickPunishment(prev);
         newProtocols = [...prev.failureProtocols, {
           id: crypto.randomUUID(),
           triggeredAt: now.toISOString(),
           deadline: deadline.toISOString(),
           reason: `Hábito falhado: ${habit.name}`,
           penaltyType: 'Exercício' as FailurePenaltyType,
+          punishment,
           status: 'Pendente' as const,
         }];
       }
@@ -544,7 +546,7 @@ export function useGameStore() {
         log: [{ date: new Date().toISOString(), action: `Hábito ${status === 'done' ? '✔️' : '❌'}: ${habit.name}`, xp, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
-  }, []);
+  }, [pickPunishment]);
 
   const deleteHabit = useCallback((id: string) => {
     setState(prev => ({
