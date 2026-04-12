@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { VALID_PUNISHMENT_CATEGORIES } from '@/lib/gameStore';
 import type { PlayerState } from '@/lib/gameStore';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -27,8 +28,12 @@ export function usePlayerData(
 
       if (data?.game_state && typeof data.game_state === 'object' && !Array.isArray(data.game_state)) {
         const saved = data.game_state as Record<string, unknown>;
-        // Merge with defaults to ensure all fields exist
-        setState(() => ({ ...defaultState, ...saved } as PlayerState));
+        const merged = { ...defaultState, ...saved } as PlayerState;
+        // Filter out invalid punishment categories (e.g. legacy "Controle")
+        if (Array.isArray(merged.punishments)) {
+          merged.punishments = merged.punishments.filter(p => VALID_PUNISHMENT_CATEGORIES.includes(p.category));
+        }
+        setState(() => merged);
       }
 
       // Also load profile name
