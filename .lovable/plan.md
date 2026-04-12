@@ -1,21 +1,44 @@
 
 
-# Plano: Adicionar seção "Registrar Dia" na página de Ajuda
+# Plano: Melhorias no Pomodoro Timer
 
-## Problema
-A página de ajuda não menciona o botão "Registrar Dia" e sua importância para o streak e bônus de XP.
+## Problemas identificados
+1. **Foco = 50 min** — deveria ser 25 min
+2. **Sem som** ao finalizar o timer
+3. **Timer para com tela desligada** — `setInterval` não roda em background
+4. **Pomodoro aparece na sidebar direita em todas as abas no desktop** — deveria aparecer só na aba Timer
+5. **Sem opção de continuar contando em background** (tela desligada / fora do app)
 
 ## Solução
-Adicionar uma nova seção no array `sections` em `src/pages/Help.tsx` explicando o check-in diário:
 
-- **Ícone:** `CheckCircle2` ou `Target`
-- **Título:** "Registrar Dia — Check-in Diário"
-- **Conteúdo:** Explicar que é necessário apertar o botão todo dia para manter o streak, ganhar +10 XP e ativar bônus
-- **Benefícios:** Manter streak, ganhar XP diário, ativar multiplicadores (1.2x após 3 dias, 1.5x após 7 dias)
-- **Dicas:** Registrar logo ao abrir o app, não esquecer ou o streak zera, combinar com hábitos
+### 1. Corrigir duração de foco
+- `focus: 50 * 60` → `focus: 25 * 60`
 
-Posicionar logo após a seção de "Streak" ou antes dela, já que são relacionados.
+### 2. Som ao finalizar
+- Usar `AudioContext` para gerar um beep/alarme quando `seconds === 0`
+- Sem dependência externa — tom sintetizado via Web Audio API
 
-## Arquivo alterado
-- `src/pages/Help.tsx` — adicionar 1 nova seção ao array `sections`
+### 3. Remover Pomodoro da sidebar desktop
+- Em `Index.tsx`, remover o bloco `<div className="hidden lg:block"><PomodoroTimer /></div>` da sidebar direita (linhas 166-168)
+- O Pomodoro já aparece na aba Timer via `renderContent()`, então basta isso
+
+### 4. Modo background com persistência no banco
+- Adicionar um toggle/switch "Continuar em background"
+- Ao ativar e iniciar o timer:
+  - Salvar no `game_state` (JSONB no banco): `pomodoroStartedAt` (timestamp) e `pomodoroDuration` (segundos totais) e `pomodoroMode`
+  - O countdown calcula: `remaining = duration - (now - startedAt)`
+  - Se `remaining <= 0`, timer terminou — tocar som e mostrar como concluído
+- Isso funciona mesmo com tela desligada/app fechado — ao reabrir, o timer mostra o valor correto baseado nos timestamps
+- Atualização em tempo real: `setInterval` de 1s recalcula `remaining` a partir de `Date.now() - startedAt`
+- Ao pausar/resetar, limpar os campos do `game_state`
+
+### Arquivos alterados
+- `src/components/PomodoroTimer.tsx` — toda a lógica (duração, som, background mode, timestamps)
+- `src/pages/Index.tsx` — remover PomodoroTimer da sidebar direita
+
+### Detalhes técnicos
+- Background mode usa timestamps absolutos em vez de decrementar — imune a suspensão de tab/tela
+- Som via `new AudioContext()` + `OscillatorNode` — compatível com todos browsers modernos
+- Estado salvo no `game_state` JSONB existente (sem migration necessária)
+- Switch "Modo Background" com ícone de lua/relógio para indicar a funcionalidade
 
