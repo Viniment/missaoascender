@@ -188,6 +188,9 @@ export default function Settings() {
           })}
         </div>
 
+        {/* Failure Protocol */}
+        <FailureProtocolSettings />
+
         {/* Actions */}
         <div className="rpg-panel space-y-3">
           <h2 className="font-display text-sm text-primary">AÇÕES</h2>
