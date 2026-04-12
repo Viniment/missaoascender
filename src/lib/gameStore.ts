@@ -187,6 +187,8 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
   };
 }
 
+export const VALID_PUNISHMENT_CATEGORIES: PunishmentCategory[] = ['Restrição', 'Financeira', 'Física', 'Esforço', 'Mental'];
+
 export const DEFAULT_PUNISHMENTS: Punishment[] = [
   // Restrição
   { id: 'p1', name: 'Ficar sem redes sociais', category: 'Restrição', intensity: 'Leve', enabled: true },
