@@ -247,8 +247,8 @@ export default function MissionsPanel() {
             {/* Reward preview */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2">
               <Coins className="w-3.5 h-3.5 text-warning" />
-              {missionType === 'Tempo' && <span>Recompensa: <span className="text-primary font-display">{XP_PER_HOUR[difficulty]} XP</span> / <span className="text-warning font-display">{GOLD_PER_HOUR[difficulty]} 💰</span> [ Por Hora ] | Falha: <span className="text-destructive font-display">-{XP_PER_HOUR[difficulty] * 2} XP</span></span>}
-              {missionType === 'Diária' && <span>Recompensa: <span className="text-primary font-display">+{dailyXp} XP</span> + <span className="text-warning font-display">+{dailyGold} 💰</span></span>}
+              {missionType === 'Tempo' && <span>Recompensa: <span className="text-primary font-display">{XP_PER_HOUR[difficulty]} XP</span> / <span className="text-warning font-display">{GOLD_PER_HOUR[difficulty]} 💰 {GOLD_PER_HOUR[difficulty] === 1 ? 'Moeda' : 'Moedas'}</span> [ Por Hora ] | Falha: <span className="text-destructive font-display">-{XP_PER_HOUR[difficulty] * 2} XP</span></span>}
+              {missionType === 'Diária' && <span>Recompensa: <span className="text-primary font-display">+{dailyXp} XP</span> + <span className="text-warning font-display">+{dailyGold} 💰 {dailyGold === 1 ? 'Moeda' : 'Moedas'}</span></span>}
               {missionType === 'Contagem' && <span>Recompensa: <span className="text-primary font-display">+2 XP/vez</span> + <span className="text-primary font-display">+5 XP bônus</span> ao completar</span>}
             </div>
 
@@ -346,7 +346,7 @@ export default function MissionsPanel() {
                   <div className="bg-secondary/50 rounded-md px-3 py-2 text-sm space-y-1">
                     <div className="text-muted-foreground">Duração: <span className="text-foreground font-display">{hours.toFixed(1)}h</span></div>
                     <div className="text-primary font-display">+{xp} XP</div>
-                    <div className="text-warning font-display">+{gold} 💰</div>
+                    <div className="text-warning font-display">+{gold} 💰 {gold === 1 ? 'Moeda' : 'Moedas'}</div>
                   </div>
                 );
               }
@@ -426,7 +426,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       return (
         <span className="flex items-center gap-1.5">
           <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ {XP_PER_HOUR[mission.difficulty]} XP</span>
-          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 {GOLD_PER_HOUR[mission.difficulty]}</span>
+          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 {GOLD_PER_HOUR[mission.difficulty]} {GOLD_PER_HOUR[mission.difficulty] === 1 ? 'Moeda' : 'Moedas'}</span>
           <span className="text-muted-foreground text-[10px] font-display">[ Por Hora ]</span>
         </span>
       );
@@ -435,7 +435,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       return (
         <span className="flex items-center gap-1.5">
           <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{mission.dailyXp || 5} XP</span>
-          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{mission.dailyGold || 5}</span>
+          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{mission.dailyGold || 5} {(mission.dailyGold || 5) === 1 ? 'Moeda' : 'Moedas'}</span>
         </span>
       );
     }
@@ -465,7 +465,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                 {liveRewards && (
                   <span className="text-primary/70 font-display">
                     <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px]">⚡ {liveRewards.xp} XP</span>
-                    <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold}</span>
+                    <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold} {liveRewards.gold === 1 ? 'Moeda' : 'Moedas'}</span>
                     <span className="text-muted-foreground text-[10px]">[ Por Hora ]</span> - [ <span className="text-primary animate-pulse-glow">{elapsed}</span> ]
                   </span>
                 )}
@@ -475,7 +475,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
               <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
             )}
             {isDone && mission.xpEarned !== undefined && (
-              <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 💰` : ''}</span>
+              <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 💰 ${mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}` : ''}</span>
             )}
             {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
             {isFailed && <span className="text-destructive">❌ Falhada</span>}

@@ -51,7 +51,7 @@ export default function RewardPopup({ open, onClose, xp, gold, title }: RewardPo
                   transition={{ delay: 0.35, type: 'spring' }}
                   className={`text-xl font-display ${gold < 0 ? 'text-destructive' : 'text-warning'}`}
                 >
-                  {gold > 0 ? '+' : ''}{gold} 💰
+                  {gold > 0 ? '+' : ''}{gold} 💰 {Math.abs(gold) === 1 ? 'Moeda' : 'Moedas'}
                 </motion.div>
               )}
             </div>
