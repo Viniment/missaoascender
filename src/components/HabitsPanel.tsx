@@ -234,7 +234,7 @@ export default function HabitsPanel() {
 function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string; onMark: (id: string, status: 'done' | 'failed', name: string, diff: MissionDifficulty) => void; onEdit: () => void }) {
   const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
   const todayStatus = h.history[today];
   const xp = XP_MAP[h.difficulty] || 5;
   const gold = GOLD_MAP[h.difficulty] || 2;
@@ -249,8 +249,12 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
             <span className="text-sm font-semibold text-foreground">{h.name}</span>
             <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
             {h.description && (
-              <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-foreground transition-colors">
-                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <button
+                onClick={() => setShowDescription(true)}
+                className="flex items-center gap-0.5 text-neon-blue hover:text-primary transition-colors"
+                title="Ver descrição"
+              >
+                <FileText className="w-3.5 h-3.5" />
               </button>
             )}
             {h.videoUrl && (
@@ -290,10 +294,13 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
-      {h.description && expanded && (
-        <div className="text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2 mt-2 whitespace-pre-wrap">
-          {h.description}
-        </div>
+      {h.description && (
+        <DescriptionDialog
+          open={showDescription}
+          onOpenChange={setShowDescription}
+          html={h.description}
+          title={`📝 ${h.name}`}
+        />
       )}
       {h.videoUrl && (
         <VideoDialog
