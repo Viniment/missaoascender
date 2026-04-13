@@ -213,6 +213,8 @@ export default function HabitsPanel() {
 function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string; onMark: (id: string, status: 'done' | 'failed', name: string, diff: MissionDifficulty) => void; onEdit: () => void }) {
   const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   const todayStatus = h.history[today];
   const xp = XP_MAP[h.difficulty] || 5;
   const gold = GOLD_MAP[h.difficulty] || 2;
