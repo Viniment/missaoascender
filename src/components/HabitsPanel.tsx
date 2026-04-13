@@ -161,6 +161,7 @@ export default function HabitsPanel() {
           </DialogHeader>
           <div className="space-y-3">
             <Input placeholder="Nome do hábito" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
+            <Textarea placeholder="Descrição (opcional)" value={editDescription} onChange={e => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[60px]" rows={2} />
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
