@@ -8,6 +8,10 @@ export default function SystemPanel() {
   const { state, dailyCheckIn } = useGame();
 
   const pendingMissions = state.missions.filter(m => m.status === 'Ativa').length;
+  const completedMissions = state.missions.filter(m => m.status === 'Concluída').length;
+  const today = new Date().toISOString().split('T')[0];
+  const pendingHabits = state.habits.filter(h => !h.history[today]).length;
+  const doneHabits = state.habits.filter(h => h.history[today] === 'done').length;
   const nextLevel = state.level + 1;
   const xpNeeded = state.xpToNext - state.xp;
 
