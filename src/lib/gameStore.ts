@@ -374,7 +374,7 @@ export function useGameStore() {
       if (!mission || mission.status === 'Concluída') return prev;
 
       const xp = Math.floor(executedHours * XP_PER_HOUR[mission.difficulty]);
-      const gold = Math.floor(executedHours * GOLD_PER_HOUR);
+      const gold = Math.floor(executedHours * GOLD_PER_HOUR[mission.difficulty]);
 
       const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
       return {
