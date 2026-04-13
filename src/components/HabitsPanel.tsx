@@ -155,7 +155,10 @@ function HabitCard({ habit: h, today, onMark }: { habit: ReturnType<typeof useGa
             </button>
           )}
         </div>
-        <div className="text-xs text-muted-foreground">+{xp} XP / -{xp * 2} XP</div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
+          <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
+        </div>
       </div>
       {!todayStatus ? (
         <div className="flex gap-1">

@@ -146,7 +146,7 @@ function getTitle(rank: string, level: number): string {
 }
 
 // Base XP per level, scaled by rank (+20% per rank tier)
-const BASE_XP = [100, 200, 350, 550, 800];
+const BASE_XP = [1000, 2000, 3500, 5500, 8000];
 
 function getXpToNext(level: number, rank: string): number {
   const rankIndex = RANKS.indexOf(rank as typeof RANKS[number]);
@@ -212,7 +212,7 @@ export const defaultState: PlayerState = {
   avatar: null,
   level: 1,
   xp: 0,
-  xpToNext: 100,
+  xpToNext: 1000,
   rank: 'E',
   gold: 0,
   streak: 0,
