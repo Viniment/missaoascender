@@ -403,7 +403,7 @@ export default function MissionsPanel() {
 
       {/* Edit Mission Dialog */}
       <Dialog open={!!editDialog} onOpenChange={() => setEditDialog(null)}>
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-primary">Editar Missão</DialogTitle>
           </DialogHeader>
@@ -444,6 +444,15 @@ export default function MissionsPanel() {
             <div>
               <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
               <Input placeholder="https://youtube.com/watch?v=..." value={editVideoUrl} onChange={e => setEditVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox checked={editHasDescription} onCheckedChange={(v) => setEditHasDescription(!!v)} />
+                <FileText className="w-3 h-3" /> Adicionar descrição
+              </label>
+              {editHasDescription && (
+                <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva a missão..." />
+              )}
             </div>
           </div>
           <DialogFooter>
