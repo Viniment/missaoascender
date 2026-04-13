@@ -1,38 +1,41 @@
 
 
-# Plano: Ajustes de Balanceamento e UI nas Missões
+# Plano: Aumentar XP por nível (x10) e estilizar recompensas nos cards
 
-## Mudanças
+## 1. Multiplicar XP necessário por 10
 
-### 1. Trocar 🪙 por 💰 em todo o painel de missões e hábitos
-Substituir todas as ocorrências de `🪙` por `💰` nos componentes `MissionsPanel.tsx`, `HabitsPanel.tsx` e `RewardPopup.tsx`.
+**Arquivo:** `src/lib/gameStore.ts`
 
-### 2. Reduzir recompensas por hora (balanceamento)
-Valores atuais vs novos:
+Alterar `BASE_XP` de `[100, 200, 350, 550, 800]` para `[1000, 2000, 3500, 5500, 8000]`.
+
+Também atualizar `defaultState.xpToNext` de `100` para `1000`.
+
+## 2. Estilizar recompensas nos cards de missões
+
+**Arquivo:** `src/components/MissionsPanel.tsx`
+
+Trocar os `<span className="text-muted-foreground">` das recompensas (linhas 426, 429, 432) por badges coloridos com fundo, tipo:
 
 ```text
-              XP/h atual → novo    Gold/h atual → novo
-Fácil:           5 → 3                20 → 1
-Normal:         10 → 5                20 → 2
-Difícil:        20 → 8                20 → 3
+┌──────────────────────────────────────────┐
+│ 🏋️ Treino Pesado         [Difícil]      │
+│ ⏱️ Tempo | Fitness                       │
+│ ┌─────────────────────────────────┐      │
+│ │ ⚡ 8 XP  💰 3 Gold  [ Por Hora ]│      │
+│ └─────────────────────────────────┘      │
+└──────────────────────────────────────────┘
 ```
 
-Isso significa que 20h no Difícil = 160 XP + 60 gold (em vez de 400 XP + 400 gold). Também ajustar o `GOLD_PER_HOUR` para ser um mapa por dificuldade ao invés de constante fixa.
+Usar badges com `bg-primary/15 text-primary` para XP e `bg-warning/15 text-warning` para Gold, com `font-display` e bordas arredondadas.
 
-### 3. Remover input de hora ao CRIAR missão de tempo
-Remover o campo "Hora de início" do formulário de criação. A hora só será pedida ao **iniciar o timer** (botão Play).
+## 3. Estilizar recompensas nos cards de hábitos
 
-### 4. Pedir hora ao iniciar o timer (botão Play)
-Ao clicar em Play, abrir um mini dialog perguntando a hora que iniciou (padrão = hora atual). Usar essa hora como `startedAt`.
+**Arquivo:** `src/components/HabitsPanel.tsx`
 
-### 5. Novo formato de exibição na listagem de missões de tempo
-De: `20 XP/h | 20 🪙/h`
-Para: `8 XP / 3 💰 [ Por Hora ]` (quando parada)
-E quando rodando: `8 XP / 3 💰 [ Por Hora ] - [ 2h 35min ]`
+Linha 158: trocar `<div className="text-xs text-muted-foreground">+{xp} XP / -{xp * 2} XP</div>` por badges coloridos similares, com XP em verde/primary e penalidade em vermelho.
 
 ## Arquivos alterados
-- `src/components/MissionsPanel.tsx` — UI, dialog de início, formato de exibição, emoji
-- `src/lib/gameStore.ts` — constantes de XP e gold, `GOLD_PER_HOUR` → mapa por dificuldade
-- `src/components/HabitsPanel.tsx` — emoji 🪙→💰
-- `src/components/RewardPopup.tsx` — emoji 🪙→💰
+- `src/lib/gameStore.ts` — BASE_XP x10, defaultState.xpToNext
+- `src/components/MissionsPanel.tsx` — estilizar rewardInfo e liveRewards
+- `src/components/HabitsPanel.tsx` — estilizar linha de XP nos habit cards
 
