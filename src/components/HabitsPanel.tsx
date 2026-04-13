@@ -54,6 +54,7 @@ export default function HabitsPanel() {
     toast.success('Hábito editado!');
   };
 
+  const handleAdd = () => {
     if (!name.trim()) return;
     // Auto-calculate end date: today + 30 days
     const end = new Date();
