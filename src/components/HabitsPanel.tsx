@@ -24,6 +24,7 @@ export default function HabitsPanel() {
   const { state, addHabit, markHabit, deleteHabit, editHabit } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
+  const [hasDescription, setHasDescription] = useState(false);
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('💪');
   const [color, setColor] = useState(COLORS[0]);
@@ -36,6 +37,7 @@ export default function HabitsPanel() {
   // Edit habit dialog
   const [editDialog, setEditDialog] = useState<typeof state.habits[number] | null>(null);
   const [editName, setEditName] = useState('');
+  const [editHasDescription, setEditHasDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
   const [editIcon, setEditIcon] = useState('💪');
   const [editColor, setEditColor] = useState(COLORS[0]);
@@ -45,6 +47,7 @@ export default function HabitsPanel() {
   const openEditHabit = (h: typeof state.habits[number]) => {
     setEditDialog(h);
     setEditName(h.name);
+    setEditHasDescription(!!h.description);
     setEditDescription(h.description || '');
     setEditIcon(h.icon);
     setEditColor(h.color);
@@ -54,7 +57,7 @@ export default function HabitsPanel() {
 
   const handleEditHabit = () => {
     if (!editDialog || !editName.trim()) return;
-    editHabit(editDialog.id, { name: editName, description: editDescription.trim() || undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+    editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
     setEditDialog(null);
     toast.success('Hábito editado!');
   };
@@ -65,9 +68,10 @@ export default function HabitsPanel() {
     const end = new Date();
     end.setDate(end.getDate() + 30);
     const endDate = end.toISOString().split('T')[0];
-    addHabit({ name, description: description.trim() || undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
+    addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
     setDescription('');
+    setHasDescription(false);
     setVideoUrl('');
     setShowForm(false);
     toast.success('Hábito criado!');
