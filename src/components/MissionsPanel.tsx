@@ -77,6 +77,8 @@ export default function MissionsPanel() {
     setEditCategory(m.category);
     setEditDifficulty(m.difficulty);
     setEditVideoUrl(m.videoUrl || '');
+    setEditHasDescription(!!m.description);
+    setEditDescription(m.description || '');
     setEditDailyXp(m.dailyXp || 10);
     setEditDailyGold(m.dailyGold || 5);
     setEditTargetCount(m.targetCount || 2);
@@ -89,6 +91,7 @@ export default function MissionsPanel() {
       category: editCategory,
       difficulty: editDifficulty,
       videoUrl: editVideoUrl.trim() || undefined,
+      description: editHasDescription && editDescription.trim() ? editDescription : undefined,
       ...(editDialog.missionType === 'Diária' ? { dailyXp: editDailyXp, dailyGold: editDailyGold } : {}),
       ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
     });
