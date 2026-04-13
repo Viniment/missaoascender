@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,7 +36,7 @@ function getNowTimeString(): string {
 }
 
 export default function MissionsPanel() {
-  const { state, addMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, failMission, deleteMission } = useGame();
+  const { state, addMission, editMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, failMission, deleteMission } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<MissionCategory>('Estudo');
@@ -58,6 +58,41 @@ export default function MissionsPanel() {
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+
+  // Edit mission dialog
+  const [editDialog, setEditDialog] = useState<Mission | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editCategory, setEditCategory] = useState<MissionCategory>('Estudo');
+  const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
+  const [editVideoUrl, setEditVideoUrl] = useState('');
+  const [editDailyXp, setEditDailyXp] = useState(10);
+  const [editDailyGold, setEditDailyGold] = useState(5);
+  const [editTargetCount, setEditTargetCount] = useState(2);
+
+  const openEditDialog = (m: Mission) => {
+    setEditDialog(m);
+    setEditName(m.name);
+    setEditCategory(m.category);
+    setEditDifficulty(m.difficulty);
+    setEditVideoUrl(m.videoUrl || '');
+    setEditDailyXp(m.dailyXp || 10);
+    setEditDailyGold(m.dailyGold || 5);
+    setEditTargetCount(m.targetCount || 2);
+  };
+
+  const handleEdit = () => {
+    if (!editDialog || !editName.trim()) return;
+    editMission(editDialog.id, {
+      name: editName,
+      category: editCategory,
+      difficulty: editDifficulty,
+      videoUrl: editVideoUrl.trim() || undefined,
+      ...(editDialog.missionType === 'Diária' ? { dailyXp: editDailyXp, dailyGold: editDailyGold } : {}),
+      ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
+    });
+    setEditDialog(null);
+    toast.success('Missão editada!');
+  };
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -286,6 +321,7 @@ export default function MissionsPanel() {
             onIncrementCount={() => handleIncrementCount(m.id)}
             onFail={() => handleFail(m.id)}
             onDelete={() => deleteMission(m.id)}
+            onEdit={() => openEditDialog(m)}
           />
         ))}
         {active.length === 0 && (
@@ -360,6 +396,58 @@ export default function MissionsPanel() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Mission Dialog */}
+      <Dialog open={!!editDialog} onOpenChange={() => setEditDialog(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">Editar Missão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Nome da missão" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
+            <div className="grid grid-cols-2 gap-2">
+              <Select value={editCategory} onValueChange={(v) => setEditCategory(v as MissionCategory)}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={editDifficulty} onValueChange={(v) => setEditDifficulty(v as MissionDifficulty)}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTIES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {editDialog?.missionType === 'Diária' && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">XP</label>
+                  <Input type="number" min={5} max={15} value={editDailyXp} onChange={e => setEditDailyXp(Number(e.target.value))} className="bg-secondary border-border" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Ouro</label>
+                  <Input type="number" min={5} max={10} value={editDailyGold} onChange={e => setEditDailyGold(Number(e.target.value))} className="bg-secondary border-border" />
+                </div>
+              </div>
+            )}
+            {editDialog?.missionType === 'Contagem' && (
+              <div>
+                <label className="text-xs text-muted-foreground">Quantidade</label>
+                <Input type="number" min={1} value={editTargetCount} onChange={e => setEditTargetCount(Number(e.target.value))} className="bg-secondary border-border" />
+              </div>
+            )}
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+              <Input placeholder="https://youtube.com/watch?v=..." value={editVideoUrl} onChange={e => setEditVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
+            <Button onClick={handleEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <RewardPopup
         open={rewardPopup.open}
         onClose={() => setRewardPopup(p => ({ ...p, open: false }))}
@@ -380,9 +468,10 @@ interface MissionCardProps {
   onIncrementCount?: () => void;
   onFail?: () => void;
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
-function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete }: MissionCardProps) {
+function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete, onEdit }: MissionCardProps) {
   const [showVideo, setShowVideo] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [showFailConfirm, setShowFailConfirm] = useState(false);
@@ -527,6 +616,9 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             )}
             <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-destructive" onClick={() => setShowFailConfirm(true)} title="Marcar como falhada">
               <XCircle className="w-4 h-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
               <Trash2 className="w-4 h-4" />
