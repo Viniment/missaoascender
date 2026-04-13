@@ -241,12 +241,12 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
   const diffColor = diffColors[h.difficulty] || '';
 
   return (
-    <motion.div layout className="rpg-panel space-y-0">
-      <div className="flex items-center gap-3">
+    <motion.div layout className="rpg-panel space-y-2">
+      <div className="flex items-center gap-2">
         <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-foreground">{h.name}</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-semibold text-foreground truncate">{h.name}</span>
             <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
             {h.description && (
               <button
@@ -266,11 +266,6 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
                 <Video className="w-3.5 h-3.5" />
               </button>
             )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
-            <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
-            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
           </div>
         </div>
         {!todayStatus ? (
@@ -293,6 +288,11 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
         <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
+        <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
+        <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
       </div>
       {h.description && (
         <DescriptionDialog
