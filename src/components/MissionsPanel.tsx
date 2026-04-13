@@ -448,12 +448,9 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             <span>{mission.category}</span>
             {isRunning && (
               <>
-                <span className="text-primary animate-pulse-glow font-display">
-                  ⏱ {elapsed}
-                </span>
                 {liveRewards && (
                   <span className="text-primary/70 font-display">
-                    ~{liveRewards.xp} XP / ~{liveRewards.gold} 💰
+                    {liveRewards.xp} XP / {liveRewards.gold} 💰 [ Por Hora ] - [ <span className="text-primary animate-pulse-glow">{elapsed}</span> ]
                   </span>
                 )}
               </>
