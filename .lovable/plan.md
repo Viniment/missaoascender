@@ -1,21 +1,38 @@
 
 
-# Plano: Filtrar punições "Controle" no carregamento do banco de dados
+# Plano: Ajustes de Balanceamento e UI nas Missões
 
-## Problema raiz
-O filtro de categorias válidas foi adicionado apenas no `loadState()` (localStorage). Mas os dados são carregados do **banco de dados** pelo `usePlayerData.tsx` na linha 31:
+## Mudanças
+
+### 1. Trocar 🪙 por 💰 em todo o painel de missões e hábitos
+Substituir todas as ocorrências de `🪙` por `💰` nos componentes `MissionsPanel.tsx`, `HabitsPanel.tsx` e `RewardPopup.tsx`.
+
+### 2. Reduzir recompensas por hora (balanceamento)
+Valores atuais vs novos:
+
+```text
+              XP/h atual → novo    Gold/h atual → novo
+Fácil:           5 → 3                20 → 1
+Normal:         10 → 5                20 → 2
+Difícil:        20 → 8                20 → 3
 ```
-setState(() => ({ ...defaultState, ...saved } as PlayerState));
-```
-Esse merge NÃO filtra as punições. Os dados no banco ainda contêm p24/p25/p26 (categoria "Controle"), e eles são carregados sem filtro.
 
-## Solução
-Dois pontos de correção em `src/hooks/usePlayerData.tsx`:
+Isso significa que 20h no Difícil = 160 XP + 60 gold (em vez de 400 XP + 400 gold). Também ajustar o `GOLD_PER_HOUR` para ser um mapa por dificuldade ao invés de constante fixa.
 
-1. **Filtrar punishments ao carregar do banco** — após o merge `{ ...defaultState, ...saved }`, filtrar o array `punishments` para manter apenas categorias válidas, usando `VALID_PUNISHMENT_CATEGORIES` importado de `gameStore.ts`.
+### 3. Remover input de hora ao CRIAR missão de tempo
+Remover o campo "Hora de início" do formulário de criação. A hora só será pedida ao **iniciar o timer** (botão Play).
 
-2. **Também filtrar `failureProtocols`** — os protocolos de falha antigos que já têm `punishment.category === 'Controle'` embutido continuam aparecendo. Não precisa removê-los (são histórico), mas o sistema de sorteio já está protegido.
+### 4. Pedir hora ao iniciar o timer (botão Play)
+Ao clicar em Play, abrir um mini dialog perguntando a hora que iniciou (padrão = hora atual). Usar essa hora como `startedAt`.
 
-## Arquivo alterado
-- `src/hooks/usePlayerData.tsx` — importar `VALID_PUNISHMENT_CATEGORIES`, e após a linha 31, filtrar `punishments` do estado carregado para remover categorias inválidas antes de aplicar ao state.
+### 5. Novo formato de exibição na listagem de missões de tempo
+De: `20 XP/h | 20 🪙/h`
+Para: `8 XP / 3 💰 [ Por Hora ]` (quando parada)
+E quando rodando: `8 XP / 3 💰 [ Por Hora ] - [ 2h 35min ]`
+
+## Arquivos alterados
+- `src/components/MissionsPanel.tsx` — UI, dialog de início, formato de exibição, emoji
+- `src/lib/gameStore.ts` — constantes de XP e gold, `GOLD_PER_HOUR` → mapa por dificuldade
+- `src/components/HabitsPanel.tsx` — emoji 🪙→💰
+- `src/components/RewardPopup.tsx` — emoji 🪙→💰
 
