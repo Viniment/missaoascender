@@ -59,6 +59,41 @@ export default function MissionsPanel() {
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
 
+  // Edit mission dialog
+  const [editDialog, setEditDialog] = useState<Mission | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editCategory, setEditCategory] = useState<MissionCategory>('Estudo');
+  const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
+  const [editVideoUrl, setEditVideoUrl] = useState('');
+  const [editDailyXp, setEditDailyXp] = useState(10);
+  const [editDailyGold, setEditDailyGold] = useState(5);
+  const [editTargetCount, setEditTargetCount] = useState(2);
+
+  const openEditDialog = (m: Mission) => {
+    setEditDialog(m);
+    setEditName(m.name);
+    setEditCategory(m.category);
+    setEditDifficulty(m.difficulty);
+    setEditVideoUrl(m.videoUrl || '');
+    setEditDailyXp(m.dailyXp || 10);
+    setEditDailyGold(m.dailyGold || 5);
+    setEditTargetCount(m.targetCount || 2);
+  };
+
+  const handleEdit = () => {
+    if (!editDialog || !editName.trim()) return;
+    editMission(editDialog.id, {
+      name: editName,
+      category: editCategory,
+      difficulty: editDifficulty,
+      videoUrl: editVideoUrl.trim() || undefined,
+      ...(editDialog.missionType === 'Diária' ? { dailyXp: editDailyXp, dailyGold: editDailyGold } : {}),
+      ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
+    });
+    setEditDialog(null);
+    toast.success('Missão editada!');
+  };
+
   const handleAdd = () => {
     if (!name.trim()) return;
 
