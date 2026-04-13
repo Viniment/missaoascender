@@ -23,6 +23,7 @@ export default function HabitsPanel() {
   const { state, addHabit, markHabit, deleteHabit, editHabit } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('💪');
   const [color, setColor] = useState(COLORS[0]);
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
@@ -34,6 +35,7 @@ export default function HabitsPanel() {
   // Edit habit dialog
   const [editDialog, setEditDialog] = useState<typeof state.habits[number] | null>(null);
   const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [editIcon, setEditIcon] = useState('💪');
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
