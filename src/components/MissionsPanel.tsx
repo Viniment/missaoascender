@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,12 +11,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Checkbox } from '@/components/ui/checkbox';
 import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
 import RichEditor from '@/components/RichEditor';
+import RewardPopup from '@/components/RewardPopup';
 import { toast } from 'sonner';
 
 const CATEGORIES: MissionCategory[] = ['Estudo', 'Trabalho', 'Treino', 'Leitura', 'Espiritual', 'Social', 'Saúde', 'Mental', 'Financeiro', 'Criatividade'];
 const DIFFICULTIES: MissionDifficulty[] = ['Fácil', 'Normal', 'Difícil'];
 const MISSION_TYPES: MissionType[] = ['Tempo', 'Diária', 'Contagem'];
 const diffColors: Record<MissionDifficulty, string> = { 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' };
+const XP_PER_HOUR: Record<MissionDifficulty, number> = { 'Fácil': 5, 'Normal': 10, 'Difícil': 20 };
+const GOLD_PER_HOUR = 20;
 const typeIcons: Record<MissionType, React.ReactNode> = {
   'Tempo': <Clock className="w-3 h-3" />,
   'Diária': <Check className="w-3 h-3" />,
@@ -25,6 +28,11 @@ const typeIcons: Record<MissionType, React.ReactNode> = {
 
 function formatTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+function getNowTimeString(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
 export default function MissionsPanel() {
@@ -40,14 +48,28 @@ export default function MissionsPanel() {
   const [videoUrl, setVideoUrl] = useState('');
   const [hasDescription, setHasDescription] = useState(false);
   const [description, setDescription] = useState('');
+  const [startTime, setStartTime] = useState(getNowTimeString());
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
   const [finishTime, setFinishTime] = useState('');
   const [finishStartedAt, setFinishStartedAt] = useState('');
 
+  // Reward popup
+  const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+
   const handleAdd = () => {
     if (!name.trim()) return;
+
+    // For time missions, set startedAt based on user-provided start time
+    let startedAt: string | null = null;
+    if (missionType === 'Tempo') {
+      const [h, m] = startTime.split(':').map(Number);
+      const now = new Date();
+      now.setHours(h, m, 0, 0);
+      startedAt = now.toISOString();
+    }
+
     addMission({
       name,
       category,
@@ -55,7 +77,7 @@ export default function MissionsPanel() {
       missionType,
       videoUrl: videoUrl.trim() || undefined,
       description: hasDescription && description.trim() ? description : undefined,
-      startedAt: null,
+      startedAt,
       executedHours: 0,
       lastCompletedDate: null,
       dailyXp: missionType === 'Diária' ? dailyXp : undefined,
@@ -67,6 +89,7 @@ export default function MissionsPanel() {
     setVideoUrl('');
     setDescription('');
     setHasDescription(false);
+    setStartTime(getNowTimeString());
     setShowForm(false);
     toast.success('Missão adicionada!');
   };
@@ -93,11 +116,44 @@ export default function MissionsPanel() {
     }
 
     const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
-    completeTimeMission(finishDialog, hours);
+    const mission = state.missions.find(m => m.id === finishDialog);
+    if (mission) {
+      const xp = Math.floor(hours * XP_PER_HOUR[mission.difficulty]);
+      const gold = Math.floor(hours * GOLD_PER_HOUR);
+      completeTimeMission(finishDialog, hours);
+      setRewardPopup({ open: true, xp, gold, title: '⚔️ MISSÃO CONCLUÍDA' });
+    }
 
-    const startStr = formatTime(startDate);
-    toast.success(`Missão concluída! ${startStr} → ${finishTime} (${hours.toFixed(1)}h)`);
     setFinishDialog(null);
+  };
+
+  const handleCompleteDaily = (id: string) => {
+    const mission = state.missions.find(m => m.id === id);
+    if (!mission) return;
+    const xp = mission.dailyXp || 5;
+    const gold = mission.dailyGold || 5;
+    completeDailyMission(id);
+    setRewardPopup({ open: true, xp, gold, title: '⚔️ DIÁRIA CONCLUÍDA' });
+  };
+
+  const handleIncrementCount = (id: string) => {
+    const mission = state.missions.find(m => m.id === id);
+    if (!mission) return;
+    const newCount = (mission.currentCount || 0) + 1;
+    const target = mission.targetCount || 1;
+    const isComplete = newCount >= target;
+    const xp = isComplete ? 7 : 2;
+    incrementCountMission(id);
+    setRewardPopup({ open: true, xp, gold: 0, title: isComplete ? '⚔️ CONTAGEM COMPLETA' : '⚔️ +1 CONTAGEM' });
+  };
+
+  const handleFail = (id: string) => {
+    const mission = state.missions.find(m => m.id === id);
+    if (!mission) return;
+    const baseXp = XP_PER_HOUR[mission.difficulty];
+    const penaltyXp = -(baseXp * 2);
+    failMission(id);
+    setRewardPopup({ open: true, xp: penaltyXp, gold: 0, title: '💀 MISSÃO FALHADA' });
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -113,7 +169,7 @@ export default function MissionsPanel() {
         <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
           <Swords className="w-5 h-5" /> MISSÕES
         </h2>
-        <Button size="sm" onClick={() => setShowForm(!showForm)}>
+        <Button size="sm" onClick={() => { setStartTime(getNowTimeString()); setShowForm(!showForm); }}>
           <Plus className="w-4 h-4 mr-1" /> Nova
         </Button>
       </div>
@@ -143,6 +199,14 @@ export default function MissionsPanel() {
               </Select>
             </div>
 
+            {missionType === 'Tempo' && (
+              <div>
+                <label className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Hora de início</label>
+                <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="bg-secondary border-border" />
+                <p className="text-xs text-muted-foreground mt-1">Padrão: hora atual. Ajuste se já iniciou antes.</p>
+              </div>
+            )}
+
             {missionType === 'Contagem' && (
               <div>
                 <label className="text-xs text-muted-foreground">Quantidade diária</label>
@@ -162,6 +226,14 @@ export default function MissionsPanel() {
                 </div>
               </div>
             )}
+
+            {/* Reward preview */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2">
+              <Coins className="w-3.5 h-3.5 text-warning" />
+              {missionType === 'Tempo' && <span>Recompensa: <span className="text-primary font-display">{XP_PER_HOUR[difficulty]} XP/h</span> + <span className="text-warning font-display">{GOLD_PER_HOUR} 🪙/h</span> | Falha: <span className="text-destructive font-display">-{XP_PER_HOUR[difficulty] * 2} XP</span></span>}
+              {missionType === 'Diária' && <span>Recompensa: <span className="text-primary font-display">+{dailyXp} XP</span> + <span className="text-warning font-display">+{dailyGold} 🪙</span></span>}
+              {missionType === 'Contagem' && <span>Recompensa: <span className="text-primary font-display">+2 XP/vez</span> + <span className="text-primary font-display">+5 XP bônus</span> ao completar</span>}
+            </div>
 
             {/* Video URL */}
             <div>
@@ -193,9 +265,9 @@ export default function MissionsPanel() {
             today={today}
             onStart={() => startTimeMission(m.id)}
             onFinish={() => handleOpenFinishDialog(m)}
-            onCompleteDaily={() => { completeDailyMission(m.id); toast.success('Diária concluída!'); }}
-            onIncrementCount={() => { incrementCountMission(m.id); toast.success('+2 XP!'); }}
-            onFail={() => failMission(m.id)}
+            onCompleteDaily={() => handleCompleteDaily(m.id)}
+            onIncrementCount={() => handleIncrementCount(m.id)}
+            onFail={() => handleFail(m.id)}
             onDelete={() => deleteMission(m.id)}
           />
         ))}
@@ -244,6 +316,25 @@ export default function MissionsPanel() {
               />
               <p className="text-xs text-muted-foreground mt-1">Ajuste se necessário. O sistema calcula a duração automaticamente.</p>
             </div>
+            {dialogMission?.startedAt && finishTime && (() => {
+              const startDate = new Date(dialogMission.startedAt);
+              const [eh, em] = finishTime.split(':').map(Number);
+              const endDate = new Date(startDate);
+              endDate.setHours(eh, em, 0, 0);
+              if (endDate.getTime() > startDate.getTime()) {
+                const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
+                const xp = Math.floor(hours * XP_PER_HOUR[dialogMission.difficulty]);
+                const gold = Math.floor(hours * GOLD_PER_HOUR);
+                return (
+                  <div className="bg-secondary/50 rounded-md px-3 py-2 text-sm space-y-1">
+                    <div className="text-muted-foreground">Duração: <span className="text-foreground font-display">{hours.toFixed(1)}h</span></div>
+                    <div className="text-primary font-display">+{xp} XP</div>
+                    <div className="text-warning font-display">+{gold} 🪙</div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setFinishDialog(null)}>Cancelar</Button>
@@ -251,6 +342,14 @@ export default function MissionsPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <RewardPopup
+        open={rewardPopup.open}
+        onClose={() => setRewardPopup(p => ({ ...p, open: false }))}
+        xp={rewardPopup.xp}
+        gold={rewardPopup.gold}
+        title={rewardPopup.title}
+      />
     </div>
   );
 }
@@ -270,10 +369,50 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
   const [showVideo, setShowVideo] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [showFailConfirm, setShowFailConfirm] = useState(false);
+  const [elapsed, setElapsed] = useState('');
   const isDone = mission.status === 'Concluída';
   const isFailed = mission.status === 'Falhada';
   const isDailyDone = mission.missionType === 'Diária' && mission.lastCompletedDate === today;
   const isRunning = mission.missionType === 'Tempo' && !!mission.startedAt;
+
+  // Live timer for running time missions
+  useEffect(() => {
+    if (!isRunning || !mission.startedAt) return;
+    const update = () => {
+      const diff = Date.now() - new Date(mission.startedAt!).getTime();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setElapsed(`${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`);
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [isRunning, mission.startedAt]);
+
+  // Calculate live XP/gold for running time missions
+  const liveRewards = isRunning && mission.startedAt ? (() => {
+    const hours = (Date.now() - new Date(mission.startedAt).getTime()) / 3600000;
+    return {
+      xp: Math.floor(hours * XP_PER_HOUR[mission.difficulty]),
+      gold: Math.floor(hours * GOLD_PER_HOUR),
+    };
+  })() : null;
+
+  // Reward info for non-running missions
+  const rewardInfo = (() => {
+    if (isDone || isFailed) return null;
+    if (mission.missionType === 'Tempo' && !isRunning) {
+      return <span className="text-muted-foreground">{XP_PER_HOUR[mission.difficulty]} XP/h | {GOLD_PER_HOUR} 🪙/h</span>;
+    }
+    if (mission.missionType === 'Diária' && !isDailyDone) {
+      return <span className="text-muted-foreground">+{mission.dailyXp || 5} XP | +{mission.dailyGold || 5} 🪙</span>;
+    }
+    if (mission.missionType === 'Contagem' && (mission.currentCount || 0) < (mission.targetCount || 0)) {
+      return <span className="text-muted-foreground">+2 XP/vez</span>;
+    }
+    return null;
+  })();
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -291,9 +430,16 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
             <span>{mission.category}</span>
             {isRunning && (
-              <span className="text-primary animate-pulse-glow">
-                ⏱ Iniciado às {formatTime(new Date(mission.startedAt!))}
-              </span>
+              <>
+                <span className="text-primary animate-pulse-glow font-display">
+                  ⏱ {elapsed}
+                </span>
+                {liveRewards && (
+                  <span className="text-primary/70 font-display">
+                    ~{liveRewards.xp} XP | ~{liveRewards.gold} 🪙
+                  </span>
+                )}
+              </>
             )}
             {mission.missionType === 'Contagem' && (
               <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
@@ -303,6 +449,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             )}
             {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
             {isFailed && <span className="text-destructive">❌ Falhada</span>}
+            {rewardInfo}
 
             {/* Content icons */}
             {mission.videoUrl && (
@@ -364,17 +511,14 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-destructive">Marcar como Falhada</AlertDialogTitle>
             <AlertDialogDescription>
-              Deseja marcar esta missão como falhada? Você perderá XP e um Protocolo de Falha será ativado.
+              Deseja marcar esta missão como falhada? Você perderá <span className="text-destructive font-display">-{XP_PER_HOUR[mission.difficulty] * 2} XP</span> e um Protocolo de Falha será ativado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                onFail?.();
-                toast.error('Missão marcada como falhada. Protocolo de Falha ativado.');
-              }}
+              onClick={() => onFail?.()}
             >
               Confirmar Falha
             </AlertDialogAction>

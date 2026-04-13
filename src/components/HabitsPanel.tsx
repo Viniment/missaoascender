@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { VideoDialog } from '@/components/ContentViewerDialog';
+import RewardPopup from '@/components/RewardPopup';
 import { toast } from 'sonner';
 
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
@@ -26,6 +27,9 @@ export default function HabitsPanel() {
   const [videoUrl, setVideoUrl] = useState('');
   const today = new Date().toISOString().split('T')[0];
 
+  // Reward popup
+  const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+
   const handleAdd = () => {
     if (!name.trim()) return;
     addHabit({ name, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
@@ -33,6 +37,16 @@ export default function HabitsPanel() {
     setVideoUrl('');
     setShowForm(false);
     toast.success('Hábito criado!');
+  };
+
+  const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty) => {
+    const baseXp = XP_MAP[habitDifficulty] || 10;
+    markHabit(id, status);
+    if (status === 'done') {
+      setRewardPopup({ open: true, xp: baseXp, gold: 0, title: '✨ HÁBITO CONCLUÍDO' });
+    } else {
+      setRewardPopup({ open: true, xp: -(baseXp * 2), gold: 0, title: '💀 HÁBITO FALHADO' });
+    }
   };
 
   return (
@@ -75,6 +89,13 @@ export default function HabitsPanel() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Reward preview */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span>Recompensa: <span className="text-primary font-display">+{XP_MAP[difficulty]} XP</span> | Falha: <span className="text-destructive font-display">-{XP_MAP[difficulty] * 2} XP</span></span>
+            </div>
+
             <div>
               <label className="text-xs text-muted-foreground">Data final</label>
               <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-secondary border-border" />
@@ -90,7 +111,7 @@ export default function HabitsPanel() {
 
       <div className="space-y-2">
         {state.habits.map(h => (
-          <HabitCard key={h.id} habit={h} today={today} />
+          <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} />
         ))}
         {state.habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum hábito criado.</p>
@@ -98,12 +119,20 @@ export default function HabitsPanel() {
       </div>
 
       {state.habits.length > 0 && <HeatmapSection />}
+
+      <RewardPopup
+        open={rewardPopup.open}
+        onClose={() => setRewardPopup(p => ({ ...p, open: false }))}
+        xp={rewardPopup.xp}
+        gold={rewardPopup.gold}
+        title={rewardPopup.title}
+      />
     </div>
   );
 }
 
-function HabitCard({ habit: h, today }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string }) {
-  const { markHabit, deleteHabit } = useGame();
+function HabitCard({ habit: h, today, onMark }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string; onMark: (id: string, status: 'done' | 'failed', name: string, diff: MissionDifficulty) => void }) {
+  const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
   const todayStatus = h.history[today];
   const xp = ({ 'Fácil': 5, 'Normal': 10, 'Difícil': 20 } as Record<string, number>)[h.difficulty] || 10;
@@ -130,10 +159,10 @@ function HabitCard({ habit: h, today }: { habit: ReturnType<typeof useGame>['sta
       </div>
       {!todayStatus ? (
         <div className="flex gap-1">
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => { markHabit(h.id, 'done'); toast.success(`+${xp} XP!`); }}>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => onMark(h.id, 'done', h.name, h.difficulty)}>
             <Check className="w-4 h-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => { markHabit(h.id, 'failed'); toast.error(`-${xp * 2} XP!`); }}>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onMark(h.id, 'failed', h.name, h.difficulty)}>
             <X className="w-4 h-4" />
           </Button>
         </div>
