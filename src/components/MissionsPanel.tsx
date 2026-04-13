@@ -396,6 +396,58 @@ export default function MissionsPanel() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Mission Dialog */}
+      <Dialog open={!!editDialog} onOpenChange={() => setEditDialog(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">Editar Missão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Nome da missão" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
+            <div className="grid grid-cols-2 gap-2">
+              <Select value={editCategory} onValueChange={(v) => setEditCategory(v as MissionCategory)}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={editDifficulty} onValueChange={(v) => setEditDifficulty(v as MissionDifficulty)}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTIES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {editDialog?.missionType === 'Diária' && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">XP</label>
+                  <Input type="number" min={5} max={15} value={editDailyXp} onChange={e => setEditDailyXp(Number(e.target.value))} className="bg-secondary border-border" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Ouro</label>
+                  <Input type="number" min={5} max={10} value={editDailyGold} onChange={e => setEditDailyGold(Number(e.target.value))} className="bg-secondary border-border" />
+                </div>
+              </div>
+            )}
+            {editDialog?.missionType === 'Contagem' && (
+              <div>
+                <label className="text-xs text-muted-foreground">Quantidade</label>
+                <Input type="number" min={1} value={editTargetCount} onChange={e => setEditTargetCount(Number(e.target.value))} className="bg-secondary border-border" />
+              </div>
+            )}
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+              <Input placeholder="https://youtube.com/watch?v=..." value={editVideoUrl} onChange={e => setEditVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
+            <Button onClick={handleEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <RewardPopup
         open={rewardPopup.open}
         onClose={() => setRewardPopup(p => ({ ...p, open: false }))}
