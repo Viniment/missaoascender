@@ -167,7 +167,6 @@ export default function Settings() {
             { id: 'journal', label: 'Diário' },
             { id: 'timer', label: 'Timer' },
             { id: 'awakening', label: 'Despertar' },
-            { id: 'history', label: 'Log' },
           ].map(tab => {
             const disabled = (state.disabledTabs || []).includes(tab.id);
             return (
