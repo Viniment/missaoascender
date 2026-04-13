@@ -1,6 +1,6 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Flame, Gift, AlertTriangle, Target, Lock, CheckCircle2 } from 'lucide-react';
+import { Flame, Gift, AlertTriangle, Target, Lock, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -8,6 +8,10 @@ export default function SystemPanel() {
   const { state, dailyCheckIn } = useGame();
 
   const pendingMissions = state.missions.filter(m => m.status === 'Ativa').length;
+  const completedMissions = state.missions.filter(m => m.status === 'Concluída').length;
+  const today = new Date().toISOString().split('T')[0];
+  const pendingHabits = state.habits.filter(h => !h.history[today]).length;
+  const doneHabits = state.habits.filter(h => h.history[today] === 'done').length;
   const nextLevel = state.level + 1;
   const xpNeeded = state.xpToNext - state.xp;
 
@@ -28,6 +32,7 @@ export default function SystemPanel() {
     state.streak >= 7 ? '🔥 Sequência impressionante. Continue.' : null,
     state.streak === 0 ? '⚠️ Seu progresso está instável. Continue ou regrida.' : null,
     pendingMissions > 0 ? `🎯 ${pendingMissions} missão(ões) pendente(s).` : null,
+    pendingHabits > 0 ? `✨ ${pendingHabits} hábito(s) pendente(s) hoje.` : null,
     xpNeeded > 0 ? `🔓 Faltam ${xpNeeded} XP para o nível ${nextLevel}.` : null,
   ].filter(Boolean);
 
@@ -60,7 +65,8 @@ export default function SystemPanel() {
       <div className="space-y-3 text-sm">
         <InfoRow icon={<Flame className="w-4 h-4 text-destructive" />} label="Sequência" value={`${state.streak} dias`} />
         <InfoRow icon={<Gift className="w-4 h-4 text-primary" />} label="Bônus" value={bonus} />
-        <InfoRow icon={<Target className="w-4 h-4 text-neon-blue" />} label="Missões" value={`${pendingMissions} pendente(s)`} />
+        <InfoRow icon={<Target className="w-4 h-4 text-neon-blue" />} label="Missões" value={`${completedMissions} ✔️ / ${pendingMissions} pendente(s)`} />
+        <InfoRow icon={<Sparkles className="w-4 h-4 text-primary" />} label="Hábitos" value={`${doneHabits} ✔️ / ${pendingHabits} pendente(s)`} />
         <InfoRow icon={<Lock className="w-4 h-4 text-gold" />} label="Próximo nível" value={`${xpNeeded} XP`} />
       </div>
 
