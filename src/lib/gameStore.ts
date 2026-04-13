@@ -499,6 +499,20 @@ export function useGameStore() {
     }));
   }, []);
 
+  const editMission = useCallback((id: string, updates: Partial<Omit<Mission, 'id' | 'status'>>) => {
+    setState(prev => ({
+      ...prev,
+      missions: prev.missions.map(m => m.id === id ? { ...m, ...updates } : m),
+    }));
+  }, []);
+
+  const editHabit = useCallback((id: string, updates: Partial<Omit<Habit, 'id' | 'history'>>) => {
+    setState(prev => ({
+      ...prev,
+      habits: prev.habits.map(h => h.id === id ? { ...h, ...updates } : h),
+    }));
+  }, []);
+
   const addHabit = useCallback((habit: Omit<Habit, 'id' | 'history'>) => {
     setState(prev => ({
       ...prev,
