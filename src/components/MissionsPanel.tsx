@@ -160,7 +160,7 @@ export default function MissionsPanel() {
         <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
           <Swords className="w-5 h-5" /> MISSÕES
         </h2>
-        <Button size="sm" onClick={() => { setStartTime(getNowTimeString()); setShowForm(!showForm); }}>
+        <Button size="sm" onClick={() => setShowForm(!showForm)}>
           <Plus className="w-4 h-4 mr-1" /> Nova
         </Button>
       </div>
@@ -190,13 +190,6 @@ export default function MissionsPanel() {
               </Select>
             </div>
 
-            {missionType === 'Tempo' && (
-              <div>
-                <label className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Hora de início</label>
-                <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="bg-secondary border-border" />
-                <p className="text-xs text-muted-foreground mt-1">Padrão: hora atual. Ajuste se já iniciou antes.</p>
-              </div>
-            )}
 
             {missionType === 'Contagem' && (
               <div>
@@ -254,7 +247,7 @@ export default function MissionsPanel() {
             key={m.id}
             mission={m}
             today={today}
-            onStart={() => startTimeMission(m.id)}
+            onStart={() => { setStartTimeInput(getNowTimeString()); setStartTimeDialog(m.id); }}
             onFinish={() => handleOpenFinishDialog(m)}
             onCompleteDaily={() => handleCompleteDaily(m.id)}
             onIncrementCount={() => handleIncrementCount(m.id)}
