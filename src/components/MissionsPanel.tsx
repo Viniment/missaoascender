@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,7 +36,7 @@ function getNowTimeString(): string {
 }
 
 export default function MissionsPanel() {
-  const { state, addMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, failMission, deleteMission } = useGame();
+  const { state, addMission, editMission, startTimeMission, completeTimeMission, completeDailyMission, incrementCountMission, failMission, deleteMission } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<MissionCategory>('Estudo');
