@@ -1,26 +1,43 @@
 
 
-# Plano: Corrigir dialog de edição de hábitos + Adicionar descrição na edição de missões
+# Plano: Corrigir layout do HabitCard no mobile
 
-## Problema 1: Dialog de edição de hábitos deformado
-O `DialogContent` não tem scroll — quando o RichEditor aparece, o conteúdo estoura. Solução: adicionar `max-h-[85vh] overflow-y-auto` ao conteúdo do dialog.
+## Problema
+No mobile, todos os elementos do card de hábito estão numa única linha horizontal (`flex items-center gap-3`), causando sobreposição do nome, badges de XP/moedas, botões de ação, editar e deletar.
 
-## Problema 2: Descrição na edição de missões
-O dialog de edição de missões (linha 400-449 de `MissionsPanel.tsx`) não tem campo de descrição. Precisa adicionar checkbox + RichEditor igual ao de criação e de hábitos.
+## Solução
+Reestruturar o `HabitCard` para empilhar verticalmente no mobile:
 
-## Alterações
+### `src/components/HabitsPanel.tsx` — função `HabitCard` (linhas 244-295)
 
-### `src/components/HabitsPanel.tsx`
-- Linha 171: adicionar `max-h-[85vh] overflow-y-auto` ao `DialogContent` do edit dialog para permitir scroll quando o editor de descrição está aberto.
+**Layout atual:** Uma única `div flex` com tudo inline.
 
-### `src/components/MissionsPanel.tsx`
-- Adicionar estados `editHasDescription` e `editDescription` ao componente.
-- Na função `openEditDialog` (linha 72-81): inicializar `editHasDescription` e `editDescription` com os valores da missão.
-- Na função `handleEdit` (linha 83-95): incluir `description` no objeto de atualização.
-- No dialog de edição (linhas 439-442, antes do vídeo): adicionar checkbox "Adicionar descrição" + `RichEditor`, idêntico ao formulário de criação.
-- Adicionar `max-h-[85vh] overflow-y-auto` ao `DialogContent` para prevenir o mesmo problema de overflow.
+**Novo layout:**
+1. **Linha 1:** Ícone + nome + dificuldade + ícones de descrição/vídeo + botões de ação (check/fail ou status) + editar + deletar
+   - Usar `flex-wrap` para permitir quebra
+   - Reduzir `gap` para `gap-2`
+2. **Linha 2:** Badges de XP, moedas e penalidade em linha separada abaixo
+   - Mover os badges (`+XP`, `+Moedas`, `-XP`) para fora do `flex-1` e colocá-los como uma segunda linha do card
 
-## Arquivos alterados
-- `src/components/HabitsPanel.tsx` — fix overflow no dialog de edição
-- `src/components/MissionsPanel.tsx` — adicionar descrição rica na edição de missões
+**Estrutura proposta:**
+```
+<div className="rpg-panel space-y-2">
+  {/* Linha 1: ícone, nome, dificuldade, ícones, botões */}
+  <div className="flex items-center gap-2">
+    <span>icon</span>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span>nome</span> <span>dificuldade</span> <icons/>
+      </div>
+    </div>
+    <buttons check/fail/edit/delete />
+  </div>
+  {/* Linha 2: badges de recompensa */}
+  <div className="flex items-center gap-1.5 flex-wrap">
+    <badge XP/> <badge Moedas/> <badge Penalidade/>
+  </div>
+</div>
+```
+
+Isso separa as informações de recompensa numa linha própria, evitando o acúmulo horizontal no mobile.
 
