@@ -569,7 +569,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                   <span className="text-primary/70 font-display">
                     <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px]">⚡ {liveRewards.xp} XP</span>
                     <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold} {liveRewards.gold === 1 ? 'Moeda' : 'Moedas'}</span>
-                    <span className="text-muted-foreground text-[10px]">[ Por Hora ]</span> - [ <span className="text-primary animate-pulse-glow">{elapsed}</span> ]
+                    <span className="text-muted-foreground text-[10px]">-</span> <span className="text-primary animate-pulse-glow">{elapsed}</span>
                   </span>
                 )}
               </>
