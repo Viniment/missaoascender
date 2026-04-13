@@ -8,13 +8,13 @@ import HabitsPanel from '@/components/HabitsPanel';
 import JournalPanel from '@/components/JournalPanel';
 import AwakeningPage from '@/components/AwakeningPage';
 import RewardsShop from '@/components/RewardsShop';
-import HistoryLog from '@/components/HistoryLog';
+
 import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Swords, Sparkles, BookOpen, Eye, Gift, ScrollText, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -26,7 +26,6 @@ const TABS = [
   { id: 'timer', label: 'Timer', icon: Timer },
   { id: 'awakening', label: 'Despertar', icon: Eye },
   { id: 'rewards', label: 'Loja', icon: Gift },
-  { id: 'history', label: 'Log', icon: ScrollText },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -50,7 +49,6 @@ export default function Index() {
       case 'timer': return <PomodoroTimer />;
       case 'awakening': return <AwakeningPage />;
       case 'rewards': return <RewardsShop />;
-      case 'history': return <HistoryLog />;
     }
   };
 
