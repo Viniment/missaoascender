@@ -503,9 +503,9 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       if (h > 0) {
-        setElapsed(`${h}h ${String(m).padStart(2, '0')}min`);
+        setElapsed(`${h} h ${String(m).padStart(2, '0')} min`);
       } else {
-        setElapsed(`${m}min`);
+        setElapsed(`${m} min`);
       }
     };
     update();
