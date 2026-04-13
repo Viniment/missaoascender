@@ -13,7 +13,8 @@ import { toast } from 'sonner';
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
 const COLORS = ['#7B2FF7', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
 const DIFFICULTIES: MissionDifficulty[] = ['Fácil', 'Normal', 'Difícil'];
-const XP_MAP: Record<MissionDifficulty, number> = { 'Fácil': 5, 'Normal': 10, 'Difícil': 20 };
+const XP_MAP: Record<MissionDifficulty, number> = { 'Fácil': 3, 'Normal': 5, 'Difícil': 8 };
+const GOLD_MAP: Record<MissionDifficulty, number> = { 'Fácil': 1, 'Normal': 2, 'Difícil': 3 };
 const diffColors: Record<MissionDifficulty, string> = { 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' };
 
 export default function HabitsPanel() {
@@ -22,7 +23,6 @@ export default function HabitsPanel() {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('💪');
   const [color, setColor] = useState(COLORS[0]);
-  const [endDate, setEndDate] = useState('');
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
   const [videoUrl, setVideoUrl] = useState('');
   const today = new Date().toISOString().split('T')[0];
@@ -32,6 +32,10 @@ export default function HabitsPanel() {
 
   const handleAdd = () => {
     if (!name.trim()) return;
+    // Auto-calculate end date: today + 30 days
+    const end = new Date();
+    end.setDate(end.getDate() + 30);
+    const endDate = end.toISOString().split('T')[0];
     addHabit({ name, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
     setVideoUrl('');
@@ -40,10 +44,11 @@ export default function HabitsPanel() {
   };
 
   const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty) => {
-    const baseXp = XP_MAP[habitDifficulty] || 10;
+    const baseXp = XP_MAP[habitDifficulty] || 5;
+    const baseGold = GOLD_MAP[habitDifficulty] || 2;
     markHabit(id, status);
     if (status === 'done') {
-      setRewardPopup({ open: true, xp: baseXp, gold: 0, title: '✨ HÁBITO CONCLUÍDO' });
+      setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '✨ HÁBITO CONCLUÍDO' });
     } else {
       setRewardPopup({ open: true, xp: -(baseXp * 2), gold: 0, title: '💀 HÁBITO FALHADO' });
     }
@@ -93,13 +98,11 @@ export default function HabitsPanel() {
             {/* Reward preview */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span>Recompensa: <span className="text-primary font-display">+{XP_MAP[difficulty]} XP</span> | Falha: <span className="text-destructive font-display">-{XP_MAP[difficulty] * 2} XP</span></span>
+              <span>
+                Recompensa: <span className="text-primary font-display">+{XP_MAP[difficulty]} XP</span> + <span className="text-warning font-display">+{GOLD_MAP[difficulty]} 💰 {GOLD_MAP[difficulty] === 1 ? 'Moeda' : 'Moedas'}</span> | Falha: <span className="text-destructive font-display">-{XP_MAP[difficulty] * 2} XP</span>
+              </span>
             </div>
 
-            <div>
-              <label className="text-xs text-muted-foreground">Data final</label>
-              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-secondary border-border" />
-            </div>
             <div>
               <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
               <Input placeholder="https://youtube.com/watch?v=..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="bg-secondary border-border" />
@@ -135,8 +138,9 @@ function HabitCard({ habit: h, today, onMark }: { habit: ReturnType<typeof useGa
   const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
   const todayStatus = h.history[today];
-  const xp = ({ 'Fácil': 5, 'Normal': 10, 'Difícil': 20 } as Record<string, number>)[h.difficulty] || 10;
-  const diffColor = ({ 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' } as Record<string, string>)[h.difficulty] || '';
+  const xp = XP_MAP[h.difficulty] || 5;
+  const gold = GOLD_MAP[h.difficulty] || 2;
+  const diffColor = diffColors[h.difficulty] || '';
 
   return (
     <motion.div layout className="rpg-panel flex items-center gap-3">
@@ -156,7 +160,8 @@ function HabitCard({ habit: h, today, onMark }: { habit: ReturnType<typeof useGa
           )}
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
+          <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
+          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
           <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
         </div>
       </div>

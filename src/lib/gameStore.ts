@@ -264,12 +264,16 @@ function saveState(state: PlayerState) {
 
 // XP per hour by difficulty
 const XP_PER_HOUR: Record<MissionDifficulty, number> = {
-  'Fácil': 5,
-  'Normal': 10,
-  'Difícil': 20,
+  'Fácil': 3,
+  'Normal': 5,
+  'Difícil': 8,
 };
 
-const GOLD_PER_HOUR = 20;
+const GOLD_PER_HOUR: Record<MissionDifficulty, number> = {
+  'Fácil': 1,
+  'Normal': 2,
+  'Difícil': 3,
+};
 
 export function useGameStore() {
   const [state, setState] = useState<PlayerState>(loadState);
@@ -508,8 +512,10 @@ export function useGameStore() {
       const habit = prev.habits.find(h => h.id === id);
       if (!habit) return prev;
 
-      const baseXp = XP_PER_HOUR[habit.difficulty] || 10;
+      const baseXp = XP_PER_HOUR[habit.difficulty] || 5;
+      const baseGold = GOLD_PER_HOUR[habit.difficulty] || 2;
       const xp = status === 'done' ? baseXp : -(baseXp * 2);
+      const gold = status === 'done' ? baseGold : 0;
       const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank);
 
       let newProtocols = prev.failureProtocols;
@@ -531,11 +537,12 @@ export function useGameStore() {
       return {
         ...prev,
         ...prog,
+        gold: prev.gold + gold,
         habits: prev.habits.map(h =>
           h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
         ),
         failureProtocols: newProtocols,
-        log: [{ date: new Date().toISOString(), action: `Hábito ${status === 'done' ? '✔️' : '❌'}: ${habit.name}`, xp, gold: 0 }, ...prev.log].slice(0, 100),
+        log: [{ date: new Date().toISOString(), action: `Hábito ${status === 'done' ? '✔️' : '❌'}: ${habit.name}`, xp, gold }, ...prev.log].slice(0, 100),
       };
     });
   }, [pickPunishment]);
