@@ -138,7 +138,7 @@ export default function HabitsPanel() {
 
       <div className="space-y-2">
         {state.habits.map(h => (
-          <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} />
+          <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} onEdit={() => openEditHabit(h)} />
         ))}
         {state.habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum hábito criado.</p>
@@ -146,6 +146,51 @@ export default function HabitsPanel() {
       </div>
 
       {state.habits.length > 0 && <HeatmapSection />}
+
+      {/* Edit Habit Dialog */}
+      <Dialog open={!!editDialog} onOpenChange={() => setEditDialog(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">Editar Hábito</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Nome do hábito" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
+            <div>
+              <label className="text-xs text-muted-foreground">Ícone</label>
+              <div className="flex gap-1 flex-wrap mt-1">
+                {ICONS.map(i => (
+                  <button key={i} onClick={() => setEditIcon(i)} className={`w-8 h-8 rounded-md flex items-center justify-center text-lg ${editIcon === i ? 'bg-primary/20 ring-1 ring-primary' : 'bg-secondary'}`}>{i}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Cor</label>
+              <div className="flex gap-1 mt-1">
+                {COLORS.map(c => (
+                  <button key={c} onClick={() => setEditColor(c)} className={`w-7 h-7 rounded-full ${editColor === c ? 'ring-2 ring-foreground' : ''}`} style={{ backgroundColor: c }} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Dificuldade</label>
+              <Select value={editDifficulty} onValueChange={(v) => setEditDifficulty(v as MissionDifficulty)}>
+                <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTIES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+              <Input placeholder="https://youtube.com/watch?v=..." value={editVideoUrl} onChange={e => setEditVideoUrl(e.target.value)} className="bg-secondary border-border" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
+            <Button onClick={handleEditHabit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <RewardPopup
         open={rewardPopup.open}
