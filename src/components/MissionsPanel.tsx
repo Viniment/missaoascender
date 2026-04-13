@@ -48,7 +48,8 @@ export default function MissionsPanel() {
   const [videoUrl, setVideoUrl] = useState('');
   const [hasDescription, setHasDescription] = useState(false);
   const [description, setDescription] = useState('');
-  const [startTime, setStartTime] = useState(getNowTimeString());
+  const [startTimeDialog, setStartTimeDialog] = useState<string | null>(null);
+  const [startTimeInput, setStartTimeInput] = useState(getNowTimeString());
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
@@ -61,15 +62,6 @@ export default function MissionsPanel() {
   const handleAdd = () => {
     if (!name.trim()) return;
 
-    // For time missions, set startedAt based on user-provided start time
-    let startedAt: string | null = null;
-    if (missionType === 'Tempo') {
-      const [h, m] = startTime.split(':').map(Number);
-      const now = new Date();
-      now.setHours(h, m, 0, 0);
-      startedAt = now.toISOString();
-    }
-
     addMission({
       name,
       category,
@@ -77,7 +69,7 @@ export default function MissionsPanel() {
       missionType,
       videoUrl: videoUrl.trim() || undefined,
       description: hasDescription && description.trim() ? description : undefined,
-      startedAt,
+      startedAt: null,
       executedHours: 0,
       lastCompletedDate: null,
       dailyXp: missionType === 'Diária' ? dailyXp : undefined,
@@ -89,7 +81,6 @@ export default function MissionsPanel() {
     setVideoUrl('');
     setDescription('');
     setHasDescription(false);
-    setStartTime(getNowTimeString());
     setShowForm(false);
     toast.success('Missão adicionada!');
   };
