@@ -98,6 +98,7 @@ export default function HabitsPanel() {
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="rpg-panel space-y-3">
             <Input placeholder="Nome do hábito" value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" />
+            <Textarea placeholder="Descrição (opcional)" value={description} onChange={e => setDescription(e.target.value)} className="bg-secondary border-border min-h-[60px]" rows={2} />
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
