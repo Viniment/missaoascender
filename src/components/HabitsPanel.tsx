@@ -214,7 +214,6 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
   const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
   const todayStatus = h.history[today];
   const xp = XP_MAP[h.difficulty] || 5;
   const gold = GOLD_MAP[h.difficulty] || 2;
