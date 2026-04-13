@@ -30,8 +30,30 @@ export default function HabitsPanel() {
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+  // Edit habit dialog
+  const [editDialog, setEditDialog] = useState<typeof state.habits[number] | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editIcon, setEditIcon] = useState('💪');
+  const [editColor, setEditColor] = useState(COLORS[0]);
+  const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
+  const [editVideoUrl, setEditVideoUrl] = useState('');
 
-  const handleAdd = () => {
+  const openEditHabit = (h: typeof state.habits[number]) => {
+    setEditDialog(h);
+    setEditName(h.name);
+    setEditIcon(h.icon);
+    setEditColor(h.color);
+    setEditDifficulty(h.difficulty);
+    setEditVideoUrl(h.videoUrl || '');
+  };
+
+  const handleEditHabit = () => {
+    if (!editDialog || !editName.trim()) return;
+    editHabit(editDialog.id, { name: editName, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+    setEditDialog(null);
+    toast.success('Hábito editado!');
+  };
+
     if (!name.trim()) return;
     // Auto-calculate end date: today + 30 days
     const end = new Date();
