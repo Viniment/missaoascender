@@ -220,28 +220,34 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
   const diffColor = diffColors[h.difficulty] || '';
 
   return (
-    <motion.div layout className="rpg-panel flex items-center gap-3">
-      <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">{h.name}</span>
-          <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
-          {h.videoUrl && (
-            <button
-              onClick={() => setShowVideo(true)}
-              className="text-neon-blue hover:text-primary transition-colors"
-              title="Ver vídeo"
-            >
-              <Video className="w-3.5 h-3.5" />
-            </button>
-          )}
+    <motion.div layout className="rpg-panel space-y-0">
+      <div className="flex items-center gap-3">
+        <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-foreground">{h.name}</span>
+            <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
+            {h.description && (
+              <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-foreground transition-colors">
+                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            )}
+            {h.videoUrl && (
+              <button
+                onClick={() => setShowVideo(true)}
+                className="text-neon-blue hover:text-primary transition-colors"
+                title="Ver vídeo"
+              >
+                <Video className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
+            <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
+            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
-          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
-          <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
-        </div>
-      </div>
       {!todayStatus ? (
         <div className="flex gap-1">
           <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => onMark(h.id, 'done', h.name, h.difficulty)}>
