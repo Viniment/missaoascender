@@ -68,6 +68,8 @@ export default function MissionsPanel() {
   const [editDailyXp, setEditDailyXp] = useState(10);
   const [editDailyGold, setEditDailyGold] = useState(5);
   const [editTargetCount, setEditTargetCount] = useState(2);
+  const [editHasDescription, setEditHasDescription] = useState(false);
+  const [editDescription, setEditDescription] = useState('');
 
   const openEditDialog = (m: Mission) => {
     setEditDialog(m);

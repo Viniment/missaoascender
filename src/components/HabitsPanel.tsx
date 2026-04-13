@@ -168,7 +168,7 @@ export default function HabitsPanel() {
 
       {/* Edit Habit Dialog */}
       <Dialog open={!!editDialog} onOpenChange={() => setEditDialog(null)}>
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-primary">Editar Hábito</DialogTitle>
           </DialogHeader>
