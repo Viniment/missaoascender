@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, X, Trash2, Sparkles, Video } from 'lucide-react';
+import { Plus, Check, X, Trash2, Sparkles, Video, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { VideoDialog } from '@/components/ContentViewerDialog';
 import RewardPopup from '@/components/RewardPopup';
 import { toast } from 'sonner';
@@ -18,7 +19,7 @@ const GOLD_MAP: Record<MissionDifficulty, number> = { 'Fácil': 1, 'Normal': 2, 
 const diffColors: Record<MissionDifficulty, string> = { 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' };
 
 export default function HabitsPanel() {
-  const { state, addHabit, markHabit, deleteHabit } = useGame();
+  const { state, addHabit, markHabit, deleteHabit, editHabit } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('💪');
