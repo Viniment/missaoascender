@@ -44,6 +44,7 @@ export default function HabitsPanel() {
   const openEditHabit = (h: typeof state.habits[number]) => {
     setEditDialog(h);
     setEditName(h.name);
+    setEditDescription(h.description || '');
     setEditIcon(h.icon);
     setEditColor(h.color);
     setEditDifficulty(h.difficulty);
