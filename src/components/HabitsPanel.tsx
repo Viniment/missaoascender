@@ -103,7 +103,15 @@ export default function HabitsPanel() {
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="rpg-panel space-y-3">
             <Input placeholder="Nome do hábito" value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" />
-            <Textarea placeholder="Descrição (opcional)" value={description} onChange={e => setDescription(e.target.value)} className="bg-secondary border-border min-h-[60px]" rows={2} />
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox checked={hasDescription} onCheckedChange={(v) => setHasDescription(!!v)} />
+                <FileText className="w-3 h-3" /> Adicionar descrição
+              </label>
+              {hasDescription && (
+                <RichEditor content={description} onChange={setDescription} placeholder="Descreva o hábito..." />
+              )}
+            </div>
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
@@ -166,7 +174,15 @@ export default function HabitsPanel() {
           </DialogHeader>
           <div className="space-y-3">
             <Input placeholder="Nome do hábito" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
-            <Textarea placeholder="Descrição (opcional)" value={editDescription} onChange={e => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[60px]" rows={2} />
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox checked={editHasDescription} onCheckedChange={(v) => setEditHasDescription(!!v)} />
+                <FileText className="w-3 h-3" /> Adicionar descrição
+              </label>
+              {editHasDescription && (
+                <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva o hábito..." />
+              )}
+            </div>
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
