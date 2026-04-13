@@ -399,8 +399,11 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       const diff = Date.now() - new Date(mission.startedAt!).getTime();
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      setElapsed(`${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`);
+      if (h > 0) {
+        setElapsed(`${h}h ${String(m).padStart(2, '0')}min`);
+      } else {
+        setElapsed(`${m}min`);
+      }
     };
     update();
     const interval = setInterval(update, 1000);
