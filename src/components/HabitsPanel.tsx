@@ -248,7 +248,10 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
           {todayStatus === 'done' ? '✔️' : '❌'}
         </span>
       )}
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={() => deleteHabit(h.id)}>
+      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
+        <Pencil className="w-3.5 h-3.5" />
+      </Button>
+      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
         <Trash2 className="w-3.5 h-3.5" />
       </Button>
 
