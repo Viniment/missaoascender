@@ -248,27 +248,32 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
             <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
           </div>
         </div>
-      {!todayStatus ? (
-        <div className="flex gap-1">
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => onMark(h.id, 'done', h.name, h.difficulty)}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onMark(h.id, 'failed', h.name, h.difficulty)}>
-            <X className="w-4 h-4" />
-          </Button>
+        {!todayStatus ? (
+          <div className="flex gap-1">
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => onMark(h.id, 'done', h.name, h.difficulty)}>
+              <Check className="w-4 h-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onMark(h.id, 'failed', h.name, h.difficulty)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <span className={`text-xs font-display ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
+            {todayStatus === 'done' ? '✔️' : '❌'}
+          </span>
+        )}
+        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
+          <Pencil className="w-3.5 h-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+      {h.description && expanded && (
+        <div className="text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2 mt-2 whitespace-pre-wrap">
+          {h.description}
         </div>
-      ) : (
-        <span className={`text-xs font-display ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
-          {todayStatus === 'done' ? '✔️' : '❌'}
-        </span>
       )}
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
-        <Pencil className="w-3.5 h-3.5" />
-      </Button>
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
-        <Trash2 className="w-3.5 h-3.5" />
-      </Button>
-
       {h.videoUrl && (
         <VideoDialog
           open={showVideo}
