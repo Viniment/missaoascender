@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, X, Trash2, Sparkles, Video, Pencil } from 'lucide-react';
+import { Plus, Check, X, Trash2, Sparkles, Video, Pencil, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { VideoDialog } from '@/components/ContentViewerDialog';
@@ -22,6 +23,7 @@ export default function HabitsPanel() {
   const { state, addHabit, markHabit, deleteHabit, editHabit } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('💪');
   const [color, setColor] = useState(COLORS[0]);
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
@@ -33,6 +35,7 @@ export default function HabitsPanel() {
   // Edit habit dialog
   const [editDialog, setEditDialog] = useState<typeof state.habits[number] | null>(null);
   const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [editIcon, setEditIcon] = useState('💪');
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
@@ -41,6 +44,7 @@ export default function HabitsPanel() {
   const openEditHabit = (h: typeof state.habits[number]) => {
     setEditDialog(h);
     setEditName(h.name);
+    setEditDescription(h.description || '');
     setEditIcon(h.icon);
     setEditColor(h.color);
     setEditDifficulty(h.difficulty);
@@ -49,7 +53,7 @@ export default function HabitsPanel() {
 
   const handleEditHabit = () => {
     if (!editDialog || !editName.trim()) return;
-    editHabit(editDialog.id, { name: editName, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+    editHabit(editDialog.id, { name: editName, description: editDescription.trim() || undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
     setEditDialog(null);
     toast.success('Hábito editado!');
   };
@@ -60,8 +64,9 @@ export default function HabitsPanel() {
     const end = new Date();
     end.setDate(end.getDate() + 30);
     const endDate = end.toISOString().split('T')[0];
-    addHabit({ name, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
+    addHabit({ name, description: description.trim() || undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
+    setDescription('');
     setVideoUrl('');
     setShowForm(false);
     toast.success('Hábito criado!');
@@ -93,6 +98,7 @@ export default function HabitsPanel() {
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="rpg-panel space-y-3">
             <Input placeholder="Nome do hábito" value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" />
+            <Textarea placeholder="Descrição (opcional)" value={description} onChange={e => setDescription(e.target.value)} className="bg-secondary border-border min-h-[60px]" rows={2} />
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
@@ -155,6 +161,7 @@ export default function HabitsPanel() {
           </DialogHeader>
           <div className="space-y-3">
             <Input placeholder="Nome do hábito" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
+            <Textarea placeholder="Descrição (opcional)" value={editDescription} onChange={e => setEditDescription(e.target.value)} className="bg-secondary border-border min-h-[60px]" rows={2} />
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
@@ -206,55 +213,67 @@ export default function HabitsPanel() {
 function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string; onMark: (id: string, status: 'done' | 'failed', name: string, diff: MissionDifficulty) => void; onEdit: () => void }) {
   const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const todayStatus = h.history[today];
   const xp = XP_MAP[h.difficulty] || 5;
   const gold = GOLD_MAP[h.difficulty] || 2;
   const diffColor = diffColors[h.difficulty] || '';
 
   return (
-    <motion.div layout className="rpg-panel flex items-center gap-3">
-      <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">{h.name}</span>
-          <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
-          {h.videoUrl && (
-            <button
-              onClick={() => setShowVideo(true)}
-              className="text-neon-blue hover:text-primary transition-colors"
-              title="Ver vídeo"
-            >
-              <Video className="w-3.5 h-3.5" />
-            </button>
-          )}
+    <motion.div layout className="rpg-panel space-y-0">
+      <div className="flex items-center gap-3">
+        <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-foreground">{h.name}</span>
+            <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
+            {h.description && (
+              <button onClick={() => setExpanded(!expanded)} className="text-muted-foreground hover:text-foreground transition-colors">
+                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            )}
+            {h.videoUrl && (
+              <button
+                onClick={() => setShowVideo(true)}
+                className="text-neon-blue hover:text-primary transition-colors"
+                title="Ver vídeo"
+              >
+                <Video className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
+            <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
+            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
-          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
-          <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{xp * 2} XP</span>
-        </div>
+        {!todayStatus ? (
+          <div className="flex gap-1">
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => onMark(h.id, 'done', h.name, h.difficulty)}>
+              <Check className="w-4 h-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onMark(h.id, 'failed', h.name, h.difficulty)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <span className={`text-xs font-display ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
+            {todayStatus === 'done' ? '✔️' : '❌'}
+          </span>
+        )}
+        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
+          <Pencil className="w-3.5 h-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
       </div>
-      {!todayStatus ? (
-        <div className="flex gap-1">
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={() => onMark(h.id, 'done', h.name, h.difficulty)}>
-            <Check className="w-4 h-4" />
-          </Button>
-          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onMark(h.id, 'failed', h.name, h.difficulty)}>
-            <X className="w-4 h-4" />
-          </Button>
+      {h.description && expanded && (
+        <div className="text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2 mt-2 whitespace-pre-wrap">
+          {h.description}
         </div>
-      ) : (
-        <span className={`text-xs font-display ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
-          {todayStatus === 'done' ? '✔️' : '❌'}
-        </span>
       )}
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
-        <Pencil className="w-3.5 h-3.5" />
-      </Button>
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
-        <Trash2 className="w-3.5 h-3.5" />
-      </Button>
-
       {h.videoUrl && (
         <VideoDialog
           open={showVideo}
