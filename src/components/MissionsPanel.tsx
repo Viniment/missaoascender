@@ -565,6 +565,9 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-destructive" onClick={() => setShowFailConfirm(true)} title="Marcar como falhada">
               <XCircle className="w-4 h-4" />
             </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete}>
               <Trash2 className="w-4 h-4" />
             </Button>
