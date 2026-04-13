@@ -416,9 +416,10 @@ interface MissionCardProps {
   onIncrementCount?: () => void;
   onFail?: () => void;
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
-function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete }: MissionCardProps) {
+function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onIncrementCount, onFail, onDelete, onEdit }: MissionCardProps) {
   const [showVideo, setShowVideo] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [showFailConfirm, setShowFailConfirm] = useState(false);
