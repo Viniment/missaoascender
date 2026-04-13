@@ -230,39 +230,6 @@ export default function MissionsPanel() {
               </Select>
             </div>
 
-      {/* Start Time Mission Dialog */}
-      <Dialog open={!!startTimeDialog} onOpenChange={() => setStartTimeDialog(null)}>
-        <DialogContent className="bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="font-display text-primary">Iniciar Missão</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm text-muted-foreground">Hora que iniciei a tarefa</label>
-              <Input
-                type="time"
-                value={startTimeInput}
-                onChange={e => setStartTimeInput(e.target.value)}
-                className="bg-secondary border-border"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Padrão: hora atual. Ajuste se já iniciou antes.</p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setStartTimeDialog(null)}>Cancelar</Button>
-            <Button onClick={() => {
-              if (!startTimeDialog) return;
-              const [h, m] = startTimeInput.split(':').map(Number);
-              const now = new Date();
-              now.setHours(h, m, 0, 0);
-              // Update the mission's startedAt via the context
-              startTimeMission(startTimeDialog, now.toISOString());
-              setStartTimeDialog(null);
-              toast.success('Missão iniciada!');
-            }}>Iniciar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
             {missionType === 'Contagem' && (
               <div>
@@ -313,6 +280,39 @@ export default function MissionsPanel() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Start Time Mission Dialog */}
+      <Dialog open={!!startTimeDialog} onOpenChange={() => setStartTimeDialog(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">Iniciar Missão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm text-muted-foreground">Hora que iniciei a tarefa</label>
+              <Input
+                type="time"
+                value={startTimeInput}
+                onChange={e => setStartTimeInput(e.target.value)}
+                className="bg-secondary border-border"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Padrão: hora atual. Ajuste se já iniciou antes.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setStartTimeDialog(null)}>Cancelar</Button>
+            <Button onClick={() => {
+              if (!startTimeDialog) return;
+              const [h, m] = startTimeInput.split(':').map(Number);
+              const now = new Date();
+              now.setHours(h, m, 0, 0);
+              startTimeMission(startTimeDialog, now.toISOString());
+              setStartTimeDialog(null);
+              toast.success('Missão iniciada!');
+            }}>Iniciar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-2">
         {active.map(m => (
