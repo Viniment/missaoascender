@@ -354,11 +354,11 @@ export function useGameStore() {
   }, []);
 
   // Start a time-based mission
-  const startTimeMission = useCallback((id: string) => {
+  const startTimeMission = useCallback((id: string, startedAtIso?: string) => {
     setState(prev => ({
       ...prev,
       missions: prev.missions.map(m =>
-        m.id === id ? { ...m, startedAt: new Date().toISOString() } : m
+        m.id === id ? { ...m, startedAt: startedAtIso || new Date().toISOString() } : m
       ),
     }));
   }, []);
