@@ -321,6 +321,7 @@ export default function MissionsPanel() {
             onIncrementCount={() => handleIncrementCount(m.id)}
             onFail={() => handleFail(m.id)}
             onDelete={() => deleteMission(m.id)}
+            onEdit={() => openEditDialog(m)}
           />
         ))}
         {active.length === 0 && (
