@@ -1,41 +1,26 @@
 
 
-# Plano: Aumentar XP por nível (x10) e estilizar recompensas nos cards
+# Plano: Corrigir dialog de edição de hábitos + Adicionar descrição na edição de missões
 
-## 1. Multiplicar XP necessário por 10
+## Problema 1: Dialog de edição de hábitos deformado
+O `DialogContent` não tem scroll — quando o RichEditor aparece, o conteúdo estoura. Solução: adicionar `max-h-[85vh] overflow-y-auto` ao conteúdo do dialog.
 
-**Arquivo:** `src/lib/gameStore.ts`
+## Problema 2: Descrição na edição de missões
+O dialog de edição de missões (linha 400-449 de `MissionsPanel.tsx`) não tem campo de descrição. Precisa adicionar checkbox + RichEditor igual ao de criação e de hábitos.
 
-Alterar `BASE_XP` de `[100, 200, 350, 550, 800]` para `[1000, 2000, 3500, 5500, 8000]`.
+## Alterações
 
-Também atualizar `defaultState.xpToNext` de `100` para `1000`.
+### `src/components/HabitsPanel.tsx`
+- Linha 171: adicionar `max-h-[85vh] overflow-y-auto` ao `DialogContent` do edit dialog para permitir scroll quando o editor de descrição está aberto.
 
-## 2. Estilizar recompensas nos cards de missões
-
-**Arquivo:** `src/components/MissionsPanel.tsx`
-
-Trocar os `<span className="text-muted-foreground">` das recompensas (linhas 426, 429, 432) por badges coloridos com fundo, tipo:
-
-```text
-┌──────────────────────────────────────────┐
-│ 🏋️ Treino Pesado         [Difícil]      │
-│ ⏱️ Tempo | Fitness                       │
-│ ┌─────────────────────────────────┐      │
-│ │ ⚡ 8 XP  💰 3 Gold  [ Por Hora ]│      │
-│ └─────────────────────────────────┘      │
-└──────────────────────────────────────────┘
-```
-
-Usar badges com `bg-primary/15 text-primary` para XP e `bg-warning/15 text-warning` para Gold, com `font-display` e bordas arredondadas.
-
-## 3. Estilizar recompensas nos cards de hábitos
-
-**Arquivo:** `src/components/HabitsPanel.tsx`
-
-Linha 158: trocar `<div className="text-xs text-muted-foreground">+{xp} XP / -{xp * 2} XP</div>` por badges coloridos similares, com XP em verde/primary e penalidade em vermelho.
+### `src/components/MissionsPanel.tsx`
+- Adicionar estados `editHasDescription` e `editDescription` ao componente.
+- Na função `openEditDialog` (linha 72-81): inicializar `editHasDescription` e `editDescription` com os valores da missão.
+- Na função `handleEdit` (linha 83-95): incluir `description` no objeto de atualização.
+- No dialog de edição (linhas 439-442, antes do vídeo): adicionar checkbox "Adicionar descrição" + `RichEditor`, idêntico ao formulário de criação.
+- Adicionar `max-h-[85vh] overflow-y-auto` ao `DialogContent` para prevenir o mesmo problema de overflow.
 
 ## Arquivos alterados
-- `src/lib/gameStore.ts` — BASE_XP x10, defaultState.xpToNext
-- `src/components/MissionsPanel.tsx` — estilizar rewardInfo e liveRewards
-- `src/components/HabitsPanel.tsx` — estilizar linha de XP nos habit cards
+- `src/components/HabitsPanel.tsx` — fix overflow no dialog de edição
+- `src/components/MissionsPanel.tsx` — adicionar descrição rica na edição de missões
 
