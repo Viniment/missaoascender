@@ -423,13 +423,24 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
   const rewardInfo = (() => {
     if (isDone || isFailed) return null;
     if (mission.missionType === 'Tempo' && !isRunning) {
-      return <span className="text-muted-foreground">{XP_PER_HOUR[mission.difficulty]} XP / {GOLD_PER_HOUR[mission.difficulty]} 💰 [ Por Hora ]</span>;
+      return (
+        <span className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ {XP_PER_HOUR[mission.difficulty]} XP</span>
+          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 {GOLD_PER_HOUR[mission.difficulty]}</span>
+          <span className="text-muted-foreground text-[10px] font-display">[ Por Hora ]</span>
+        </span>
+      );
     }
     if (mission.missionType === 'Diária' && !isDailyDone) {
-      return <span className="text-muted-foreground">+{mission.dailyXp || 5} XP | +{mission.dailyGold || 5} 💰</span>;
+      return (
+        <span className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{mission.dailyXp || 5} XP</span>
+          <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{mission.dailyGold || 5}</span>
+        </span>
+      );
     }
     if (mission.missionType === 'Contagem' && (mission.currentCount || 0) < (mission.targetCount || 0)) {
-      return <span className="text-muted-foreground">+2 XP/vez</span>;
+      return <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +2 XP/vez</span>;
     }
     return null;
   })();
@@ -453,7 +464,9 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
               <>
                 {liveRewards && (
                   <span className="text-primary/70 font-display">
-                    {liveRewards.xp} XP / {liveRewards.gold} 💰 [ Por Hora ] - [ <span className="text-primary animate-pulse-glow">{elapsed}</span> ]
+                    <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px]">⚡ {liveRewards.xp} XP</span>
+                    <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold}</span>
+                    <span className="text-muted-foreground text-[10px]">[ Por Hora ]</span> - [ <span className="text-primary animate-pulse-glow">{elapsed}</span> ]
                   </span>
                 )}
               </>
