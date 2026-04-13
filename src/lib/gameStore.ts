@@ -33,6 +33,7 @@ export interface Mission {
 export interface Habit {
   id: string;
   name: string;
+  description?: string;
   icon: string;
   color: string;
   endDate: string;
