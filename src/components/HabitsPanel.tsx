@@ -53,7 +53,7 @@ export default function HabitsPanel() {
 
   const handleEditHabit = () => {
     if (!editDialog || !editName.trim()) return;
-    editHabit(editDialog.id, { name: editName, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+    editHabit(editDialog.id, { name: editName, description: editDescription.trim() || undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
     setEditDialog(null);
     toast.success('Hábito editado!');
   };
@@ -64,8 +64,9 @@ export default function HabitsPanel() {
     const end = new Date();
     end.setDate(end.getDate() + 30);
     const endDate = end.toISOString().split('T')[0];
-    addHabit({ name, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
+    addHabit({ name, description: description.trim() || undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
+    setDescription('');
     setVideoUrl('');
     setShowForm(false);
     toast.success('Hábito criado!');
