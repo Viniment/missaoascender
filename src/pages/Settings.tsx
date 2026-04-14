@@ -33,7 +33,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const [activeSection, setActiveSection] = useState<SectionId>('account');
+  const [activeSection, setActiveSection] = useState<SectionId | null>(isMobile ? null : 'account');
   const [name, setName] = useState(state.name);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
