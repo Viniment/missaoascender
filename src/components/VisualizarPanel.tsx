@@ -35,6 +35,7 @@ export default function VisualizarPanel() {
   const [focusItem, setFocusItem] = useState<VisionItem | null>(null);
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [immersiveIndex, setImmersiveIndex] = useState(0);
+  const [immersivePaused, setImmersivePaused] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -197,17 +198,18 @@ export default function VisualizarPanel() {
       return;
     }
     setImmersiveIndex(0);
+    setImmersivePaused(false);
     setImmersiveMode(true);
     trackView();
   };
 
   useEffect(() => {
-    if (!immersiveMode) return;
+    if (!immersiveMode || immersivePaused) return;
     const timer = setInterval(() => {
       setImmersiveIndex(prev => (prev + 1) % allImmersiveItems.length);
-    }, 5000);
+    }, 10000);
     return () => clearInterval(timer);
-  }, [immersiveMode, allImmersiveItems.length]);
+  }, [immersiveMode, immersivePaused, allImmersiveItems.length]);
 
   const currentCat = categories.find(c => c.id === selectedCategory);
   const currentItems = selectedCategory
