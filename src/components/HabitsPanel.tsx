@@ -321,7 +321,7 @@ function HeatmapSection() {
   const todayDate = new Date(todayStr + 'T12:00:00');
   const days = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(todayDate);
-    d.setDate(d.getDate() - 29 + i);
+    d.setDate(d.getDate() - i);
     return d.toISOString().split('T')[0];
   });
 
