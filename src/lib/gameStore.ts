@@ -100,6 +100,23 @@ export interface Reflection {
   date: string;
 }
 
+export interface VisionCategory {
+  id: string;
+  name: string;
+  icon: string;
+  order: number;
+}
+
+export interface VisionItem {
+  id: string;
+  categoryId: string;
+  type: 'image' | 'text' | 'card';
+  imageUrl?: string;
+  text?: string;
+  order: number;
+  createdAt: string;
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -129,6 +146,10 @@ export interface PlayerState {
   pomodoroMode: string | null;
   punishments: Punishment[];
   randomPunishmentMode: boolean;
+  visionCategories: VisionCategory[];
+  visionItems: VisionItem[];
+  visionStreak: number;
+  visionLastViewedDate: string | null;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -231,12 +252,16 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
-  disabledTabs: [],
+  disabledTabs: ['visualizar'],
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,
   punishments: DEFAULT_PUNISHMENTS,
   randomPunishmentMode: true,
+  visionCategories: [],
+  visionItems: [],
+  visionStreak: 0,
+  visionLastViewedDate: null,
 };
 
 function loadState(): PlayerState {
