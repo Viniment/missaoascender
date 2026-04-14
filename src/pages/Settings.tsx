@@ -10,6 +10,9 @@ import { Settings as SettingsIcon, User, Trash2, RotateCcw, Upload, LogOut, Arro
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
+import ChangePasswordForm from '@/components/ChangePasswordForm';
+import ThemeSelector from '@/components/ThemeSelector';
+import type { ThemeId } from '@/components/ThemeSelector';
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -187,6 +190,15 @@ export default function Settings() {
             );
           })}
         </div>
+
+        {/* Theme */}
+        <ThemeSelector
+          current={(state.theme || 'neon-purple') as ThemeId}
+          onChange={(theme) => setState(prev => ({ ...prev, theme }))}
+        />
+
+        {/* Change Password */}
+        <ChangePasswordForm />
 
         {/* Failure Protocol */}
         <FailureProtocolSettings />
