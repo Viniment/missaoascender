@@ -166,7 +166,6 @@ export default function Settings() {
       case 'failure':
         return (
           <div className="space-y-6">
-            <SectionHeader title="Protocolo de Falha" description="Configure punições por falhas e penalidades." />
             <FailureProtocolSettings />
           </div>
         );
