@@ -1,39 +1,32 @@
 
 
-# Plano: Corrigir missão de tempo com múltiplos dias
+# Plano: Reorganizar Configurações com navegação por seções
 
 ## Problema
-Linha 142-143: o `endDate` é criado a partir do `startDate` e só recebe as horas do input. Se `endDate <= startDate`, adiciona apenas 1 dia. Mas se a missão durou 3 dias (ex: começou segunda 22:00, terminou quinta 07:00), o cálculo fica errado — conta só ~9h em vez de ~57h.
+Todas as configurações estão empilhadas numa lista longa e desorganizada — perfil, abas, tema, senha, protocolo de falha, ações — tudo junto sem separação clara.
 
 ## Solução
-**Arquivo:** `src/components/MissionsPanel.tsx` (linhas 136-148)
+Criar uma **navegação lateral por seções** (ou tabs no mobile) que organize as configurações em categorias distintas, com visual profissional.
 
-Em vez de construir o `endDate` a partir do `startDate`, usar a **data atual** (`getNowBrasilia()`) como base e só aplicar as horas/minutos do input nela:
+### Estrutura das seções
 
-```typescript
-const handleFinishTimeMission = () => {
-  if (!finishDialog) return;
+| Seção | Conteúdo |
+|-------|----------|
+| **Conta** | Avatar, nome, email, alterar senha, sair |
+| **Aparência** | Seletor de tema |
+| **Interface** | Abas visíveis (toggles) |
+| **Protocolo de Falha** | Punições e modo aleatório |
+| **Zona de Perigo** | Reiniciar progresso, excluir conta |
 
-  const startDate = new Date(finishStartedAt);
-  const [endH, endM] = finishTime.split(':').map(Number);
+### Design
 
-  // Usar a data de HOJE (não do startDate) como base
-  const endDate = getNowBrasilia();
-  endDate.setHours(endH, endM, 0, 0);
+- **Desktop (753px+):** Layout com menu lateral à esquerda (lista de seções com ícones) + conteúdo à direita
+- **Mobile:** Tabs horizontais scrolláveis no topo, conteúdo embaixo
+- Cada seção aparece isolada ao clicar, sem scroll infinito
+- Visual limpo com `rpg-panel` nos cards de conteúdo
+- Seção ativa destacada com cor primária + glow sutil
+- "Zona de Perigo" com borda vermelha para diferenciar
 
-  // Se o horário informado já passou hoje, não faz sentido — pode ser que o usuário quis dizer "agora"
-  // Se endDate ainda ficou antes de startDate (impossível), usar now direto
-  if (endDate.getTime() <= startDate.getTime()) {
-    endDate.setDate(endDate.getDate() + 1);
-  }
-
-  const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
-  // ... resto igual
-};
-```
-
-Isso garante que se a missão começou há 3 dias, o cálculo usa a data de hoje como referência, não a data de início.
-
-## Arquivo alterado
-- `src/components/MissionsPanel.tsx` — ~3 linhas modificadas
+### Arquivo alterado
+- `src/pages/Settings.tsx` — refatoração completa do layout com estado `activeSection` e renderização condicional por seção
 
