@@ -232,7 +232,7 @@ export default function Settings() {
                 </button>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </div>
       )}
 
