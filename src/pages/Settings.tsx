@@ -25,7 +25,7 @@ const sections = [
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
 ] as const;
 
-type SectionId = (typeof sections)[number]['id'];
+type SectionId = (typeof sections)[number]['id'] | null;
 
 export default function Settings() {
   const { user, signOut } = useAuth();
@@ -33,7 +33,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const [activeSection, setActiveSection] = useState<SectionId>('account');
+  const [activeSection, setActiveSection] = useState<SectionId | null>(isMobile ? null : 'account');
   const [name, setName] = useState(state.name);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
