@@ -1,26 +1,15 @@
 
 
-# Plano: Corrigir estado inicial do accordion mobile
+# Plano: Heatmap do primeiro registro até 30 dias
 
-## Problema
-`useIsMobile()` retorna `false` no primeiro render (o `useEffect` ainda não rodou). Como `useState` só usa o valor inicial uma vez, `activeSection` é inicializado como `'account'` mesmo no mobile — e nunca muda para `null`.
+## Mudança
+No `HeatmapSection` em `src/components/HabitsPanel.tsx`:
 
-## Solução
-Adicionar um `useEffect` que detecta quando `isMobile` muda para `true` e fecha todas as seções (seta `activeSection` para `null`). Alternativamente, inicializar como `null` sempre e abrir `'account'` apenas quando confirmar que é desktop.
+1. Encontrar a **primeira data** no `h.history` (menor chave)
+2. Gerar dias do primeiro registro até **primeiro registro + 30 dias** (não até hoje)
+3. Se não tem history, não mostrar heatmap para esse hábito
+4. Ordem: esquerda → direita (dia 1 → dia 30)
 
-### Arquivo alterado
-- `src/pages/Settings.tsx` — adicionar `useEffect` após a inicialização:
-  ```typescript
-  const [activeSection, setActiveSection] = useState<SectionId>(null);
-  
-  useEffect(() => {
-    if (isMobile === false && activeSection === null) {
-      setActiveSection('account');
-    }
-    if (isMobile === true) {
-      setActiveSection(null);
-    }
-  }, [isMobile]);
-  ```
-  Isso garante que no mobile tudo começa fechado, e no desktop "Conta" abre automaticamente.
+## Arquivo alterado
+- `src/components/HabitsPanel.tsx` — apenas a função `HeatmapSection`
 
