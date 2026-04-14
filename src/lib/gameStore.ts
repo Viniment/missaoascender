@@ -258,6 +258,10 @@ export const defaultState: PlayerState = {
   pomodoroMode: null,
   punishments: DEFAULT_PUNISHMENTS,
   randomPunishmentMode: true,
+  visionCategories: [],
+  visionItems: [],
+  visionStreak: 0,
+  visionLastViewedDate: null,
 };
 
 function loadState(): PlayerState {
