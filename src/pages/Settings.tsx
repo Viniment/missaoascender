@@ -213,15 +213,14 @@ export default function Settings() {
 
       {/* Mobile tabs */}
       {isMobile && (
-        <div className="border-b border-border bg-background/60 backdrop-blur-sm sticky top-14 z-40">
-          <ScrollArea className="w-full">
-            <div className="flex gap-1 px-3 py-2">
+        <div className="border-b border-border bg-background/60 backdrop-blur-sm sticky top-14 z-40 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-1 px-3 py-2 w-max">
               {sections.map(s => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all',
+                    'flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all',
                     activeSection === s.id
                       ? 'bg-primary/20 text-primary border border-primary/30'
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
@@ -233,7 +232,6 @@ export default function Settings() {
                 </button>
               ))}
             </div>
-          </ScrollArea>
         </div>
       )}
 
