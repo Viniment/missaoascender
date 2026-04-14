@@ -553,48 +553,14 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
       className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''} ${isFailed ? 'opacity-50 border-destructive/30' : ''}`}
     >
-      <div className="flex items-center gap-3">
+      {/* Linha 1: nome + dificuldade + ícones + botões de ação */}
+      <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-semibold ${isDone ? 'line-through text-muted-foreground' : isFailed ? 'line-through text-destructive' : 'text-foreground'}`}>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`text-sm font-semibold truncate ${isDone ? 'line-through text-muted-foreground' : isFailed ? 'line-through text-destructive' : 'text-foreground'}`}>
               {mission.name}
             </span>
             <span className={`text-[10px] font-display ${diffColors[mission.difficulty]}`}>{mission.difficulty}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-            <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
-            <span>{mission.category}</span>
-            {isRunning && (
-              <>
-                {liveRewards && (
-                  <span className="text-primary/70 font-display">
-                    <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px]">⚡ {liveRewards.xp} XP</span>
-                    <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold} {liveRewards.gold === 1 ? 'Moeda' : 'Moedas'}</span>
-                    <span className="text-muted-foreground text-[10px]">-</span> <span className="text-primary animate-pulse-glow">{elapsed}</span>
-                  </span>
-                )}
-              </>
-            )}
-            {mission.missionType === 'Contagem' && (
-              <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
-            )}
-            {isDone && mission.xpEarned !== undefined && (
-              <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 💰 ${mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}` : ''}</span>
-            )}
-            {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
-            {isFailed && <span className="text-destructive">❌ Falhada</span>}
-            {rewardInfo}
-
-            {/* Content icons */}
-            {mission.videoUrl && (
-              <button
-                onClick={() => setShowVideo(true)}
-                className="flex items-center gap-0.5 text-neon-blue hover:text-primary transition-colors"
-                title="Ver vídeo"
-              >
-                <Video className="w-3.5 h-3.5" />
-              </button>
-            )}
             {mission.description && (
               <button
                 onClick={() => setShowDescription(true)}
@@ -602,6 +568,15 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                 title="Ver descrição"
               >
                 <FileText className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {mission.videoUrl && (
+              <button
+                onClick={() => setShowVideo(true)}
+                className="flex items-center gap-0.5 text-neon-blue hover:text-primary transition-colors"
+                title="Ver vídeo"
+              >
+                <Video className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -640,6 +615,28 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Linha 2: tipo, categoria, badges de XP/moedas, status */}
+      <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
+        <span>{mission.category}</span>
+        {isRunning && liveRewards && (
+          <span className="flex items-center gap-1 text-primary/70 font-display">
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px]">⚡ {liveRewards.xp} XP</span>
+            <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold} {liveRewards.gold === 1 ? 'Moeda' : 'Moedas'}</span>
+            <span className="text-muted-foreground text-[10px]">-</span> <span className="text-primary animate-pulse-glow">{elapsed}</span>
+          </span>
+        )}
+        {mission.missionType === 'Contagem' && (
+          <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
+        )}
+        {isDone && mission.xpEarned !== undefined && (
+          <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 💰 ${mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}` : ''}</span>
+        )}
+        {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
+        {isFailed && <span className="text-destructive">❌ Falhada</span>}
+        {rewardInfo}
       </div>
 
       {/* Fail confirmation dialog */}

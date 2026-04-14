@@ -331,7 +331,7 @@ function HeatmapSection() {
       {state.habits.slice(0, 3).map(h => (
         <div key={h.id} className="mb-2">
           <div className="text-xs text-foreground mb-1">{h.icon} {h.name}</div>
-          <div className="flex gap-0.5 flex-wrap">
+          <div className="flex flex-row gap-0.5 flex-wrap">
             {days.map(d => {
               const status = h.history[d];
               return (
