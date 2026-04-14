@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,7 +33,16 @@ export default function Settings() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const [activeSection, setActiveSection] = useState<SectionId | null>(isMobile ? null : 'account');
+  const [activeSection, setActiveSection] = useState<SectionId>(null);
+
+  useEffect(() => {
+    if (isMobile === false && activeSection === null) {
+      setActiveSection('account');
+    }
+    if (isMobile === true) {
+      setActiveSection(null);
+    }
+  }, [isMobile]);
   const [name, setName] = useState(state.name);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
