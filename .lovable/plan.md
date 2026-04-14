@@ -1,32 +1,13 @@
 
 
-# Plano: Reorganizar Configurações com navegação por seções
+# Plano: Corrigir tabs mobile nas Configurações
 
 ## Problema
-Todas as configurações estão empilhadas numa lista longa e desorganizada — perfil, abas, tema, senha, protocolo de falha, ações — tudo junto sem separação clara.
+No mobile, as 5 tabs ("Conta", "Aparência", "Interface", "Protocolo de Falha", "Zona de Perigo") estão dentro de um `ScrollArea`, mas o `ScrollArea` do Radix não habilita scroll horizontal automaticamente — as últimas tabs ficam cortadas e inacessíveis.
 
 ## Solução
-Criar uma **navegação lateral por seções** (ou tabs no mobile) que organize as configurações em categorias distintas, com visual profissional.
+Trocar o `ScrollArea` por um `div` com `overflow-x-auto` nativo, que funciona de forma confiável para scroll horizontal no mobile. Também adicionar `min-width` ou `flex-shrink-0` nos botões para garantir que não encolham.
 
-### Estrutura das seções
-
-| Seção | Conteúdo |
-|-------|----------|
-| **Conta** | Avatar, nome, email, alterar senha, sair |
-| **Aparência** | Seletor de tema |
-| **Interface** | Abas visíveis (toggles) |
-| **Protocolo de Falha** | Punições e modo aleatório |
-| **Zona de Perigo** | Reiniciar progresso, excluir conta |
-
-### Design
-
-- **Desktop (753px+):** Layout com menu lateral à esquerda (lista de seções com ícones) + conteúdo à direita
-- **Mobile:** Tabs horizontais scrolláveis no topo, conteúdo embaixo
-- Cada seção aparece isolada ao clicar, sem scroll infinito
-- Visual limpo com `rpg-panel` nos cards de conteúdo
-- Seção ativa destacada com cor primária + glow sutil
-- "Zona de Perigo" com borda vermelha para diferenciar
-
-### Arquivo alterado
-- `src/pages/Settings.tsx` — refatoração completa do layout com estado `activeSection` e renderização condicional por seção
+## Arquivo alterado
+- `src/pages/Settings.tsx` — substituir `<ScrollArea>` por `<div className="overflow-x-auto ...">` e adicionar `flex-shrink-0` nos botões das tabs (~3 linhas)
 
