@@ -317,37 +317,44 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
 
 function HeatmapSection() {
   const { state } = useGame();
-  const todayStr = getTodayBrasilia();
-  const todayDate = new Date(todayStr + 'T12:00:00');
-  const days = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(todayDate);
-    d.setDate(d.getDate() - i);
-    return d.toISOString().split('T')[0];
-  });
+
+  const habitsWithHistory = state.habits.filter(h => Object.keys(h.history).length > 0);
+
+  if (habitsWithHistory.length === 0) return null;
 
   return (
     <div className="rpg-panel">
       <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Heatmap (30 dias)</h4>
-      {state.habits.slice(0, 3).map(h => (
-        <div key={h.id} className="mb-2">
-          <div className="text-xs text-foreground mb-1">{h.icon} {h.name}</div>
-          <div className="flex flex-row gap-0.5 flex-wrap">
-            {days.map(d => {
-              const status = h.history[d];
-              return (
-                <div
-                  key={d}
-                  className="w-3 h-3 rounded-sm"
-                  style={{
-                    backgroundColor: status === 'done' ? '#10B981' : status === 'failed' ? '#EF4444' : 'hsl(222 30% 14%)',
-                  }}
-                  title={`${d}: ${status || 'vazio'}`}
-                />
-              );
-            })}
+      {habitsWithHistory.slice(0, 3).map(h => {
+        const dates = Object.keys(h.history).sort();
+        const firstDate = new Date(dates[0] + 'T12:00:00');
+        const days = Array.from({ length: 30 }, (_, i) => {
+          const d = new Date(firstDate);
+          d.setDate(d.getDate() + i);
+          return d.toISOString().split('T')[0];
+        });
+
+        return (
+          <div key={h.id} className="mb-2">
+            <div className="text-xs text-foreground mb-1">{h.icon} {h.name}</div>
+            <div className="flex flex-row gap-0.5 flex-wrap">
+              {days.map(d => {
+                const status = h.history[d];
+                return (
+                  <div
+                    key={d}
+                    className="w-3 h-3 rounded-sm"
+                    style={{
+                      backgroundColor: status === 'done' ? '#10B981' : status === 'failed' ? '#EF4444' : 'hsl(222 30% 14%)',
+                    }}
+                    title={`${d}: ${status || 'vazio'}`}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
