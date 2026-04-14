@@ -187,7 +187,7 @@ export default function MissionsPanel() {
     setRewardPopup({ open: true, xp: penaltyXp, gold: 0, title: '💀 MISSÃO FALHADA' });
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayBrasilia();
   const active = state.missions.filter(m => m.status === 'Ativa');
   const completed = state.missions.filter(m => m.status === 'Concluída');
   const failed = state.missions.filter(m => m.status === 'Falhada');

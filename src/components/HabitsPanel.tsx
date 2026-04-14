@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
+import { getTodayBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, X, Trash2, Sparkles, Video, Pencil, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ export default function HabitsPanel() {
   const [color, setColor] = useState(COLORS[0]);
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
   const [videoUrl, setVideoUrl] = useState('');
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayBrasilia();
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });

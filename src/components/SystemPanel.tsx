@@ -1,4 +1,5 @@
 import { useGame } from '@/lib/GameContext';
+import { getTodayBrasilia } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Flame, Gift, AlertTriangle, Target, Lock, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ export default function SystemPanel() {
 
   const pendingMissions = state.missions.filter(m => m.status === 'Ativa').length;
   const completedMissions = state.missions.filter(m => m.status === 'Concluída').length;
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayBrasilia();
   const pendingHabits = state.habits.filter(h => !h.history[today]).length;
   const doneHabits = state.habits.filter(h => h.history[today] === 'done').length;
   const nextLevel = state.level + 1;
