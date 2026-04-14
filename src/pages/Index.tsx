@@ -8,13 +8,14 @@ import HabitsPanel from '@/components/HabitsPanel';
 import JournalPanel from '@/components/JournalPanel';
 import AwakeningPage from '@/components/AwakeningPage';
 import RewardsShop from '@/components/RewardsShop';
+import VisualizarPanel from '@/components/VisualizarPanel';
 
 import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -24,6 +25,7 @@ const TABS = [
   { id: 'achievements', label: 'Conquistas', icon: Trophy },
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'timer', label: 'Timer', icon: Timer },
+  { id: 'visualizar', label: 'Visualizar', icon: Eye },
   { id: 'awakening', label: 'Despertar', icon: Eye },
   { id: 'rewards', label: 'Loja', icon: Gift },
 ] as const;
@@ -47,6 +49,7 @@ export default function Index() {
       case 'achievements': return <AchievementsPanel />;
       case 'journal': return <JournalPanel />;
       case 'timer': return <PomodoroTimer />;
+      case 'visualizar': return <VisualizarPanel />;
       case 'awakening': return <AwakeningPage />;
       case 'rewards': return <RewardsShop />;
     }
