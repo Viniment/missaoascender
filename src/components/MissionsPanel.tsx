@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
-import { getTodayBrasilia } from '@/lib/utils';
+import { getTodayBrasilia, getNowBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
