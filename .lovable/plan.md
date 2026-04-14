@@ -1,43 +1,42 @@
 
 
-# Plano: Corrigir layout do HabitCard no mobile
+# Plano: Heatmap esquerda→direita + Layout de missões igual hábitos
 
-## Problema
-No mobile, todos os elementos do card de hábito estão numa única linha horizontal (`flex items-center gap-3`), causando sobreposição do nome, badges de XP/moedas, botões de ação, editar e deletar.
+## 1. Heatmap — Garantir ordem esquerda→direita
+**Arquivo:** `src/components/HabitsPanel.tsx` (HeatmapSection, linha 334)
 
-## Solução
-Reestruturar o `HabitCard` para empilhar verticalmente no mobile:
+Adicionar `flex-row` explícito no container do heatmap para garantir que os dias mais antigos fiquem à esquerda e o dia atual à direita:
+```
+<div className="flex flex-row gap-0.5 flex-wrap">
+```
 
-### `src/components/HabitsPanel.tsx` — função `HabitCard` (linhas 244-295)
+## 2. Missões — Reestruturar layout igual hábitos
+**Arquivo:** `src/components/MissionsPanel.tsx` (MissionCard, linhas 552-643)
 
-**Layout atual:** Uma única `div flex` com tudo inline.
+**Atual:** Tudo numa única `div flex gap-3` — nome, tipo, categoria, badges de XP/moedas, ícones de vídeo/descrição e botões de ação, tudo inline.
 
-**Novo layout:**
-1. **Linha 1:** Ícone + nome + dificuldade + ícones de descrição/vídeo + botões de ação (check/fail ou status) + editar + deletar
-   - Usar `flex-wrap` para permitir quebra
-   - Reduzir `gap` para `gap-2`
-2. **Linha 2:** Badges de XP, moedas e penalidade em linha separada abaixo
-   - Mover os badges (`+XP`, `+Moedas`, `-XP`) para fora do `flex-1` e colocá-los como uma segunda linha do card
-
-**Estrutura proposta:**
+**Novo layout (igual ao HabitCard):**
 ```
 <div className="rpg-panel space-y-2">
-  {/* Linha 1: ícone, nome, dificuldade, ícones, botões */}
+  {/* Linha 1: nome + dificuldade + botões de ação */}
   <div className="flex items-center gap-2">
-    <span>icon</span>
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span>nome</span> <span>dificuldade</span> <icons/>
+        nome | dificuldade | ícones descrição/vídeo
       </div>
     </div>
-    <buttons check/fail/edit/delete />
+    <botões ação (play/stop/check/+1/fail/edit/delete) />
   </div>
-  {/* Linha 2: badges de recompensa */}
+  {/* Linha 2: tipo, categoria, badges de XP/moedas, status */}
   <div className="flex items-center gap-1.5 flex-wrap">
-    <badge XP/> <badge Moedas/> <badge Penalidade/>
+    tipo | categoria | badges XP/moedas | contagem | status
   </div>
 </div>
 ```
 
-Isso separa as informações de recompensa numa linha própria, evitando o acúmulo horizontal no mobile.
+Isso separa as informações secundárias (tipo, XP, moedas) numa segunda linha, evitando acúmulo horizontal no mobile — exatamente como está nos hábitos.
+
+## Arquivos alterados
+- `src/components/HabitsPanel.tsx` — fix heatmap direction
+- `src/components/MissionsPanel.tsx` — reestruturar MissionCard em 2 linhas
 
