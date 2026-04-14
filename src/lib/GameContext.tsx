@@ -2,6 +2,7 @@ import React, { createContext, useContext } from 'react';
 import { useGameStore } from './gameStore';
 import { usePlayerData } from '@/hooks/usePlayerData';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 
 type GameStoreReturn = ReturnType<typeof useGameStore>;
 
@@ -14,6 +15,7 @@ const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const store = useGameStore();
+  useTheme(store.state.theme || 'neon-purple');
   
   const { resetProgress, deleteAccount } = usePlayerData(
     store.state,
