@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
-import { getTodayBrasilia } from '@/lib/utils';
+import { getTodayBrasilia, getNowBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -139,10 +139,11 @@ export default function MissionsPanel() {
     const startDate = new Date(finishStartedAt);
     const [endH, endM] = finishTime.split(':').map(Number);
 
-    const endDate = new Date(startDate);
+    // Usar a data de HOJE como base para suportar missões de múltiplos dias
+    const endDate = getNowBrasilia();
     endDate.setHours(endH, endM, 0, 0);
 
-    // Se o horário final parece anterior, assume que cruzou meia-noite
+    // Se endDate ainda ficou antes de startDate, adiciona 1 dia
     if (endDate.getTime() <= startDate.getTime()) {
       endDate.setDate(endDate.getDate() + 1);
     }
