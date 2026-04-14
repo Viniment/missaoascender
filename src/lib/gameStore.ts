@@ -151,6 +151,7 @@ export interface PlayerState {
   visionStreak: number;
   visionLastViewedDate: string | null;
   theme: string;
+  difficultyDivisor: number;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -172,29 +173,27 @@ function getTitle(rank: string, level: number): string {
 // Base XP per level, scaled by rank (+20% per rank tier)
 const BASE_XP = [1000, 2000, 3500, 5500, 8000];
 
-function getXpToNext(level: number, rank: string): number {
+function getXpToNext(level: number, rank: string, divisor: number = 1): number {
   const rankIndex = RANKS.indexOf(rank as typeof RANKS[number]);
   const multiplier = Math.pow(1.2, Math.max(0, rankIndex));
-  return Math.floor(BASE_XP[level - 1] * multiplier);
+  return Math.floor(BASE_XP[level - 1] * multiplier / (divisor || 1));
 }
 
-function processLevelUp(xp: number, level: number, rank: string): { xp: number; level: number; rank: string; title: string; xpToNext: number } {
+function processLevelUp(xp: number, level: number, rank: string, divisor: number = 1): { xp: number; level: number; rank: string; title: string; xpToNext: number } {
   let newXp = xp;
   let newLevel = level;
   let newRank = rank;
 
-  while (newXp >= getXpToNext(newLevel, newRank)) {
-    newXp -= getXpToNext(newLevel, newRank);
+  while (newXp >= getXpToNext(newLevel, newRank, divisor)) {
+    newXp -= getXpToNext(newLevel, newRank, divisor);
     if (newLevel >= 5) {
-      // Rank up
       const rankIdx = RANKS.indexOf(newRank as typeof RANKS[number]);
       if (rankIdx < RANKS.length - 1) {
         newRank = RANKS[rankIdx + 1];
         newLevel = 1;
       } else {
-        // Already Monarca max — stay at level 5, cap XP
         newLevel = 5;
-        newXp = Math.min(newXp, getXpToNext(5, newRank) - 1);
+        newXp = Math.min(newXp, getXpToNext(5, newRank, divisor) - 1);
         break;
       }
     } else {
@@ -207,7 +206,7 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
     level: newLevel,
     rank: newRank,
     title: getTitle(newRank, newLevel),
-    xpToNext: getXpToNext(newLevel, newRank),
+    xpToNext: getXpToNext(newLevel, newRank, divisor),
   };
 }
 
@@ -264,6 +263,7 @@ export const defaultState: PlayerState = {
   visionStreak: 0,
   visionLastViewedDate: null,
   theme: 'neon-purple',
+  difficultyDivisor: 1,
 };
 
 function loadState(): PlayerState {
