@@ -1,42 +1,27 @@
 
 
-# Plano: Heatmap esquerda→direita + Layout de missões igual hábitos
+# Plano: Corrigir missão de tempo que cruza meia-noite
 
-## 1. Heatmap — Garantir ordem esquerda→direita
-**Arquivo:** `src/components/HabitsPanel.tsx` (HeatmapSection, linha 334)
+## Problema
+Na linha 142-143, o `endDate` é criado copiando a data do `startDate` e substituindo apenas as horas. Se a missão começou às 22:00 e terminou às 07:00 do dia seguinte, o `endDate` fica no mesmo dia às 07:00 — antes do início — e o sistema rejeita como "horário inválido".
 
-Adicionar `flex-row` explícito no container do heatmap para garantir que os dias mais antigos fiquem à esquerda e o dia atual à direita:
-```
-<div className="flex flex-row gap-0.5 flex-wrap">
-```
+## Solução
+**Arquivo:** `src/components/MissionsPanel.tsx` (linhas 142-148)
 
-## 2. Missões — Reestruturar layout igual hábitos
-**Arquivo:** `src/components/MissionsPanel.tsx` (MissionCard, linhas 552-643)
+Se `endDate <= startDate`, adicionar 1 dia ao `endDate` antes de rejeitar:
 
-**Atual:** Tudo numa única `div flex gap-3` — nome, tipo, categoria, badges de XP/moedas, ícones de vídeo/descrição e botões de ação, tudo inline.
+```typescript
+const endDate = new Date(startDate);
+endDate.setHours(endH, endM, 0, 0);
 
-**Novo layout (igual ao HabitCard):**
-```
-<div className="rpg-panel space-y-2">
-  {/* Linha 1: nome + dificuldade + botões de ação */}
-  <div className="flex items-center gap-2">
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-1.5 flex-wrap">
-        nome | dificuldade | ícones descrição/vídeo
-      </div>
-    </div>
-    <botões ação (play/stop/check/+1/fail/edit/delete) />
-  </div>
-  {/* Linha 2: tipo, categoria, badges de XP/moedas, status */}
-  <div className="flex items-center gap-1.5 flex-wrap">
-    tipo | categoria | badges XP/moedas | contagem | status
-  </div>
-</div>
+// Se o horário final parece anterior, assume que cruzou meia-noite
+if (endDate.getTime() <= startDate.getTime()) {
+  endDate.setDate(endDate.getDate() + 1);
+}
 ```
 
-Isso separa as informações secundárias (tipo, XP, moedas) numa segunda linha, evitando acúmulo horizontal no mobile — exatamente como está nos hábitos.
+Remove-se o `toast.error` de "horário inválido" pois agora sempre será válido (a tarefa simplesmente cruzou meia-noite).
 
-## Arquivos alterados
-- `src/components/HabitsPanel.tsx` — fix heatmap direction
-- `src/components/MissionsPanel.tsx` — reestruturar MissionCard em 2 linhas
+## Arquivo alterado
+- `src/components/MissionsPanel.tsx` — ~3 linhas modificadas
 
