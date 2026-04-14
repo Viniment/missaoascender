@@ -252,7 +252,7 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
-  disabledTabs: [],
+  disabledTabs: ['visualizar'],
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,
