@@ -66,9 +66,9 @@ export default function HabitsPanel() {
   const handleAdd = () => {
     if (!name.trim()) return;
     // Auto-calculate end date: today + 30 days
-    const end = new Date();
-    end.setDate(end.getDate() + 30);
-    const endDate = end.toISOString().split('T')[0];
+    const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
+    todayDate.setDate(todayDate.getDate() + 30);
+    const endDate = todayDate.toISOString().split('T')[0];
     addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
     setDescription('');
