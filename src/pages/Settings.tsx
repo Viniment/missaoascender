@@ -25,7 +25,7 @@ const sections = [
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
 ] as const;
 
-type SectionId = (typeof sections)[number]['id'];
+type SectionId = (typeof sections)[number]['id'] | null;
 
 export default function Settings() {
   const { user, signOut } = useAuth();
