@@ -5,15 +5,16 @@ export type ThemeId = 'neon-purple' | 'red-black' | 'cyber-blue' | 'emerald' | '
 interface ThemeDef {
   id: ThemeId;
   name: string;
-  preview: [string, string, string]; // bg, primary, accent
+  description: string;
+  preview: [string, string, string];
 }
 
 const THEMES: ThemeDef[] = [
-  { id: 'neon-purple', name: 'Neon Púrpura', preview: ['#020617', '#7B2FF7', '#6D28D9'] },
-  { id: 'red-black', name: 'Vermelho & Preto', preview: ['#0A0A0A', '#DC2626', '#991B1B'] },
-  { id: 'cyber-blue', name: 'Cyber Azul', preview: ['#020617', '#3B82F6', '#0EA5E9'] },
-  { id: 'emerald', name: 'Esmeralda', preview: ['#021A0F', '#10B981', '#059669'] },
-  { id: 'solar', name: 'Solar', preview: ['#0F0A02', '#F59E0B', '#D97706'] },
+  { id: 'neon-purple', name: 'Neon Púrpura', description: 'Solo Leveling clássico', preview: ['#020617', '#7B2FF7', '#A855F7'] },
+  { id: 'red-black', name: 'Sangue & Sombra', description: 'Escuro e agressivo', preview: ['#080000', '#DC2626', '#F97316'] },
+  { id: 'cyber-blue', name: 'Cyber Azul', description: 'Frio e futurista', preview: ['#020A18', '#0EA5E9', '#38BDF8'] },
+  { id: 'emerald', name: 'Esmeralda', description: 'Natureza e foco', preview: ['#011A0D', '#22C55E', '#4ADE80'] },
+  { id: 'solar', name: 'Solar', description: 'Quente e poderoso', preview: ['#0A0500', '#F59E0B', '#FBBF24'] },
 ];
 
 interface Props {
@@ -29,32 +30,44 @@ export default function ThemeSelector({ current, onChange }: Props) {
       </h2>
       <p className="text-xs text-muted-foreground">Escolha o esquema de cores do app.</p>
 
-      <div className="grid grid-cols-2 gap-3">
-        {THEMES.map(theme => (
-          <button
-            key={theme.id}
-            onClick={() => onChange(theme.id)}
-            className={`relative flex items-center gap-3 p-3 rounded-lg border transition-all ${
-              current === theme.id
-                ? 'border-primary glow-purple bg-secondary'
-                : 'border-border hover:border-muted-foreground bg-card'
-            }`}
-          >
-            <div className="flex gap-1">
-              {theme.preview.map((color, i) => (
-                <div
-                  key={i}
-                  className="w-4 h-4 rounded-full border border-white/10"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-            <span className="text-xs font-body">{theme.name}</span>
-            {current === theme.id && (
-              <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
-            )}
-          </button>
-        ))}
+      <div className="space-y-2">
+        {THEMES.map(theme => {
+          const isActive = current === theme.id;
+          return (
+            <button
+              key={theme.id}
+              onClick={() => onChange(theme.id)}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                isActive
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-muted-foreground bg-card'
+              }`}
+              style={isActive ? {
+                boxShadow: `0 0 15px ${theme.preview[1]}33, 0 0 40px ${theme.preview[1]}11`,
+              } : undefined}
+            >
+              <div className="flex gap-1.5">
+                {theme.preview.map((color, i) => (
+                  <div
+                    key={i}
+                    className="w-5 h-5 rounded-full"
+                    style={{
+                      backgroundColor: color,
+                      boxShadow: i > 0 ? `0 0 8px ${color}66` : undefined,
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-display tracking-wider">{theme.name}</span>
+                <span className="text-[10px] text-muted-foreground">{theme.description}</span>
+              </div>
+              {isActive && (
+                <div className="ml-auto w-2 h-2 rounded-full bg-primary animate-pulse" />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
