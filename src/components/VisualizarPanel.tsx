@@ -4,8 +4,8 @@ import type { VisionCategory, VisionItem } from '@/lib/gameStore';
 import { getTodayBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Trash2, Pencil, Image, Type, Layers, Play, X, ChevronLeft,
-  ArrowLeft, ArrowRight, Flame, FolderPlus, Link as LinkIcon
+  Plus, Trash2, Pencil, Image, Type, Layers, Play, Pause, X, ChevronLeft,
+  ArrowLeft, ArrowRight, Flame, FolderPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ export default function VisualizarPanel() {
   const [focusItem, setFocusItem] = useState<VisionItem | null>(null);
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [immersiveIndex, setImmersiveIndex] = useState(0);
+  const [immersivePaused, setImmersivePaused] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -197,17 +198,18 @@ export default function VisualizarPanel() {
       return;
     }
     setImmersiveIndex(0);
+    setImmersivePaused(false);
     setImmersiveMode(true);
     trackView();
   };
 
   useEffect(() => {
-    if (!immersiveMode) return;
+    if (!immersiveMode || immersivePaused) return;
     const timer = setInterval(() => {
       setImmersiveIndex(prev => (prev + 1) % allImmersiveItems.length);
-    }, 5000);
+    }, 10000);
     return () => clearInterval(timer);
-  }, [immersiveMode, allImmersiveItems.length]);
+  }, [immersiveMode, immersivePaused, allImmersiveItems.length]);
 
   const currentCat = categories.find(c => c.id === selectedCategory);
   const currentItems = selectedCategory
@@ -539,12 +541,21 @@ export default function VisualizarPanel() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
           >
-            <button
-              className="absolute top-4 right-4 text-white/60 hover:text-white z-10"
-              onClick={() => setImmersiveMode(false)}
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+              <button
+                className="text-white/60 hover:text-white p-1"
+                onClick={() => setImmersivePaused(prev => !prev)}
+                title={immersivePaused ? 'Play' : 'Pausar'}
+              >
+                {immersivePaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+              </button>
+              <button
+                className="text-white/60 hover:text-white p-1"
+                onClick={() => setImmersiveMode(false)}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
             {/* Navigation */}
             <button
