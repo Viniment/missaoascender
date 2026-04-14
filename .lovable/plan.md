@@ -1,26 +1,38 @@
 
 
-# Plano: Corrigir missão de tempo que cruza meia-noite
+# Plano: Corrigir missão de tempo com múltiplos dias
 
 ## Problema
-Na linha 142-143, o `endDate` é criado copiando a data do `startDate` e substituindo apenas as horas. Se a missão começou às 22:00 e terminou às 07:00 do dia seguinte, o `endDate` fica no mesmo dia às 07:00 — antes do início — e o sistema rejeita como "horário inválido".
+Linha 142-143: o `endDate` é criado a partir do `startDate` e só recebe as horas do input. Se `endDate <= startDate`, adiciona apenas 1 dia. Mas se a missão durou 3 dias (ex: começou segunda 22:00, terminou quinta 07:00), o cálculo fica errado — conta só ~9h em vez de ~57h.
 
 ## Solução
-**Arquivo:** `src/components/MissionsPanel.tsx` (linhas 142-148)
+**Arquivo:** `src/components/MissionsPanel.tsx` (linhas 136-148)
 
-Se `endDate <= startDate`, adicionar 1 dia ao `endDate` antes de rejeitar:
+Em vez de construir o `endDate` a partir do `startDate`, usar a **data atual** (`getNowBrasilia()`) como base e só aplicar as horas/minutos do input nela:
 
 ```typescript
-const endDate = new Date(startDate);
-endDate.setHours(endH, endM, 0, 0);
+const handleFinishTimeMission = () => {
+  if (!finishDialog) return;
 
-// Se o horário final parece anterior, assume que cruzou meia-noite
-if (endDate.getTime() <= startDate.getTime()) {
-  endDate.setDate(endDate.getDate() + 1);
-}
+  const startDate = new Date(finishStartedAt);
+  const [endH, endM] = finishTime.split(':').map(Number);
+
+  // Usar a data de HOJE (não do startDate) como base
+  const endDate = getNowBrasilia();
+  endDate.setHours(endH, endM, 0, 0);
+
+  // Se o horário informado já passou hoje, não faz sentido — pode ser que o usuário quis dizer "agora"
+  // Se endDate ainda ficou antes de startDate (impossível), usar now direto
+  if (endDate.getTime() <= startDate.getTime()) {
+    endDate.setDate(endDate.getDate() + 1);
+  }
+
+  const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
+  // ... resto igual
+};
 ```
 
-Remove-se o `toast.error` de "horário inválido" pois agora sempre será válido (a tarefa simplesmente cruzou meia-noite).
+Isso garante que se a missão começou há 3 dias, o cálculo usa a data de hoje como referência, não a data de início.
 
 ## Arquivo alterado
 - `src/components/MissionsPanel.tsx` — ~3 linhas modificadas
