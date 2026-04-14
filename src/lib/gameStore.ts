@@ -316,7 +316,7 @@ export function useGameStore() {
       let newXp = prev.xp + amount;
       if (newXp < 0) newXp = 0;
 
-      const result = processLevelUp(newXp, prev.level, prev.rank);
+      const result = processLevelUp(newXp, prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       return {
         ...prev,
@@ -363,7 +363,7 @@ export function useGameStore() {
       const xpGain = 10;
       const totalXp = xpGain + xpPenalty;
 
-      const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         todayCheckedIn: true,
@@ -405,7 +405,7 @@ export function useGameStore() {
       const xp = Math.floor(executedHours * XP_PER_HOUR[mission.difficulty]);
       const gold = Math.floor(executedHours * GOLD_PER_HOUR[mission.difficulty]);
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -430,7 +430,7 @@ export function useGameStore() {
       const xp = mission.dailyXp || 5;
       const gold = mission.dailyGold || 5;
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -459,7 +459,7 @@ export function useGameStore() {
         xp += 5; // Bonus for completing all
       }
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -495,7 +495,7 @@ export function useGameStore() {
 
       const baseXp = XP_PER_HOUR[mission.difficulty];
       const penaltyXp = -(baseXp * 2);
-      const prog = processLevelUp(Math.max(0, prev.xp + penaltyXp), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + penaltyXp), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       const now = new Date();
       const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -559,7 +559,7 @@ export function useGameStore() {
       const baseGold = GOLD_PER_HOUR[habit.difficulty] || 2;
       const xp = status === 'done' ? baseXp : -(baseXp * 2);
       const gold = status === 'done' ? baseGold : 0;
-      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       let newProtocols = prev.failureProtocols;
       if (status === 'failed') {
@@ -603,7 +603,7 @@ export function useGameStore() {
       if (entry.text.length > 500) xp += 10;
       if (entry.deepMode) xp += 30;
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -697,7 +697,7 @@ export function useGameStore() {
 
   const addReflection = useCallback((entry: Omit<Reflection, 'id'>) => {
     setState(prev => {
-      const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -742,7 +742,7 @@ export function useGameStore() {
 
       // Apply heavy penalties: reset streak, lose 200 XP per expired protocol
       const totalPenalty = pending.length * -200;
-      const prog = processLevelUp(Math.max(0, prev.xp + totalPenalty), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + totalPenalty), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       return {
         ...prev,
