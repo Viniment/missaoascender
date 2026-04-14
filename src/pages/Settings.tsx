@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -18,11 +18,11 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const sections = [
-  { id: 'account', label: 'Conta', icon: User },
-  { id: 'appearance', label: 'Aparência', icon: Palette },
-  { id: 'interface', label: 'Interface', icon: Layout },
-  { id: 'failure', label: 'Protocolo de Falha', icon: Shield },
-  { id: 'danger', label: 'Zona de Perigo', icon: AlertTriangle },
+  { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
+  { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
+  { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
+  { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Shield },
+  { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
 ] as const;
 
 type SectionId = (typeof sections)[number]['id'];
@@ -211,34 +211,56 @@ export default function Settings() {
         </div>
       </header>
 
-      {/* Mobile tabs */}
-      {isMobile && (
-        <div className="border-b border-border bg-background/60 backdrop-blur-sm sticky top-14 z-40 overflow-x-auto scrollbar-hide">
-            <div className="flex gap-1 px-3 py-2 w-max">
-              {sections.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(s.id)}
-                  className={cn(
-                    'flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all',
-                    activeSection === s.id
-                      ? 'bg-primary/20 text-primary border border-primary/30'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
-                    s.id === 'danger' && activeSection === s.id && 'bg-destructive/20 text-destructive border-destructive/30'
-                  )}
-                >
-                  <s.icon className="w-3.5 h-3.5" />
-                  {s.label}
-                </button>
-              ))}
-            </div>
-        </div>
-      )}
-
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className={cn('flex gap-6', isMobile && 'flex-col')}>
-          {/* Desktop sidebar */}
-          {!isMobile && (
+        {isMobile ? (
+          /* Mobile: Accordion sections */
+          <div className="space-y-2">
+            {sections.map(s => {
+              const isOpen = activeSection === s.id;
+              const isDanger = s.id === 'danger';
+              return (
+                <div key={s.id} className={cn(
+                  'rpg-panel overflow-hidden transition-all',
+                  isDanger && 'border-destructive/40'
+                )}>
+                  <button
+                    onClick={() => setActiveSection(isOpen ? null as any : s.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-1 py-2 text-left transition-colors',
+                      isOpen
+                        ? isDanger ? 'text-destructive' : 'text-primary'
+                        : 'text-foreground'
+                    )}
+                  >
+                    <div className={cn(
+                      'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                      isOpen
+                        ? isDanger ? 'bg-destructive/15 text-destructive' : 'bg-primary/15 text-primary'
+                        : 'bg-secondary text-muted-foreground'
+                    )}>
+                      <s.icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-display tracking-wider">{s.label}</p>
+                      <p className="text-xs text-muted-foreground">{s.description}</p>
+                    </div>
+                    <ChevronDown className={cn(
+                      'w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200',
+                      isOpen && 'rotate-180'
+                    )} />
+                  </button>
+                  {isOpen && (
+                    <div className="pt-3 border-t border-border mt-2 animate-accordion-down">
+                      {renderContent()}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Desktop: Sidebar + Content */
+          <div className="flex gap-6">
             <nav className="w-56 shrink-0 space-y-1">
               {sections.map(s => (
                 <button
@@ -257,13 +279,11 @@ export default function Settings() {
                 </button>
               ))}
             </nav>
-          )}
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            {renderContent()}
+            <div className="flex-1 min-w-0">
+              {renderContent()}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Dialogs */}
