@@ -1,6 +1,6 @@
 import { Palette } from 'lucide-react';
 
-export type ThemeId = 'neon-purple' | 'red-black' | 'cyber-blue' | 'emerald' | 'solar';
+export type ThemeId = 'neon-purple' | 'red-black' | 'cyber-blue' | 'emerald' | 'solar' | 'midnight-rose' | 'arctic';
 
 interface ThemeDef {
   id: ThemeId;
