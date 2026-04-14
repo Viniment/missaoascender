@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkNewAchievements, type AchievementDef } from './achievements';
+import { getTodayBrasilia } from './utils';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
@@ -243,7 +244,7 @@ function loadState(): PlayerState {
     const saved = localStorage.getItem('ascensao-state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayBrasilia();
       if (parsed.lastLogin && parsed.lastLogin !== today) {
         parsed.todayCheckedIn = false;
       }
@@ -308,7 +309,7 @@ export function useGameStore() {
 
   const dailyCheckIn = useCallback(() => {
     setState(prev => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayBrasilia();
       if (prev.todayCheckedIn) return prev;
 
       let missedDays = 0;
@@ -396,7 +397,7 @@ export function useGameStore() {
       const mission = prev.missions.find(m => m.id === id);
       if (!mission || mission.status === 'Concluída') return prev;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayBrasilia();
       if (mission.lastCompletedDate === today) return prev;
 
       const xp = mission.dailyXp || 5;
@@ -522,7 +523,7 @@ export function useGameStore() {
   }, []);
 
   const markHabit = useCallback((id: string, status: 'done' | 'failed') => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayBrasilia();
     setState(prev => {
       const habit = prev.habits.find(h => h.id === id);
       if (!habit) return prev;
