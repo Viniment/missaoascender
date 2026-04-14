@@ -15,7 +15,7 @@ import ThemeSelector from '@/components/ThemeSelector';
 import type { ThemeId } from '@/components/ThemeSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
