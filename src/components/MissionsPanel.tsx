@@ -142,9 +142,9 @@ export default function MissionsPanel() {
     const endDate = new Date(startDate);
     endDate.setHours(endH, endM, 0, 0);
 
+    // Se o horário final parece anterior, assume que cruzou meia-noite
     if (endDate.getTime() <= startDate.getTime()) {
-      toast.error('Horário inválido — o horário final deve ser posterior ao início.');
-      return;
+      endDate.setDate(endDate.getDate() + 1);
     }
 
     const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
@@ -380,6 +380,7 @@ export default function MissionsPanel() {
               const [eh, em] = finishTime.split(':').map(Number);
               const endDate = new Date(startDate);
               endDate.setHours(eh, em, 0, 0);
+              if (endDate.getTime() <= startDate.getTime()) endDate.setDate(endDate.getDate() + 1);
               if (endDate.getTime() > startDate.getTime()) {
                 const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
                 const xp = Math.floor(hours * XP_PER_HOUR[dialogMission.difficulty]);
