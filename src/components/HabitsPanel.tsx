@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
+import { getTodayBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, X, Trash2, Sparkles, Video, Pencil, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ export default function HabitsPanel() {
   const [color, setColor] = useState(COLORS[0]);
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
   const [videoUrl, setVideoUrl] = useState('');
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayBrasilia();
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
@@ -65,9 +66,9 @@ export default function HabitsPanel() {
   const handleAdd = () => {
     if (!name.trim()) return;
     // Auto-calculate end date: today + 30 days
-    const end = new Date();
-    end.setDate(end.getDate() + 30);
-    const endDate = end.toISOString().split('T')[0];
+    const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
+    todayDate.setDate(todayDate.getDate() + 30);
+    const endDate = todayDate.toISOString().split('T')[0];
     addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
     setName('');
     setDescription('');
@@ -316,9 +317,10 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
 
 function HeatmapSection() {
   const { state } = useGame();
-  const today = new Date();
+  const todayStr = getTodayBrasilia();
+  const todayDate = new Date(todayStr + 'T12:00:00');
   const days = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(today);
+    const d = new Date(todayDate);
     d.setDate(d.getDate() - 29 + i);
     return d.toISOString().split('T')[0];
   });

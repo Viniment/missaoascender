@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
+import { getTodayBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -187,7 +188,7 @@ export default function MissionsPanel() {
     setRewardPopup({ open: true, xp: penaltyXp, gold: 0, title: '💀 MISSÃO FALHADA' });
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayBrasilia();
   const active = state.missions.filter(m => m.status === 'Ativa');
   const completed = state.missions.filter(m => m.status === 'Concluída');
   const failed = state.missions.filter(m => m.status === 'Falhada');
