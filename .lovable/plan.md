@@ -1,13 +1,32 @@
 
 
-# Plano: Corrigir tabs mobile nas Configurações
+# Plano: Navegação mobile mais intuitiva nas Configurações
 
 ## Problema
-No mobile, as 5 tabs ("Conta", "Aparência", "Interface", "Protocolo de Falha", "Zona de Perigo") estão dentro de um `ScrollArea`, mas o `ScrollArea` do Radix não habilita scroll horizontal automaticamente — as últimas tabs ficam cortadas e inacessíveis.
+As tabs horizontais no mobile são pequenas, difíceis de descobrir que rolam, e o usuário pode não entender que precisa deslizar para ver as outras opções.
 
 ## Solução
-Trocar o `ScrollArea` por um `div` com `overflow-x-auto` nativo, que funciona de forma confiável para scroll horizontal no mobile. Também adicionar `min-width` ou `flex-shrink-0` nos botões para garantir que não encolham.
+Substituir as tabs horizontais por uma **lista vertical de cards** no mobile — cada seção aparece como um card com ícone, título e descrição curta. Ao tocar, expande o conteúdo da seção (estilo accordion) ou navega para ela. Isso é mais intuitivo porque todas as seções ficam visíveis de uma vez.
 
-## Arquivo alterado
-- `src/pages/Settings.tsx` — substituir `<ScrollArea>` por `<div className="overflow-x-auto ...">` e adicionar `flex-shrink-0` nos botões das tabs (~3 linhas)
+### Abordagem: Accordion (expandir/colapsar)
+- No mobile, em vez de tabs, mostrar **todas as seções como cards colapsáveis**
+- Cada card mostra: ícone + título + descrição de 1 linha
+- Tocar no card expande seu conteúdo abaixo dele
+- Apenas um aberto por vez (fecha o anterior ao abrir outro)
+- "Zona de Perigo" com borda vermelha sutil para destaque visual
+- Desktop permanece como está (sidebar lateral)
+
+### Detalhes visuais
+- Cards com `rpg-panel` styling e ícone à esquerda
+- Seta indicadora de aberto/fechado (ChevronDown que gira)
+- Animação suave de expansão
+- Descrições curtas em cada card:
+  - Conta → "Perfil, senha e sessão"
+  - Aparência → "Tema e visual"
+  - Interface → "Abas visíveis"
+  - Protocolo de Falha → "Punições e penalidades"
+  - Zona de Perigo → "Ações irreversíveis"
+
+### Arquivo alterado
+- `src/pages/Settings.tsx` — trocar tabs mobile por accordion de seções usando Collapsible ou Accordion do shadcn
 
