@@ -15,6 +15,8 @@ const THEMES: ThemeDef[] = [
   { id: 'cyber-blue', name: 'Cyber Azul', description: 'Frio e futurista', preview: ['#020A18', '#0EA5E9', '#38BDF8'] },
   { id: 'emerald', name: 'Esmeralda', description: 'Natureza e foco', preview: ['#011A0D', '#22C55E', '#4ADE80'] },
   { id: 'solar', name: 'Solar', description: 'Quente e poderoso', preview: ['#0A0500', '#F59E0B', '#FBBF24'] },
+  { id: 'midnight-rose', name: 'Rosa Noturna', description: 'Elegante e intenso', preview: ['#0A0310', '#E11D8E', '#F472B6'] },
+  { id: 'arctic', name: 'Ártico', description: 'Gélido e preciso', preview: ['#030A12', '#94A3B8', '#E2E8F0'] },
 ];
 
 interface Props {
