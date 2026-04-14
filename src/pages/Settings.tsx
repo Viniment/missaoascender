@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -21,6 +21,7 @@ const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
+  { id: 'advanced', label: 'Avançado', description: 'Dificuldade e progressão', icon: Settings2 },
   { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Shield },
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
 ] as const;
@@ -168,6 +169,58 @@ export default function Settings() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        );
+
+      case 'advanced':
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Avançado" description="Ajuste a dificuldade de progressão do sistema." />
+            <div className="rpg-panel space-y-4">
+              <h3 className="font-display text-xs tracking-widest text-muted-foreground uppercase">Dificuldade de Progressão</h3>
+              <p className="text-xs text-muted-foreground">Controla a quantidade de XP necessária para subir de nível. Divisores maiores tornam a progressão mais rápida.</p>
+              <div className="space-y-2">
+                {[
+                  { value: 1, label: 'Normal', desc: 'XP padrão (ex: 1000 XP para Nível 2)' },
+                  { value: 2, label: 'Fácil', desc: 'Metade do XP necessário (ex: 500 XP)' },
+                  { value: 4, label: 'Muito Fácil', desc: 'Um quarto do XP necessário (ex: 250 XP)' },
+                ].map(opt => {
+                  const isSelected = (state.difficultyDivisor || 1) === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setState(prev => {
+                          const newDivisor = opt.value;
+                          const newXpToNext = Math.floor(
+                            prev.xpToNext * (prev.difficultyDivisor || 1) / newDivisor
+                          );
+                          const newXp = Math.min(prev.xp, newXpToNext - 1);
+                          return { ...prev, difficultyDivisor: newDivisor, xpToNext: newXpToNext, xp: newXp };
+                        });
+                        toast.success(`Dificuldade alterada para ${opt.label}!`);
+                      }}
+                      className={cn(
+                        'w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all',
+                        isSelected
+                          ? 'border-primary/50 bg-primary/10 shadow-[0_0_12px_hsl(var(--glow-color)/0.1)]'
+                          : 'border-border hover:border-primary/30 hover:bg-secondary/50'
+                      )}
+                    >
+                      <div className={cn(
+                        'w-4 h-4 rounded-full border-2 mt-0.5 shrink-0 transition-colors',
+                        isSelected ? 'border-primary bg-primary' : 'border-muted-foreground'
+                      )} />
+                      <div>
+                        <p className={cn('text-sm font-display tracking-wider', isSelected && 'text-primary')}>{opt.label}</p>
+                        <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted-foreground/70 italic">Trocar a dificuldade recalcula o XP necessário para o nível atual.</p>
             </div>
           </div>
         );

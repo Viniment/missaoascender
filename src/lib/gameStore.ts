@@ -151,6 +151,7 @@ export interface PlayerState {
   visionStreak: number;
   visionLastViewedDate: string | null;
   theme: string;
+  difficultyDivisor: number;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -172,29 +173,27 @@ function getTitle(rank: string, level: number): string {
 // Base XP per level, scaled by rank (+20% per rank tier)
 const BASE_XP = [1000, 2000, 3500, 5500, 8000];
 
-function getXpToNext(level: number, rank: string): number {
+function getXpToNext(level: number, rank: string, divisor: number = 1): number {
   const rankIndex = RANKS.indexOf(rank as typeof RANKS[number]);
   const multiplier = Math.pow(1.2, Math.max(0, rankIndex));
-  return Math.floor(BASE_XP[level - 1] * multiplier);
+  return Math.floor(BASE_XP[level - 1] * multiplier / (divisor || 1));
 }
 
-function processLevelUp(xp: number, level: number, rank: string): { xp: number; level: number; rank: string; title: string; xpToNext: number } {
+function processLevelUp(xp: number, level: number, rank: string, divisor: number = 1): { xp: number; level: number; rank: string; title: string; xpToNext: number } {
   let newXp = xp;
   let newLevel = level;
   let newRank = rank;
 
-  while (newXp >= getXpToNext(newLevel, newRank)) {
-    newXp -= getXpToNext(newLevel, newRank);
+  while (newXp >= getXpToNext(newLevel, newRank, divisor)) {
+    newXp -= getXpToNext(newLevel, newRank, divisor);
     if (newLevel >= 5) {
-      // Rank up
       const rankIdx = RANKS.indexOf(newRank as typeof RANKS[number]);
       if (rankIdx < RANKS.length - 1) {
         newRank = RANKS[rankIdx + 1];
         newLevel = 1;
       } else {
-        // Already Monarca max — stay at level 5, cap XP
         newLevel = 5;
-        newXp = Math.min(newXp, getXpToNext(5, newRank) - 1);
+        newXp = Math.min(newXp, getXpToNext(5, newRank, divisor) - 1);
         break;
       }
     } else {
@@ -207,7 +206,7 @@ function processLevelUp(xp: number, level: number, rank: string): { xp: number; 
     level: newLevel,
     rank: newRank,
     title: getTitle(newRank, newLevel),
-    xpToNext: getXpToNext(newLevel, newRank),
+    xpToNext: getXpToNext(newLevel, newRank, divisor),
   };
 }
 
@@ -264,6 +263,7 @@ export const defaultState: PlayerState = {
   visionStreak: 0,
   visionLastViewedDate: null,
   theme: 'neon-purple',
+  difficultyDivisor: 1,
 };
 
 function loadState(): PlayerState {
@@ -316,7 +316,7 @@ export function useGameStore() {
       let newXp = prev.xp + amount;
       if (newXp < 0) newXp = 0;
 
-      const result = processLevelUp(newXp, prev.level, prev.rank);
+      const result = processLevelUp(newXp, prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       return {
         ...prev,
@@ -363,7 +363,7 @@ export function useGameStore() {
       const xpGain = 10;
       const totalXp = xpGain + xpPenalty;
 
-      const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         todayCheckedIn: true,
@@ -405,7 +405,7 @@ export function useGameStore() {
       const xp = Math.floor(executedHours * XP_PER_HOUR[mission.difficulty]);
       const gold = Math.floor(executedHours * GOLD_PER_HOUR[mission.difficulty]);
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -430,7 +430,7 @@ export function useGameStore() {
       const xp = mission.dailyXp || 5;
       const gold = mission.dailyGold || 5;
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -459,7 +459,7 @@ export function useGameStore() {
         xp += 5; // Bonus for completing all
       }
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -495,7 +495,7 @@ export function useGameStore() {
 
       const baseXp = XP_PER_HOUR[mission.difficulty];
       const penaltyXp = -(baseXp * 2);
-      const prog = processLevelUp(Math.max(0, prev.xp + penaltyXp), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + penaltyXp), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       const now = new Date();
       const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -559,7 +559,7 @@ export function useGameStore() {
       const baseGold = GOLD_PER_HOUR[habit.difficulty] || 2;
       const xp = status === 'done' ? baseXp : -(baseXp * 2);
       const gold = status === 'done' ? baseGold : 0;
-      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       let newProtocols = prev.failureProtocols;
       if (status === 'failed') {
@@ -603,7 +603,7 @@ export function useGameStore() {
       if (entry.text.length > 500) xp += 10;
       if (entry.deepMode) xp += 30;
 
-      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -697,7 +697,7 @@ export function useGameStore() {
 
   const addReflection = useCallback((entry: Omit<Reflection, 'id'>) => {
     setState(prev => {
-      const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank);
+      const prog = processLevelUp(prev.xp + 15, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
         ...prog,
@@ -742,7 +742,7 @@ export function useGameStore() {
 
       // Apply heavy penalties: reset streak, lose 200 XP per expired protocol
       const totalPenalty = pending.length * -200;
-      const prog = processLevelUp(Math.max(0, prev.xp + totalPenalty), prev.level, prev.rank);
+      const prog = processLevelUp(Math.max(0, prev.xp + totalPenalty), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
       return {
         ...prev,
