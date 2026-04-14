@@ -150,6 +150,7 @@ export interface PlayerState {
   visionItems: VisionItem[];
   visionStreak: number;
   visionLastViewedDate: string | null;
+  theme: string;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -262,6 +263,7 @@ export const defaultState: PlayerState = {
   visionItems: [],
   visionStreak: 0,
   visionLastViewedDate: null,
+  theme: 'neon-purple',
 };
 
 function loadState(): PlayerState {
