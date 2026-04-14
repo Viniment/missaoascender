@@ -317,9 +317,10 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
 
 function HeatmapSection() {
   const { state } = useGame();
-  const today = new Date();
+  const todayStr = getTodayBrasilia();
+  const todayDate = new Date(todayStr + 'T12:00:00');
   const days = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(today);
+    const d = new Date(todayDate);
     d.setDate(d.getDate() - 29 + i);
     return d.toISOString().split('T')[0];
   });
