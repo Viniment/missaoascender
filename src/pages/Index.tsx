@@ -25,7 +25,7 @@ const TABS = [
   { id: 'achievements', label: 'Conquistas', icon: Trophy },
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'timer', label: 'Timer', icon: Timer },
-  { id: 'visualizar', label: 'Visualizar', icon: Eye },
+  { id: 'visualizar', label: 'Visualizar', icon: Layers },
   { id: 'awakening', label: 'Despertar', icon: Eye },
   { id: 'rewards', label: 'Loja', icon: Gift },
 ] as const;
