@@ -65,6 +65,55 @@
   }
 }
 
+@keyframes neon-spectrum-glow {
+  0%, 100% {
+    --spectrum-primary: 268 100% 68%;
+    --spectrum-secondary: 190 100% 62%;
+    --spectrum-tertiary: 320 100% 72%;
+  }
+  33% {
+    --spectrum-primary: 196 100% 64%;
+    --spectrum-secondary: 284 100% 72%;
+    --spectrum-tertiary: 332 100% 70%;
+  }
+  66% {
+    --spectrum-primary: 318 100% 72%;
+    --spectrum-secondary: 244 100% 76%;
+    --spectrum-tertiary: 186 100% 64%;
+  }
+}
+
+@keyframes neon-spectrum-panel {
+  0%, 100% {
+    box-shadow: 0 0 18px hsl(var(--spectrum-primary) / 0.28), 0 0 54px hsl(var(--spectrum-secondary) / 0.12);
+    border-color: hsl(var(--spectrum-primary) / 0.36);
+  }
+  50% {
+    box-shadow: 0 0 18px hsl(var(--spectrum-tertiary) / 0.28), 0 0 54px hsl(var(--spectrum-primary) / 0.14);
+    border-color: hsl(var(--spectrum-secondary) / 0.4);
+  }
+}
+
+@keyframes neon-spectrum-bar {
+  0%, 100% {
+    background: linear-gradient(90deg, hsl(var(--spectrum-primary)) 0%, hsl(var(--spectrum-secondary)) 100%);
+    box-shadow: 0 0 12px hsl(var(--spectrum-primary) / 0.45);
+  }
+  50% {
+    background: linear-gradient(90deg, hsl(var(--spectrum-secondary)) 0%, hsl(var(--spectrum-tertiary)) 100%);
+    box-shadow: 0 0 14px hsl(var(--spectrum-tertiary) / 0.4);
+  }
+}
+
+@keyframes neon-spectrum-text {
+  0%, 100% {
+    text-shadow: 0 0 10px hsl(var(--spectrum-primary) / 0.48), 0 0 30px hsl(var(--spectrum-secondary) / 0.18);
+  }
+  50% {
+    text-shadow: 0 0 10px hsl(var(--spectrum-tertiary) / 0.45), 0 0 30px hsl(var(--spectrum-primary) / 0.18);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -120,6 +169,42 @@
   .xp-bar {
     background: linear-gradient(90deg, hsl(var(--glow-color)) 0%, hsl(var(--glow-secondary)) 100%);
     box-shadow: 0 0 10px hsl(var(--glow-color) / 0.5);
+  }
+}
+
+.theme-neon-spectrum {
+  --spectrum-primary: 268 100% 68%;
+  --spectrum-secondary: 190 100% 62%;
+  --spectrum-tertiary: 320 100% 72%;
+  animation: neon-spectrum-glow 18s ease-in-out infinite;
+}
+
+.theme-neon-spectrum .rpg-panel,
+.theme-neon-spectrum .border-glow,
+.theme-neon-spectrum .border-glow-blue,
+.theme-neon-spectrum .glow-purple,
+.theme-neon-spectrum .glow-purple-strong {
+  animation: neon-spectrum-panel 18s ease-in-out infinite;
+}
+
+.theme-neon-spectrum .xp-bar {
+  animation: neon-spectrum-bar 18s ease-in-out infinite;
+}
+
+.theme-neon-spectrum .glow-text-purple {
+  animation: neon-spectrum-text 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-neon-spectrum,
+  .theme-neon-spectrum .rpg-panel,
+  .theme-neon-spectrum .border-glow,
+  .theme-neon-spectrum .border-glow-blue,
+  .theme-neon-spectrum .glow-purple,
+  .theme-neon-spectrum .glow-purple-strong,
+  .theme-neon-spectrum .xp-bar,
+  .theme-neon-spectrum .glow-text-purple {
+    animation: none;
   }
 }
 

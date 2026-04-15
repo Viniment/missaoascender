@@ -1,6 +1,6 @@
 import { Palette } from 'lucide-react';
 
-export type ThemeId = 'neon-purple' | 'red-black' | 'cyber-blue' | 'emerald' | 'solar' | 'midnight-rose' | 'arctic';
+export type ThemeId = 'neon-purple' | 'red-black' | 'cyber-blue' | 'emerald' | 'solar' | 'midnight-rose' | 'arctic' | 'neon-spectrum';
 
 interface ThemeDef {
   id: ThemeId;
@@ -17,6 +17,7 @@ const THEMES: ThemeDef[] = [
   { id: 'solar', name: 'Solar', description: 'Quente e poderoso', preview: ['#0A0500', '#F59E0B', '#FBBF24'] },
   { id: 'midnight-rose', name: 'Rosa Noturna', description: 'Elegante e intenso', preview: ['#0A0310', '#E11D8E', '#F472B6'] },
   { id: 'arctic', name: 'Ártico', description: 'Gélido e preciso', preview: ['#030A12', '#94A3B8', '#E2E8F0'] },
+  { id: 'neon-spectrum', name: 'Neon Spectrum', description: 'Neon animado com transição lenta', preview: ['#080617', '#22D3EE', '#F472B6'] },
 ];
 
 interface Props {
