@@ -3,7 +3,7 @@ import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { getTodayBrasilia, getNowBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil } from 'lucide-react';
+import { Plus, Check, Trash2, Clock, Swords, Play, Square, Hash, Video, FileText, XCircle, Coins, Pencil, Repeat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,6 +49,7 @@ export default function MissionsPanel() {
   const [videoUrl, setVideoUrl] = useState('');
   const [hasDescription, setHasDescription] = useState(false);
   const [description, setDescription] = useState('');
+  const [repeatable, setRepeatable] = useState(false);
   const [startTimeDialog, setStartTimeDialog] = useState<string | null>(null);
   const [startTimeInput, setStartTimeInput] = useState(getNowTimeString());
 
@@ -71,6 +72,7 @@ export default function MissionsPanel() {
   const [editTargetCount, setEditTargetCount] = useState(2);
   const [editHasDescription, setEditHasDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
+  const [editRepeatable, setEditRepeatable] = useState(false);
 
   const openEditDialog = (m: Mission) => {
     setEditDialog(m);
@@ -83,6 +85,7 @@ export default function MissionsPanel() {
     setEditDailyXp(m.dailyXp || 10);
     setEditDailyGold(m.dailyGold || 5);
     setEditTargetCount(m.targetCount || 2);
+    setEditRepeatable(!!m.repeatable);
   };
 
   const handleEdit = () => {
@@ -93,6 +96,7 @@ export default function MissionsPanel() {
       difficulty: editDifficulty,
       videoUrl: editVideoUrl.trim() || undefined,
       description: editHasDescription && editDescription.trim() ? editDescription : undefined,
+      repeatable: editRepeatable,
       ...(editDialog.missionType === 'Diária' ? { dailyXp: editDailyXp, dailyGold: editDailyGold } : {}),
       ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
     });
@@ -117,11 +121,13 @@ export default function MissionsPanel() {
       dailyGold: missionType === 'Diária' ? dailyGold : undefined,
       targetCount: missionType === 'Contagem' ? targetCount : undefined,
       currentCount: missionType === 'Contagem' ? 0 : undefined,
+      repeatable,
     });
     setName('');
     setVideoUrl('');
     setDescription('');
     setHasDescription(false);
+    setRepeatable(false);
     setShowForm(false);
     toast.success('Missão adicionada!');
   };
@@ -288,6 +294,11 @@ export default function MissionsPanel() {
                 <RichEditor content={description} onChange={setDescription} placeholder="Descreva a missão..." />
               )}
             </div>
+
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <Checkbox checked={repeatable} onCheckedChange={(v) => setRepeatable(!!v)} />
+              <Repeat className="w-3 h-3" /> Missão repetível (não desaparece ao concluir)
+            </label>
 
             <Button className="w-full" onClick={handleAdd}>Adicionar Missão</Button>
           </motion.div>
@@ -481,6 +492,11 @@ export default function MissionsPanel() {
                 <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva a missão..." />
               )}
             </div>
+
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <Checkbox checked={editRepeatable} onCheckedChange={(v) => setEditRepeatable(!!v)} />
+              <Repeat className="w-3 h-3" /> Missão repetível
+            </label>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
@@ -646,6 +662,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       {/* Linha 2: tipo, categoria, badges de XP/moedas, status */}
       <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
         <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
+        {mission.repeatable && <span className="flex items-center gap-0.5 text-primary/70"><Repeat className="w-3 h-3" /> Repetível</span>}
         <span>{mission.category}</span>
         {isRunning && liveRewards && (
           <span className="flex items-center gap-1 text-primary/70 font-display">
