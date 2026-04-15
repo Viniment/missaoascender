@@ -1,23 +1,23 @@
 
 
-# Plano: Filtro por período nas Missões Concluídas
+# Plano: Ajustar penalidade de dias perdidos + Proteger XP
 
-## O que muda
-A seção "Concluídas" vai mostrar apenas os últimos 7 dias por padrão, com um seletor para trocar entre: **7 dias**, **15 dias**, **30 dias** e **Tudo**.
+## O que aconteceu
+Seus pontos caíram de ~231 para 191 porque o check-in do dia 15/04 detectou que o dia 14/04 foi perdido e aplicou penalidade de -50 XP. Isso **não foi um bug** — é o comportamento atual do sistema de penalidades.
 
-## Implementação
+## O que vou corrigir/melhorar
 
-### 1. `src/lib/gameStore.ts`
-- Adicionar `completedAt?: string` à interface `Mission`
-- Nas funções `completeTimeMission`, `completeDailyMission` (quando marca como Concluída), e `incrementCountMission` (quando completa): salvar `completedAt: new Date().toISOString()` junto com o status `'Concluída'`
+### 1. Reduzir a penalidade padrão
+- 1 dia perdido: **-20 XP** (era -50)
+- 2+ dias perdidos: **-50 XP** (era -100)
 
-### 2. `src/components/MissionsPanel.tsx`
-- Adicionar estado `completedFilter` com valores `'7d' | '15d' | '30d' | 'all'` (default: `'7d'`)
-- Filtrar `completed` por `completedAt` baseado no período selecionado (missões sem `completedAt` aparecem em "Tudo")
-- Renderizar um seletor pequeno ao lado do título "Concluídas" com as opções
-- Remover o `.slice(0, 5)` atual, já que o filtro de data controla a quantidade
+### 2. Restaurar seu XP perdido
+- Vou ajustar a lógica para que a penalidade antiga excessiva não se repita
+- Como a penalidade já foi aplicada no seu estado salvo, vou adicionar uma compensação de +30 XP no seu próximo check-in ou corrigir diretamente
 
-## Arquivos envolvidos
-- `src/lib/gameStore.ts` — adicionar campo e salvar data de conclusão
-- `src/components/MissionsPanel.tsx` — filtro visual e lógica de filtragem
+### 3. Mostrar aviso antes de aplicar penalidade
+- No SystemPanel, quando há dias perdidos, mostrar a penalidade que será aplicada **antes** do usuário clicar no botão
+
+## Arquivo envolvido
+- `src/lib/gameStore.ts` — ajustar valores de penalidade nas linhas 387-389
 
