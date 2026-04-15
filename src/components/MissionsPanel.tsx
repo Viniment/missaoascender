@@ -190,9 +190,20 @@ export default function MissionsPanel() {
   };
 
   const today = getTodayBrasilia();
+  const [completedFilter, setCompletedFilter] = useState<'7d' | '15d' | '30d' | 'all'>('7d');
+
   const active = state.missions.filter(m => m.status === 'Ativa');
-  const completed = state.missions.filter(m => m.status === 'Concluída');
+  const allCompleted = state.missions.filter(m => m.status === 'Concluída');
   const failed = state.missions.filter(m => m.status === 'Falhada');
+
+  const filterDays: Record<string, number | null> = { '7d': 7, '15d': 15, '30d': 30, 'all': null };
+  const completed = allCompleted.filter(m => {
+    const days = filterDays[completedFilter];
+    if (days === null) return true;
+    if (!m.completedAt) return false;
+    const diff = (Date.now() - new Date(m.completedAt).getTime()) / 86400000;
+    return diff <= days;
+  });
 
   const dialogMission = finishDialog ? state.missions.find(m => m.id === finishDialog) : null;
 
@@ -336,14 +347,27 @@ export default function MissionsPanel() {
         )}
       </div>
 
-      {completed.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Concluídas</h3>
-          {completed.slice(0, 5).map(m => (
-            <MissionCard key={m.id} mission={m} today={today} />
-          ))}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Concluídas ({completed.length})</h3>
+          <Select value={completedFilter} onValueChange={(v) => setCompletedFilter(v as typeof completedFilter)}>
+            <SelectTrigger className="h-7 w-[110px] text-xs bg-secondary border-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">7 dias</SelectItem>
+              <SelectItem value="15d">15 dias</SelectItem>
+              <SelectItem value="30d">30 dias</SelectItem>
+              <SelectItem value="all">Tudo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+        {completed.length > 0 ? completed.map(m => (
+          <MissionCard key={m.id} mission={m} today={today} />
+        )) : (
+          <p className="text-xs text-muted-foreground text-center py-2">Nenhuma missão neste período.</p>
+        )}
+      </div>
 
       {failed.length > 0 && (
         <div className="space-y-2">

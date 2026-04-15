@@ -29,6 +29,7 @@ export interface Mission {
   // Results
   xpEarned?: number;
   goldEarned?: number;
+  completedAt?: string;
 }
 
 export interface Habit {
@@ -438,7 +439,7 @@ export function useGameStore() {
         ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
-          m.id === id ? { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null } : m
+          m.id === id ? { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null, completedAt: new Date().toISOString() } : m
         ),
         log: [{ date: new Date().toISOString(), action: `Missão: ${mission.name} (${executedHours.toFixed(1)}h)`, xp, gold }, ...prev.log].slice(0, 100),
       };
@@ -497,6 +498,7 @@ export function useGameStore() {
             currentCount: newCount,
             status: isComplete ? 'Concluída' as const : 'Ativa' as const,
             xpEarned: (m.xpEarned || 0) + xp,
+            ...(isComplete ? { completedAt: new Date().toISOString() } : {}),
           } : m
         ),
         log: [{ date: new Date().toISOString(), action: `Contagem: ${mission.name} (${newCount}/${target})${isComplete ? ' ✔️' : ''}`, xp, gold }, ...prev.log].slice(0, 100),
