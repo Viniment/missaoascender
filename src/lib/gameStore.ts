@@ -30,6 +30,7 @@ export interface Mission {
   xpEarned?: number;
   goldEarned?: number;
   completedAt?: string;
+  repeatable?: boolean;
 }
 
 export interface Habit {
@@ -457,7 +458,10 @@ export function useGameStore() {
         ...prog,
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
-          m.id === id ? { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null, completedAt: new Date().toISOString() } : m
+          m.id === id ? (m.repeatable
+            ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null }
+            : { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null, completedAt: new Date().toISOString() }
+          ) : m
         ),
         log: [{ date: new Date().toISOString(), action: `Missão: ${mission.name} (${executedHours.toFixed(1)}h)`, xp, gold }, ...prev.log].slice(0, 100),
       };
@@ -513,10 +517,10 @@ export function useGameStore() {
         missions: prev.missions.map(m =>
           m.id === id ? {
             ...m,
-            currentCount: newCount,
-            status: isComplete ? 'Concluída' as const : 'Ativa' as const,
+            currentCount: (isComplete && m.repeatable) ? 0 : newCount,
+            status: (isComplete && !m.repeatable) ? 'Concluída' as const : 'Ativa' as const,
             xpEarned: (m.xpEarned || 0) + xp,
-            ...(isComplete ? { completedAt: new Date().toISOString() } : {}),
+            ...(isComplete && !m.repeatable ? { completedAt: new Date().toISOString() } : {}),
           } : m
         ),
         log: [{ date: new Date().toISOString(), action: `Contagem: ${mission.name} (${newCount}/${target})${isComplete ? ' ✔️' : ''}`, xp, gold }, ...prev.log].slice(0, 100),
