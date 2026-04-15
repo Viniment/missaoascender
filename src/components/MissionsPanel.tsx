@@ -202,12 +202,23 @@ export default function MissionsPanel() {
   const allCompleted = state.missions.filter(m => m.status === 'Concluída');
   const failed = state.missions.filter(m => m.status === 'Falhada');
 
+  // Build completion history entries from repeatable missions
+  const repeatableHistory = state.missions
+    .filter(m => m.repeatable && m.completionHistory && m.completionHistory.length > 0)
+    .flatMap(m => (m.completionHistory || []).map(h => ({ ...h, missionName: m.name, missionId: m.id, difficulty: m.difficulty, missionType: m.missionType })));
+
   const filterDays: Record<string, number | null> = { '7d': 7, '15d': 15, '30d': 30, 'all': null };
   const completed = allCompleted.filter(m => {
     const days = filterDays[completedFilter];
     if (days === null) return true;
     if (!m.completedAt) return false;
     const diff = (Date.now() - new Date(m.completedAt).getTime()) / 86400000;
+    return diff <= days;
+  });
+  const filteredHistory = repeatableHistory.filter(h => {
+    const days = filterDays[completedFilter];
+    if (days === null) return true;
+    const diff = (Date.now() - new Date(h.date).getTime()) / 86400000;
     return diff <= days;
   });
 
