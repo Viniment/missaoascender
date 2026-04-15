@@ -492,6 +492,11 @@ export default function MissionsPanel() {
                 <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva a missão..." />
               )}
             </div>
+
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <Checkbox checked={editRepeatable} onCheckedChange={(v) => setEditRepeatable(!!v)} />
+              <Repeat className="w-3 h-3" /> Missão repetível
+            </label>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
@@ -657,6 +662,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       {/* Linha 2: tipo, categoria, badges de XP/moedas, status */}
       <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
         <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
+        {mission.repeatable && <span className="flex items-center gap-0.5 text-primary/70"><Repeat className="w-3 h-3" /> Repetível</span>}
         <span>{mission.category}</span>
         {isRunning && liveRewards && (
           <span className="flex items-center gap-1 text-primary/70 font-display">
