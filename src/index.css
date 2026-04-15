@@ -67,19 +67,19 @@
 
 @keyframes neon-spectrum-glow {
   0%, 100% {
-    --spectrum-primary: 268 100% 68%;
-    --spectrum-secondary: 190 100% 62%;
-    --spectrum-tertiary: 320 100% 72%;
+    --spectrum-primary: 43 96% 56%;
+    --spectrum-secondary: 35 80% 45%;
+    --spectrum-tertiary: 48 90% 65%;
   }
   33% {
-    --spectrum-primary: 196 100% 64%;
-    --spectrum-secondary: 284 100% 72%;
-    --spectrum-tertiary: 332 100% 70%;
+    --spectrum-primary: 38 85% 50%;
+    --spectrum-secondary: 28 75% 40%;
+    --spectrum-tertiary: 45 95% 60%;
   }
   66% {
-    --spectrum-primary: 318 100% 72%;
-    --spectrum-secondary: 244 100% 76%;
-    --spectrum-tertiary: 186 100% 64%;
+    --spectrum-primary: 48 90% 62%;
+    --spectrum-secondary: 40 88% 48%;
+    --spectrum-tertiary: 30 80% 42%;
   }
 }
 
@@ -173,9 +173,9 @@
 }
 
 .theme-neon-spectrum {
-  --spectrum-primary: 268 100% 68%;
-  --spectrum-secondary: 190 100% 62%;
-  --spectrum-tertiary: 320 100% 72%;
+  --spectrum-primary: 43 96% 56%;
+  --spectrum-secondary: 35 80% 45%;
+  --spectrum-tertiary: 48 90% 65%;
   animation: neon-spectrum-glow 18s ease-in-out infinite;
 }
 
