@@ -55,7 +55,7 @@ export default function SystemPanel() {
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="rpg-panel space-y-4"
+      className="rpg-panel neon-glow space-y-4"
     >
       <h3 className="font-display text-sm text-primary glow-text-purple tracking-wider uppercase">
         ⟐ PAINEL DO SISTEMA

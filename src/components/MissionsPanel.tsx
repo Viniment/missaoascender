@@ -627,7 +627,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
 
   return (
     <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className={`rpg-panel space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''} ${isFailed ? 'opacity-50 border-destructive/30' : ''}`}
+      className={`rpg-panel glow-purple space-y-2 ${isDone || isDailyDone ? 'opacity-60' : ''} ${isFailed ? 'opacity-50 border-destructive/30' : ''}`}
     >
       {/* Linha 1: nome + dificuldade + ícones + botões de ação */}
       <div className="flex items-center gap-2">
