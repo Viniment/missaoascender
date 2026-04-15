@@ -266,6 +266,7 @@ export const defaultState: PlayerState = {
   visionLastViewedDate: null,
   theme: 'neon-purple',
   difficultyDivisor: 1,
+  _penaltyCompensated: true,
 };
 
 export function normalizePlayerStateForToday(state: PlayerState): PlayerState {
