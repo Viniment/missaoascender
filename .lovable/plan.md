@@ -1,33 +1,65 @@
 
+# Plano: novo tema animado “Neon Spectrum”
 
-# Plano: Configuração Avançada — Dificuldade de Progressão
+## O que vou adicionar
+Criar um novo tema nas Configurações com visual neon animado, trocando lentamente entre cores bonitas e com bom contraste, sem deixar o app difícil de ler.
 
-## O que muda
-Adicionar uma seção "Avançado" nas configurações onde o jogador pode ajustar o **multiplicador de dificuldade**. Isso divide a XP necessária para subir de nível.
+## Abordagem
+Em vez de animar tudo de forma agressiva, vou manter:
+- fundo escuro estável
+- textos claros e legíveis
+- animação lenta nas cores de destaque
 
-Exemplo: nível 1 rank E precisa de 1000 XP normalmente. Com dificuldade "Fácil" (÷2), passa a precisar de 500 XP.
+Assim o app continua bonito e usável.
 
-## Opções de dificuldade
-| Opção | Divisor | Descrição |
-|-------|---------|-----------|
-| Normal | 1x | Padrão atual |
-| Fácil | ÷2 | Metade do XP necessário |
-| Muito Fácil | ÷4 | Um quarto do XP necessário |
+## Como será o tema
+Novo tema, por exemplo:
+- **Neon Spectrum**
+- descrição: “Neon animado com transição lenta entre cores”
 
-## Arquivos alterados
+Paleta animada:
+- roxo neon
+- azul/ciano
+- rosa/magenta
+- violeta elétrico
 
-### 1. `src/lib/gameStore.ts`
-- Adicionar `difficultyDivisor: number` ao `PlayerState` (default: `1`)
-- Alterar `getXpToNext` para aceitar o divisor e aplicar: `Math.floor(BASE_XP[level-1] * multiplier / divisor)`
-- Alterar `processLevelUp` para receber o divisor
-- Todas as chamadas a `processLevelUp` passam `prev.difficultyDivisor || 1`
-- Atualizar `defaultState` com `difficultyDivisor: 1`
+## Implementação
+### 1. `src/components/ThemeSelector.tsx`
+- adicionar o novo `ThemeId`
+- incluir o novo card do tema na lista
+- mostrar preview com cores neon do tema animado
 
-### 2. `src/pages/Settings.tsx`
-- Adicionar nova seção "Avançado" (ícone `Settings2`) no array `sections`
-- Renderizar um seletor com as 3 opções (Normal, Fácil, Muito Fácil)
-- Ao trocar, atualiza `difficultyDivisor` no state e recalcula `xpToNext` atual
+### 2. `src/hooks/useTheme.ts`
+- adicionar suporte ao novo tema
+- quando esse tema estiver ativo:
+  - manter variáveis base de fundo/texto com contraste alto
+  - ativar uma animação lenta que alterna `--primary`, `--accent`, `--glow-color` e `--glow-secondary`
+- ao trocar para outro tema:
+  - limpar a animação/classe especial para não “vazar” o efeito
 
-### 3. `src/components/PlayerCard.tsx`
-- Nenhuma mudança — já usa `state.xpToNext` que será recalculado automaticamente
+### 3. `src/index.css`
+- criar uma classe global específica para o tema animado
+- adicionar `@keyframes` para transição lenta entre cores neon
+- aplicar essa animação em variáveis/efeitos visuais usados por:
+  - bordas glow
+  - cards
+  - barra de XP
+  - destaques do tema
 
+## Cuidado importante
+Para não repetir o problema de legibilidade:
+- **não** vou animar a cor principal dos textos
+- vou animar só os destaques neon
+- vou manter o fundo escuro e o foreground claro
+
+## Resultado esperado
+Quando o usuário selecionar esse tema:
+- o app continua escuro
+- brilhos e destaques mudam de cor lentamente
+- a sensação fica mais “viva”, futurista e bonita
+- tudo continua legível
+
+## Arquivos envolvidos
+- `src/components/ThemeSelector.tsx`
+- `src/hooks/useTheme.ts`
+- `src/index.css`
