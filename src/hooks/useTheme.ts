@@ -194,11 +194,5 @@ export function useTheme(themeId: string) {
     Object.entries(vars).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-
-    root.classList.toggle(ANIMATED_THEME_CLASS, themeId === 'neon-spectrum');
-
-    return () => {
-      root.classList.remove(ANIMATED_THEME_CLASS);
-    };
   }, [themeId]);
 }
