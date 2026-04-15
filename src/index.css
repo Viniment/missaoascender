@@ -65,6 +65,49 @@
   }
 }
 
+@layer components {
+  .rpg-panel {
+    background: linear-gradient(to bottom right, hsl(var(--card-gradient-from)), hsl(var(--card-gradient-to)));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+
+  .glow-text-purple {
+    text-shadow: 0 0 10px hsl(var(--glow-color) / 0.5),
+                 0 0 30px hsl(var(--glow-color) / 0.2);
+  }
+
+  .glow-purple-strong {
+    box-shadow: 0 0 15px hsl(var(--glow-color) / 0.3),
+                0 0 40px hsl(var(--glow-color) / 0.1);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 10px hsl(var(--glow-color) / 0.2),
+                0 0 25px hsl(var(--glow-color) / 0.1);
+  }
+
+  .glow-border {
+    box-shadow: 0 0 8px hsl(var(--glow-color) / 0.3);
+  }
+
+  .xp-bar-fill {
+    background: linear-gradient(90deg, hsl(var(--glow-color)), hsl(var(--glow-secondary)));
+    box-shadow: 0 0 10px hsl(var(--glow-color) / 0.5);
+  }
+
+  .card-gradient {
+    background: linear-gradient(to bottom right, hsl(var(--card-gradient-from)), hsl(var(--card-gradient-to)));
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 5px hsl(var(--glow-color) / 0.3),
+                0 0 20px hsl(var(--glow-color) / 0.15),
+                0 0 40px hsl(var(--glow-color) / 0.05);
+  }
+}
+
 
 /* Tiptap editor styles */
 .ProseMirror {
