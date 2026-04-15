@@ -31,6 +31,7 @@ export interface Mission {
   goldEarned?: number;
   completedAt?: string;
   repeatable?: boolean;
+  completionHistory?: { date: string; xp: number; gold: number; executedHours?: number }[];
 }
 
 export interface Habit {
@@ -459,7 +460,7 @@ export function useGameStore() {
         gold: prev.gold + gold,
         missions: prev.missions.map(m =>
           m.id === id ? (m.repeatable
-            ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null }
+            ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null, completionHistory: [...(m.completionHistory || []), { date: new Date().toISOString(), xp, gold, executedHours }] }
             : { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null, completedAt: new Date().toISOString() }
           ) : m
         ),
@@ -521,6 +522,7 @@ export function useGameStore() {
             status: (isComplete && !m.repeatable) ? 'Concluída' as const : 'Ativa' as const,
             xpEarned: (m.xpEarned || 0) + xp,
             ...(isComplete && !m.repeatable ? { completedAt: new Date().toISOString() } : {}),
+            ...(isComplete && m.repeatable ? { completionHistory: [...(m.completionHistory || []), { date: new Date().toISOString(), xp: (m.xpEarned || 0) + xp, gold: 0 }] } : {}),
           } : m
         ),
         log: [{ date: new Date().toISOString(), action: `Contagem: ${mission.name} (${newCount}/${target})${isComplete ? ' ✔️' : ''}`, xp, gold }, ...prev.log].slice(0, 100),
