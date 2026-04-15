@@ -385,8 +385,14 @@ export function useGameStore() {
       }
 
       let xpPenalty = 0;
-      if (missedDays === 1) xpPenalty = -50;
-      else if (missedDays >= 2) xpPenalty = -100;
+      if (missedDays === 1) xpPenalty = -20;
+      else if (missedDays >= 2) xpPenalty = -50;
+
+      // One-time compensation for old harsh penalty applied on 2026-04-15
+      let compensation = 0;
+      if (!prev._penaltyCompensated && prev.xp <= 200) {
+        compensation = 30;
+      }
 
       const xpGain = 10;
       const totalXp = xpGain + xpPenalty;
