@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import type { ThemeId } from '@/components/ThemeSelector';
 
-const ANIMATED_THEME_CLASS = 'theme-neon-spectrum';
-
 const THEME_VARS: Record<ThemeId, Record<string, string>> = {
   'neon-purple': {
     '--background': '222 47% 3%',
@@ -186,32 +184,6 @@ const THEME_VARS: Record<ThemeId, Record<string, string>> = {
     '--sidebar-border': '210 15% 15%',
     '--sidebar-ring': '215 20% 65%',
   },
-  'neon-spectrum': {
-    '--background': '30 30% 4%',
-    '--foreground': '40 30% 90%',
-    '--card': '30 25% 8%',
-    '--card-foreground': '40 30% 90%',
-    '--secondary': '30 20% 12%',
-    '--muted': '30 15% 15%',
-    '--muted-foreground': '35 12% 58%',
-    '--primary': '43 96% 56%',
-    '--primary-foreground': '30 30% 6%',
-    '--accent': '35 80% 45%',
-    '--accent-foreground': '40 30% 95%',
-    '--ring': '43 96% 56%',
-    '--border': '30 20% 18%',
-    '--input': '30 20% 18%',
-    '--neon-purple': '43 96% 56%',
-    '--glow-color': '43 96% 56%',
-    '--glow-secondary': '35 80% 45%',
-    '--card-gradient-from': '30 25% 8%',
-    '--card-gradient-to': '32 22% 11%',
-    '--sidebar-background': '30 28% 5%',
-    '--sidebar-primary': '43 96% 56%',
-    '--sidebar-accent': '30 20% 11%',
-    '--sidebar-border': '30 18% 15%',
-    '--sidebar-ring': '43 96% 56%',
-  },
 };
 
 export function useTheme(themeId: string) {
@@ -222,11 +194,5 @@ export function useTheme(themeId: string) {
     Object.entries(vars).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-
-    root.classList.toggle(ANIMATED_THEME_CLASS, themeId === 'neon-spectrum');
-
-    return () => {
-      root.classList.remove(ANIMATED_THEME_CLASS);
-    };
   }, [themeId]);
 }
