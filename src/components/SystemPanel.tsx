@@ -29,7 +29,19 @@ export default function SystemPanel() {
     }
   };
 
+  // Calculate potential penalty for warning
+  const potentialPenalty = (() => {
+    if (state.todayCheckedIn || !state.lastLogin) return 0;
+    const lastDate = new Date(state.lastLogin);
+    const todayDate = new Date(today);
+    const diff = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff <= 1) return 0;
+    const missed = diff - 1;
+    return missed === 1 ? -20 : -50;
+  })();
+
   const systemMessages = [
+    potentialPenalty < 0 ? `⚠️ Penalidade de ${potentialPenalty} XP será aplicada ao registrar o dia.` : null,
     state.streak >= 7 ? '🔥 Sequência impressionante. Continue.' : null,
     state.streak === 0 ? '⚠️ Seu progresso está instável. Continue ou regrida.' : null,
     pendingMissions > 0 ? `🎯 ${pendingMissions} missão(ões) pendente(s).` : null,

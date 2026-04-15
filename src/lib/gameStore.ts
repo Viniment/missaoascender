@@ -153,6 +153,7 @@ export interface PlayerState {
   visionLastViewedDate: string | null;
   theme: string;
   difficultyDivisor: number;
+  _penaltyCompensated?: boolean;
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -385,22 +386,28 @@ export function useGameStore() {
       }
 
       let xpPenalty = 0;
-      if (missedDays === 1) xpPenalty = -50;
-      else if (missedDays >= 2) xpPenalty = -100;
+      if (missedDays === 1) xpPenalty = -20;
+      else if (missedDays >= 2) xpPenalty = -50;
 
       const xpGain = 10;
-      const totalXp = xpGain + xpPenalty;
+      // One-time compensation for old harsh penalty
+      let compensation = 0;
+      if (!prev._penaltyCompensated) {
+        compensation = 30;
+      }
+      const totalXp = xpGain + xpPenalty + compensation;
 
       const prog = processLevelUp(Math.max(0, prev.xp + totalXp), prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
+        _penaltyCompensated: true,
         todayCheckedIn: true,
         lastLogin: today,
         streak,
         missedDays,
         ...prog,
         log: [
-          { date: new Date().toISOString(), action: `Check-in diário${xpPenalty < 0 ? ` (penalidade: ${xpPenalty} XP)` : ''}`, xp: totalXp, gold: 0 },
+          { date: new Date().toISOString(), action: `Check-in diário${xpPenalty < 0 ? ` (penalidade: ${xpPenalty} XP)` : ''}${compensation > 0 ? ` (+${compensation} XP compensação)` : ''}`, xp: totalXp, gold: 0 },
           ...prev.log
         ].slice(0, 100),
       };
