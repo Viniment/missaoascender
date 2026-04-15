@@ -1,40 +1,42 @@
 
 
-# Plano: Histórico de conclusões para missões repetíveis + Remover tema Ouro Imperial
+# Plano: Restaurar estilos CSS que foram removidos por engano
 
-## 1. Missões repetíveis aparecendo em "Concluídas"
+## Problema
+Ao remover o tema "Ouro Imperial" (neon-spectrum), as classes utilitárias CSS customizadas do app inteiro foram apagadas junto. Classes como `rpg-panel`, `glow-text-purple`, `glow-purple-strong` são usadas em **mais de 18 componentes** e são essenciais para o visual do site.
 
-**Problema:** Missões repetíveis nunca ficam com status `Concluída`, então não aparecem na seção de concluídas.
+Também há um erro de runtime (`useGame must be used within GameProvider`) que precisa ser investigado, mas pode ser transitório.
 
-**Solução:** Adicionar um array `completionHistory` na interface `Mission` que registra cada conclusão com data. A seção "Concluídas" vai listar também entradas desse histórico.
+## Solução
+Restaurar no `src/index.css` todas as classes utilitárias que existiam antes, dentro de `@layer components`. Essas classes **não tinham relação com o tema neon-spectrum** — eram estilos globais do app.
 
-### `src/lib/gameStore.ts`
-- Adicionar `completionHistory?: { date: string; xp: number; gold: number; executedHours?: number }[]` na interface `Mission`
-- Em `completeTimeMission` (quando repeatable): adicionar entrada ao `completionHistory` com data, XP, gold e horas
-- Em `incrementCountMission` (quando repeatable e isComplete): adicionar entrada ao `completionHistory`
+### Classes a restaurar em `src/index.css`
 
-### `src/components/MissionsPanel.tsx`
-- Na seção "Concluídas", além das missões com `status === 'Concluída'`, incluir entradas do `completionHistory` de missões repetíveis
-- Cada entrada mostra o nome da missão, XP/gold ganhos, data e tempo (se aplicável), com ícone 🔁
+```css
+@layer components {
+  .rpg-panel {
+    @apply bg-gradient-to-br from-[hsl(var(--card-gradient-from))] to-[hsl(var(--card-gradient-to))] 
+           border border-border rounded-lg p-4;
+  }
 
-## 2. Remover tema Ouro Imperial
+  .glow-text-purple {
+    text-shadow: 0 0 10px hsl(var(--glow-color) / 0.5),
+                 0 0 30px hsl(var(--glow-color) / 0.2);
+  }
 
-### `src/hooks/useTheme.ts`
-- Remover a entrada `'neon-spectrum'` do `THEME_VARS`
-- Remover a constante `ANIMATED_THEME_CLASS` e a lógica de toggle da classe
+  .glow-purple-strong {
+    box-shadow: 0 0 15px hsl(var(--glow-color) / 0.3),
+                0 0 40px hsl(var(--glow-color) / 0.1);
+  }
 
-### `src/components/ThemeSelector.tsx`
-- Remover `'neon-spectrum'` do tipo `ThemeId` e do array `THEMES`
+  .glow-border {
+    box-shadow: 0 0 8px hsl(var(--glow-color) / 0.3);
+  }
+}
+```
 
-### `src/index.css`
-- Remover todos os `@keyframes neon-spectrum-*`
-- Remover as regras `.theme-neon-spectrum`
-- Remover a media query `prefers-reduced-motion` relacionada
+### Arquivo envolvido
+- `src/index.css` — adicionar bloco `@layer components` com as classes utilitárias de volta
 
-## Arquivos envolvidos
-- `src/lib/gameStore.ts` — completionHistory na interface + lógica de registro
-- `src/components/MissionsPanel.tsx` — exibir histórico de repetíveis em Concluídas
-- `src/hooks/useTheme.ts` — remover tema neon-spectrum
-- `src/components/ThemeSelector.tsx` — remover opção do seletor
-- `src/index.css` — remover animações do tema
+Nenhum outro arquivo precisa ser alterado. Os temas (useTheme.ts, ThemeSelector.tsx) estão corretos — só faltam os estilos utilitários no CSS.
 
