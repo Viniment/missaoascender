@@ -389,12 +389,6 @@ export function useGameStore() {
       if (missedDays === 1) xpPenalty = -20;
       else if (missedDays >= 2) xpPenalty = -50;
 
-      // One-time compensation for old harsh penalty applied on 2026-04-15
-      let compensation = 0;
-      if (!prev._penaltyCompensated && prev.xp <= 200) {
-        compensation = 30;
-      }
-
       const xpGain = 10;
       // One-time compensation for old harsh penalty
       let compensation = 0;
