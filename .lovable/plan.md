@@ -1,42 +1,45 @@
 
 
-# Plano: Restaurar estilos CSS que foram removidos por engano
+# Plano: Restaurar sombras nos painéis e cards
 
 ## Problema
-Ao remover o tema "Ouro Imperial" (neon-spectrum), as classes utilitárias CSS customizadas do app inteiro foram apagadas junto. Classes como `rpg-panel`, `glow-text-purple`, `glow-purple-strong` são usadas em **mais de 18 componentes** e são essenciais para o visual do site.
+Os painéis principais (PlayerCard, MissionsPanel, SystemPanel, etc.) perderam as sombras/glow que tinham. As classes CSS `.glow-purple`, `.neon-glow`, `.glow-purple-strong` existem no CSS, mas não estão sendo aplicadas nos componentes.
 
-Também há um erro de runtime (`useGame must be used within GameProvider`) que precisa ser investigado, mas pode ser transitório.
+Além disso, a barra de XP no PlayerCard usa a classe `xp-bar` mas o CSS define `.xp-bar-fill`, então a barra não tem o gradiente/glow correto.
 
 ## Solução
-Restaurar no `src/index.css` todas as classes utilitárias que existiam antes, dentro de `@layer components`. Essas classes **não tinham relação com o tema neon-spectrum** — eram estilos globais do app.
 
-### Classes a restaurar em `src/index.css`
+### 1. `src/components/PlayerCard.tsx`
+- Adicionar `neon-glow` na div principal do card (junto com `rpg-panel`)
+- Corrigir classe `xp-bar` para `xp-bar-fill` na barra de XP
 
-```css
-@layer components {
-  .rpg-panel {
-    @apply bg-gradient-to-br from-[hsl(var(--card-gradient-from))] to-[hsl(var(--card-gradient-to))] 
-           border border-border rounded-lg p-4;
-  }
+### 2. `src/components/SystemPanel.tsx`
+- Adicionar `neon-glow` na div principal
 
-  .glow-text-purple {
-    text-shadow: 0 0 10px hsl(var(--glow-color) / 0.5),
-                 0 0 30px hsl(var(--glow-color) / 0.2);
-  }
+### 3. `src/components/MissionsPanel.tsx`
+- Adicionar `glow-purple` nos cards de missão ativa
+- Adicionar sombras nos botões e seções principais
 
-  .glow-purple-strong {
-    box-shadow: 0 0 15px hsl(var(--glow-color) / 0.3),
-                0 0 40px hsl(var(--glow-color) / 0.1);
-  }
+### 4. `src/components/HabitsPanel.tsx`
+- Adicionar `glow-purple` nos cards de hábitos
 
-  .glow-border {
-    box-shadow: 0 0 8px hsl(var(--glow-color) / 0.3);
-  }
-}
-```
+### 5. `src/components/ChallengesPanel.tsx`
+- Adicionar `glow-purple` nos cards de desafios
 
-### Arquivo envolvido
-- `src/index.css` — adicionar bloco `@layer components` com as classes utilitárias de volta
+### 6. `src/components/PomodoroTimer.tsx`
+- Adicionar `neon-glow` no painel principal (já usa `rpg-panel`)
 
-Nenhum outro arquivo precisa ser alterado. Os temas (useTheme.ts, ThemeSelector.tsx) estão corretos — só faltam os estilos utilitários no CSS.
+### 7. `src/components/JournalPanel.tsx`
+- Adicionar sombras nos cards de entrada do diário
+
+Em resumo: aplicar as classes de glow/shadow que já existem no CSS (`neon-glow`, `glow-purple`, `glow-purple-strong`) nos componentes principais para restaurar a profundidade visual.
+
+## Arquivos envolvidos
+- `src/components/PlayerCard.tsx` — neon-glow + fix xp-bar-fill
+- `src/components/SystemPanel.tsx` — neon-glow
+- `src/components/MissionsPanel.tsx` — glow nos cards
+- `src/components/HabitsPanel.tsx` — glow nos cards
+- `src/components/ChallengesPanel.tsx` — glow nos cards
+- `src/components/PomodoroTimer.tsx` — neon-glow
+- `src/components/JournalPanel.tsx` — glow nos cards
 
