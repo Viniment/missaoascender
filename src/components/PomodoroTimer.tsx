@@ -136,7 +136,7 @@ export default function PomodoroTimer() {
   const progress = ((DURATIONS[mode] - seconds) / DURATIONS[mode]) * 100;
 
   return (
-    <div className="rpg-panel space-y-4">
+    <div className="rpg-panel neon-glow space-y-4">
       <h3 className="font-display text-sm text-primary glow-text-purple flex items-center gap-2">
         <Timer className="w-4 h-4" /> POMODORO
       </h3>

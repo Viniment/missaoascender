@@ -158,7 +158,7 @@ export default function JournalPanel() {
         <div className="space-y-2">
           <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Entradas Anteriores</h3>
           {state.journal.map(entry => (
-            <motion.div key={entry.id} className="rpg-panel flex items-center justify-between" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div key={entry.id} className="rpg-panel glow-purple flex items-center justify-between" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <button className="flex-1 text-left" onClick={() => setViewEntry(entry.id)}>
                 <div className="flex items-center gap-2">
                   {entry.emotion && <span>{entry.emotion}</span>}

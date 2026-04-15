@@ -51,7 +51,7 @@ export default function ChallengesPanel() {
       {state.challenges.map(c => {
         const allDone = c.steps.every(s => s.completed);
         return (
-          <div key={c.id} className={`rpg-panel space-y-2 ${c.failed ? 'opacity-60' : ''}`}>
+          <div key={c.id} className={`rpg-panel glow-purple space-y-2 ${c.failed ? 'opacity-60' : ''}`}>
             <div className="flex items-center justify-between">
               <span className="font-display text-sm text-foreground">{c.name}</span>
               {allDone && <span className="text-xs text-success font-display">COMPLETO</span>}

@@ -21,7 +21,7 @@ export default function PlayerCard() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rpg-panel"
+      className="rpg-panel neon-glow"
     >
       <div className="flex items-center gap-4">
         <div className="relative w-16 h-16 rounded-full border-2 border-primary overflow-hidden glow-purple flex-shrink-0 bg-secondary flex items-center justify-center">
@@ -47,7 +47,7 @@ export default function PlayerCard() {
           {/* XP Bar */}
           <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
             <motion.div
-              className="absolute inset-y-0 left-0 xp-bar rounded-full"
+              className="absolute inset-y-0 left-0 xp-bar-fill rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${xpPercent}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}

@@ -242,7 +242,7 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
   const diffColor = diffColors[h.difficulty] || '';
 
   return (
-    <motion.div layout className="rpg-panel space-y-2">
+    <motion.div layout className="rpg-panel glow-purple space-y-2">
       <div className="flex items-center gap-2">
         <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
         <div className="flex-1 min-w-0">
