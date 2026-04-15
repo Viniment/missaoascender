@@ -266,16 +266,25 @@ export const defaultState: PlayerState = {
   difficultyDivisor: 1,
 };
 
+export function normalizePlayerStateForToday(state: PlayerState): PlayerState {
+  const today = getTodayBrasilia();
+
+  if (!state.lastLogin || state.lastLogin === today || !state.todayCheckedIn) {
+    return state;
+  }
+
+  return {
+    ...state,
+    todayCheckedIn: false,
+  };
+}
+
 function loadState(): PlayerState {
   try {
     const saved = localStorage.getItem('ascensao-state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      const today = getTodayBrasilia();
-      if (parsed.lastLogin && parsed.lastLogin !== today) {
-        parsed.todayCheckedIn = false;
-      }
-      const merged = { ...defaultState, ...parsed };
+      const merged = normalizePlayerStateForToday({ ...defaultState, ...parsed });
       if (merged.punishments) {
         merged.punishments = merged.punishments.filter(
           (p: any) => VALID_PUNISHMENT_CATEGORIES.includes(p.category)
@@ -306,6 +315,24 @@ const GOLD_PER_HOUR: Record<MissionDifficulty, number> = {
 
 export function useGameStore() {
   const [state, setState] = useState<PlayerState>(loadState);
+
+  useEffect(() => {
+    const syncDailyCheckIn = () => {
+      setState(prev => normalizePlayerStateForToday(prev));
+    };
+
+    syncDailyCheckIn();
+
+    const interval = window.setInterval(syncDailyCheckIn, 60_000);
+    window.addEventListener('focus', syncDailyCheckIn);
+    document.addEventListener('visibilitychange', syncDailyCheckIn);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', syncDailyCheckIn);
+      document.removeEventListener('visibilitychange', syncDailyCheckIn);
+    };
+  }, []);
 
   useEffect(() => {
     saveState(state);
