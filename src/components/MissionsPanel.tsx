@@ -295,6 +295,11 @@ export default function MissionsPanel() {
               )}
             </div>
 
+            <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+              <Checkbox checked={repeatable} onCheckedChange={(v) => setRepeatable(!!v)} />
+              <Repeat className="w-3 h-3" /> Missão repetível (não desaparece ao concluir)
+            </label>
+
             <Button className="w-full" onClick={handleAdd}>Adicionar Missão</Button>
           </motion.div>
         )}
