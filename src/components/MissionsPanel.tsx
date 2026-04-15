@@ -658,7 +658,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
           <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
         )}
         {isDone && mission.xpEarned !== undefined && (
-          <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 💰 ${mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}` : ''}</span>
+          <span className="text-primary">+{mission.xpEarned} XP{mission.goldEarned ? ` | +${mission.goldEarned} 💰 ${mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}` : ''}{mission.missionType === 'Tempo' && mission.executedHours ? ` | ⏱️ ${mission.executedHours >= 1 ? `${Math.floor(mission.executedHours)}h ${Math.round((mission.executedHours % 1) * 60)}min` : `${Math.round(mission.executedHours * 60)}min`}` : ''}</span>
         )}
         {isDailyDone && <span className="text-success">✔️ Feita hoje</span>}
         {isFailed && <span className="text-destructive">❌ Falhada</span>}
