@@ -1,23 +1,30 @@
 
 
-# Plano: Ajustar penalidade de dias perdidos + Proteger XP
+# Plano: Corrigir missões concluídas sem data + Confirmar compensação
 
-## O que aconteceu
-Seus pontos caíram de ~231 para 191 porque o check-in do dia 15/04 detectou que o dia 14/04 foi perdido e aplicou penalidade de -50 XP. Isso **não foi um bug** — é o comportamento atual do sistema de penalidades.
+## Problemas identificados
 
-## O que vou corrigir/melhorar
+### 1. Missões antigas sem `completedAt`
+As missões concluídas antes da atualização não têm o campo `completedAt`, então o filtro de "7 dias" as ignora (linha 203: `if (!m.completedAt) return false`).
 
-### 1. Reduzir a penalidade padrão
-- 1 dia perdido: **-20 XP** (era -50)
-- 2+ dias perdidos: **-50 XP** (era -100)
+**Solução:** No `normalizePlayerStateForToday` (que roda ao carregar o estado), adicionar lógica para preencher `completedAt` nas missões concluídas que não têm esse campo. Vou setar como "ontem" (`new Date(Date.now() - 86400000).toISOString()`) para que apareçam no filtro de 7 dias.
 
-### 2. Restaurar seu XP perdido
-- Vou ajustar a lógica para que a penalidade antiga excessiva não se repita
-- Como a penalidade já foi aplicada no seu estado salvo, vou adicionar uma compensação de +30 XP no seu próximo check-in ou corrigir diretamente
-
-### 3. Mostrar aviso antes de aplicar penalidade
-- No SystemPanel, quando há dias perdidos, mostrar a penalidade que será aplicada **antes** do usuário clicar no botão
+### 2. Compensação de +30 XP — é por usuário?
+**Sim, já está correto.** O flag `_penaltyCompensated` é salvo no estado individual de cada jogador. Cada usuário recebe a compensação apenas uma vez, no primeiro check-in após a atualização. Não precisa de mudança aqui.
 
 ## Arquivo envolvido
-- `src/lib/gameStore.ts` — ajustar valores de penalidade nas linhas 387-389
+- `src/lib/gameStore.ts` — adicionar backfill de `completedAt` na função `normalizePlayerStateForToday`
+
+## Mudança específica
+```typescript
+// Em normalizePlayerStateForToday, após as checagens existentes:
+if (state.missions) {
+  const yesterday = new Date(Date.now() - 86400000).toISOString();
+  state.missions = state.missions.map(m =>
+    m.status === 'Concluída' && !m.completedAt
+      ? { ...m, completedAt: yesterday }
+      : m
+  );
+}
+```
 
