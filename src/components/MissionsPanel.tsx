@@ -371,7 +371,7 @@ export default function MissionsPanel() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Concluídas ({completed.length})</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Concluídas ({completed.length + filteredHistory.length})</h3>
           <Select value={completedFilter} onValueChange={(v) => setCompletedFilter(v as typeof completedFilter)}>
             <SelectTrigger className="h-7 w-[110px] text-xs bg-secondary border-border">
               <SelectValue />
@@ -384,9 +384,32 @@ export default function MissionsPanel() {
             </SelectContent>
           </Select>
         </div>
-        {completed.length > 0 ? completed.map(m => (
+        {completed.length > 0 && completed.map(m => (
           <MissionCard key={m.id} mission={m} today={today} />
-        )) : (
+        ))}
+        {filteredHistory.length > 0 && filteredHistory
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .map((h, i) => (
+          <div key={`rh-${h.missionId}-${i}`} className="rpg-panel p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Repeat className="w-3 h-3 text-primary" />
+              <div>
+                <span className="text-sm font-display">{h.missionName}</span>
+                {h.executedHours != null && (
+                  <span className="text-xs text-muted-foreground ml-2">({h.executedHours.toFixed(1)}h)</span>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  {new Date(h.date).toLocaleDateString('pt-BR')} às {new Date(h.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-primary font-display">+{h.xp} XP</span>
+              {h.gold > 0 && <span className="text-warning font-display">+{h.gold} 💰</span>}
+            </div>
+          </div>
+        ))}
+        {completed.length === 0 && filteredHistory.length === 0 && (
           <p className="text-xs text-muted-foreground text-center py-2">Nenhuma missão neste período.</p>
         )}
       </div>
