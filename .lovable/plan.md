@@ -1,33 +1,40 @@
 
 
-# Plano: Missões Repetíveis (tipo diária recorrente)
+# Plano: Histórico de conclusões para missões repetíveis + Remover tema Ouro Imperial
 
-## O que muda
-Novo campo opcional `repeatable` nas missões. Quando ativado, a missão não desaparece ao ser concluída — ela volta ao estado "Ativa" para ser feita novamente, como uma tarefa recorrente.
+## 1. Missões repetíveis aparecendo em "Concluídas"
 
-## Implementação
+**Problema:** Missões repetíveis nunca ficam com status `Concluída`, então não aparecem na seção de concluídas.
 
-### 1. `src/lib/gameStore.ts` — Interface e lógica
+**Solução:** Adicionar um array `completionHistory` na interface `Mission` que registra cada conclusão com data. A seção "Concluídas" vai listar também entradas desse histórico.
 
-**Interface Mission:** Adicionar `repeatable?: boolean`
+### `src/lib/gameStore.ts`
+- Adicionar `completionHistory?: { date: string; xp: number; gold: number; executedHours?: number }[]` na interface `Mission`
+- Em `completeTimeMission` (quando repeatable): adicionar entrada ao `completionHistory` com data, XP, gold e horas
+- Em `incrementCountMission` (quando repeatable e isComplete): adicionar entrada ao `completionHistory`
 
-**completeTimeMission:** Se `mission.repeatable`, em vez de setar status `Concluída`, manter como `Ativa` e resetar `startedAt`, `executedHours`. Ainda registra XP/gold e log normalmente.
+### `src/components/MissionsPanel.tsx`
+- Na seção "Concluídas", além das missões com `status === 'Concluída'`, incluir entradas do `completionHistory` de missões repetíveis
+- Cada entrada mostra o nome da missão, XP/gold ganhos, data e tempo (se aplicável), com ícone 🔁
 
-**completeDailyMission:** Se `mission.repeatable`, após dar XP/gold, resetar `lastCompletedDate` para permitir recompletar (já funciona parcialmente pois usa `lastCompletedDate === today`). Não precisa de grande mudança aqui — missões Diárias já são naturalmente "repetíveis por dia".
+## 2. Remover tema Ouro Imperial
 
-**incrementCountMission:** Se `mission.repeatable` e `isComplete`, resetar `currentCount` para 0 em vez de setar status `Concluída`.
+### `src/hooks/useTheme.ts`
+- Remover a entrada `'neon-spectrum'` do `THEME_VARS`
+- Remover a constante `ANIMATED_THEME_CLASS` e a lógica de toggle da classe
 
-### 2. `src/components/MissionsPanel.tsx` — UI
+### `src/components/ThemeSelector.tsx`
+- Remover `'neon-spectrum'` do tipo `ThemeId` e do array `THEMES`
 
-**Formulário de criação:** Adicionar checkbox "🔁 Missão repetível" antes do botão de criar. Estado `repeatable` passado ao `addMission`.
-
-**Dialog de edição:** Adicionar o mesmo checkbox, salvar via `editMission`.
-
-**Card de missão ativa:** Mostrar ícone 🔁 pequeno ao lado do tipo para indicar que é repetível.
-
-**Seção Concluídas:** Missões repetíveis não aparecem aqui (ficam sempre em Ativas).
+### `src/index.css`
+- Remover todos os `@keyframes neon-spectrum-*`
+- Remover as regras `.theme-neon-spectrum`
+- Remover a media query `prefers-reduced-motion` relacionada
 
 ## Arquivos envolvidos
-- `src/lib/gameStore.ts` — campo `repeatable` + lógica de reset ao concluir
-- `src/components/MissionsPanel.tsx` — checkbox no form/edit + ícone visual
+- `src/lib/gameStore.ts` — completionHistory na interface + lógica de registro
+- `src/components/MissionsPanel.tsx` — exibir histórico de repetíveis em Concluídas
+- `src/hooks/useTheme.ts` — remover tema neon-spectrum
+- `src/components/ThemeSelector.tsx` — remover opção do seletor
+- `src/index.css` — remover animações do tema
 
