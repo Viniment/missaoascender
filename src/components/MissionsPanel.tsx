@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { Mission, MissionType, MissionCategory, MissionDifficulty } from '@/lib/gameStore';
 import { getTodayBrasilia, getNowBrasilia } from '@/lib/utils';
@@ -73,6 +73,8 @@ export default function MissionsPanel() {
   const [editHasDescription, setEditHasDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
   const [editRepeatable, setEditRepeatable] = useState(false);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const openEditDialog = (m: Mission) => {
     setEditDialog(m);
@@ -89,47 +91,60 @@ export default function MissionsPanel() {
   };
 
   const handleEdit = () => {
+    if (submittingRef.current) return;
     if (!editDialog || !editName.trim()) return;
-    editMission(editDialog.id, {
-      name: editName,
-      category: editCategory,
-      difficulty: editDifficulty,
-      videoUrl: editVideoUrl.trim() || undefined,
-      description: editHasDescription && editDescription.trim() ? editDescription : undefined,
-      repeatable: editRepeatable,
-      ...(editDialog.missionType === 'Diária' ? { dailyXp: editDailyXp, dailyGold: editDailyGold } : {}),
-      ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
-    });
-    setEditDialog(null);
-    toast.success('Missão editada!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      editMission(editDialog.id, {
+        name: editName,
+        category: editCategory,
+        difficulty: editDifficulty,
+        videoUrl: editVideoUrl.trim() || undefined,
+        description: editHasDescription && editDescription.trim() ? editDescription : undefined,
+        repeatable: editRepeatable,
+        ...(editDialog.missionType === 'Diária' ? { dailyXp: editDailyXp, dailyGold: editDailyGold } : {}),
+        ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
+      });
+      setEditDialog(null);
+      toast.success('Missão editada!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const handleAdd = () => {
+    if (submittingRef.current) return;
     if (!name.trim()) return;
-
-    addMission({
-      name,
-      category,
-      difficulty,
-      missionType,
-      videoUrl: videoUrl.trim() || undefined,
-      description: hasDescription && description.trim() ? description : undefined,
-      startedAt: null,
-      executedHours: 0,
-      lastCompletedDate: null,
-      dailyXp: missionType === 'Diária' ? dailyXp : undefined,
-      dailyGold: missionType === 'Diária' ? dailyGold : undefined,
-      targetCount: missionType === 'Contagem' ? targetCount : undefined,
-      currentCount: missionType === 'Contagem' ? 0 : undefined,
-      repeatable,
-    });
-    setName('');
-    setVideoUrl('');
-    setDescription('');
-    setHasDescription(false);
-    setRepeatable(false);
-    setShowForm(false);
-    toast.success('Missão adicionada!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      addMission({
+        name,
+        category,
+        difficulty,
+        missionType,
+        videoUrl: videoUrl.trim() || undefined,
+        description: hasDescription && description.trim() ? description : undefined,
+        startedAt: null,
+        executedHours: 0,
+        lastCompletedDate: null,
+        dailyXp: missionType === 'Diária' ? dailyXp : undefined,
+        dailyGold: missionType === 'Diária' ? dailyGold : undefined,
+        targetCount: missionType === 'Contagem' ? targetCount : undefined,
+        currentCount: missionType === 'Contagem' ? 0 : undefined,
+        repeatable,
+      });
+      setName('');
+      setVideoUrl('');
+      setDescription('');
+      setHasDescription(false);
+      setRepeatable(false);
+      setShowForm(false);
+      toast.success('Missão adicionada!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const handleOpenFinishDialog = (mission: Mission) => {
@@ -311,7 +326,7 @@ export default function MissionsPanel() {
               <Repeat className="w-3 h-3" /> Missão repetível (não desaparece ao concluir)
             </label>
 
-            <Button className="w-full" onClick={handleAdd}>Adicionar Missão</Button>
+            <Button className="w-full" onClick={handleAdd} disabled={submitting}>Adicionar Missão</Button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -534,7 +549,7 @@ export default function MissionsPanel() {
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
-            <Button onClick={handleEdit}>Salvar</Button>
+            <Button onClick={handleEdit} disabled={submitting}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

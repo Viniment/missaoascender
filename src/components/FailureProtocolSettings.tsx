@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { type Punishment, type PunishmentCategory, type PunishmentIntensity } from '@/lib/gameStore';
 import { Switch } from '@/components/ui/switch';
@@ -36,6 +36,8 @@ export default function FailureProtocolSettings() {
     category: 'Física' as PunishmentCategory,
     intensity: 'Leve' as PunishmentIntensity,
   });
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const punishments = state.punishments || [];
   const randomMode = state.randomPunishmentMode ?? true;
@@ -59,26 +61,33 @@ export default function FailureProtocolSettings() {
   };
 
   const addPunishment = () => {
+    if (submittingRef.current) return;
     if (!newPunishment.name.trim()) {
       toast.error('Nome é obrigatório.');
       return;
     }
-    const punishment: Punishment = {
-      id: crypto.randomUUID(),
-      name: newPunishment.name.trim(),
-      description: newPunishment.description.trim() || undefined,
-      category: newPunishment.category,
-      intensity: newPunishment.intensity,
-      enabled: true,
-      isCustom: true,
-    };
-    setState(prev => ({
-      ...prev,
-      punishments: [...(prev.punishments || []), punishment],
-    }));
-    setNewPunishment({ name: '', description: '', category: 'Física', intensity: 'Leve' });
-    setShowAddForm(false);
-    toast.success('Punição adicionada!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      const punishment: Punishment = {
+        id: crypto.randomUUID(),
+        name: newPunishment.name.trim(),
+        description: newPunishment.description.trim() || undefined,
+        category: newPunishment.category,
+        intensity: newPunishment.intensity,
+        enabled: true,
+        isCustom: true,
+      };
+      setState(prev => ({
+        ...prev,
+        punishments: [...(prev.punishments || []), punishment],
+      }));
+      setNewPunishment({ name: '', description: '', category: 'Física', intensity: 'Leve' });
+      setShowAddForm(false);
+      toast.success('Punição adicionada!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const toggleRandomMode = (checked: boolean) => {
@@ -197,7 +206,7 @@ export default function FailureProtocolSettings() {
               </SelectContent>
             </Select>
           </div>
-          <Button size="sm" className="w-full" onClick={addPunishment}>
+          <Button size="sm" className="w-full" onClick={addPunishment} disabled={submitting}>
             Salvar
           </Button>
         </div>

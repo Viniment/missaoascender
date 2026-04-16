@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +36,8 @@ export default function AffirmationsPanel() {
   // Slideshow state
   const [slideshowOpen, setSlideshowOpen] = useState(false);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const affirmations: SavedAffirmation[] = (state as any).affirmations || [];
   const affirmationHistory: string[] = useMemo(() => (state as any).affirmationHistory || [], [(state as any).affirmationHistory?.length]);
@@ -137,21 +139,28 @@ export default function AffirmationsPanel() {
   }, [editText, setState]);
 
   const createCustom = useCallback(() => {
+    if (submittingRef.current) return;
     if (!createText.trim()) return;
-    const newAff: SavedAffirmation = {
-      id: crypto.randomUUID(),
-      text: createText.trim(),
-      type: 'custom',
-      date: new Date().toISOString(),
-      favorited: true,
-    };
-    setState((prev: any) => ({
-      ...prev,
-      affirmations: [newAff, ...(prev.affirmations || [])].slice(0, 50),
-    }));
-    setCreateText('');
-    setShowCreate(false);
-    toast.success('Afirmação criada e favoritada!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      const newAff: SavedAffirmation = {
+        id: crypto.randomUUID(),
+        text: createText.trim(),
+        type: 'custom',
+        date: new Date().toISOString(),
+        favorited: true,
+      };
+      setState((prev: any) => ({
+        ...prev,
+        affirmations: [newAff, ...(prev.affirmations || [])].slice(0, 50),
+      }));
+      setCreateText('');
+      setShowCreate(false);
+      toast.success('Afirmação criada e favoritada!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   }, [createText, setState]);
 
   const enterWeaknessMode = useCallback(() => {
@@ -397,7 +406,7 @@ export default function AffirmationsPanel() {
             <span className="text-xs text-foreground/40 flex items-center gap-1">
               <Heart className="w-3 h-3 fill-red-400 text-red-400" /> Será favoritada automaticamente
             </span>
-            <Button size="sm" onClick={createCustom} disabled={!createText.trim()}>Salvar</Button>
+            <Button size="sm" onClick={createCustom} disabled={!createText.trim() || submitting}>Salvar</Button>
           </div>
         </motion.div>
       )}

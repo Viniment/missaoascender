@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
 import { getTodayBrasilia } from '@/lib/utils';
@@ -44,6 +44,8 @@ export default function HabitsPanel() {
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
   const [editVideoUrl, setEditVideoUrl] = useState('');
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const openEditHabit = (h: typeof state.habits[number]) => {
     setEditDialog(h);
@@ -57,25 +59,39 @@ export default function HabitsPanel() {
   };
 
   const handleEditHabit = () => {
+    if (submittingRef.current) return;
     if (!editDialog || !editName.trim()) return;
-    editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
-    setEditDialog(null);
-    toast.success('Hábito editado!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+      setEditDialog(null);
+      toast.success('Hábito editado!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const handleAdd = () => {
+    if (submittingRef.current) return;
     if (!name.trim()) return;
-    // Auto-calculate end date: today + 30 days
-    const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
-    todayDate.setDate(todayDate.getDate() + 30);
-    const endDate = todayDate.toISOString().split('T')[0];
-    addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
-    setName('');
-    setDescription('');
-    setHasDescription(false);
-    setVideoUrl('');
-    setShowForm(false);
-    toast.success('Hábito criado!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      // Auto-calculate end date: today + 30 days
+      const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
+      todayDate.setDate(todayDate.getDate() + 30);
+      const endDate = todayDate.toISOString().split('T')[0];
+      addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
+      setName('');
+      setDescription('');
+      setHasDescription(false);
+      setVideoUrl('');
+      setShowForm(false);
+      toast.success('Hábito criado!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty) => {
@@ -151,7 +167,7 @@ export default function HabitsPanel() {
               <label className="text-xs text-muted-foreground flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
               <Input placeholder="https://youtube.com/watch?v=..." value={videoUrl} onChange={e => setVideoUrl(e.target.value)} className="bg-secondary border-border" />
             </div>
-            <Button className="w-full" onClick={handleAdd}>Criar Hábito</Button>
+            <Button className="w-full" onClick={handleAdd} disabled={submitting}>Criar Hábito</Button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -216,7 +232,7 @@ export default function HabitsPanel() {
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
-            <Button onClick={handleEditHabit}>Salvar</Button>
+            <Button onClick={handleEditHabit} disabled={submitting}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
