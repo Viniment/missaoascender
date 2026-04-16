@@ -330,6 +330,9 @@ export const defaultState: PlayerState = {
   visionLastViewedDate: null,
   theme: 'neon-purple',
   difficultyDivisor: 1,
+  rituals: [],
+  ritualBarriers: [],
+  ritualSessions: [],
   _penaltyCompensated: true,
 };
 
