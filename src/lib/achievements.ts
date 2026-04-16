@@ -37,7 +37,24 @@ export function getRankStyle(rank: string) {
 // Helper for completed missions count
 const completedMissions = (s: PlayerState) => s.missions.filter(m => m.status === 'Concluída').length;
 const hardMissions = (s: PlayerState) => s.missions.filter(m => m.status === 'Concluída' && m.difficulty === 'Difícil').length;
-const maxHabitDone = (s: PlayerState) => Math.max(0, ...s.habits.map(h => Object.values(h.history).filter(v => v === 'done').length));
+const maxHabitStreak = (s: PlayerState) => {
+  return Math.max(0, ...s.habits.map(h => {
+    const dates = Object.entries(h.history)
+      .filter(([_, v]) => v === 'done')
+      .map(([d]) => d)
+      .sort();
+    if (dates.length === 0) return 0;
+    let max = 1, current = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + 'T12:00:00');
+      const curr = new Date(dates[i] + 'T12:00:00');
+      const diff = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+      if (diff === 1) { current++; max = Math.max(max, current); }
+      else { current = 1; }
+    }
+    return max;
+  }));
+};
 const protocolsDone = (s: PlayerState) => s.failureProtocols.filter(fp => fp.status === 'Concluído').length;
 const RANKS_ORDER = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'];
 const rankIdx = (r: string) => RANKS_ORDER.indexOf(r);
@@ -128,54 +145,42 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Cinco hábitos. Uma rotina de elite.',
     requirements: ['Ter 5 hábitos criados simultaneamente'],
     check: s => s.habits.length >= 5, progress: s => ({ current: Math.min(s.habits.length, 5), target: 5 }) },
-  { id: 'habit-done-5', type: 'habit', label: '5 Dias de Hábito', value: 5, rank: 'E', icon: '🧠',
-    description: 'Cinco dias de um hábito cumprido. O começo da consistência.',
-    requirements: ['Completar 1 hábito por 5 dias (total)'],
-    check: s => maxHabitDone(s) >= 5, progress: s => ({ current: Math.min(maxHabitDone(s), 5), target: 5 }) },
-  { id: 'habit-done-10', type: 'habit', label: '10 Dias de Hábito', value: 10, rank: 'D', icon: '🧠',
-    description: 'Criou seu primeiro hábito. A fundação começa aqui.',
-    requirements: ['Criar 1 hábito'],
-    check: s => s.habits.length >= 1, progress: s => ({ current: Math.min(s.habits.length, 1), target: 1 }) },
-  { id: 'habit-3', type: 'habit', label: '3 Hábitos Ativos', value: 3, rank: 'D', icon: '🧠',
-    description: 'Três hábitos ativos. Sua rotina está se formando.',
-    requirements: ['Ter 3 hábitos criados simultaneamente'],
-    check: s => s.habits.length >= 3, progress: s => ({ current: Math.min(s.habits.length, 3), target: 3 }) },
-  { id: 'habit-5', type: 'habit', label: '5 Hábitos Ativos', value: 5, rank: 'C', icon: '🧠',
-    description: 'Cinco hábitos. Uma rotina de elite.',
-    requirements: ['Ter 5 hábitos criados simultaneamente'],
-    check: s => s.habits.length >= 5, progress: s => ({ current: Math.min(s.habits.length, 5), target: 5 }) },
-  { id: 'habit-done-10', type: 'habit', label: '10 Dias de Hábito', value: 10, rank: 'D', icon: '🧠',
-    description: 'Dez dias de um hábito cumprido. Persistência.',
-    requirements: ['Completar 1 hábito por 10 dias (total)'],
-    check: s => maxHabitDone(s) >= 10, progress: s => ({ current: Math.min(maxHabitDone(s), 10), target: 10 }) },
-  { id: 'habit-done-15', type: 'habit', label: '15 Dias de Hábito', value: 15, rank: 'D', icon: '🧠',
-    description: 'Quinze dias de consistência. O hábito está criando raízes.',
-    requirements: ['Completar 1 hábito por 15 dias (total)'],
-    check: s => maxHabitDone(s) >= 15, progress: s => ({ current: Math.min(maxHabitDone(s), 15), target: 15 }) },
-  { id: 'habit-done-20', type: 'habit', label: '20 Dias de Hábito', value: 20, rank: 'C', icon: '🧠',
-    description: 'Vinte dias. A neurociência diz que o hábito está se formando.',
-    requirements: ['Completar 1 hábito por 20 dias (total)'],
-    check: s => maxHabitDone(s) >= 20, progress: s => ({ current: Math.min(maxHabitDone(s), 20), target: 20 }) },
-  { id: 'habit-done-25', type: 'habit', label: '25 Dias de Hábito', value: 25, rank: 'C', icon: '🧠',
-    description: 'Vinte e cinco dias. Quase um mês inteiro de disciplina.',
-    requirements: ['Completar 1 hábito por 25 dias (total)'],
-    check: s => maxHabitDone(s) >= 25, progress: s => ({ current: Math.min(maxHabitDone(s), 25), target: 25 }) },
-  { id: 'habit-done-30', type: 'habit', label: '30 Dias de Hábito', value: 30, rank: 'C', icon: '🧠',
-    description: 'Um mês de hábito. Isso já é parte de você.',
-    requirements: ['Completar 1 hábito por 30 dias (total)'],
-    check: s => maxHabitDone(s) >= 30, progress: s => ({ current: Math.min(maxHabitDone(s), 30), target: 30 }) },
-  { id: 'habit-done-60', type: 'habit', label: '60 Dias de Hábito', value: 60, rank: 'B', icon: '🧠',
-    description: 'Sessenta dias. O hábito virou identidade.',
-    requirements: ['Completar 1 hábito por 60 dias (total)'],
-    check: s => maxHabitDone(s) >= 60, progress: s => ({ current: Math.min(maxHabitDone(s), 60), target: 60 }) },
-  { id: 'habit-done-100', type: 'habit', label: '100 Dias — Mestre do Hábito', value: 100, rank: 'A', icon: '🧠',
-    description: 'Cem dias de consistência em um hábito. Mestre.',
-    requirements: ['Completar 1 hábito por 100 dias (total)'],
-    check: s => maxHabitDone(s) >= 100, progress: s => ({ current: Math.min(maxHabitDone(s), 100), target: 100 }) },
-  { id: 'habit-done-200', type: 'habit', label: '200 Dias — Monge do Hábito', value: 200, rank: 'S', icon: '🧠',
-    description: 'Duzentos dias. A disciplina transcende.',
-    requirements: ['Completar 1 hábito por 200 dias (total)'],
-    check: s => maxHabitDone(s) >= 200, progress: s => ({ current: Math.min(maxHabitDone(s), 200), target: 200 }) },
+  { id: 'habit-done-5', type: 'habit', label: '5 Dias Seguidos', value: 5, rank: 'E', icon: '🧠',
+    description: 'Cinco dias seguidos de um hábito. O começo da consistência.',
+    requirements: ['Completar 1 hábito por 5 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 5, progress: s => ({ current: Math.min(maxHabitStreak(s), 5), target: 5 }) },
+  { id: 'habit-done-10', type: 'habit', label: '10 Dias Seguidos', value: 10, rank: 'D', icon: '🧠',
+    description: 'Dez dias seguidos. Persistência real.',
+    requirements: ['Completar 1 hábito por 10 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 10, progress: s => ({ current: Math.min(maxHabitStreak(s), 10), target: 10 }) },
+  { id: 'habit-done-15', type: 'habit', label: '15 Dias Seguidos', value: 15, rank: 'D', icon: '🧠',
+    description: 'Quinze dias seguidos. O hábito está criando raízes.',
+    requirements: ['Completar 1 hábito por 15 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 15, progress: s => ({ current: Math.min(maxHabitStreak(s), 15), target: 15 }) },
+  { id: 'habit-done-20', type: 'habit', label: '20 Dias Seguidos', value: 20, rank: 'C', icon: '🧠',
+    description: 'Vinte dias seguidos. O hábito está se formando.',
+    requirements: ['Completar 1 hábito por 20 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 20, progress: s => ({ current: Math.min(maxHabitStreak(s), 20), target: 20 }) },
+  { id: 'habit-done-25', type: 'habit', label: '25 Dias Seguidos', value: 25, rank: 'C', icon: '🧠',
+    description: 'Vinte e cinco dias seguidos. Quase um mês de disciplina.',
+    requirements: ['Completar 1 hábito por 25 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 25, progress: s => ({ current: Math.min(maxHabitStreak(s), 25), target: 25 }) },
+  { id: 'habit-done-30', type: 'habit', label: '30 Dias Seguidos', value: 30, rank: 'C', icon: '🧠',
+    description: 'Um mês seguido. Isso já é parte de você.',
+    requirements: ['Completar 1 hábito por 30 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 30, progress: s => ({ current: Math.min(maxHabitStreak(s), 30), target: 30 }) },
+  { id: 'habit-done-60', type: 'habit', label: '60 Dias Seguidos', value: 60, rank: 'B', icon: '🧠',
+    description: 'Sessenta dias seguidos. O hábito virou identidade.',
+    requirements: ['Completar 1 hábito por 60 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 60, progress: s => ({ current: Math.min(maxHabitStreak(s), 60), target: 60 }) },
+  { id: 'habit-done-100', type: 'habit', label: '100 Dias Seguidos — Mestre', value: 100, rank: 'A', icon: '🧠',
+    description: 'Cem dias seguidos. Mestre do hábito.',
+    requirements: ['Completar 1 hábito por 100 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 100, progress: s => ({ current: Math.min(maxHabitStreak(s), 100), target: 100 }) },
+  { id: 'habit-done-200', type: 'habit', label: '200 Dias Seguidos — Monge', value: 200, rank: 'S', icon: '🧠',
+    description: 'Duzentos dias seguidos. A disciplina transcende.',
+    requirements: ['Completar 1 hábito por 200 dias seguidos sem falhar'],
+    check: s => maxHabitStreak(s) >= 200, progress: s => ({ current: Math.min(maxHabitStreak(s), 200), target: 200 }) },
 
   // ========== LEVEL / RANK ==========
   { id: 'level-e3', type: 'level', label: 'Primeiros Passos', value: 3, rank: 'E', icon: '📈',
