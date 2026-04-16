@@ -1,44 +1,59 @@
 
 
-# Plano: Corrigir conquistas de hábitos para exigir dias CONSECUTIVOS
+# Plano: Organizar conquistas + Configuração de Afirmações + CRUD e Slideshow
 
-## Problema
-A função `maxHabitDone` conta o total de dias marcados como "done", não dias **seguidos sem falha**. Então se você fez um hábito 10 vezes espalhadas (com falhas no meio), já ganha a conquista de 10 dias.
+## 1. Organizar conquistas no AchievementsPanel
 
-## Solução
-Trocar a função `maxHabitDone` em `src/lib/achievements.ts` (linha 40) por uma que calcula o **maior streak consecutivo** de cada hábito — ou seja, a maior sequência de dias seguidos sem interrupção (sem "failed" e sem dia pulado).
+O array `ACHIEVEMENTS` já está organizado por tipo (streak, mission, habit, level, discipline, special), mas o painel mostra tudo misturado num grid. Vou reorganizar a exibição para agrupar por tipo com seções visuais claras:
 
-### Lógica da nova função
-Para cada hábito:
-1. Pegar todas as datas do `history`, ordenar cronologicamente
-2. Percorrer dia a dia verificando se o próximo dia é exatamente +1 dia e status `done`
-3. Se sim, incrementa streak; se não, reseta
-4. Retorna o maior streak encontrado entre todos os hábitos
+- Quando filtro = "Todas", mostrar conquistas agrupadas por tipo (cada tipo com header separado: "🔥 Streak", "⚔️ Missões", etc.)
+- Dentro de cada grupo: desbloqueadas primeiro, depois por progresso
+- Manter o filtro por tipo como está (quando filtra, mostra só aquele tipo sem sub-headers)
 
-### Código (resumo)
-```typescript
-const maxHabitStreak = (s: PlayerState) => {
-  return Math.max(0, ...s.habits.map(h => {
-    const dates = Object.entries(h.history)
-      .filter(([_, v]) => v === 'done')
-      .map(([d]) => d)
-      .sort();
-    if (dates.length === 0) return 0;
-    let max = 1, current = 1;
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i-1] + 'T12:00:00');
-      const curr = new Date(dates[i] + 'T12:00:00');
-      const diff = (curr.getTime() - prev.getTime()) / 86400000;
-      if (diff === 1) { current++; max = Math.max(max, current); }
-      else { current = 1; }
-    }
-    return max;
-  }));
-};
-```
+**Arquivo:** `src/components/AchievementsPanel.tsx`
 
-### Arquivos
-- `src/lib/achievements.ts` — substituir `maxHabitDone` por `maxHabitStreak` e atualizar todas as referências (conquistas de 5, 10, 15, 20, 25, 30, 60, 100, 200 dias)
-- `src/components/AffirmationsPanel.tsx` — atualizar referência na linha 33 para usar a mesma lógica de streak (ou manter o total lá, já que ali é só contexto para a IA)
-- Atualizar `requirements` text de cada conquista para deixar claro: "X dias seguidos"
+## 2. Aba Afirmações desativada por padrão + toggle em Configurações
+
+- Em `src/pages/Index.tsx`: incluir `'affirmations'` na lista de abas desativadas por padrão (quando `state.disabledTabs` é undefined/vazio na primeira vez)
+- Em `src/pages/Settings.tsx`: adicionar "Afirmações" na lista de toggles da seção Interface
+- Em `src/lib/gameStore.ts`: definir `disabledTabs: ['affirmations']` no estado inicial
+
+**Arquivos:** `src/pages/Settings.tsx`, `src/lib/gameStore.ts`
+
+## 3. Botão para criar afirmação própria (já favoritada)
+
+- Adicionar botão "Criar Afirmação" no AffirmationsPanel
+- Abre um input/textarea inline para digitar
+- Ao salvar, cria com `type: 'custom'`, `favorited: true`
+- Tipo `AffirmationMode` expandido para incluir `'custom'`
+
+**Arquivo:** `src/components/AffirmationsPanel.tsx`
+
+## 4. Editar e excluir qualquer afirmação
+
+- Em cada afirmação (favoritas e histórico), adicionar ícones de editar (Pencil) e excluir (Trash)
+- Editar: abre textarea inline com o texto, salva no state
+- Excluir: remove do array com confirmação simples
+
+**Arquivo:** `src/components/AffirmationsPanel.tsx`
+
+## 5. Slideshow manual em tela cheia
+
+- Botão "Slideshow" no painel (só aparece se há afirmações favoritadas)
+- Abre tela cheia com a primeira afirmação favoritada
+- Setas (esquerda/direita) ou botões para navegar entre favoritas
+- Visual imersivo: fundo escuro, texto grande centralizado, sem distrações
+- Ideal para repetição/reprogramação mental
+
+**Arquivo:** `src/components/AffirmationsPanel.tsx`
+
+## 6. Fix runtime error (useGame fora do GameProvider)
+
+- Verificar e corrigir o erro "useGame must be used within GameProvider" que aparece nos logs
+
+**Arquivos a alterar:**
+- `src/components/AchievementsPanel.tsx` — agrupar por tipo
+- `src/components/AffirmationsPanel.tsx` — criar afirmação, editar, excluir, slideshow
+- `src/pages/Settings.tsx` — toggle de afirmações
+- `src/lib/gameStore.ts` — disabledTabs padrão com 'affirmations'
 
