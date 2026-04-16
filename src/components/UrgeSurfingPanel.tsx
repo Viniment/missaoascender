@@ -369,9 +369,10 @@ export default function UrgeSurfingPanel() {
               width: breathingSize,
               height: breathingSize,
             }}
-            transition={{ duration: isHold ? 0.2 : BREATHING_DURATIONS[breathingPhase] * 0.8, ease: 'easeInOut' }}
+            transition={{ duration: 0.1 }}
             className="rounded-full"
             style={{
+              opacity: breathingOpacity,
               background: `radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.2))`,
               boxShadow: `0 0 ${12 + breathingSize * 0.2}px hsl(var(--primary) / 0.4), inset 0 0 ${breathingSize * 0.3}px hsl(var(--primary) / 0.15)`,
             }}
