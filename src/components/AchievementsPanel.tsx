@@ -15,23 +15,16 @@ const TYPE_LABELS: Record<string, string> = {
 
 const TYPES = Object.keys(TYPE_LABELS);
 
-export default function AchievementsPanel() {
-  const { state } = useGame();
-  const unlocked: UnlockedAchievement[] = state.achievements || [];
-  const unlockedMap = new Map(unlocked.map(u => [u.id, u]));
-  const [filter, setFilter] = useState<string | null>(null);
-  const [selected, setSelected] = useState<AchievementDef | null>(null);
-
-  const filtered = filter ? ACHIEVEMENTS.filter(a => a.type === filter) : ACHIEVEMENTS;
-  const totalUnlocked = unlocked.length;
-  const total = ACHIEVEMENTS.length;
-
-  // Sort: unlocked first, then by progress descending
-  const sorted = [...filtered].sort((a, b) => {
-    const aUnlocked = unlockedMap.has(a.id) ? 1 : 0;
-    const bUnlocked = unlockedMap.has(b.id) ? 1 : 0;
-    if (aUnlocked !== bUnlocked) return bUnlocked - aUnlocked;
-    if (!aUnlocked) {
+function sortByUnlockedAndProgress(
+  items: AchievementDef[],
+  unlockedMap: Map<string, UnlockedAchievement>,
+  state: any
+) {
+  return [...items].sort((a, b) => {
+    const aU = unlockedMap.has(a.id) ? 1 : 0;
+    const bU = unlockedMap.has(b.id) ? 1 : 0;
+    if (aU !== bU) return bU - aU;
+    if (!aU) {
       const aProg = a.progress(state);
       const bProg = b.progress(state);
       const aPct = aProg.target > 0 ? aProg.current / aProg.target : 0;
@@ -40,6 +33,17 @@ export default function AchievementsPanel() {
     }
     return 0;
   });
+}
+
+export default function AchievementsPanel() {
+  const { state } = useGame();
+  const unlocked: UnlockedAchievement[] = state.achievements || [];
+  const unlockedMap = new Map(unlocked.map(u => [u.id, u]));
+  const [filter, setFilter] = useState<string | null>(null);
+  const [selected, setSelected] = useState<AchievementDef | null>(null);
+
+  const totalUnlocked = unlocked.length;
+  const total = ACHIEVEMENTS.length;
 
   return (
     <div className="space-y-4">
@@ -82,18 +86,58 @@ export default function AchievementsPanel() {
         ))}
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {sorted.map(a => (
-          <AchievementCard
-            key={a.id}
-            achievement={a}
-            unlocked={unlockedMap.get(a.id)}
-            compact
-            onClick={() => setSelected(a)}
-          />
-        ))}
-      </div>
+      {/* Content */}
+      {filter ? (
+        // Single type: flat grid
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {sortByUnlockedAndProgress(
+            ACHIEVEMENTS.filter(a => a.type === filter),
+            unlockedMap,
+            state
+          ).map(a => (
+            <AchievementCard
+              key={a.id}
+              achievement={a}
+              unlocked={unlockedMap.get(a.id)}
+              compact
+              onClick={() => setSelected(a)}
+            />
+          ))}
+        </div>
+      ) : (
+        // All: grouped by type with headers
+        <div className="space-y-5">
+          {TYPES.map(type => {
+            const items = ACHIEVEMENTS.filter(a => a.type === type);
+            if (items.length === 0) return null;
+            const sorted = sortByUnlockedAndProgress(items, unlockedMap, state);
+            const typeUnlocked = items.filter(a => unlockedMap.has(a.id)).length;
+            return (
+              <div key={type}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-display tracking-wider text-foreground/80">
+                    {TYPE_LABELS[type]}
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    {typeUnlocked}/{items.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {sorted.map(a => (
+                    <AchievementCard
+                      key={a.id}
+                      achievement={a}
+                      unlocked={unlockedMap.get(a.id)}
+                      compact
+                      onClick={() => setSelected(a)}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Detail dialog */}
       <AchievementDetailDialog

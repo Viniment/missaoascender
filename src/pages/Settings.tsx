@@ -182,6 +182,7 @@ export default function Settings() {
               {[
                 { id: 'challenges', label: 'Desafios' },
                 { id: 'journal', label: 'Diário' },
+                { id: 'affirmations', label: 'Afirmações' },
                 { id: 'timer', label: 'Timer' },
                 { id: 'visualizar', label: 'Visualizar' },
                 { id: 'awakening', label: 'Despertar' },
