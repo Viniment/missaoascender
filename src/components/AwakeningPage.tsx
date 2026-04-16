@@ -32,6 +32,11 @@ export default function AwakeningPage() {
           })),
           awakening: state.awakening,
           rank: state.rank,
+          reflections: (state.reflections || []).slice(0, 5).map(r => ({
+            question: r.question,
+            answerHtml: r.answerHtml,
+            date: r.date,
+          })),
         },
       });
       if (error) throw error;
