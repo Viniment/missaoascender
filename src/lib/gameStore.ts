@@ -120,6 +120,65 @@ export interface VisionItem {
   createdAt: string;
 }
 
+// ===== Ritual Guide types =====
+export type RitualStepType =
+  | 'preparacao'
+  | 'visualizacao'
+  | 'barreira'
+  | 'confronto'
+  | 'acao'
+  | 'retorno'
+  | 'loop'
+  | 'encerramento';
+export type NarrationStyle = 'calmo' | 'motivador' | 'agressivo' | 'neutro';
+export type RitualIntensity = 'leve' | 'medio' | 'intenso';
+export type RitualDisplayMode = 'texto' | 'imagens' | 'animacoes';
+export type RitualActionType = 'quebrar' | 'atravessar' | 'destruir' | 'ignorar' | 'personalizado';
+export type BarrierType = 'parede' | 'criatura' | 'sombra' | 'personalizado';
+
+export interface RitualStep {
+  id: string;
+  type: RitualStepType;
+  enabled: boolean;
+  order: number;
+  durationSec: number;
+  intensity: RitualIntensity;
+  text: string;
+  barrierId?: string;
+  actionType?: RitualActionType;
+  customAction?: string;
+}
+
+export interface Barrier {
+  id: string;
+  name: string;
+  type: BarrierType;
+  customDescription?: string;
+}
+
+export interface Ritual {
+  id: string;
+  name: string;
+  objective: string;
+  steps: RitualStep[];
+  narrationStyle: NarrationStyle;
+  useTTS: boolean;
+  displayMode: RitualDisplayMode;
+  loopCount: number;
+  loopIncreaseIntensity: boolean;
+  loopGapSec: number;
+  visionItemIds?: string[];
+  createdAt: string;
+}
+
+export interface RitualSession {
+  id: string;
+  ritualId: string;
+  ritualName: string;
+  completedAt: string;
+  durationSec: number;
+}
+
 export interface PlayerState {
   name: string;
   title: string;
