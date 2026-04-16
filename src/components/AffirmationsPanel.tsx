@@ -355,11 +355,11 @@ export default function AffirmationsPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
-          <Flame className="w-5 h-5" /> AFIRMAÇÕES INTELIGENTES
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2 min-w-0">
+          <Flame className="w-5 h-5 shrink-0" /> AFIRMAÇÕES INTELIGENTES
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {favorites.length > 0 && (
             <Button size="sm" variant="outline" className="text-xs" onClick={openSlideshow}>
               <Play className="w-3.5 h-3.5 mr-1" /> Slideshow

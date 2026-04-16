@@ -115,9 +115,9 @@ export default function JournalPanel() {
 
       {/* New entry form */}
       <div className={`rpg-panel space-y-3 transition-all duration-500 ${deepMode ? 'bg-background border-primary/50 glow-purple-strong' : ''}`}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-foreground/60">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-          <Button size="sm" variant={deepMode ? 'default' : 'secondary'} onClick={() => setDeepMode(!deepMode)} className="text-xs">
+          <Button size="sm" variant={deepMode ? 'default' : 'secondary'} onClick={() => setDeepMode(!deepMode)} className="text-xs shrink-0">
             <Moon className="w-3.5 h-3.5 mr-1" /> Modo Profundo
           </Button>
         </div>
