@@ -219,11 +219,11 @@ export default function VisualizarPanel() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
-          <Layers className="w-5 h-5" /> VISUALIZAR
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2 min-w-0">
+          <Layers className="w-5 h-5 shrink-0" /> VISUALIZAR
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {visionStreak > 0 && (
             <span className="flex items-center gap-1 text-xs font-body text-orange-400 bg-orange-400/10 px-2 py-1 rounded-full">
               <Flame className="w-3.5 h-3.5" /> {visionStreak} dias seguidos
