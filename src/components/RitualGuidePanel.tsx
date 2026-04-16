@@ -23,30 +23,29 @@ export default function RitualGuidePanel() {
   const submittingRef = useRef(false);
 
   const activeRitual = rituals.find(r => r.id === activeId);
+  const pendingCreateRef = useRef(false);
+  const prevCountRef = useRef(rituals.length);
+
+  // When a new ritual is appended after we triggered create, jump to its editor
+  useEffect(() => {
+    if (pendingCreateRef.current && rituals.length > prevCountRef.current) {
+      const created = rituals[rituals.length - 1];
+      pendingCreateRef.current = false;
+      if (created) {
+        setActiveId(created.id);
+        setMode('edit');
+      }
+    }
+    prevCountRef.current = rituals.length;
+  }, [rituals]);
 
   const handleCreate = () => {
     if (submittingRef.current) return;
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      const draft = makeDefaultRitual();
-      const id = crypto.randomUUID();
-      // addRitual generates own id; instead create then locate by name+createdAt is fragile.
-      // Use a workaround: read length before, then pick last after.
-      const before = (state.rituals || []).length;
-      addRitual(draft);
-      // Defer to next tick to let state settle
-      setTimeout(() => {
-        const after = (state.rituals || []);
-        const created = after[after.length - 1];
-        if (created) {
-          setActiveId(created.id);
-          setMode('edit');
-        } else {
-          // Fallback: just go to list, user clicks edit
-          toast.info('Ritual criado');
-        }
-      }, 50);
+      pendingCreateRef.current = true;
+      addRitual(makeDefaultRitual());
     } finally {
       setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
     }
