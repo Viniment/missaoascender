@@ -186,6 +186,7 @@ export default function Settings() {
                 { id: 'timer', label: 'Timer' },
                 { id: 'visualizar', label: 'Visualizar' },
                 { id: 'awakening', label: 'Despertar' },
+                { id: 'urge-surfing', label: 'Urge Surfing' },
               ].map(tab => {
                 const disabled = (state.disabledTabs || []).includes(tab.id);
                 return (
