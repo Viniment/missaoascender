@@ -214,6 +214,9 @@ export interface PlayerState {
   visionLastViewedDate: string | null;
   theme: string;
   difficultyDivisor: number;
+  rituals: Ritual[];
+  ritualBarriers: Barrier[];
+  ritualSessions: RitualSession[];
   _penaltyCompensated?: boolean;
 }
 
