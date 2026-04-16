@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
