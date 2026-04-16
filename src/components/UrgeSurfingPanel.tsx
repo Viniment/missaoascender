@@ -468,7 +468,7 @@ export default function UrgeSurfingPanel() {
         <h3 className="font-display text-sm text-muted-foreground">
           O impulso ainda não passou.
         </h3>
-        <p className="text-sm text-foreground/60 font-body">
+        <p className="text-sm text-foreground font-body">
           Ficar até o fim é o que enfraquece ele.
         </p>
         <Button className="w-full" onClick={resetToIdle}>
