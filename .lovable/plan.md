@@ -1,25 +1,40 @@
 
 
-# Plano: Animação progressiva da bola de respiração + textos cinza → branco
+# Plano: Corrigir animação da bola de respiração + melhorar cores de texto nos temas
 
-## 1. Bola de respiração progressiva
+## 1. Bug da bola de respiração
 
-Atualmente a bola pula entre tamanhos fixos (40px↔80px). O pedido é que ela cresça/diminua **progressivamente** junto com a contagem de cada fase.
+**Problema:** Quando a fase muda (ex: "Segure" → "Inspire"), `breathingProgress` reseta para 0 mas o tamanho anterior era grande (80px). O `transition: 0.1s` faz um salto quase instantâneo de 80px → 20px, causando o "pulo" visual.
 
-**Lógica nova:**
-- **Inspire (4s):** bola começa em tamanho mínimo (20px) e cresce linearmente com `breathingProgress` até tamanho máximo (80px)
-- **Segure (4s):** bola fica parada no tamanho que estava (80px após inspire, 20px após expire)  
-- **Expire (6s):** bola começa no máximo (80px) e diminui linearmente até mínimo (20px)
-- **Segure (2s):** bola fica parada em 20px
+**Solução:** Manter um `breathingSize` como `useRef` contínuo que não depende de resets. Em vez de calcular o tamanho a partir de `breathingProgress` (que reseta a cada fase), usar um **valor acumulado contínuo** que transiciona naturalmente:
 
-A opacidade da bola também acompanha: mais visível quando maior, quase invisível quando menor. Algo como `opacity: 0.3 + 0.7 * (size - minSize) / (maxSize - minSize)`.
+- Trocar a lógica para que o `breathingSize` seja um state que se atualiza suavemente a cada tick (100ms), movendo-se gradualmente em direção ao tamanho-alvo da fase atual
+- Inspire: alvo = MAX_SIZE, incrementa suavemente
+- Segure: alvo = tamanho atual (fica parado)
+- Expire: alvo = MIN_SIZE, decrementa suavemente
+- A velocidade de incremento/decremento é proporcional à duração da fase
 
-A transição do `motion.div` será ajustada para `duration: 0.1` (quase instantâneo) para que o estado reativo do `breathingProgress` controle suavemente o tamanho frame a frame, sem "easing" extra.
+Isso elimina qualquer salto porque o valor nunca reseta.
 
-## 2. Textos cinza → branco (sem negrito)
+## 2. Cores de texto nos temas
 
-Trocar todas as ocorrências de `text-muted-foreground` no `UrgeSurfingPanel.tsx` por `text-foreground` (branco), **exceto** nos casos onde o cinza faz sentido funcional (botões não-selecionados que já têm hover). Labels como "TIPO DE IMPULSO", "DURAÇÃO", "Superados", "Sequência", "Sessões", e o texto da tela de abandono serão brancos.
+**Problema:** `--foreground` e `--muted-foreground` estão com lightness baixa em alguns temas (45-50% para muted, 80-85% para foreground), resultando em textos pouco legíveis. Botões de menu e labels usam essas variáveis.
 
-## Arquivo
-- `src/components/UrgeSurfingPanel.tsx`
+**Solução:** Atualizar `useTheme.ts` — aumentar lightness de `--foreground` para ~90-93% e `--muted-foreground` para ~60-65% em todos os temas. Também adicionar `--sidebar-foreground` em cada tema para garantir que a navegação lateral tenha bom contraste:
+
+| Tema | foreground (antes → depois) | muted-foreground (antes → depois) |
+|------|---------------------------|----------------------------------|
+| neon-purple | 85% → 93% | 50% → 62% |
+| red-black | 80% → 90% | 45% → 60% |
+| cyber-blue | 88% → 93% | 48% → 62% |
+| emerald | 82% → 92% | 45% → 60% |
+| solar | 82% → 92% | 45% → 60% |
+| midnight-rose | 85% → 93% | 45% → 62% |
+| arctic | 88% → 93% | 48% → 62% |
+
+Mesmos ajustes para `--card-foreground` e `--sidebar-foreground`.
+
+## Arquivos
+- `src/components/UrgeSurfingPanel.tsx` — lógica da bola de respiração
+- `src/hooks/useTheme.ts` — variáveis de cor dos temas
 
