@@ -126,7 +126,7 @@ export default function Settings() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs"
+                  className="text-xs text-foreground border-border hover:text-primary"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
