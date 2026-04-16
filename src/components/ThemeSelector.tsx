@@ -30,7 +30,7 @@ export default function ThemeSelector({ current, onChange }: Props) {
       <h2 className="font-display text-sm text-primary flex items-center gap-2">
         <Palette className="w-4 h-4" /> TEMA
       </h2>
-      <p className="text-xs text-muted-foreground">Escolha o esquema de cores do app.</p>
+      <p className="text-xs text-foreground/60">Escolha o esquema de cores do app.</p>
 
       <div className="space-y-2">
         {THEMES.map(theme => {
@@ -61,8 +61,8 @@ export default function ThemeSelector({ current, onChange }: Props) {
                 ))}
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-sm font-display tracking-wider">{theme.name}</span>
-                <span className="text-[10px] text-muted-foreground">{theme.description}</span>
+                <span className="text-sm font-display tracking-wider text-foreground">{theme.name}</span>
+                <span className="text-[11px] text-foreground/60">{theme.description}</span>
               </div>
               {isActive && (
                 <div className="ml-auto w-2 h-2 rounded-full bg-primary animate-pulse" />

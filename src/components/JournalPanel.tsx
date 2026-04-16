@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
-import { motion } from 'framer-motion';
-import { BookOpen, Moon, Send, Pencil, Trash2, Eye } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, Moon, Send, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -31,8 +31,10 @@ export default function JournalPanel() {
   const [intensity, setIntensity] = useState(5);
   const [deepMode, setDeepMode] = useState(false);
 
-  // View / Edit
-  const [viewEntry, setViewEntry] = useState<string | null>(null);
+  // Expand inline
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Edit
   const [editEntry, setEditEntry] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editText, setEditText] = useState('');
@@ -69,25 +71,12 @@ export default function JournalPanel() {
     setEditEntry(null);
   };
 
-  const viewing = viewEntry ? state.journal.find(e => e.id === viewEntry) : null;
-
-  const ViewContent = viewing ? (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span>{new Date(viewing.date).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-        {viewing.emotion && <span>{viewing.emotion}</span>}
-        {viewing.deepMode && <span className="text-primary">🌑</span>}
-      </div>
-      <div className="prose prose-invert prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: viewing.text }} />
-    </div>
-  ) : null;
-
   const EditContent = editEntry ? (
     <div className="space-y-3">
       <Input placeholder="Título *" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-secondary/50" />
       <RichEditor content={editText} onChange={setEditText} placeholder="Escreva..." />
       <div>
-        <label className="text-xs text-muted-foreground">Emoção</label>
+        <label className="text-xs text-foreground/60">Emoção</label>
         <div className="flex gap-1 mt-1">
           {EMOTIONS.map(e => (
             <button key={e} onClick={() => setEditEmotion(editEmotion === e ? '' : e)}
@@ -98,7 +87,7 @@ export default function JournalPanel() {
         </div>
       </div>
       <div>
-        <label className="text-xs text-muted-foreground">Intensidade: {editIntensity}/10</label>
+        <label className="text-xs text-foreground/60">Intensidade: {editIntensity}/10</label>
         <input type="range" min="1" max="10" value={editIntensity} onChange={e => setEditIntensity(Number(e.target.value))} className="w-full mt-1 accent-primary" />
       </div>
       <div className="flex items-center gap-2">
@@ -121,7 +110,7 @@ export default function JournalPanel() {
       {/* New entry form */}
       <div className={`rpg-panel space-y-3 transition-all duration-500 ${deepMode ? 'bg-background border-primary/50 glow-purple-strong' : ''}`}>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          <span className="text-xs text-foreground/60">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           <Button size="sm" variant={deepMode ? 'default' : 'secondary'} onClick={() => setDeepMode(!deepMode)} className="text-xs">
             <Moon className="w-3.5 h-3.5 mr-1" /> Modo Profundo
           </Button>
@@ -132,7 +121,7 @@ export default function JournalPanel() {
         <RichEditor content={text} onChange={setText} placeholder="Escreva livremente..." />
 
         <div>
-          <label className="text-xs text-muted-foreground">Emoção (opcional)</label>
+          <label className="text-xs text-foreground/60">Emoção (opcional)</label>
           <div className="flex gap-1 mt-1">
             {EMOTIONS.map(e => (
               <button key={e} onClick={() => setEmotion(emotion === e ? '' : e)}
@@ -144,7 +133,7 @@ export default function JournalPanel() {
         </div>
 
         <div>
-          <label className="text-xs text-muted-foreground">Intensidade: {intensity}/10</label>
+          <label className="text-xs text-foreground/60">Intensidade: {intensity}/10</label>
           <input type="range" min="1" max="10" value={intensity} onChange={e => setIntensity(Number(e.target.value))} className="w-full mt-1 accent-primary" />
         </div>
 
@@ -153,71 +142,81 @@ export default function JournalPanel() {
         </Button>
       </div>
 
-      {/* Previous entries - titles only */}
+      {/* Previous entries - expandable like Awakening */}
       {state.journal.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Entradas Anteriores</h3>
-          {state.journal.map(entry => (
-            <motion.div key={entry.id} className="rpg-panel glow-purple flex items-center justify-between" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <button className="flex-1 text-left" onClick={() => setViewEntry(entry.id)}>
-                <div className="flex items-center gap-2">
-                  {entry.emotion && <span>{entry.emotion}</span>}
-                  <span className="text-sm font-medium text-foreground">{entry.title || 'Sem título'}</span>
-                  {entry.deepMode && <span className="text-primary text-xs">🌑</span>}
-                </div>
-                <span className="text-xs text-muted-foreground">{new Date(entry.date).toLocaleDateString('pt-BR')}</span>
-              </button>
-              <div className="flex items-center gap-1">
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setViewEntry(entry.id)}>
-                  <Eye className="w-3.5 h-3.5" />
-                </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(entry.id)}>
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive">
-                      <Trash2 className="w-3.5 h-3.5" />
+          <h3 className="text-xs text-foreground/50 uppercase tracking-wider font-display">Entradas Anteriores</h3>
+          {state.journal.map(entry => {
+            const isExpanded = expandedId === entry.id;
+            return (
+              <motion.div key={entry.id} className="rpg-panel glow-purple" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div
+                  className="flex items-start justify-between cursor-pointer"
+                  onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      {entry.emotion && <span>{entry.emotion}</span>}
+                      <span className="text-sm font-semibold text-foreground">{entry.title || 'Sem título'}</span>
+                      {entry.deepMode && <span className="text-primary text-xs">🌑</span>}
+                    </div>
+                    <span className="text-xs text-foreground/50">{new Date(entry.date).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'long' })}</span>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openEdit(entry.id); }}>
+                      <Pencil className="w-3.5 h-3.5" />
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Excluir entrada?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => { deleteJournalEntry(entry.id); toast.success('Entrada excluída'); }}>
-                        Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </motion.div>
-          ))}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={(e) => e.stopPropagation()}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Excluir entrada?</AlertDialogTitle>
+                          <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => { deleteJournalEntry(entry.id); toast.success('Entrada excluída'); }}>
+                            Excluir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-foreground/50" /> : <ChevronDown className="w-4 h-4 text-foreground/50" />}
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 pt-3 border-t border-border"
+                    >
+                      <div className="flex items-center gap-2 text-xs text-foreground/50 mb-2">
+                        {entry.emotion && <span>{entry.emotion}</span>}
+                        {entry.deepMode && <span className="text-primary">🌑 Modo Profundo</span>}
+                        {entry.intensity && <span>Intensidade: {entry.intensity}/10</span>}
+                      </div>
+                      <div
+                        className="prose prose-invert prose-sm max-w-none text-foreground"
+                        dangerouslySetInnerHTML={{ __html: entry.text }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
       {/* Insights */}
       {state.journal.length >= 5 && <InsightsSection />}
-
-      {/* View Modal */}
-      {isMobile ? (
-        <Drawer open={!!viewEntry} onOpenChange={o => !o && setViewEntry(null)}>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader><DrawerTitle>{viewing?.title || 'Entrada'}</DrawerTitle></DrawerHeader>
-            <div className="px-4 pb-6 overflow-y-auto">{ViewContent}</div>
-          </DrawerContent>
-        </Drawer>
-      ) : (
-        <Dialog open={!!viewEntry} onOpenChange={o => !o && setViewEntry(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{viewing?.title || 'Entrada'}</DialogTitle></DialogHeader>
-            {ViewContent}
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Edit Modal */}
       {isMobile ? (
@@ -248,7 +247,7 @@ function InsightsSection() {
 
   return (
     <div className="rpg-panel">
-      <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">🧠 INSIGHTS</h4>
+      <h4 className="text-xs text-foreground/50 uppercase tracking-wider mb-2 font-display">🧠 INSIGHTS</h4>
       <div className="space-y-1 text-sm text-foreground/80">
         <p>📊 {total} entradas no total</p>
         <p>🌑 {deepEntries} em modo profundo</p>

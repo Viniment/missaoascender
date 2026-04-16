@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2 } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -48,6 +48,7 @@ export default function Settings() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveName = async () => {
@@ -63,15 +64,19 @@ export default function Settings() {
     if (!file.type.startsWith('image/')) { toast.error('Apenas imagens são permitidas.'); return; }
     if (file.size > 2 * 1024 * 1024) { toast.error('Imagem deve ter no máximo 2MB.'); return; }
     setUploading(true);
+    setUploadSuccess(false);
     try {
       const ext = file.name.split('.').pop();
       const path = `${user.id}/avatar.${ext}`;
       const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-      updateProfile({ avatar: publicUrl });
+      const urlWithCache = `${publicUrl}?t=${Date.now()}`;
+      updateProfile({ avatar: urlWithCache });
       await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('user_id', user.id);
-      toast.success('Avatar atualizado!');
+      setUploadSuccess(true);
+      toast.success('Avatar atualizado com sucesso!');
+      setTimeout(() => setUploadSuccess(false), 3000);
     } catch (err: any) {
       toast.error('Erro ao enviar avatar: ' + err.message);
     } finally {
@@ -90,36 +95,63 @@ export default function Settings() {
           <div className="space-y-6">
             <SectionHeader title="Conta" description="Gerencie seu perfil, credenciais e sessão." />
             <div className="rpg-panel space-y-4">
-              <h3 className="font-display text-xs tracking-widest text-muted-foreground uppercase">Perfil</h3>
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-16 h-16 rounded-full bg-secondary border-2 border-border flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {state.avatar ? (
-                    <img src={state.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <Upload className="w-6 h-6 text-muted-foreground" />
+              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Perfil</h3>
+              
+              {/* Avatar section - more visual */}
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="relative group">
+                  <div
+                    className={cn(
+                      "w-24 h-24 rounded-full bg-secondary border-2 flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300",
+                      uploading && "border-primary animate-pulse",
+                      uploadSuccess && "border-success shadow-[0_0_20px_hsl(var(--success)/0.4)]",
+                      !uploading && !uploadSuccess && "border-border hover:border-primary"
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    ) : state.avatar ? (
+                      <img src={state.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-foreground/40" />
+                    )}
+                  </div>
+                  {uploadSuccess && (
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-success flex items-center justify-center shadow-lg">
+                      <CheckCircle2 className="w-4 h-4 text-success-foreground" />
+                    </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Clique para alterar avatar</p>
-                  <p className="text-xs text-muted-foreground">{uploading ? 'Enviando...' : 'Max 2MB'}</p>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Enviando...</>
+                  ) : (
+                    <><Upload className="w-3.5 h-3.5 mr-1.5" /> Trocar Foto</>
+                  )}
+                </Button>
+                <p className="text-[11px] text-foreground/40">JPG, PNG · Max 2MB</p>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </div>
+
               <div>
-                <label className="text-xs text-muted-foreground">Nome</label>
+                <label className="text-xs text-foreground/60">Nome</label>
                 <div className="flex gap-2">
                   <Input value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" maxLength={30} />
                   <Button size="sm" onClick={handleSaveName} disabled={!name.trim()}>Salvar</Button>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground">Email: {user?.email}</div>
+              <div className="text-xs text-foreground/60">Email: {user?.email}</div>
             </div>
 
             <div className="rpg-panel">
-              <h3 className="font-display text-xs tracking-widest text-muted-foreground uppercase mb-4">Segurança</h3>
+              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase mb-4">Segurança</h3>
               <ChangePasswordForm />
             </div>
 
@@ -157,7 +189,7 @@ export default function Settings() {
                 const disabled = (state.disabledTabs || []).includes(tab.id);
                 return (
                   <div key={tab.id} className="flex items-center justify-between py-2 px-1 rounded-md hover:bg-secondary/50 transition-colors">
-                    <span className="text-sm font-body">{tab.label}</span>
+                    <span className="text-sm font-body text-foreground">{tab.label}</span>
                     <Switch
                       checked={!disabled}
                       onCheckedChange={(checked) => {
@@ -178,8 +210,8 @@ export default function Settings() {
           <div className="space-y-6">
             <SectionHeader title="Avançado" description="Ajuste a dificuldade de progressão do sistema." />
             <div className="rpg-panel space-y-4">
-              <h3 className="font-display text-xs tracking-widest text-muted-foreground uppercase">Dificuldade de Progressão</h3>
-              <p className="text-xs text-muted-foreground">Controla a quantidade de XP necessária para subir de nível. Divisores maiores tornam a progressão mais rápida.</p>
+              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Dificuldade de Progressão</h3>
+              <p className="text-xs text-foreground/60">Controla a quantidade de XP necessária para subir de nível. Divisores maiores tornam a progressão mais rápida.</p>
               <div className="space-y-2">
                 {[
                   { value: 1, label: 'Normal', desc: 'XP padrão (ex: 1000 XP para Nível 2)' },
@@ -213,14 +245,14 @@ export default function Settings() {
                         isSelected ? 'border-primary bg-primary' : 'border-muted-foreground'
                       )} />
                       <div>
-                        <p className={cn('text-sm font-display tracking-wider', isSelected && 'text-primary')}>{opt.label}</p>
-                        <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                        <p className={cn('text-sm font-display tracking-wider text-foreground', isSelected && 'text-primary')}>{opt.label}</p>
+                        <p className="text-xs text-foreground/60">{opt.desc}</p>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <p className="text-[11px] text-muted-foreground/70 italic">Trocar a dificuldade recalcula o XP necessário para o nível atual.</p>
+              <p className="text-[11px] text-foreground/40 italic">Trocar a dificuldade recalcula o XP necessário para o nível atual.</p>
             </div>
           </div>
         );
@@ -244,7 +276,7 @@ export default function Settings() {
               >
                 <RotateCcw className="w-4 h-4 mr-2" /> Reiniciar Progresso
               </Button>
-              <p className="text-xs text-muted-foreground pl-1">XP, nível, rank, ouro, missões, hábitos e histórico serão apagados.</p>
+              <p className="text-xs text-foreground/50 pl-1">XP, nível, rank, ouro, missões, hábitos e histórico serão apagados.</p>
 
               <div className="border-t border-border my-2" />
 
@@ -255,7 +287,7 @@ export default function Settings() {
               >
                 <Trash2 className="w-4 h-4 mr-2" /> Excluir Conta
               </Button>
-              <p className="text-xs text-muted-foreground pl-1">Todos os dados serão permanentemente removidos.</p>
+              <p className="text-xs text-foreground/50 pl-1">Todos os dados serão permanentemente removidos.</p>
             </div>
           </div>
         );
@@ -266,7 +298,7 @@ export default function Settings() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-          <button onClick={() => navigate('/')} className="text-muted-foreground hover:text-foreground">
+          <button onClick={() => navigate('/')} className="text-foreground/60 hover:text-foreground">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="font-display text-lg tracking-widest text-primary glow-text-purple">CONFIGURAÇÕES</h1>
@@ -275,7 +307,6 @@ export default function Settings() {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {isMobile ? (
-          /* Mobile: Accordion sections */
           <div className="space-y-2">
             {sections.map(s => {
               const isOpen = activeSection === s.id;
@@ -298,16 +329,16 @@ export default function Settings() {
                       'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
                       isOpen
                         ? isDanger ? 'bg-destructive/15 text-destructive' : 'bg-primary/15 text-primary'
-                        : 'bg-secondary text-muted-foreground'
+                        : 'bg-secondary text-foreground/50'
                     )}>
                       <s.icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-display tracking-wider">{s.label}</p>
-                      <p className="text-xs text-muted-foreground">{s.description}</p>
+                      <p className="text-xs text-foreground/50">{s.description}</p>
                     </div>
                     <ChevronDown className={cn(
-                      'w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200',
+                      'w-4 h-4 text-foreground/50 shrink-0 transition-transform duration-200',
                       isOpen && 'rotate-180'
                     )} />
                   </button>
@@ -321,7 +352,6 @@ export default function Settings() {
             })}
           </div>
         ) : (
-          /* Desktop: Sidebar + Content */
           <div className="flex gap-6">
             <nav className="w-56 shrink-0 space-y-1">
               {sections.map(s => (
@@ -332,7 +362,7 @@ export default function Settings() {
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-body transition-all text-left',
                     activeSection === s.id
                       ? 'bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_hsl(var(--glow-color)/0.15)]'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50',
+                      : 'text-foreground/60 hover:text-foreground hover:bg-secondary/50',
                     s.id === 'danger' && activeSection === s.id && 'bg-destructive/15 text-destructive border-destructive/20 shadow-[0_0_12px_hsl(0_70%_50%/0.15)]'
                   )}
                 >
@@ -382,7 +412,7 @@ function SectionHeader({ title, description }: { title: string; description: str
   return (
     <div className="mb-2">
       <h2 className="font-display text-base tracking-widest text-primary glow-text-purple">{title.toUpperCase()}</h2>
-      <p className="text-xs text-muted-foreground mt-1">{description}</p>
+      <p className="text-xs text-foreground/60 mt-1">{description}</p>
     </div>
   );
 }
