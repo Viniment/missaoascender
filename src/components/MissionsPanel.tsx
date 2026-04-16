@@ -420,12 +420,12 @@ export default function MissionsPanel() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{h.xp} XP</span>
+            <div className="flex items-center gap-x-2 gap-y-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ +{h.xp} XP</span>
               {h.gold > 0 && (
-                <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{h.gold} {h.gold === 1 ? 'Moeda' : 'Moedas'}</span>
+                <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💰 +{h.gold} {h.gold === 1 ? 'Moeda' : 'Moedas'}</span>
               )}
-              <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px]">✅ CONCLUÍDA</span>
+              <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">✅ CONCLUÍDA</span>
             </div>
           </div>
         ))}
