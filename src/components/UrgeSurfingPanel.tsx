@@ -68,8 +68,8 @@ const GUIDE_MESSAGES = {
   ],
 };
 
-const BREATHING_PHASES = ['Inspire…', 'Segure…', 'Expire…', 'Segure…'];
-const BREATHING_DURATIONS = [4, 4, 6, 2]; // seconds for each phase
+const BREATHING_PHASES = ['Inspire…', 'Segure…', 'Expire…'];
+const BREATHING_DURATIONS = [4, 7, 8]; // técnica 4-7-8
 
 interface UrgeSurfingStats {
   totalSessions: number;
@@ -147,15 +147,17 @@ export default function UrgeSurfingPanel() {
 
       // Calculate target size and interpolate
       if (phaseIdx === 0) {
-        // Inspire: grow from current toward MAX
+        // Inspire (4s): grow from MIN toward MAX
         const t = Math.min(1, elapsed / phaseDur);
         currentSize = MIN + t * (MAX - MIN);
+      } else if (phaseIdx === 1) {
+        // Segure (7s): hold at MAX
+        currentSize = MAX;
       } else if (phaseIdx === 2) {
-        // Expire: shrink from current toward MIN
+        // Expire (8s): shrink from MAX toward MIN
         const t = Math.min(1, elapsed / phaseDur);
         currentSize = MAX - t * (MAX - MIN);
       }
-      // phases 1 and 3 (hold): currentSize stays as-is
 
       breathingSizeRef.current = currentSize;
       setBreathingSize(currentSize);
