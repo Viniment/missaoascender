@@ -259,7 +259,7 @@ export default function UrgeSurfingPanel() {
 
         {/* Duration selector */}
         <div className="space-y-2">
-          <label className="text-xs font-display text-muted-foreground">DURAÇÃO</label>
+          <label className="text-xs font-display text-foreground">DURAÇÃO</label>
           <div className="flex gap-2">
             {DURATIONS.map(d => (
               <button
