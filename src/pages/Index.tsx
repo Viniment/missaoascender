@@ -57,6 +57,7 @@ export default function Index() {
       case 'affirmations': return <AffirmationsPanel />;
       case 'timer': return <PomodoroTimer />;
       case 'urge-surfing': return <UrgeSurfingPanel />;
+      case 'ritual': return <RitualGuidePanel />;
       case 'visualizar': return <VisualizarPanel />;
       case 'awakening': return <AwakeningPage />;
       case 'rewards': return <RewardsShop />;
