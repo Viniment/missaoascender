@@ -30,6 +30,7 @@ const TABS = [
   { id: 'affirmations', label: 'Afirmações', icon: Flame },
   { id: 'timer', label: 'Timer', icon: Timer },
   { id: 'urge-surfing', label: 'Urge Surfing', icon: Waves },
+  { id: 'ritual', label: 'Ritual', icon: Wand2 },
   { id: 'visualizar', label: 'Visualizar', icon: Layers },
   { id: 'awakening', label: 'Despertar', icon: Eye },
   { id: 'rewards', label: 'Loja', icon: Gift },
