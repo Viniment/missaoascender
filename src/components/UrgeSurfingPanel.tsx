@@ -238,7 +238,7 @@ export default function UrgeSurfingPanel() {
 
         {/* Impulse type selector */}
         <div className="space-y-2">
-          <label className="text-xs font-display text-muted-foreground">TIPO DE IMPULSO</label>
+          <label className="text-xs font-display text-foreground">TIPO DE IMPULSO</label>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(IMPULSE_LABELS) as ImpulseType[]).map(type => (
               <button
