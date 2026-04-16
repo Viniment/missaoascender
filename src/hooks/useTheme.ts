@@ -4,12 +4,12 @@ import type { ThemeId } from '@/components/ThemeSelector';
 const THEME_VARS: Record<ThemeId, Record<string, string>> = {
   'neon-purple': {
     '--background': '222 47% 3%',
-    '--foreground': '220 20% 85%',
+    '--foreground': '220 20% 93%',
     '--card': '222 47% 6%',
-    '--card-foreground': '220 20% 85%',
+    '--card-foreground': '220 20% 93%',
     '--secondary': '222 47% 12%',
     '--muted': '222 30% 14%',
-    '--muted-foreground': '220 10% 50%',
+    '--muted-foreground': '220 10% 62%',
     '--primary': '263 93% 58%',
     '--primary-foreground': '0 0% 100%',
     '--accent': '263 93% 58%',
@@ -23,6 +23,7 @@ const THEME_VARS: Record<ThemeId, Record<string, string>> = {
     '--card-gradient-from': '222 47% 6%',
     '--card-gradient-to': '222 47% 8%',
     '--sidebar-background': '222 47% 4%',
+    '--sidebar-foreground': '220 20% 93%',
     '--sidebar-primary': '263 93% 58%',
     '--sidebar-accent': '222 47% 10%',
     '--sidebar-border': '222 30% 14%',

@@ -95,7 +95,8 @@ export default function UrgeSurfingPanel() {
   const [currentGuide, setCurrentGuide] = useState('');
   const [currentMonsterSpeech, setCurrentMonsterSpeech] = useState('');
   const [breathingPhase, setBreathingPhase] = useState(0);
-  const [breathingProgress, setBreathingProgress] = useState(0);
+  const breathingSizeRef = useRef(20);
+  const [breathingSize, setBreathingSize] = useState(20);
 
   // Monster intensity: 1 at start, 0 at end
   const progress = duration > 0 ? (duration - secondsLeft) / duration : 0;
