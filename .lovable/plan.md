@@ -1,35 +1,36 @@
 
 
-## Contexto
-A edge function `awakening-questions` já recebe `awakening` (become/reject/pain) e `journal`. O usuário quer que **as reflexões anteriores salvas no Despertar** (`state.reflections`) também sejam usadas como contexto, criando uma evolução progressiva de autoconhecimento.
+## Objetivo
+A lista "Concluídas" das missões hoje aparece simples (texto e ícones pequenos). O usuário quer que cada item de missão concluída fique **colorido e com badges visuais** no estilo das badges de hábitos (`⚡ +XP / 💰 +Moedas / 💀 -XP`) que ele selecionou.
 
-## Mudanças
+## Mudanças em `src/components/MissionsPanel.tsx`
 
-**1. `src/components/AwakeningPage.tsx`**
-- No `handleSuggest`, incluir as últimas 3-5 reflexões do `state.reflections` no payload enviado à edge function:
-  ```ts
-  reflections: (state.reflections || []).slice(0, 5).map(r => ({
-    question: r.question,
-    answerHtml: r.answerHtml,
-    date: r.date,
-  }))
-  ```
+### 1. Cards de missões concluídas (`MissionCard` quando `status === 'Concluída'`)
+Atualmente o card concluído só mostra nome riscado + dificuldade. Vou adicionar uma **linha de badges coloridas** com o que foi ganho:
 
-**2. `supabase/functions/awakening-questions/index.ts`**
-- Aceitar novo campo `reflections` no body
-- Adicionar bloco no `userPrompt`:
-  ```
-  === REFLEXÕES ANTERIORES DO DESPERTAR ===
-  [1] Pergunta: ...
-      Resposta: ... (HTML stripado, primeiros 500 chars)
-  ```
-- Atualizar o **system prompt** para instruir a IA a:
-  - Identificar **padrões evolutivos** entre as reflexões antigas e o estado atual
-  - Detectar **temas recorrentes** (medos, desculpas, vitórias) que aparecem repetidamente
-  - Gerar perguntas que **avancem o autoconhecimento** — não repetir o que já foi explorado, mas aprofundar ou confrontar contradições
-  - Se notar evolução, reconhecer e provocar o próximo passo; se notar estagnação, confrontar
-- Stripar HTML das respostas (`replace(/<[^>]+>/g, ' ')`) antes de enviar pra IA pra economizar tokens
+- ⚡ **+XP ganho** (badge roxa, `bg-primary/15 text-primary`)
+- 💰 **+Moedas ganhas** (badge âmbar, `bg-warning/15 text-warning`)
+- ✅ **CONCLUÍDA** (badge verde, `bg-success/15 text-success`)
+- Data de conclusão (`completedAt` formatada)
 
-## Resultado
-A IA passa a ter memória das reflexões anteriores e gera perguntas que constroem em cima do que já foi descoberto, evitando perguntas redundantes e forçando progresso real no autoconhecimento.
+Cálculo do XP/Gold ganho com base no tipo:
+- **Tempo**: `floor(executedHours * XP_PER_HOUR[diff])` e `floor(executedHours * GOLD_PER_HOUR[diff])`
+- **Diária**: `dailyXp` e `dailyGold` salvos
+- **Contagem**: XP acumulado das marcações
+
+### 2. Cards de missões falhadas
+Adicionar badge:
+- 💀 **-XP** (badge vermelha, `bg-destructive/15 text-destructive`)
+- ❌ **FALHADA** (badge vermelha)
+
+### 3. Itens do histórico repetível (linhas 408-426)
+Reformatar para usar o **mesmo estilo de badges coloridas** em vez do texto plano atual `+X XP` `+X 💰`. Mantém o ícone de Repeat, mas troca os spans de texto por badges com fundo colorido como nos hábitos.
+
+### 4. Visual final (exemplo)
+```
+[Repeat] Treino de força (1.5h)            [⚡ +7 XP] [💰 +3 Moedas] [✅ CONCLUÍDA]
+         15/04/2026 às 14:32
+```
+
+Sem mudanças em outros arquivos, sem migrações.
 
