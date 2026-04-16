@@ -89,6 +89,19 @@ export default function AwakeningPage() {
 
       {/* New reflection block */}
       <div className="rpg-panel space-y-4">
+        <Button
+          variant="outline"
+          className="w-full border-primary/40 hover:bg-primary/10"
+          onClick={handleSuggest}
+          disabled={loadingAI}
+        >
+          {loadingAI ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando perguntas...</>
+          ) : (
+            <><Sparkles className="w-4 h-4 mr-2 text-primary" /> Sugerir perguntas (IA)</>
+          )}
+        </Button>
+
         <Input
           placeholder="Sua pergunta..."
           value={question}
