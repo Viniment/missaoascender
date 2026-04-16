@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import RichEditor from './RichEditor';
 
 export default function AwakeningPage() {
@@ -14,6 +15,51 @@ export default function AwakeningPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  const handleSuggest = useCallback(async () => {
+    if (loadingAI) return;
+    setLoadingAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('awakening-questions', {
+        body: {
+          journal: (state.journal || []).slice(0, 3).map(j => ({
+            title: j.title,
+            text: j.text,
+            emotion: j.emotion,
+            intensity: j.intensity,
+            deepMode: j.deepMode,
+          })),
+          awakening: state.awakening,
+          rank: state.rank,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const questions: string[] = data?.questions || [];
+      if (questions.length === 0) throw new Error('Nenhuma pergunta gerada');
+
+      const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+      const html = [
+        `<p><strong>Reflexão guiada — ${dateStr}</strong></p>`,
+        `<p></p>`,
+        ...questions.flatMap((q, i) => [
+          `<p><strong>${i + 1}. ${q}</strong></p>`,
+          `<p><em>Responda aqui...</em></p>`,
+          `<p></p>`,
+        ]),
+      ].join('');
+
+      setQuestion('[IA] 5 perguntas de reflexão');
+      setAnswer(html);
+      toast.success('Perguntas geradas! Responda cada uma abaixo.');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || 'Erro ao gerar perguntas.');
+    } finally {
+      setLoadingAI(false);
+    }
+  }, [loadingAI, state.journal, state.awakening, state.rank]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
@@ -43,6 +89,19 @@ export default function AwakeningPage() {
 
       {/* New reflection block */}
       <div className="rpg-panel space-y-4">
+        <Button
+          variant="outline"
+          className="w-full border-primary/40 hover:bg-primary/10"
+          onClick={handleSuggest}
+          disabled={loadingAI}
+        >
+          {loadingAI ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando perguntas...</>
+          ) : (
+            <><Sparkles className="w-4 h-4 mr-2 text-primary" /> Sugerir perguntas (IA)</>
+          )}
+        </Button>
+
         <Input
           placeholder="Sua pergunta..."
           value={question}
