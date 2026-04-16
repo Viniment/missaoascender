@@ -95,14 +95,16 @@ export default function UrgeSurfingPanel() {
   const [currentGuide, setCurrentGuide] = useState('');
   const [currentMonsterSpeech, setCurrentMonsterSpeech] = useState('');
   const [breathingPhase, setBreathingPhase] = useState(0);
-  const [breathingProgress, setBreathingProgress] = useState(0);
+  const breathingSizeRef = useRef(20);
+  const [breathingSize, setBreathingSize] = useState(20);
 
   // Monster intensity: 1 at start, 0 at end
   const progress = duration > 0 ? (duration - secondsLeft) / duration : 0;
-  const monsterIntensity = Math.max(0, 1 - progress * 1.3); // fades faster near end
-  const waveIntensity = Math.sin(progress * Math.PI * 4) * 0.2 * (1 - progress); // oscillation
+  const monsterIntensity = Math.max(0, 1 - progress * 1.3);
+  const waveIntensity = Math.sin(progress * Math.PI * 4) * 0.2 * (1 - progress);
 
   // Guide messages based on progress
+  const progressBucket = Math.floor(progress * 6);
   useEffect(() => {
     if (phase !== 'active') return;
     const messages = progress < 0.33 ? GUIDE_MESSAGES.start
@@ -110,9 +112,11 @@ export default function UrgeSurfingPanel() {
       : GUIDE_MESSAGES.end;
     const idx = Math.floor(Math.random() * messages.length);
     setCurrentGuide(messages[idx]);
-  }, [phase, Math.floor(progress * 6)]); // update ~6 times during session
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, progressBucket]);
 
   // Monster speech
+  const monsterBucket = Math.floor(progress * 5);
   useEffect(() => {
     if (phase !== 'active') return;
     const speeches = MONSTER_SPEECH[impulseType];
@@ -122,21 +126,39 @@ export default function UrgeSurfingPanel() {
     } else {
       setCurrentMonsterSpeech('');
     }
-  }, [phase, impulseType, Math.floor(progress * 5)]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, impulseType, monsterBucket]);
 
-  // Breathing cycle
+  // Breathing cycle — continuous size, no jumps
   useEffect(() => {
     if (phase !== 'active') return;
+    const MIN = 20;
+    const MAX = 80;
     let phaseIdx = 0;
     let elapsed = 0;
+    let currentSize = MIN;
+    breathingSizeRef.current = MIN;
+    setBreathingSize(MIN);
     setBreathingPhase(0);
-    setBreathingProgress(0);
 
     const tick = setInterval(() => {
       elapsed += 0.1;
       const phaseDur = BREATHING_DURATIONS[phaseIdx];
-      const p = Math.min(1, elapsed / phaseDur);
-      setBreathingProgress(p);
+
+      // Calculate target size and interpolate
+      if (phaseIdx === 0) {
+        // Inspire: grow from current toward MAX
+        const t = Math.min(1, elapsed / phaseDur);
+        currentSize = MIN + t * (MAX - MIN);
+      } else if (phaseIdx === 2) {
+        // Expire: shrink from current toward MIN
+        const t = Math.min(1, elapsed / phaseDur);
+        currentSize = MAX - t * (MAX - MIN);
+      }
+      // phases 1 and 3 (hold): currentSize stays as-is
+
+      breathingSizeRef.current = currentSize;
+      setBreathingSize(currentSize);
 
       if (elapsed >= phaseDur) {
         elapsed = 0;
@@ -300,16 +322,8 @@ export default function UrgeSurfingPanel() {
   if (phase === 'active') {
     const MIN_SIZE = 20;
     const MAX_SIZE = 80;
-    const isInhale = breathingPhase === 0;
-    const isExhale = breathingPhase === 2;
-    const breathingSize = isInhale
-      ? MIN_SIZE + breathingProgress * (MAX_SIZE - MIN_SIZE)
-      : isExhale
-        ? MAX_SIZE - breathingProgress * (MAX_SIZE - MIN_SIZE)
-        : breathingPhase === 1
-          ? MAX_SIZE
-          : MIN_SIZE;
-    const breathingOpacity = 0.3 + 0.7 * ((breathingSize - MIN_SIZE) / (MAX_SIZE - MIN_SIZE));
+    const currentBreathingSize = breathingSizeRef.current;
+    const breathingOpacity = 0.3 + 0.7 * ((currentBreathingSize - MIN_SIZE) / (MAX_SIZE - MIN_SIZE));
 
     const monsterScale = 0.5 + (monsterIntensity + waveIntensity) * 0.5;
     const monsterOpacity = 0.3 + monsterIntensity * 0.7;
