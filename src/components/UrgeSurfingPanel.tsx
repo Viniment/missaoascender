@@ -227,7 +227,7 @@ export default function UrgeSurfingPanel() {
             </div>
             <div className="text-center p-3 rounded-lg bg-secondary/50">
               <div className="font-display text-lg text-primary">{stats.streak}</div>
-              <div className="text-xs text-muted-foreground">Sequência</div>
+              <div className="text-xs text-foreground">Sequência</div>
             </div>
             <div className="text-center p-3 rounded-lg bg-secondary/50">
               <div className="font-display text-lg text-primary">{stats.totalSessions}</div>
