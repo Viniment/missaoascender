@@ -1,50 +1,47 @@
 
 
-## Problema
-Cliques rápidos duplos em botões de "Criar" causam criação duplicada de itens (hábitos, missões, desafios, afirmações, etc.).
+## Feature: IA gera perguntas de reflexão no Despertar
 
-## Solução
-Adicionar proteção contra duplo-clique nos handlers de criação. Abordagem: usar um `ref` de "submitting" que bloqueia chamadas subsequentes até o handler terminar + fechar o form/dialog (que naturalmente reseta).
+### O que vai acontecer
+Botão "✨ Sugerir perguntas (IA)" na página Despertar. Ao clicar, a IA analisa as últimas entradas do diário + intenções do despertar do usuário e gera **5 perguntas profundas** personalizadas. As perguntas são inseridas automaticamente no editor com formatação rica (negrito) e espaços para resposta.
 
-Padrão a aplicar em cada handler de criação:
-```tsx
-const submittingRef = useRef(false);
-
-const handleAdd = () => {
-  if (submittingRef.current) return;
-  if (!name.trim()) return;
-  submittingRef.current = true;
-  try {
-    addHabit({ ... });
-    // reset form
-    setShowForm(false);
-    toast.success('...');
-  } finally {
-    setTimeout(() => { submittingRef.current = false; }, 500);
-  }
-};
+### Template gerado no editor
 ```
+**Reflexão guiada — [data]**
 
-Também desabilitar visualmente o botão enquanto submete (`disabled={submitting}`) usando um `useState` simples para refletir no UI.
+**1. [Pergunta gerada pela IA]**
+_Responda aqui..._
 
-## Arquivos a editar
-Aplicar o mesmo padrão de guard nos handlers de criação/edição em:
+**2. [Pergunta gerada pela IA]**
+_Responda aqui..._
 
-1. **`src/components/HabitsPanel.tsx`** — `handleAdd`, `handleEditHabit`
-2. **`src/components/MissionsPanel.tsx`** — handler de criar/editar missão
-3. **`src/components/ChallengesPanel.tsx`** — handler de criar/editar desafio
-4. **`src/components/AffirmationsPanel.tsx`** — handler de criar afirmação
-5. **`src/components/VisualizarPanel.tsx`** — handler de criar visualização
-6. **`src/components/JournalPanel.tsx`** — handler de criar entrada
-7. **`src/components/RewardsShop.tsx`** — handler de criar recompensa (se houver)
-8. **`src/components/FailureProtocolSettings.tsx`** — handler de criar punição (se houver)
+... (até 5)
+```
+O campo "Sua pergunta" será preenchido com algo como `[IA] 5 perguntas de reflexão`.
 
-## Implementação
-Para cada componente:
-- Adicionar `const [submitting, setSubmitting] = useState(false);`
-- No início do handler: `if (submitting) return;` + `setSubmitting(true);`
-- Após criar e resetar form: `setTimeout(() => setSubmitting(false), 500);`
-- No botão: `disabled={submitting}` para feedback visual
+### Arquivos a criar/editar
 
-Isso garante que mesmo cliques rápidos em sequência só disparem uma criação. O `setTimeout` de 500ms cobre o tempo do form fechar/animar.
+**1. Criar `supabase/functions/awakening-questions/index.ts`** (nova edge function)
+- Recebe: últimas 3 entradas do diário, dados do despertar (`become`, `reject`, `pain`), rank do usuário
+- Chama Lovable AI Gateway (`google/gemini-3-flash-preview`) com tool calling para retornar JSON estruturado: `{ questions: string[] }` (5 itens)
+- System prompt: "Você é um mentor estilo Solo Leveling. Gere 5 perguntas profundas, confrontadoras e específicas baseadas no que o usuário escreveu. Não genéricas. Em PT-BR."
+- Trata 429/402 com mensagens claras
+- CORS habilitado, sem auth obrigatório (verify_jwt já é false por padrão)
+
+**2. Editar `src/components/AwakeningPage.tsx`**
+- Adicionar botão "✨ Sugerir perguntas (IA)" acima do Input de pergunta
+- Estado `loadingAI` para feedback visual (spinner + disabled)
+- Handler `handleSuggest`:
+  - Lê `state.journal` (últimas 3) e `state.awakening` do contexto
+  - Chama `supabase.functions.invoke('awakening-questions', { body: {...} })`
+  - Monta HTML formatado com `<p><strong>1. ...</strong></p><p><em>Responda aqui...</em></p>` para cada pergunta
+  - Seta `setQuestion('[IA] 5 perguntas de reflexão')` e `setAnswer(html)` — o `RichEditor` (Tiptap) renderiza a formatação automaticamente
+  - Toast de sucesso/erro
+- Proteção anti-duplo-clique já segue o padrão do projeto
+
+### Detalhes técnicos
+- O `RichEditor` é Tiptap — aceita HTML e mantém negrito/itálico
+- Usa o mesmo padrão da edge function `affirmations` existente (CORS, error handling, modelo)
+- Sem migração de DB necessária
+- LOVABLE_API_KEY já configurada (Lovable Cloud ativo)
 
