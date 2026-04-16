@@ -37,7 +37,24 @@ export function getRankStyle(rank: string) {
 // Helper for completed missions count
 const completedMissions = (s: PlayerState) => s.missions.filter(m => m.status === 'Concluída').length;
 const hardMissions = (s: PlayerState) => s.missions.filter(m => m.status === 'Concluída' && m.difficulty === 'Difícil').length;
-const maxHabitDone = (s: PlayerState) => Math.max(0, ...s.habits.map(h => Object.values(h.history).filter(v => v === 'done').length));
+const maxHabitStreak = (s: PlayerState) => {
+  return Math.max(0, ...s.habits.map(h => {
+    const dates = Object.entries(h.history)
+      .filter(([_, v]) => v === 'done')
+      .map(([d]) => d)
+      .sort();
+    if (dates.length === 0) return 0;
+    let max = 1, current = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + 'T12:00:00');
+      const curr = new Date(dates[i] + 'T12:00:00');
+      const diff = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+      if (diff === 1) { current++; max = Math.max(max, current); }
+      else { current = 1; }
+    }
+    return max;
+  }));
+};
 const protocolsDone = (s: PlayerState) => s.failureProtocols.filter(fp => fp.status === 'Concluído').length;
 const RANKS_ORDER = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'];
 const rankIdx = (r: string) => RANKS_ORDER.indexOf(r);
