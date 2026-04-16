@@ -1,78 +1,88 @@
 
-Objetivo: corrigir a legibilidade que ficou quebrada após a remoção do tema, restaurar um padrão visual consistente no Diário/Despertar/Configurações e melhorar o fluxo de troca de foto.
+# Plano: Correções de legibilidade + Conquistas de Hábitos + Aba "Afirmações Inteligentes"
 
-1. Restaurar contraste global dos textos e superfícies
-- Revisar `src/index.css` para reforçar contraste base de:
-  - texto principal
-  - texto secundário
-  - placeholders
-  - conteúdo do editor rico (`.ProseMirror`)
-  - conteúdo renderizado (`.prose`, especialmente no Diário e Despertar)
-- Ajustar cores que hoje estão fracas demais em dark mode, sem voltar com o tema removido.
-- Garantir que títulos, labels, selects, textareas e conteúdos HTML salvos usem cores consistentes com o tema atual.
+## Resumo
+4 frentes: (1) corrigir legibilidade no modal de edição do Diário e ícones, (2) adicionar conquistas para dias concluídos em hábitos, (3) criar a aba "Afirmações Inteligentes" com IA.
 
-2. Corrigir leitura do Diário
-- Melhorar o bloco de leitura das entradas em `src/components/JournalPanel.tsx`.
-- Fazer os títulos terem mais destaque visual e melhor hierarquia.
-- Aplicar a interação que você pediu: o item da lista pode expandir para mostrar o conteúdo, num padrão parecido com Despertar, para ler o que foi escrito sem depender só do modal.
-- Manter modal/drawer apenas como complemento, se ainda fizer sentido.
-- Reforçar contraste do conteúdo salvo do editor, porque hoje a leitura do HTML renderizado está fraca.
+---
 
-3. Padronizar editor rico do Diário e Despertar
-- Revisar `src/components/RichEditor.tsx`.
-- Melhorar contraste da área de digitação, toolbar, placeholder, selects internos e texto digitado.
-- Deixar o editor com aparência mais próxima de “editor legível” no estilo Notion/Word, mas mantendo a identidade visual do app.
-- Garantir consistência entre:
-  - Diário
-  - Despertar
-  - formulários de missão/hábito que usam o mesmo editor
+## 1. Corrigir legibilidade no Diário
 
-4. Corrigir títulos e textos da seleção de temas
-- Revisar `src/components/ThemeSelector.tsx` e o sistema em `src/hooks/useTheme.ts`.
-- Aumentar contraste dos nomes e descrições dos temas.
-- Ajustar tamanho/peso/cor dos textos menores, que hoje estão difíceis de ler.
-- Validar que todos os temas restantes preservam legibilidade mínima para textos principais e secundários.
+**Problema:** O título "Editar Entrada" no Dialog/Drawer está quase invisível. Os ícones de editar/excluir/expandir não têm contraste suficiente.
 
-5. Melhorar o fluxo de troca de foto em Configurações
-- Revisar `src/pages/Settings.tsx`.
-- Adicionar um botão explícito de “Trocar foto” além do clique na imagem.
-- Tornar a área mais visual, com estados claros:
-  - padrão
-  - enviando
-  - sucesso
-  - erro
-- Mostrar feedback visível durante upload e após conclusão.
-- Em sucesso: indicar claramente que a foto foi alterada.
-- Em erro: exibir alerta claro e manter o usuário orientado.
+**Solução:**
+- `src/components/ui/dialog.tsx` — adicionar `text-foreground` na classe do `DialogTitle` (linha 70)
+- `src/components/ui/drawer.tsx` — mesmo ajuste no `DrawerTitle`
+- `src/components/JournalPanel.tsx`:
+  - Adicionar botão "Fechar" visível no topo do EditContent (um `<Button variant="ghost" size="icon">` com ícone X)
+  - Ícones de Editar: trocar de `variant="ghost"` para classe com `text-foreground/70 hover:text-primary` (mais visível)
+  - Ícone de Excluir: manter `text-destructive` mas com opacidade maior
+  - Chevron: trocar `text-foreground/50` para `text-foreground/70`
 
-6. Revisão de legibilidade geral da interface
-- Fazer uma passada final nos textos que hoje dependem de `text-muted-foreground` ou variantes pequenas demais.
-- Priorizar:
-  - cabeçalhos
-  - subtítulos
-  - labels
-  - textos auxiliares em formulários
-  - títulos de cards/painéis
-- Ajustar onde houver contraste insuficiente sem “lavar” o visual neon do app.
+## 2. Conquistas de dias concluídos em Hábitos
 
-Arquivos que devem ser alterados
-- `src/index.css`
-- `src/components/JournalPanel.tsx`
-- `src/components/RichEditor.tsx`
-- `src/components/AwakeningPage.tsx` (se necessário para alinhar leitura/expansão visual)
-- `src/components/ThemeSelector.tsx`
-- `src/hooks/useTheme.ts`
-- `src/pages/Settings.tsx`
+**Problema:** Não existem conquistas que parabenizem o usuário por completar 5, 10, 15, 20, 25, 30+ dias em hábitos.
 
-Resultado esperado
-- Diário volta a ficar confortável de ler
-- título e conteúdo ganham destaque novamente
-- editor rico fica claro e contrastante
-- nomes dos temas ficam legíveis
-- troca de foto fica óbvia, visual e com feedback completo
-- o app recupera a sensação visual anterior sem reintroduzir o tema removido
+**Solução:**
+- `src/lib/achievements.ts` — Já existem conquistas de `habit-done-10`, `habit-done-30`, `habit-done-60`, `habit-done-100`, `habit-done-200`. Faltam os marcos 5, 15, 20, 25. Adicionar:
+  - `habit-done-5` (5 dias, Rank E)
+  - `habit-done-15` (15 dias, Rank D)
+  - `habit-done-20` (20 dias, Rank C)
+  - `habit-done-25` (25 dias, Rank C)
+- Usar a mesma função `maxHabitDone` que já existe
 
-Detalhes técnicos
-- O problema não parece ser um único bug isolado, e sim uma combinação de contraste fraco + uso excessivo de texto “muted” + renderização de conteúdo rico sem reforço visual suficiente.
-- O Diário hoje lista títulos em cards simples e lê o conteúdo em modal/drawer; vou adaptar isso para uma leitura expandível mais direta.
-- O `RichEditor` usa Tiptap com classes `prose`/`ProseMirror`; a correção principal passa por CSS e pela casca visual do componente.
+## 3. Aba "Afirmações Inteligentes"
+
+Nova aba completa usando Lovable AI (via edge function) para gerar afirmações personalizadas.
+
+### Edge Function: `supabase/functions/affirmations/index.ts`
+- Recebe: dados do Despertar, última entrada do Diário, emoção, hábitos recentes, modo (despertar/noturna/fraqueza)
+- Usa Lovable AI (`google/gemini-3-flash-preview`) com system prompt especializado que:
+  - Analisa estado emocional
+  - Detecta padrões de autossabotagem
+  - Gera afirmações diretas, não genéricas
+  - Adapta tom: acolhimento (início), equilíbrio (meio), confronto (avançado)
+- Retorna: afirmação + tipo (despertar/noturna/fraqueza)
+
+### Componente: `src/components/AffirmationsPanel.tsx`
+- **Seções:**
+  - Afirmação do Despertar (matinal, baseada no awakening)
+  - Afirmação Noturna (reflexiva, baseada no diário do dia)
+  - Botão "Momento de Fraqueza" — modo especial com UI focada, sem distrações, fundo escuro, afirmação em destaque
+- **Imersão:**
+  - Modo tela cheia (botão para expandir)
+  - Texto aparecendo palavra por palavra com animação (framer-motion)
+- **Memória:**
+  - Afirmações favoritas (salvas no state do jogador)
+  - Histórico de afirmações geradas
+- **"Momento de Fraqueza":**
+  - Interface muda: fundo mais escuro, tipografia maior, sem navegação
+  - Afirmação de confronto direto
+  - Ativado manualmente ou detectado por emoção intensa no diário
+
+### State: `src/lib/gameStore.ts`
+- Adicionar ao `PlayerState`:
+  - `affirmations: { id, text, type, date, favorited }[]`
+  - `affirmationHistory: string[]` (para evitar repetições)
+- Adicionar actions: `addAffirmation`, `toggleFavoriteAffirmation`
+
+### Integração: `src/pages/Index.tsx`
+- Adicionar tab `{ id: 'affirmations', label: 'Afirmações', icon: Flame }` (ou similar)
+- Importar e renderizar `AffirmationsPanel`
+
+### Arquivos envolvidos
+- `src/components/ui/dialog.tsx` — text-foreground no título
+- `src/components/ui/drawer.tsx` — text-foreground no título
+- `src/components/JournalPanel.tsx` — botão fechar + contraste ícones
+- `src/lib/achievements.ts` — 4 novas conquistas de hábito
+- `supabase/functions/affirmations/index.ts` — nova edge function
+- `src/components/AffirmationsPanel.tsx` — novo componente
+- `src/lib/gameStore.ts` — novo state + actions para afirmações
+- `src/pages/Index.tsx` — nova aba
+
+### Detalhes técnicos
+- A edge function usa `LOVABLE_API_KEY` (já configurado) para chamar o Lovable AI Gateway
+- O prompt do sistema será em português, com instruções para nunca gerar afirmações genéricas
+- O componente envia contexto do usuário (awakening, última entrada do diário, emoção, streak) para a edge function
+- Sem streaming neste caso — resposta curta (1-2 frases), invoke simples
+- Animação palavra-por-palavra usa framer-motion com stagger
