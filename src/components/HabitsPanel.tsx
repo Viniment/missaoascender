@@ -44,6 +44,8 @@ export default function HabitsPanel() {
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
   const [editVideoUrl, setEditVideoUrl] = useState('');
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const openEditHabit = (h: typeof state.habits[number]) => {
     setEditDialog(h);
