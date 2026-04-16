@@ -173,9 +173,16 @@ export default function HabitsPanel() {
       </AnimatePresence>
 
       <div className="space-y-2">
-        {state.habits.map(h => (
-          <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} onEdit={() => openEditHabit(h)} />
-        ))}
+        {[...state.habits]
+          .sort((a, b) => {
+            const aDone = !!a.history[today];
+            const bDone = !!b.history[today];
+            if (aDone === bDone) return 0;
+            return aDone ? 1 : -1;
+          })
+          .map(h => (
+            <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} onEdit={() => openEditHabit(h)} />
+          ))}
         {state.habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum hábito criado.</p>
         )}
