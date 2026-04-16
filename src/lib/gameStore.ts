@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { checkNewAchievements, type AchievementDef } from './achievements';
 import { getTodayBrasilia } from './utils';
 // Types
