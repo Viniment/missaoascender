@@ -879,7 +879,99 @@ export function useGameStore() {
     });
   }, []);
 
-  // Achievement checking
+  // ===== Ritual Guide helpers =====
+  const addRitual = useCallback((ritual: Omit<Ritual, 'id' | 'createdAt'>) => {
+    setState(prev => ({
+      ...prev,
+      rituals: [...(prev.rituals || []), { ...ritual, id: crypto.randomUUID(), createdAt: new Date().toISOString() }],
+    }));
+  }, []);
+
+  const updateRitual = useCallback((id: string, updates: Partial<Ritual>) => {
+    setState(prev => ({
+      ...prev,
+      rituals: (prev.rituals || []).map(r => r.id === id ? { ...r, ...updates } : r),
+    }));
+  }, []);
+
+  const removeRitual = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      rituals: (prev.rituals || []).filter(r => r.id !== id),
+    }));
+  }, []);
+
+  const duplicateRitual = useCallback((id: string) => {
+    setState(prev => {
+      const orig = (prev.rituals || []).find(r => r.id === id);
+      if (!orig) return prev;
+      const copy: Ritual = {
+        ...orig,
+        id: crypto.randomUUID(),
+        name: `${orig.name} (cópia)`,
+        createdAt: new Date().toISOString(),
+        steps: orig.steps.map(s => ({ ...s, id: crypto.randomUUID() })),
+      };
+      return { ...prev, rituals: [...(prev.rituals || []), copy] };
+    });
+  }, []);
+
+  const addBarrier = useCallback((barrier: Omit<Barrier, 'id'>) => {
+    setState(prev => ({
+      ...prev,
+      ritualBarriers: [...(prev.ritualBarriers || []), { ...barrier, id: crypto.randomUUID() }],
+    }));
+  }, []);
+
+  const updateBarrier = useCallback((id: string, updates: Partial<Barrier>) => {
+    setState(prev => ({
+      ...prev,
+      ritualBarriers: (prev.ritualBarriers || []).map(b => b.id === id ? { ...b, ...updates } : b),
+    }));
+  }, []);
+
+  const removeBarrier = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      ritualBarriers: (prev.ritualBarriers || []).filter(b => b.id !== id),
+    }));
+  }, []);
+
+  const logRitualSession = useCallback((ritual: Ritual, durationSec: number, alsoJournal: boolean) => {
+    setState(prev => {
+      const session: RitualSession = {
+        id: crypto.randomUUID(),
+        ritualId: ritual.id,
+        ritualName: ritual.name,
+        completedAt: new Date().toISOString(),
+        durationSec,
+      };
+      const stepBonus = ritual.steps.filter(s => s.enabled).length * 10;
+      const xpGain = 30 + stepBonus;
+      const prog = processLevelUp(prev.xp + xpGain, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      const newJournal = alsoJournal ? [
+        {
+          id: crypto.randomUUID(),
+          title: `Ritual: ${ritual.name}`,
+          date: new Date().toISOString(),
+          text: `Ritual "${ritual.name}" concluído.${ritual.objective ? ` Objetivo: ${ritual.objective}.` : ''} Duração: ${Math.round(durationSec / 60)}min.`,
+        },
+        ...prev.journal,
+      ] : prev.journal;
+      return {
+        ...prev,
+        ...prog,
+        journal: newJournal,
+        ritualSessions: [session, ...(prev.ritualSessions || [])].slice(0, 200),
+        log: [
+          { date: new Date().toISOString(), action: `Ritual concluído: ${ritual.name}`, xp: xpGain, gold: 0 },
+          ...prev.log,
+        ].slice(0, 100),
+      };
+    });
+  }, []);
+
+
   const pendingAchievementRef = useRef<AchievementDef | null>(null);
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
 
