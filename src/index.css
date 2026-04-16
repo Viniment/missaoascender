@@ -74,27 +74,28 @@
   }
 
   .glow-text-purple {
-    text-shadow: 0 0 10px hsl(var(--glow-color) / 0.5),
-                 0 0 30px hsl(var(--glow-color) / 0.2);
+    text-shadow: 0 0 10px hsl(var(--glow-color) / 0.7),
+                 0 0 30px hsl(var(--glow-color) / 0.4);
   }
 
   .glow-purple-strong {
-    box-shadow: 0 0 15px hsl(var(--glow-color) / 0.3),
-                0 0 40px hsl(var(--glow-color) / 0.1);
+    box-shadow: 0 0 15px hsl(var(--glow-color) / 0.5),
+                0 0 40px hsl(var(--glow-color) / 0.25);
   }
 
   .glow-purple {
-    box-shadow: 0 0 10px hsl(var(--glow-color) / 0.2),
-                0 0 25px hsl(var(--glow-color) / 0.1);
+    box-shadow: 0 0 10px hsl(var(--glow-color) / 0.35),
+                0 0 25px hsl(var(--glow-color) / 0.2);
   }
 
   .glow-border {
-    box-shadow: 0 0 8px hsl(var(--glow-color) / 0.3);
+    box-shadow: 0 0 8px hsl(var(--glow-color) / 0.5);
   }
 
   .xp-bar-fill {
     background: linear-gradient(90deg, hsl(var(--glow-color)), hsl(var(--glow-secondary)));
-    box-shadow: 0 0 10px hsl(var(--glow-color) / 0.5);
+    box-shadow: 0 0 10px hsl(var(--glow-color) / 0.7),
+                0 0 25px hsl(var(--glow-color) / 0.3);
   }
 
   .card-gradient {
@@ -102,9 +103,9 @@
   }
 
   .neon-glow {
-    box-shadow: 0 0 5px hsl(var(--glow-color) / 0.3),
-                0 0 20px hsl(var(--glow-color) / 0.15),
-                0 0 40px hsl(var(--glow-color) / 0.05);
+    box-shadow: 0 0 8px hsl(var(--glow-color) / 0.5),
+                0 0 20px hsl(var(--glow-color) / 0.3),
+                0 0 45px hsl(var(--glow-color) / 0.15);
   }
 }
 
