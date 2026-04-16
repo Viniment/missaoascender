@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Moon, Send, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, Moon, Send, Pencil, Trash2, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -73,6 +73,12 @@ export default function JournalPanel() {
 
   const EditContent = editEntry ? (
     <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">Editar Entrada</span>
+        <Button size="icon" variant="ghost" onClick={() => setEditEntry(null)} className="h-7 w-7 text-foreground/70 hover:text-foreground">
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
       <Input placeholder="Título *" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-secondary/50" />
       <RichEditor content={editText} onChange={setEditText} placeholder="Escreva..." />
       <div>
@@ -163,12 +169,12 @@ export default function JournalPanel() {
                     <span className="text-xs text-foreground/50">{new Date(entry.date).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'long' })}</span>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openEdit(entry.id); }}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-foreground/70 hover:text-primary" onClick={(e) => { e.stopPropagation(); openEdit(entry.id); }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={(e) => e.stopPropagation()}>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-red-400 hover:text-red-300" onClick={(e) => e.stopPropagation()}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </AlertDialogTrigger>
@@ -185,7 +191,7 @@ export default function JournalPanel() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-foreground/50" /> : <ChevronDown className="w-4 h-4 text-foreground/50" />}
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-foreground/70" /> : <ChevronDown className="w-4 h-4 text-foreground/70" />}
                   </div>
                 </div>
 
