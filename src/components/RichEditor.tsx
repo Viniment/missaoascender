@@ -39,7 +39,7 @@ export default function RichEditor({ content, onChange, placeholder }: RichEdito
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Highlight.configure({ multicolor: false }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-neon-blue underline cursor-pointer' } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-primary underline cursor-pointer' } }),
       Placeholder.configure({ placeholder: placeholder || 'Escreva aqui...' }),
       TaskList,
       TaskItem.configure({ nested: true }),
@@ -50,11 +50,10 @@ export default function RichEditor({ content, onChange, placeholder }: RichEdito
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-invert prose-sm max-w-none focus:outline-none min-h-[200px] px-4 py-3',
+        class: 'prose prose-invert prose-sm max-w-none focus:outline-none min-h-[200px] px-4 py-3 text-foreground',
         style: `font-size: ${fontSize}px`,
       },
       handleKeyDown: (_view, event) => {
-        // Simple emoji shortcode: type text normally, we handle on blur/save
         return false;
       },
     },
@@ -94,9 +93,9 @@ export default function RichEditor({ content, onChange, placeholder }: RichEdito
   if (!editor) return null;
 
   return (
-    <div className="rounded-lg border border-border overflow-hidden bg-secondary/30">
+    <div className="rounded-lg border border-border overflow-hidden bg-card">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-0.5 p-1.5 border-b border-border bg-card/50">
+      <div className="flex flex-wrap gap-0.5 p-1.5 border-b border-border bg-secondary/50">
         {/* Text formatting */}
         <ToolBtn active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} icon={<Bold className="w-3.5 h-3.5" />} title="Negrito" />
         <ToolBtn active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} icon={<Italic className="w-3.5 h-3.5" />} title="Itálico" />
@@ -135,11 +134,11 @@ export default function RichEditor({ content, onChange, placeholder }: RichEdito
 
         {/* Font size */}
         <div className="flex items-center gap-1 px-1">
-          <Type className="w-3 h-3 text-muted-foreground" />
+          <Type className="w-3 h-3 text-foreground/60" />
           <select
             value={fontSize}
             onChange={e => setFontSize(e.target.value)}
-            className="bg-secondary text-foreground text-xs rounded px-1 py-0.5 border border-border"
+            className="bg-card text-foreground text-xs rounded px-1 py-0.5 border border-border"
           >
             {['12', '14', '16', '18', '20', '24', '28'].map(s => (
               <option key={s} value={s}>{s}px</option>
@@ -182,7 +181,7 @@ function ToolBtn({ active, onClick, icon, title }: { active: boolean; onClick: (
       className={`p-1.5 rounded transition-colors ${
         active
           ? 'bg-primary/20 text-primary'
-          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+          : 'text-foreground/60 hover:text-foreground hover:bg-secondary'
       }`}
     >
       {icon}

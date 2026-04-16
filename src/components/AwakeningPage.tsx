@@ -29,7 +29,7 @@ export default function AwakeningPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-2">
         <Eye className="w-8 h-8 text-primary mx-auto animate-pulse-glow" />
         <h2 className="font-display text-xl text-primary glow-text-purple">DESPERTAR</h2>
-        <p className="text-xs text-muted-foreground">Seu espaço. Suas perguntas. Suas respostas.</p>
+        <p className="text-xs text-foreground/60">Seu espaço. Suas perguntas. Suas respostas.</p>
       </motion.div>
 
       {/* New reflection block */}
@@ -55,7 +55,7 @@ export default function AwakeningPage() {
       {/* History */}
       {state.reflections && state.reflections.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider font-display">
+          <h3 className="text-xs text-foreground/50 uppercase tracking-wider font-display">
             📚 Registros ({state.reflections.length})
           </h3>
 
@@ -74,7 +74,7 @@ export default function AwakeningPage() {
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground">{entry.question}</p>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-foreground/50">
                       {new Date(entry.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                   </div>
@@ -82,12 +82,12 @@ export default function AwakeningPage() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      className="h-7 w-7 text-foreground/50 hover:text-destructive"
                       onClick={e => { e.stopPropagation(); deleteReflection(entry.id); toast.info('Reflexão removida.'); }}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-foreground/50" /> : <ChevronDown className="w-4 h-4 text-foreground/50" />}
                   </div>
                 </div>
 
@@ -100,7 +100,7 @@ export default function AwakeningPage() {
                       className="mt-3 pt-3 border-t border-border"
                     >
                       <div
-                        className="prose prose-invert prose-sm max-w-none text-foreground/90"
+                        className="prose prose-invert prose-sm max-w-none text-foreground"
                         dangerouslySetInnerHTML={{ __html: entry.answerHtml }}
                       />
                     </motion.div>
