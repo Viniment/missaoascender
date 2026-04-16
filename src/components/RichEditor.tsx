@@ -67,6 +67,14 @@ export default function RichEditor({ content, onChange, placeholder }: RichEdito
     }
   }, [fontSize, editor]);
 
+  // Sync external content changes (e.g. AI-generated content) into editor
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '', { emitUpdate: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, editor]);
+
   // Close emoji picker on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
