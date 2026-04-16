@@ -13,10 +13,11 @@ import AffirmationsPanel from '@/components/AffirmationsPanel';
 
 import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
+import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers, Flame } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers, Flame, Waves } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
