@@ -68,7 +68,7 @@ const GUIDE_MESSAGES = {
   ],
 };
 
-const BREATHING_PHASES = ['Inspire…', 'Segure…', 'Expire…'];
+const BREATHING_PHASES = ['Inspire…', 'Segure…', 'Expire pela boca…'];
 const BREATHING_DURATIONS = [4, 7, 8]; // técnica 4-7-8
 
 interface UrgeSurfingStats {
