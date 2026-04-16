@@ -298,7 +298,18 @@ export default function UrgeSurfingPanel() {
 
   // ACTIVE VIEW
   if (phase === 'active') {
-    const breathingRadius = 30 + breathingProgress * 20;
+    // Breathing ball: grows on inhale, stays on hold, shrinks on exhale
+    const isInhale = breathingPhase === 0;
+    const isExhale = breathingPhase === 2;
+    const isHold = breathingPhase === 1 || breathingPhase === 3;
+    const breathingSize = isInhale
+      ? 40 + breathingProgress * 40
+      : isExhale
+        ? 80 - breathingProgress * 40
+        : isHold && breathingPhase === 1
+          ? 80
+          : 40;
+
     const monsterScale = 0.5 + (monsterIntensity + waveIntensity) * 0.5;
     const monsterOpacity = 0.3 + monsterIntensity * 0.7;
 
@@ -325,20 +336,6 @@ export default function UrgeSurfingPanel() {
 
         {/* Monster visualization */}
         <div className="relative flex items-center justify-center h-48">
-          {/* Breathing circle */}
-          <motion.div
-            animate={{
-              width: breathingRadius * 2,
-              height: breathingRadius * 2,
-              opacity: 0.15 + breathingProgress * 0.15,
-            }}
-            transition={{ duration: 0.3 }}
-            className="absolute rounded-full border border-primary/30"
-            style={{
-              background: `radial-gradient(circle, hsl(var(--primary) / 0.1), transparent)`,
-            }}
-          />
-
           {/* Monster */}
           <motion.div
             animate={{
@@ -364,13 +361,25 @@ export default function UrgeSurfingPanel() {
           </div>
         </div>
 
-        {/* Breathing guide */}
-        <div className="text-center">
+        {/* Breathing ball */}
+        <div className="flex flex-col items-center gap-2">
+          <motion.div
+            animate={{
+              width: breathingSize,
+              height: breathingSize,
+            }}
+            transition={{ duration: isHold ? 0.2 : BREATHING_DURATIONS[breathingPhase] * 0.8, ease: 'easeInOut' }}
+            className="rounded-full"
+            style={{
+              background: `radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.2))`,
+              boxShadow: `0 0 ${12 + breathingSize * 0.2}px hsl(var(--primary) / 0.4), inset 0 0 ${breathingSize * 0.3}px hsl(var(--primary) / 0.15)`,
+            }}
+          />
           <motion.div
             key={breathingPhase}
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
+            className="flex items-center justify-center gap-2 text-sm text-foreground font-display"
           >
             <Wind className="w-3.5 h-3.5" />
             {BREATHING_PHASES[breathingPhase]}
@@ -385,23 +394,24 @@ export default function UrgeSurfingPanel() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.6 }}
-            className="text-center text-sm text-foreground/90 font-body italic"
+            className="text-center text-sm text-foreground font-body italic"
           >
             {currentGuide}
           </motion.p>
         </AnimatePresence>
 
-        {/* Monster speech (fades with time) */}
+        {/* Monster speech — marked as the monster talking */}
         <AnimatePresence>
           {currentMonsterSpeech && (
             <motion.div
               key={currentMonsterSpeech}
               initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: monsterIntensity * 0.8, scale: 1 }}
+              animate={{ opacity: monsterIntensity * 0.9, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center text-xs text-destructive/70 font-body"
+              className="flex items-center justify-center gap-2 text-center text-xs font-body px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 mx-auto max-w-xs"
             >
-              {currentMonsterSpeech}
+              <span className="text-base shrink-0">🐲</span>
+              <span className="text-destructive italic">{currentMonsterSpeech}</span>
             </motion.div>
           )}
         </AnimatePresence>
