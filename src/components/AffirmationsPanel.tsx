@@ -301,7 +301,7 @@ export default function AffirmationsPanel() {
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={() => saveEdit(aff.id)} disabled={!editText.trim()}>Salvar</Button>
-            <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditText(''); }}>Cancelar</Button>
+            <Button size="sm" variant="secondary" onClick={() => { setEditingId(null); setEditText(''); }}>Cancelar</Button>
           </div>
         </div>
       );
