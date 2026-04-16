@@ -176,36 +176,42 @@ export default function AffirmationsPanel() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black p-8"
+        className="fixed inset-0 z-[100] flex flex-col bg-black"
       >
-        <button
-          onClick={() => setSlideshowOpen(false)}
-          className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        <div className="absolute top-6 left-6 text-white/40 text-sm font-display">
-          {slideshowIndex + 1} / {slideshowItems.length}
-        </div>
-
-        <div className="max-w-3xl text-center px-4">
-          <motion.p
-            key={current.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="text-2xl md:text-4xl font-display leading-relaxed text-white"
-          >
-            "{current.text}"
-          </motion.p>
-          <span className="text-xs text-white/30 mt-4 block">
-            {current.type === 'despertar' ? '🌅' : current.type === 'noturna' ? '🌙' : current.type === 'fraqueza' ? '⚡' : '✍️'}{' '}
-            {new Date(current.date).toLocaleDateString('pt-BR')}
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-4 pt-4 shrink-0">
+          <span className="text-white/40 text-sm font-display">
+            {slideshowIndex + 1} / {slideshowItems.length}
           </span>
+          <button
+            onClick={() => setSlideshowOpen(false)}
+            className="text-white/50 hover:text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <div className="absolute bottom-10 flex items-center gap-6">
+        {/* Content - scrollable */}
+        <div className="flex-1 flex items-center justify-center overflow-y-auto px-4 py-6">
+          <div className="max-w-3xl text-center">
+            <motion.p
+              key={current.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="text-xl md:text-4xl font-display leading-relaxed text-white"
+            >
+              "{current.text}"
+            </motion.p>
+            <span className="text-xs text-white/30 mt-4 block">
+              {current.type === 'despertar' ? '🌅' : current.type === 'noturna' ? '🌙' : current.type === 'fraqueza' ? '⚡' : '✍️'}{' '}
+              {new Date(current.date).toLocaleDateString('pt-BR')}
+            </span>
+          </div>
+        </div>
+
+        {/* Bottom nav */}
+        <div className="flex items-center justify-center gap-6 pb-6 pt-2 shrink-0">
           <Button
             variant="ghost"
             size="icon"
