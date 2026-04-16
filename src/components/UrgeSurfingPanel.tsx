@@ -298,17 +298,18 @@ export default function UrgeSurfingPanel() {
 
   // ACTIVE VIEW
   if (phase === 'active') {
-    // Breathing ball: grows on inhale, stays on hold, shrinks on exhale
+    const MIN_SIZE = 20;
+    const MAX_SIZE = 80;
     const isInhale = breathingPhase === 0;
     const isExhale = breathingPhase === 2;
-    const isHold = breathingPhase === 1 || breathingPhase === 3;
     const breathingSize = isInhale
-      ? 40 + breathingProgress * 40
+      ? MIN_SIZE + breathingProgress * (MAX_SIZE - MIN_SIZE)
       : isExhale
-        ? 80 - breathingProgress * 40
-        : isHold && breathingPhase === 1
-          ? 80
-          : 40;
+        ? MAX_SIZE - breathingProgress * (MAX_SIZE - MIN_SIZE)
+        : breathingPhase === 1
+          ? MAX_SIZE
+          : MIN_SIZE;
+    const breathingOpacity = 0.3 + 0.7 * ((breathingSize - MIN_SIZE) / (MAX_SIZE - MIN_SIZE));
 
     const monsterScale = 0.5 + (monsterIntensity + waveIntensity) * 0.5;
     const monsterOpacity = 0.3 + monsterIntensity * 0.7;
