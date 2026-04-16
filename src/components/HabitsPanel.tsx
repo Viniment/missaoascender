@@ -173,9 +173,16 @@ export default function HabitsPanel() {
       </AnimatePresence>
 
       <div className="space-y-2">
-        {state.habits.map(h => (
-          <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} onEdit={() => openEditHabit(h)} />
-        ))}
+        {[...state.habits]
+          .sort((a, b) => {
+            const aDone = !!a.history[today];
+            const bDone = !!b.history[today];
+            if (aDone === bDone) return 0;
+            return aDone ? 1 : -1;
+          })
+          .map(h => (
+            <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} onEdit={() => openEditHabit(h)} />
+          ))}
         {state.habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum hábito criado.</p>
         )}
@@ -258,7 +265,12 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
   const diffColor = diffColors[h.difficulty] || '';
 
   return (
-    <motion.div layout className="rpg-panel glow-purple space-y-2">
+    <motion.div layout className={`rpg-panel space-y-2 transition-all ${todayStatus ? `opacity-60 ${todayStatus === 'done' ? 'border-success/40' : 'border-destructive/40'}` : 'glow-purple'}`}>
+      {todayStatus && (
+        <div className={`text-[10px] font-display uppercase tracking-wider ${todayStatus === 'done' ? 'text-success' : 'text-destructive'}`}>
+          {todayStatus === 'done' ? '✓ Concluído hoje' : '✗ Falhado hoje'}
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
         <div className="flex-1 min-w-0">
