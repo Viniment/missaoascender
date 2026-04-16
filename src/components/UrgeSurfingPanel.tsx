@@ -467,7 +467,7 @@ export default function UrgeSurfingPanel() {
         className="rpg-panel space-y-6 text-center border-border"
       >
         <div className="text-5xl opacity-50">🐲</div>
-        <h3 className="font-display text-sm text-muted-foreground">
+        <h3 className="font-display text-sm text-foreground">
           O impulso ainda não passou.
         </h3>
         <p className="text-sm text-foreground font-body">
