@@ -2,11 +2,12 @@ import { useState, useCallback, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Sun, Moon, Zap, Heart, Maximize2, Minimize2, RefreshCw, Loader2 } from 'lucide-react';
+import { Flame, Sun, Moon, Zap, Heart, Maximize2, Minimize2, RefreshCw, Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
-type AffirmationMode = 'despertar' | 'noturna' | 'fraqueza';
+type AffirmationMode = 'despertar' | 'noturna' | 'fraqueza' | 'custom';
 
 interface SavedAffirmation {
   id: string;
@@ -26,6 +27,16 @@ export default function AffirmationsPanel() {
   const [fullscreen, setFullscreen] = useState(false);
   const [weaknessMode, setWeaknessMode] = useState(false);
 
+  // CRUD states
+  const [showCreate, setShowCreate] = useState(false);
+  const [createText, setCreateText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+
+  // Slideshow state
+  const [slideshowOpen, setSlideshowOpen] = useState(false);
+  const [slideshowIndex, setSlideshowIndex] = useState(0);
+
   const affirmations: SavedAffirmation[] = (state as any).affirmations || [];
   const affirmationHistory: string[] = useMemo(() => (state as any).affirmationHistory || [], [(state as any).affirmationHistory?.length]);
   const favorites = affirmations.filter(a => a.favorited);
@@ -34,6 +45,7 @@ export default function AffirmationsPanel() {
   const lastJournal = state.journal.length > 0 ? state.journal[0] : null;
 
   const generateAffirmation = useCallback(async (mode: AffirmationMode) => {
+    if (mode === 'custom') return;
     setLoading(true);
     setCurrentMode(mode);
     setCurrentText('');
@@ -59,15 +71,11 @@ export default function AffirmationsPanel() {
       });
 
       if (error) throw error;
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
+      if (data?.error) { toast.error(data.error); return; }
 
       const text = data.affirmation || '';
       setCurrentText(text);
 
-      // Save to state
       const newAffirmation: SavedAffirmation = {
         id: crypto.randomUUID(),
         text,
@@ -82,7 +90,6 @@ export default function AffirmationsPanel() {
         affirmationHistory: [text, ...(prev.affirmationHistory || [])].slice(0, 20),
       }));
 
-      // Word-by-word animation
       const words = text.split(/\s+/);
       setAnimating(true);
       setDisplayedWords([]);
@@ -108,18 +115,121 @@ export default function AffirmationsPanel() {
     }));
   }, [setState]);
 
+  const deleteAffirmation = useCallback((id: string) => {
+    setState((prev: any) => ({
+      ...prev,
+      affirmations: (prev.affirmations || []).filter((a: SavedAffirmation) => a.id !== id),
+    }));
+    toast.success('Afirmação excluída');
+  }, [setState]);
+
+  const saveEdit = useCallback((id: string) => {
+    if (!editText.trim()) return;
+    setState((prev: any) => ({
+      ...prev,
+      affirmations: (prev.affirmations || []).map((a: SavedAffirmation) =>
+        a.id === id ? { ...a, text: editText.trim() } : a
+      ),
+    }));
+    setEditingId(null);
+    setEditText('');
+    toast.success('Afirmação editada');
+  }, [editText, setState]);
+
+  const createCustom = useCallback(() => {
+    if (!createText.trim()) return;
+    const newAff: SavedAffirmation = {
+      id: crypto.randomUUID(),
+      text: createText.trim(),
+      type: 'custom',
+      date: new Date().toISOString(),
+      favorited: true,
+    };
+    setState((prev: any) => ({
+      ...prev,
+      affirmations: [newAff, ...(prev.affirmations || [])].slice(0, 50),
+    }));
+    setCreateText('');
+    setShowCreate(false);
+    toast.success('Afirmação criada e favoritada!');
+  }, [createText, setState]);
+
   const enterWeaknessMode = useCallback(() => {
     setWeaknessMode(true);
     setFullscreen(true);
     generateAffirmation('fraqueza');
   }, [generateAffirmation]);
 
-  const exitWeaknessMode = useCallback(() => {
-    setWeaknessMode(false);
-    setFullscreen(false);
-  }, []);
+  // Slideshow
+  const slideshowItems = favorites;
+  const openSlideshow = () => {
+    if (slideshowItems.length === 0) return;
+    setSlideshowIndex(0);
+    setSlideshowOpen(true);
+  };
 
-  // Fullscreen overlay
+  // Slideshow fullscreen
+  if (slideshowOpen && slideshowItems.length > 0) {
+    const current = slideshowItems[slideshowIndex];
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black p-8"
+      >
+        <button
+          onClick={() => setSlideshowOpen(false)}
+          className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        <div className="absolute top-6 left-6 text-white/40 text-sm font-display">
+          {slideshowIndex + 1} / {slideshowItems.length}
+        </div>
+
+        <div className="max-w-3xl text-center px-4">
+          <motion.p
+            key={current.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="text-2xl md:text-4xl font-display leading-relaxed text-white"
+          >
+            "{current.text}"
+          </motion.p>
+          <span className="text-xs text-white/30 mt-4 block">
+            {current.type === 'despertar' ? '🌅' : current.type === 'noturna' ? '🌙' : current.type === 'fraqueza' ? '⚡' : '✍️'}{' '}
+            {new Date(current.date).toLocaleDateString('pt-BR')}
+          </span>
+        </div>
+
+        <div className="absolute bottom-10 flex items-center gap-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={slideshowIndex === 0}
+            onClick={() => setSlideshowIndex(i => i - 1)}
+            className="text-white/50 hover:text-white h-12 w-12"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={slideshowIndex === slideshowItems.length - 1}
+            onClick={() => setSlideshowIndex(i => i + 1)}
+            className="text-white/50 hover:text-white h-12 w-12"
+          >
+            <ChevronRight className="w-8 h-8" />
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Fullscreen single affirmation
   if (fullscreen) {
     return (
       <AnimatePresence>
@@ -128,9 +238,7 @@ export default function AffirmationsPanel() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className={`fixed inset-0 z-[100] flex flex-col items-center justify-center p-8 ${
-            weaknessMode
-              ? 'bg-black'
-              : 'bg-background/95 backdrop-blur-xl'
+            weaknessMode ? 'bg-black' : 'bg-background/95 backdrop-blur-xl'
           }`}
         >
           <button
@@ -142,30 +250,18 @@ export default function AffirmationsPanel() {
 
           <div className="max-w-2xl text-center space-y-8">
             {weaknessMode && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 justify-center"
-              >
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2 justify-center">
                 <Zap className="w-5 h-5 text-red-400" />
                 <span className="text-red-400 text-sm font-display uppercase tracking-widest">Momento de Fraqueza</span>
               </motion.div>
             )}
 
-            <div className={`text-2xl md:text-4xl font-display leading-relaxed ${
-              weaknessMode ? 'text-red-100' : 'text-foreground'
-            }`}>
+            <div className={`text-2xl md:text-4xl font-display leading-relaxed ${weaknessMode ? 'text-red-100' : 'text-foreground'}`}>
               {loading ? (
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
               ) : (
                 displayedWords.map((word, i) => (
-                  <motion.span
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="inline-block mr-2"
-                  >
+                  <motion.span key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }} className="inline-block mr-2">
                     {word}
                   </motion.span>
                 ))
@@ -173,27 +269,12 @@ export default function AffirmationsPanel() {
             </div>
 
             {!loading && !animating && currentText && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center justify-center gap-3"
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => generateAffirmation(currentMode)}
-                  className="text-foreground/50 hover:text-foreground"
-                >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex items-center justify-center gap-3">
+                <Button variant="ghost" size="sm" onClick={() => generateAffirmation(currentMode)} className="text-foreground/50 hover:text-foreground">
                   <RefreshCw className="w-4 h-4 mr-2" /> Nova
                 </Button>
                 {weaknessMode && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={exitWeaknessMode}
-                    className="text-foreground/50 hover:text-foreground"
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => { setWeaknessMode(false); setFullscreen(false); }} className="text-foreground/50 hover:text-foreground">
                     Sair do modo
                   </Button>
                 )}
@@ -205,11 +286,115 @@ export default function AffirmationsPanel() {
     );
   }
 
+  const renderAffirmationItem = (aff: SavedAffirmation, compact = false) => {
+    const isEditing = editingId === aff.id;
+    const typeIcon = aff.type === 'despertar' ? '🌅' : aff.type === 'noturna' ? '🌙' : aff.type === 'fraqueza' ? '⚡' : '✍️';
+
+    if (isEditing) {
+      return (
+        <div key={aff.id} className="rpg-panel space-y-2">
+          <Textarea
+            value={editText}
+            onChange={e => setEditText(e.target.value)}
+            className="bg-secondary border-border text-sm text-foreground"
+            rows={3}
+          />
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => saveEdit(aff.id)} disabled={!editText.trim()}>Salvar</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditText(''); }}>Cancelar</Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={aff.id} className="rpg-panel text-sm text-foreground/90">
+        <div className="flex items-start justify-between gap-2">
+          <p className={`flex-1 ${compact ? '' : 'italic'}`}>
+            {compact ? (
+              <><span className="mr-1">{typeIcon}</span>{aff.text.length > 80 ? aff.text.substring(0, 80) + '...' : aff.text}</>
+            ) : (
+              <>"{aff.text}"</>
+            )}
+          </p>
+          <div className="flex items-center gap-0.5 flex-shrink-0">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={`h-7 w-7 ${aff.favorited ? 'text-red-400' : 'text-foreground/30 hover:text-red-400'}`}
+              onClick={() => toggleFavorite(aff.id)}
+            >
+              <Heart className={`w-3.5 h-3.5 ${aff.favorited ? 'fill-red-400' : ''}`} />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-foreground/30 hover:text-primary"
+              onClick={() => { setEditingId(aff.id); setEditText(aff.text); }}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-foreground/30 hover:text-destructive"
+              onClick={() => deleteAffirmation(aff.id)}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+        {!compact && (
+          <span className="text-xs text-foreground/40 mt-1 block">
+            {typeIcon} {new Date(aff.date).toLocaleDateString('pt-BR')}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
-        <Flame className="w-5 h-5" /> AFIRMAÇÕES INTELIGENTES
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
+          <Flame className="w-5 h-5" /> AFIRMAÇÕES INTELIGENTES
+        </h2>
+        <div className="flex items-center gap-2">
+          {favorites.length > 0 && (
+            <Button size="sm" variant="outline" className="text-xs" onClick={openSlideshow}>
+              <Play className="w-3.5 h-3.5 mr-1" /> Slideshow
+            </Button>
+          )}
+          <Button size="sm" variant="outline" className="text-xs" onClick={() => setShowCreate(true)}>
+            <Plus className="w-3.5 h-3.5 mr-1" /> Criar
+          </Button>
+        </div>
+      </div>
+
+      {/* Create custom affirmation */}
+      {showCreate && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-display text-foreground">✍️ Criar Afirmação</h3>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-foreground/50" onClick={() => { setShowCreate(false); setCreateText(''); }}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <Textarea
+            placeholder="Escreva sua afirmação pessoal..."
+            value={createText}
+            onChange={e => setCreateText(e.target.value)}
+            className="bg-secondary border-border text-sm text-foreground"
+            rows={3}
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-foreground/40 flex items-center gap-1">
+              <Heart className="w-3 h-3 fill-red-400 text-red-400" /> Será favoritada automaticamente
+            </span>
+            <Button size="sm" onClick={createCustom} disabled={!createText.trim()}>Salvar</Button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Mode buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -246,31 +431,16 @@ export default function AffirmationsPanel() {
 
       {/* Current affirmation */}
       {(currentText || loading) && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rpg-panel glow-purple-strong relative"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel glow-purple-strong relative">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-primary font-display uppercase tracking-wider">
               {currentMode === 'despertar' ? '🌅 Despertar' : currentMode === 'noturna' ? '🌙 Noturna' : '⚡ Fraqueza'}
             </span>
             <div className="flex items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 text-foreground/50 hover:text-foreground"
-                onClick={() => setFullscreen(true)}
-              >
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-foreground/50 hover:text-foreground" onClick={() => setFullscreen(true)}>
                 <Maximize2 className="w-3.5 h-3.5" />
               </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 text-foreground/50 hover:text-primary"
-                onClick={() => generateAffirmation(currentMode)}
-                disabled={loading}
-              >
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-foreground/50 hover:text-primary" onClick={() => generateAffirmation(currentMode)} disabled={loading}>
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
@@ -284,13 +454,7 @@ export default function AffirmationsPanel() {
               </div>
             ) : (
               displayedWords.map((word, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.1 }}
-                  className="inline-block mr-1.5"
-                >
+                <motion.span key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.1 }} className="inline-block mr-1.5">
                   {word}
                 </motion.span>
               ))
@@ -322,30 +486,7 @@ export default function AffirmationsPanel() {
           <h3 className="text-xs text-foreground/60 uppercase tracking-wider font-display flex items-center gap-1">
             <Heart className="w-3 h-3 text-red-400" /> FAVORITAS
           </h3>
-          {favorites.map(aff => (
-            <motion.div
-              key={aff.id}
-              className="rpg-panel text-sm text-foreground/90"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className="flex-1 italic">"{aff.text}"</p>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 flex-shrink-0 text-red-400"
-                  onClick={() => toggleFavorite(aff.id)}
-                >
-                  <Heart className="w-3 h-3 fill-red-400" />
-                </Button>
-              </div>
-              <span className="text-xs text-foreground/40 mt-1 block">
-                {aff.type === 'despertar' ? '🌅' : aff.type === 'noturna' ? '🌙' : '⚡'}{' '}
-                {new Date(aff.date).toLocaleDateString('pt-BR')}
-              </span>
-            </motion.div>
-          ))}
+          {favorites.map(aff => renderAffirmationItem(aff))}
         </div>
       )}
 
@@ -353,27 +494,12 @@ export default function AffirmationsPanel() {
       {affirmations.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-xs text-foreground/60 uppercase tracking-wider font-display">HISTÓRICO RECENTE</h3>
-          {affirmations.slice(0, 5).map(aff => (
-            <div key={aff.id} className="rpg-panel text-xs text-foreground/70 flex items-start justify-between gap-2">
-              <div className="flex-1">
-                <span className="mr-1">{aff.type === 'despertar' ? '🌅' : aff.type === 'noturna' ? '🌙' : '⚡'}</span>
-                {aff.text.length > 80 ? aff.text.substring(0, 80) + '...' : aff.text}
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                className={`h-6 w-6 flex-shrink-0 ${aff.favorited ? 'text-red-400' : 'text-foreground/30 hover:text-red-400'}`}
-                onClick={() => toggleFavorite(aff.id)}
-              >
-                <Heart className={`w-3 h-3 ${aff.favorited ? 'fill-red-400' : ''}`} />
-              </Button>
-            </div>
-          ))}
+          {affirmations.slice(0, 5).map(aff => renderAffirmationItem(aff, true))}
         </div>
       )}
 
       {/* Empty state */}
-      {!currentText && !loading && affirmations.length === 0 && (
+      {!currentText && !loading && affirmations.length === 0 && !showCreate && (
         <div className="rpg-panel text-center py-8">
           <Flame className="w-10 h-10 text-primary/30 mx-auto mb-3" />
           <p className="text-foreground/60 text-sm">Escolha um modo acima para gerar sua primeira afirmação personalizada.</p>
