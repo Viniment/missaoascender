@@ -549,7 +549,7 @@ export default function MissionsPanel() {
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setEditDialog(null)}>Cancelar</Button>
-            <Button onClick={handleEdit}>Salvar</Button>
+            <Button onClick={handleEdit} disabled={submitting}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
