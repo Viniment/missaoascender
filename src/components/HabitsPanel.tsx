@@ -340,13 +340,14 @@ function HeatmapSection() {
 
   return (
     <div className="rpg-panel">
-      <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Heatmap (últimos 30 dias)</h4>
+      <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Heatmap (30 dias)</h4>
       {state.habits.slice(0, 5).map(h => {
-        // Always show the last 30 days ending today
-        const todayDate = new Date(today + 'T12:00:00');
+        // Start from earliest history date, or today if no history yet
+        const dates = Object.keys(h.history).sort();
+        const firstDate = new Date((dates[0] || today) + 'T12:00:00');
         const days = Array.from({ length: 30 }, (_, i) => {
-          const d = new Date(todayDate);
-          d.setDate(d.getDate() - (29 - i));
+          const d = new Date(firstDate);
+          d.setDate(d.getDate() + i);
           return d.toISOString().split('T')[0];
         });
 
