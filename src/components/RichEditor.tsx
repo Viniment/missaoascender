@@ -70,7 +70,7 @@ export default function RichEditor({ content, onChange, placeholder }: RichEdito
   // Sync external content changes (e.g. AI-generated content) into editor
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content || '', false);
+      editor.commands.setContent(content || '', { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, editor]);
