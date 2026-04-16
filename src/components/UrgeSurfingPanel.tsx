@@ -322,16 +322,8 @@ export default function UrgeSurfingPanel() {
   if (phase === 'active') {
     const MIN_SIZE = 20;
     const MAX_SIZE = 80;
-    const isInhale = breathingPhase === 0;
-    const isExhale = breathingPhase === 2;
-    const breathingSize = isInhale
-      ? MIN_SIZE + breathingProgress * (MAX_SIZE - MIN_SIZE)
-      : isExhale
-        ? MAX_SIZE - breathingProgress * (MAX_SIZE - MIN_SIZE)
-        : breathingPhase === 1
-          ? MAX_SIZE
-          : MIN_SIZE;
-    const breathingOpacity = 0.3 + 0.7 * ((breathingSize - MIN_SIZE) / (MAX_SIZE - MIN_SIZE));
+    const currentBreathingSize = breathingSizeRef.current;
+    const breathingOpacity = 0.3 + 0.7 * ((currentBreathingSize - MIN_SIZE) / (MAX_SIZE - MIN_SIZE));
 
     const monsterScale = 0.5 + (monsterIntensity + waveIntensity) * 0.5;
     const monsterOpacity = 0.3 + monsterIntensity * 0.7;
