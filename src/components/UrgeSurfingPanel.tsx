@@ -53,14 +53,14 @@ const GUIDE_MESSAGES = {
     'Feche os olhos. Sinta onde o impulso aparece no seu corpo: peito, estômago, garganta…',
     'Não tente lutar contra a vontade. Apenas observe ela como se fosse uma onda no mar.',
     'O impulso é como uma onda: ele sobe, atinge um pico e depois desce sozinho.',
-    'Acompanhe a respiração 4-7-8. Inspire pelo nariz por 4 segundos.',
+    'Dê um nome ao que você sente agora. Nomear a emoção já reduz sua intensidade.',
   ],
   mid: [
     'Você está surfando a onda. Cada segundo que passa, o impulso perde força.',
     'Note: a vontade muda de intensidade. Ela não é constante — vai e volta.',
-    'Segure o ar por 7 segundos. Isso desacelera seus batimentos e acalma a mente.',
     'Nenhum impulso dura para sempre. A maioria passa em 15 a 20 minutos.',
-    'Expire lentamente pela boca por 8 segundos. Solte a tensão junto com o ar.',
+    'Observe seus pensamentos sem julgamento. Eles são apenas pensamentos, não ordens.',
+    'Seu corpo está pedindo algo, mas você não precisa obedecer. Só observe.',
   ],
   end: [
     'O pico já passou. O impulso está perdendo força agora.',
