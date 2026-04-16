@@ -28,6 +28,7 @@ const TABS = [
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'affirmations', label: 'Afirmações', icon: Flame },
   { id: 'timer', label: 'Timer', icon: Timer },
+  { id: 'urge-surfing', label: 'Urge Surfing', icon: Waves },
   { id: 'visualizar', label: 'Visualizar', icon: Layers },
   { id: 'awakening', label: 'Despertar', icon: Eye },
   { id: 'rewards', label: 'Loja', icon: Gift },
@@ -53,6 +54,7 @@ export default function Index() {
       case 'journal': return <JournalPanel />;
       case 'affirmations': return <AffirmationsPanel />;
       case 'timer': return <PomodoroTimer />;
+      case 'urge-surfing': return <UrgeSurfingPanel />;
       case 'visualizar': return <VisualizarPanel />;
       case 'awakening': return <AwakeningPage />;
       case 'rewards': return <RewardsShop />;
