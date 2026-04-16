@@ -420,12 +420,12 @@ export default function MissionsPanel() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{h.xp} XP</span>
+            <div className="flex items-center gap-x-2 gap-y-1.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ +{h.xp} XP</span>
               {h.gold > 0 && (
-                <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{h.gold} {h.gold === 1 ? 'Moeda' : 'Moedas'}</span>
+                <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💰 +{h.gold} {h.gold === 1 ? 'Moeda' : 'Moedas'}</span>
               )}
-              <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px]">✅ CONCLUÍDA</span>
+              <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">✅ CONCLUÍDA</span>
             </div>
           </div>
         ))}
@@ -714,40 +714,40 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
       </div>
 
       {/* Linha 2: tipo, categoria, badges de XP/moedas, status */}
-      <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">{typeIcons[mission.missionType]} {mission.missionType}</span>
-        {mission.repeatable && <span className="flex items-center gap-0.5 text-primary/70"><Repeat className="w-3 h-3" /> Repetível</span>}
-        <span>{mission.category}</span>
+      <div className="flex items-center gap-x-2 gap-y-1.5 flex-wrap text-xs text-muted-foreground mt-1.5">
+        <span className="flex items-center gap-1 whitespace-nowrap">{typeIcons[mission.missionType]} {mission.missionType}</span>
+        {mission.repeatable && <span className="flex items-center gap-0.5 text-primary/70 whitespace-nowrap"><Repeat className="w-3 h-3" /> Repetível</span>}
+        <span className="whitespace-nowrap">{mission.category}</span>
         {isRunning && liveRewards && (
-          <span className="flex items-center gap-1 text-primary/70 font-display">
-            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px]">⚡ {liveRewards.xp} XP</span>
-            <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px]">💰 {liveRewards.gold} {liveRewards.gold === 1 ? 'Moeda' : 'Moedas'}</span>
-            <span className="text-muted-foreground text-[10px]">-</span> <span className="text-primary animate-pulse-glow">{elapsed}</span>
+          <span className="flex items-center gap-1.5 flex-wrap text-primary/70 font-display">
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap">⚡ {liveRewards.xp} XP</span>
+            <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap">💰 {liveRewards.gold} {liveRewards.gold === 1 ? 'Moeda' : 'Moedas'}</span>
+            <span className="text-primary animate-pulse-glow whitespace-nowrap">{elapsed}</span>
           </span>
         )}
         {mission.missionType === 'Contagem' && (
-          <span>{mission.currentCount || 0}/{mission.targetCount || 0}</span>
+          <span className="whitespace-nowrap">{mission.currentCount || 0}/{mission.targetCount || 0}</span>
         )}
         {isDone && mission.xpEarned !== undefined && (
           <>
-            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{mission.xpEarned} XP</span>
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ +{mission.xpEarned} XP</span>
             {mission.goldEarned ? (
-              <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{mission.goldEarned} {mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}</span>
+              <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💰 +{mission.goldEarned} {mission.goldEarned === 1 ? 'Moeda' : 'Moedas'}</span>
             ) : null}
             {mission.missionType === 'Tempo' && mission.executedHours ? (
-              <span className="inline-flex items-center gap-1 bg-secondary text-foreground px-1.5 py-0.5 rounded font-display text-[10px]">⏱️ {mission.executedHours >= 1 ? `${Math.floor(mission.executedHours)}h ${Math.round((mission.executedHours % 1) * 60)}min` : `${Math.round(mission.executedHours * 60)}min`}</span>
+              <span className="inline-flex items-center gap-1 bg-secondary text-foreground px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⏱️ {mission.executedHours >= 1 ? `${Math.floor(mission.executedHours)}h ${Math.round((mission.executedHours % 1) * 60)}min` : `${Math.round(mission.executedHours * 60)}min`}</span>
             ) : null}
-            <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px]">✅ CONCLUÍDA</span>
+            <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">✅ CONCLUÍDA</span>
             {mission.completedAt && (
-              <span className="text-[10px] text-muted-foreground font-display">{new Date(mission.completedAt).toLocaleDateString('pt-BR')} {new Date(mission.completedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="basis-full sm:basis-auto text-[10px] text-muted-foreground font-display whitespace-nowrap">{new Date(mission.completedAt).toLocaleDateString('pt-BR')} {new Date(mission.completedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
             )}
           </>
         )}
-        {isDailyDone && !isDone && <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px]">✔️ FEITA HOJE</span>}
+        {isDailyDone && !isDone && <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">✔️ FEITA HOJE</span>}
         {isFailed && (
           <>
-            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">💀 -{XP_PER_HOUR[mission.difficulty] * 2} XP</span>
-            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px]">❌ FALHADA</span>
+            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💀 -{XP_PER_HOUR[mission.difficulty] * 2} XP</span>
+            <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">❌ FALHADA</span>
           </>
         )}
         {rewardInfo}
