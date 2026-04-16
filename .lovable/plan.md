@@ -1,59 +1,24 @@
 
 
-# Plano: Organizar conquistas + Configuração de Afirmações + CRUD e Slideshow
+# Plano: Restaurar glows e sombras mais intensos
 
-## 1. Organizar conquistas no AchievementsPanel
+## Problema
+As classes de glow (`.neon-glow`, `.glow-purple`, `.glow-purple-strong`, `.glow-border`, `.glow-text-purple`, `.xp-bar-fill`) estão com opacidades baixas, resultando em sombras quase invisíveis.
 
-O array `ACHIEVEMENTS` já está organizado por tipo (streak, mission, habit, level, discipline, special), mas o painel mostra tudo misturado num grid. Vou reorganizar a exibição para agrupar por tipo com seções visuais claras:
+## Solução
+Aumentar a intensidade de todas as classes de glow em `src/index.css`, dobrando (ou mais) os valores de opacidade e raio das sombras:
 
-- Quando filtro = "Todas", mostrar conquistas agrupadas por tipo (cada tipo com header separado: "🔥 Streak", "⚔️ Missões", etc.)
-- Dentro de cada grupo: desbloqueadas primeiro, depois por progresso
-- Manter o filtro por tipo como está (quando filtra, mostra só aquele tipo sem sub-headers)
+| Classe | Antes | Depois |
+|--------|-------|--------|
+| `.glow-text-purple` | 0.5 / 0.2 | 0.7 / 0.4 |
+| `.glow-purple-strong` | 0.3 / 0.1 | 0.5 / 0.25 |
+| `.glow-purple` | 0.2 / 0.1 | 0.35 / 0.2 |
+| `.glow-border` | 0.3 | 0.5 |
+| `.xp-bar-fill` | 0.5 | 0.7 + novo layer |
+| `.neon-glow` | 0.3 / 0.15 / 0.05 | 0.5 / 0.3 / 0.15 |
 
-**Arquivo:** `src/components/AchievementsPanel.tsx`
+Também adicionar um layer extra de sombra mais ampla no `.neon-glow` para dar aquele efeito de "aura" mais pronunciado.
 
-## 2. Aba Afirmações desativada por padrão + toggle em Configurações
-
-- Em `src/pages/Index.tsx`: incluir `'affirmations'` na lista de abas desativadas por padrão (quando `state.disabledTabs` é undefined/vazio na primeira vez)
-- Em `src/pages/Settings.tsx`: adicionar "Afirmações" na lista de toggles da seção Interface
-- Em `src/lib/gameStore.ts`: definir `disabledTabs: ['affirmations']` no estado inicial
-
-**Arquivos:** `src/pages/Settings.tsx`, `src/lib/gameStore.ts`
-
-## 3. Botão para criar afirmação própria (já favoritada)
-
-- Adicionar botão "Criar Afirmação" no AffirmationsPanel
-- Abre um input/textarea inline para digitar
-- Ao salvar, cria com `type: 'custom'`, `favorited: true`
-- Tipo `AffirmationMode` expandido para incluir `'custom'`
-
-**Arquivo:** `src/components/AffirmationsPanel.tsx`
-
-## 4. Editar e excluir qualquer afirmação
-
-- Em cada afirmação (favoritas e histórico), adicionar ícones de editar (Pencil) e excluir (Trash)
-- Editar: abre textarea inline com o texto, salva no state
-- Excluir: remove do array com confirmação simples
-
-**Arquivo:** `src/components/AffirmationsPanel.tsx`
-
-## 5. Slideshow manual em tela cheia
-
-- Botão "Slideshow" no painel (só aparece se há afirmações favoritadas)
-- Abre tela cheia com a primeira afirmação favoritada
-- Setas (esquerda/direita) ou botões para navegar entre favoritas
-- Visual imersivo: fundo escuro, texto grande centralizado, sem distrações
-- Ideal para repetição/reprogramação mental
-
-**Arquivo:** `src/components/AffirmationsPanel.tsx`
-
-## 6. Fix runtime error (useGame fora do GameProvider)
-
-- Verificar e corrigir o erro "useGame must be used within GameProvider" que aparece nos logs
-
-**Arquivos a alterar:**
-- `src/components/AchievementsPanel.tsx` — agrupar por tipo
-- `src/components/AffirmationsPanel.tsx` — criar afirmação, editar, excluir, slideshow
-- `src/pages/Settings.tsx` — toggle de afirmações
-- `src/lib/gameStore.ts` — disabledTabs padrão com 'affirmations'
+## Arquivo
+- `src/index.css` — seção `@layer components`
 
