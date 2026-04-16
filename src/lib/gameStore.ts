@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkNewAchievements, type AchievementDef } from './achievements';
 import { getTodayBrasilia } from './utils';
 // Types
@@ -120,65 +120,6 @@ export interface VisionItem {
   createdAt: string;
 }
 
-// ===== Ritual Guide types =====
-export type RitualStepType =
-  | 'preparacao'
-  | 'visualizacao'
-  | 'barreira'
-  | 'confronto'
-  | 'acao'
-  | 'retorno'
-  | 'loop'
-  | 'encerramento';
-export type NarrationStyle = 'calmo' | 'motivador' | 'agressivo' | 'neutro';
-export type RitualIntensity = 'leve' | 'medio' | 'intenso';
-export type RitualDisplayMode = 'texto' | 'imagens' | 'animacoes';
-export type RitualActionType = 'quebrar' | 'atravessar' | 'destruir' | 'ignorar' | 'personalizado';
-export type BarrierType = 'parede' | 'criatura' | 'sombra' | 'personalizado';
-
-export interface RitualStep {
-  id: string;
-  type: RitualStepType;
-  enabled: boolean;
-  order: number;
-  durationSec: number;
-  intensity: RitualIntensity;
-  text: string;
-  barrierId?: string;
-  actionType?: RitualActionType;
-  customAction?: string;
-}
-
-export interface Barrier {
-  id: string;
-  name: string;
-  type: BarrierType;
-  customDescription?: string;
-}
-
-export interface Ritual {
-  id: string;
-  name: string;
-  objective: string;
-  steps: RitualStep[];
-  narrationStyle: NarrationStyle;
-  useTTS: boolean;
-  displayMode: RitualDisplayMode;
-  loopCount: number;
-  loopIncreaseIntensity: boolean;
-  loopGapSec: number;
-  visionItemIds?: string[];
-  createdAt: string;
-}
-
-export interface RitualSession {
-  id: string;
-  ritualId: string;
-  ritualName: string;
-  completedAt: string;
-  durationSec: number;
-}
-
 export interface PlayerState {
   name: string;
   title: string;
@@ -214,9 +155,6 @@ export interface PlayerState {
   visionLastViewedDate: string | null;
   theme: string;
   difficultyDivisor: number;
-  rituals: Ritual[];
-  ritualBarriers: Barrier[];
-  ritualSessions: RitualSession[];
   _penaltyCompensated?: boolean;
 }
 
@@ -330,9 +268,6 @@ export const defaultState: PlayerState = {
   visionLastViewedDate: null,
   theme: 'neon-purple',
   difficultyDivisor: 1,
-  rituals: [],
-  ritualBarriers: [],
-  ritualSessions: [],
   _penaltyCompensated: true,
 };
 
@@ -879,99 +814,8 @@ export function useGameStore() {
     });
   }, []);
 
-  // ===== Ritual Guide helpers =====
-  const addRitual = useCallback((ritual: Omit<Ritual, 'id' | 'createdAt'>) => {
-    setState(prev => ({
-      ...prev,
-      rituals: [...(prev.rituals || []), { ...ritual, id: crypto.randomUUID(), createdAt: new Date().toISOString() }],
-    }));
-  }, []);
-
-  const updateRitual = useCallback((id: string, updates: Partial<Ritual>) => {
-    setState(prev => ({
-      ...prev,
-      rituals: (prev.rituals || []).map(r => r.id === id ? { ...r, ...updates } : r),
-    }));
-  }, []);
-
-  const removeRitual = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      rituals: (prev.rituals || []).filter(r => r.id !== id),
-    }));
-  }, []);
-
-  const duplicateRitual = useCallback((id: string) => {
-    setState(prev => {
-      const orig = (prev.rituals || []).find(r => r.id === id);
-      if (!orig) return prev;
-      const copy: Ritual = {
-        ...orig,
-        id: crypto.randomUUID(),
-        name: `${orig.name} (cópia)`,
-        createdAt: new Date().toISOString(),
-        steps: orig.steps.map(s => ({ ...s, id: crypto.randomUUID() })),
-      };
-      return { ...prev, rituals: [...(prev.rituals || []), copy] };
-    });
-  }, []);
-
-  const addBarrier = useCallback((barrier: Omit<Barrier, 'id'>) => {
-    setState(prev => ({
-      ...prev,
-      ritualBarriers: [...(prev.ritualBarriers || []), { ...barrier, id: crypto.randomUUID() }],
-    }));
-  }, []);
-
-  const updateBarrier = useCallback((id: string, updates: Partial<Barrier>) => {
-    setState(prev => ({
-      ...prev,
-      ritualBarriers: (prev.ritualBarriers || []).map(b => b.id === id ? { ...b, ...updates } : b),
-    }));
-  }, []);
-
-  const removeBarrier = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      ritualBarriers: (prev.ritualBarriers || []).filter(b => b.id !== id),
-    }));
-  }, []);
-
-  const logRitualSession = useCallback((ritual: Ritual, durationSec: number, alsoJournal: boolean) => {
-    setState(prev => {
-      const session: RitualSession = {
-        id: crypto.randomUUID(),
-        ritualId: ritual.id,
-        ritualName: ritual.name,
-        completedAt: new Date().toISOString(),
-        durationSec,
-      };
-      const stepBonus = ritual.steps.filter(s => s.enabled).length * 10;
-      const xpGain = 30 + stepBonus;
-      const prog = processLevelUp(prev.xp + xpGain, prev.level, prev.rank, prev.difficultyDivisor || 1);
-      const newJournal = alsoJournal ? [
-        {
-          id: crypto.randomUUID(),
-          title: `Ritual: ${ritual.name}`,
-          date: new Date().toISOString(),
-          text: `Ritual "${ritual.name}" concluído.${ritual.objective ? ` Objetivo: ${ritual.objective}.` : ''} Duração: ${Math.round(durationSec / 60)}min.`,
-        },
-        ...prev.journal,
-      ] : prev.journal;
-      return {
-        ...prev,
-        ...prog,
-        journal: newJournal,
-        ritualSessions: [session, ...(prev.ritualSessions || [])].slice(0, 200),
-        log: [
-          { date: new Date().toISOString(), action: `Ritual concluído: ${ritual.name}`, xp: xpGain, gold: 0 },
-          ...prev.log,
-        ].slice(0, 100),
-      };
-    });
-  }, []);
-
-
+  // Achievement checking
+  const pendingAchievementRef = useRef<AchievementDef | null>(null);
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
 
   useEffect(() => {
@@ -1026,14 +870,6 @@ export function useGameStore() {
     completeFailureProtocol,
     updateFailureProtocolPenalty,
     checkExpiredProtocols,
-    addRitual,
-    updateRitual,
-    removeRitual,
-    duplicateRitual,
-    addBarrier,
-    updateBarrier,
-    removeBarrier,
-    logRitualSession,
     newlyUnlocked,
     dismissAchievement,
   };
