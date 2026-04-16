@@ -50,21 +50,23 @@ const MONSTER_SPEECH: Record<ImpulseType, string[]> = {
 
 const GUIDE_MESSAGES = {
   start: [
-    'Observe o impulso… não lute contra ele.',
-    'Ele está subindo.',
-    'Onde você sente isso no corpo?',
+    'Feche os olhos. Sinta onde o impulso aparece no seu corpo: peito, estômago, garganta…',
+    'Não tente lutar contra a vontade. Apenas observe ela como se fosse uma onda no mar.',
+    'O impulso é como uma onda: ele sobe, atinge um pico e depois desce sozinho.',
+    'Acompanhe a respiração 4-7-8. Inspire pelo nariz por 4 segundos.',
   ],
   mid: [
-    'Ele muda… mesmo que pareça igual.',
-    'Continue. Você está aqui.',
-    'Respire. A onda sobe e desce.',
-    'Você não precisa agir. Só observar.',
+    'Você está surfando a onda. Cada segundo que passa, o impulso perde força.',
+    'Note: a vontade muda de intensidade. Ela não é constante — vai e volta.',
+    'Segure o ar por 7 segundos. Isso desacelera seus batimentos e acalma a mente.',
+    'Nenhum impulso dura para sempre. A maioria passa em 15 a 20 minutos.',
+    'Expire lentamente pela boca por 8 segundos. Solte a tensão junto com o ar.',
   ],
   end: [
-    'Ele está passando.',
-    'A onda está descendo.',
-    'Você ficou. E isso muda tudo.',
-    'O impulso enfraquece quando você não alimenta.',
+    'O pico já passou. O impulso está perdendo força agora.',
+    'Você escolheu não reagir — e isso reconecta seu cérebro a cada vez.',
+    'Cada sessão que você completa torna a próxima mais fácil. Isso é neuroplasticidade.',
+    'Você está provando que consegue sentir sem precisar agir.',
   ],
 };
 
