@@ -442,7 +442,7 @@ export default function UrgeSurfingPanel() {
         <h3 className="font-display text-lg text-primary glow-text-purple">
           IMPULSO SUPERADO
         </h3>
-        <p className="text-sm text-foreground/80 font-body">
+        <p className="text-sm text-foreground font-body">
           Você ficou. E isso muda tudo.
         </p>
         <div className="flex items-center justify-center gap-2 text-xs text-primary">
