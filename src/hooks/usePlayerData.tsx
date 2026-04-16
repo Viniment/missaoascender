@@ -47,7 +47,7 @@ export function usePlayerData(
         setState(prev => ({
           ...prev,
           name: profile.display_name || prev.name,
-          avatar: profile.avatar_url || prev.avatar,
+          avatar: profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : prev.avatar,
         }));
       }
 
