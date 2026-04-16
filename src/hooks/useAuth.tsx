@@ -19,12 +19,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // 1. Set up listener FIRST (synchronous, no await inside)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignore INITIAL_SESSION here — getSession() handles it below.
+      // This prevents a race where the listener fires with null before
+      // getSession() resolves with the restored session.
+      if (event === 'INITIAL_SESSION') return;
+
+      // For TOKEN_REFRESHED, SIGNED_IN, SIGNED_OUT, USER_UPDATED:
+      // only clear user on explicit SIGNED_OUT to avoid flicker during refresh
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setUser(null);
+      } else if (session) {
+        setSession(session);
+        setUser(session.user);
+      }
       setLoading(false);
     });
 
+    // 2. Then restore existing session from storage
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
