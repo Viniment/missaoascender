@@ -13,10 +13,11 @@ import AffirmationsPanel from '@/components/AffirmationsPanel';
 
 import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
+import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers, Flame } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers, Flame, Waves } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'affirmations', label: 'Afirmações', icon: Flame },
   { id: 'timer', label: 'Timer', icon: Timer },
+  { id: 'urge-surfing', label: 'Urge Surfing', icon: Waves },
   { id: 'visualizar', label: 'Visualizar', icon: Layers },
   { id: 'awakening', label: 'Despertar', icon: Eye },
   { id: 'rewards', label: 'Loja', icon: Gift },
@@ -52,6 +54,7 @@ export default function Index() {
       case 'journal': return <JournalPanel />;
       case 'affirmations': return <AffirmationsPanel />;
       case 'timer': return <PomodoroTimer />;
+      case 'urge-surfing': return <UrgeSurfingPanel />;
       case 'visualizar': return <VisualizarPanel />;
       case 'awakening': return <AwakeningPage />;
       case 'rewards': return <RewardsShop />;
