@@ -72,7 +72,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   return (
     <div className="flex flex-col items-center gap-1 py-2 rounded-md bg-secondary/50">
       {icon}
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs text-foreground">{label}</span>
       <span className="font-display text-sm text-foreground">{value}</span>
     </div>
   );
