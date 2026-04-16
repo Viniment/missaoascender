@@ -419,7 +419,7 @@ export default function VisualizarPanel() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={saveCategory} disabled={!catName.trim()} className="bg-primary text-primary-foreground">
+            <Button onClick={saveCategory} disabled={!catName.trim() || submitting} className="bg-primary text-primary-foreground">
               {editingCategory ? 'Salvar' : 'Criar'}
             </Button>
           </DialogFooter>
@@ -510,7 +510,7 @@ export default function VisualizarPanel() {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={saveItem} className="bg-primary text-primary-foreground">
+            <Button onClick={saveItem} disabled={submitting} className="bg-primary text-primary-foreground">
               {editingItem ? 'Salvar' : 'Adicionar'}
             </Button>
           </DialogFooter>
