@@ -33,7 +33,7 @@ serve(async (req) => {
   }
 
   try {
-    const { journal, awakening, rank } = await req.json();
+    const { journal, awakening, rank, reflections } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -41,6 +41,8 @@ serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const stripHtml = (s: string) => (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
     let userPrompt = `Rank do usuário: ${rank || 'E'}\n\n`;
 
@@ -51,6 +53,16 @@ serve(async (req) => {
       userPrompt += `Minha dor: ${awakening.pain || '(não definido)'}\n\n`;
     }
 
+    if (reflections && reflections.length > 0) {
+      userPrompt += `=== REFLEXÕES ANTERIORES DO DESPERTAR (memória — use para evoluir, não repetir) ===\n`;
+      reflections.slice(0, 5).forEach((r: any, idx: number) => {
+        const ans = stripHtml(r.answerHtml || '').substring(0, 500);
+        const dateStr = r.date ? new Date(r.date).toLocaleDateString('pt-BR') : '';
+        userPrompt += `\n[${idx + 1}] ${dateStr}\nPergunta: ${r.question}\nResposta: ${ans}\n`;
+      });
+      userPrompt += `\n`;
+    }
+
     if (journal && journal.length > 0) {
       userPrompt += `=== ÚLTIMAS ENTRADAS DO DIÁRIO ===\n`;
       journal.slice(0, 3).forEach((j: any, idx: number) => {
@@ -59,8 +71,8 @@ serve(async (req) => {
         if (j.deepMode) userPrompt += `(Modo profundo)\n`;
         userPrompt += `Texto: ${(j.text || '').substring(0, 600)}\n`;
       });
-    } else {
-      userPrompt += `(Sem entradas de diário ainda — gere perguntas baseadas apenas nas intenções do despertar.)\n`;
+    } else if (!reflections || reflections.length === 0) {
+      userPrompt += `(Sem entradas de diário nem reflexões anteriores — gere perguntas baseadas apenas nas intenções do despertar.)\n`;
     }
 
     userPrompt += `\nGere 5 perguntas profundas e específicas para destravar este usuário.`;
