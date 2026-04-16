@@ -334,19 +334,19 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
 function HeatmapSection() {
   const { state } = useGame();
 
-  const habitsWithHistory = state.habits.filter(h => Object.keys(h.history).length > 0);
+  if (state.habits.length === 0) return null;
 
-  if (habitsWithHistory.length === 0) return null;
+  const today = getTodayBrasilia();
 
   return (
     <div className="rpg-panel">
-      <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Heatmap (30 dias)</h4>
-      {habitsWithHistory.slice(0, 3).map(h => {
-        const dates = Object.keys(h.history).sort();
-        const firstDate = new Date(dates[0] + 'T12:00:00');
+      <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Heatmap (últimos 30 dias)</h4>
+      {state.habits.slice(0, 5).map(h => {
+        // Always show the last 30 days ending today
+        const todayDate = new Date(today + 'T12:00:00');
         const days = Array.from({ length: 30 }, (_, i) => {
-          const d = new Date(firstDate);
-          d.setDate(d.getDate() + i);
+          const d = new Date(todayDate);
+          d.setDate(d.getDate() - (29 - i));
           return d.toISOString().split('T')[0];
         });
 
