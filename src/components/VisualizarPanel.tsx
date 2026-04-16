@@ -38,6 +38,8 @@ export default function VisualizarPanel() {
   const [immersivePaused, setImmersivePaused] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Vision streak
   const visionStreak = state.visionStreak || 0;
@@ -65,29 +67,36 @@ export default function VisualizarPanel() {
 
   // Category CRUD
   const saveCategory = () => {
+    if (submittingRef.current) return;
     if (!catName.trim()) return;
-    setState(prev => {
-      if (editingCategory) {
-        return {
-          ...prev,
-          visionCategories: (prev.visionCategories || []).map(c =>
-            c.id === editingCategory.id ? { ...c, name: catName.trim(), icon: catIcon } : c
-          ),
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      setState(prev => {
+        if (editingCategory) {
+          return {
+            ...prev,
+            visionCategories: (prev.visionCategories || []).map(c =>
+              c.id === editingCategory.id ? { ...c, name: catName.trim(), icon: catIcon } : c
+            ),
+          };
+        }
+        const newCat: VisionCategory = {
+          id: crypto.randomUUID(),
+          name: catName.trim(),
+          icon: catIcon,
+          order: (prev.visionCategories || []).length,
         };
-      }
-      const newCat: VisionCategory = {
-        id: crypto.randomUUID(),
-        name: catName.trim(),
-        icon: catIcon,
-        order: (prev.visionCategories || []).length,
-      };
-      return { ...prev, visionCategories: [...(prev.visionCategories || []), newCat] };
-    });
-    setShowCategoryDialog(false);
-    setEditingCategory(null);
-    setCatName('');
-    setCatIcon('🎯');
-    toast.success(editingCategory ? 'Categoria atualizada!' : 'Categoria criada!');
+        return { ...prev, visionCategories: [...(prev.visionCategories || []), newCat] };
+      });
+      setShowCategoryDialog(false);
+      setEditingCategory(null);
+      setCatName('');
+      setCatIcon('🎯');
+      toast.success(editingCategory ? 'Categoria atualizada!' : 'Categoria criada!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const deleteCategory = (id: string) => {
@@ -120,6 +129,7 @@ export default function VisualizarPanel() {
   };
 
   const saveItem = () => {
+    if (submittingRef.current) return;
     if (!selectedCategory) return;
     if (itemType === 'image' && !itemImageUrl) {
       toast.error('Adicione uma imagem.');
@@ -133,33 +143,38 @@ export default function VisualizarPanel() {
       toast.error('Adicione imagem e/ou texto.');
       return;
     }
-
-    setState(prev => {
-      if (editingItem) {
-        return {
-          ...prev,
-          visionItems: (prev.visionItems || []).map(i =>
-            i.id === editingItem.id
-              ? { ...i, type: itemType, imageUrl: itemImageUrl || undefined, text: itemText || undefined }
-              : i
-          ),
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      setState(prev => {
+        if (editingItem) {
+          return {
+            ...prev,
+            visionItems: (prev.visionItems || []).map(i =>
+              i.id === editingItem.id
+                ? { ...i, type: itemType, imageUrl: itemImageUrl || undefined, text: itemText || undefined }
+                : i
+            ),
+          };
+        }
+        const newItem: VisionItem = {
+          id: crypto.randomUUID(),
+          categoryId: selectedCategory,
+          type: itemType,
+          imageUrl: itemImageUrl || undefined,
+          text: itemText || undefined,
+          order: (prev.visionItems || []).filter(i => i.categoryId === selectedCategory).length,
+          createdAt: new Date().toISOString(),
         };
-      }
-      const newItem: VisionItem = {
-        id: crypto.randomUUID(),
-        categoryId: selectedCategory,
-        type: itemType,
-        imageUrl: itemImageUrl || undefined,
-        text: itemText || undefined,
-        order: (prev.visionItems || []).filter(i => i.categoryId === selectedCategory).length,
-        createdAt: new Date().toISOString(),
-      };
-      return { ...prev, visionItems: [...(prev.visionItems || []), newItem] };
-    });
+        return { ...prev, visionItems: [...(prev.visionItems || []), newItem] };
+      });
 
-    setShowItemDialog(false);
-    resetItemForm();
-    toast.success(editingItem ? 'Item atualizado!' : 'Item adicionado!');
+      setShowItemDialog(false);
+      resetItemForm();
+      toast.success(editingItem ? 'Item atualizado!' : 'Item adicionado!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const deleteItem = (id: string) => {

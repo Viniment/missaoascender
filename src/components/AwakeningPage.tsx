@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Send, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
@@ -12,16 +12,25 @@ export default function AwakeningPage() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSave = useCallback(() => {
+    if (submittingRef.current) return;
     if (!question.trim() || !answer.trim() || answer === '<p></p>') {
       toast.error('Preencha a pergunta e a resposta.');
       return;
     }
-    addReflection({ question, answerHtml: answer, date: new Date().toISOString() });
-    setQuestion('');
-    setAnswer('');
-    toast.success('Reflexão salva! +15 XP');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      addReflection({ question, answerHtml: answer, date: new Date().toISOString() });
+      setQuestion('');
+      setAnswer('');
+      toast.success('Reflexão salva! +15 XP');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   }, [question, answer, addReflection]);
 
   return (
@@ -47,7 +56,7 @@ export default function AwakeningPage() {
           placeholder="Escreva sua reflexão..."
         />
 
-        <Button className="w-full" onClick={handleSave} disabled={!question.trim()}>
+        <Button className="w-full" onClick={handleSave} disabled={!question.trim() || submitting}>
           <Send className="w-4 h-4 mr-2" /> Salvar Reflexão
         </Button>
       </div>

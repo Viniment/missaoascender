@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Moon, Send, Pencil, Trash2, ChevronDown, ChevronUp, X } from 'lucide-react';
@@ -41,13 +41,22 @@ export default function JournalPanel() {
   const [editEmotion, setEditEmotion] = useState('');
   const [editIntensity, setEditIntensity] = useState(5);
   const [editDeepMode, setEditDeepMode] = useState(false);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSave = () => {
+    if (submittingRef.current) return;
     if (!title.trim() || !text.trim()) return;
-    addJournalEntry({ title, date: new Date().toISOString(), text, emotion: emotion || undefined, intensity, deepMode });
-    const xp = 20 + (text.length > 500 ? 10 : 0) + (deepMode ? 30 : 0);
-    toast.success(`Entrada salva! +${xp} XP`);
-    setTitle(''); setText(''); setEmotion(''); setIntensity(5); setDeepMode(false);
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      addJournalEntry({ title, date: new Date().toISOString(), text, emotion: emotion || undefined, intensity, deepMode });
+      const xp = 20 + (text.length > 500 ? 10 : 0) + (deepMode ? 30 : 0);
+      toast.success(`Entrada salva! +${xp} XP`);
+      setTitle(''); setText(''); setEmotion(''); setIntensity(5); setDeepMode(false);
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const openEdit = (id: string) => {
@@ -62,13 +71,20 @@ export default function JournalPanel() {
   };
 
   const saveEdit = () => {
+    if (submittingRef.current) return;
     if (!editEntry || !editTitle.trim()) return;
-    updateJournalEntry(editEntry, {
-      title: editTitle, text: editText, emotion: editEmotion || undefined,
-      intensity: editIntensity, deepMode: editDeepMode,
-    });
-    toast.success('Entrada atualizada!');
-    setEditEntry(null);
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      updateJournalEntry(editEntry, {
+        title: editTitle, text: editText, emotion: editEmotion || undefined,
+        intensity: editIntensity, deepMode: editDeepMode,
+      });
+      toast.success('Entrada atualizada!');
+      setEditEntry(null);
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const EditContent = editEntry ? (
@@ -101,7 +117,7 @@ export default function JournalPanel() {
           <Moon className="w-3.5 h-3.5 mr-1" /> Modo Profundo
         </Button>
       </div>
-      <Button className="w-full" onClick={saveEdit} disabled={!editTitle.trim()}>
+      <Button className="w-full" onClick={saveEdit} disabled={!editTitle.trim() || submitting}>
         <Send className="w-4 h-4 mr-2" /> Salvar Alterações
       </Button>
     </div>
@@ -143,7 +159,7 @@ export default function JournalPanel() {
           <input type="range" min="1" max="10" value={intensity} onChange={e => setIntensity(Number(e.target.value))} className="w-full mt-1 accent-primary" />
         </div>
 
-        <Button className="w-full" onClick={handleSave} disabled={!title.trim() || !text.trim()}>
+        <Button className="w-full" onClick={handleSave} disabled={!title.trim() || !text.trim() || submitting}>
           <Send className="w-4 h-4 mr-2" /> Salvar Entrada
         </Button>
       </div>

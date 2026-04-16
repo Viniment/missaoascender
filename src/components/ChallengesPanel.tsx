@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Check, X, Shield } from 'lucide-react';
@@ -11,17 +11,26 @@ export default function ChallengesPanel() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [steps, setSteps] = useState(['']);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleAdd = () => {
+    if (submittingRef.current) return;
     if (!name.trim() || steps.filter(s => s.trim()).length === 0) return;
-    addChallenge({
-      name,
-      steps: steps.filter(s => s.trim()).map(s => ({ id: crypto.randomUUID(), name: s, completed: false })),
-    });
-    setName('');
-    setSteps(['']);
-    setShowForm(false);
-    toast.success('Desafio criado!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      addChallenge({
+        name,
+        steps: steps.filter(s => s.trim()).map(s => ({ id: crypto.randomUUID(), name: s, completed: false })),
+      });
+      setName('');
+      setSteps(['']);
+      setShowForm(false);
+      toast.success('Desafio criado!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   return (
@@ -43,7 +52,7 @@ export default function ChallengesPanel() {
               <Input key={i} placeholder={`Etapa ${i + 1}`} value={s} onChange={e => { const n = [...steps]; n[i] = e.target.value; setSteps(n); }} className="bg-secondary border-border" />
             ))}
             <Button variant="secondary" size="sm" onClick={() => setSteps([...steps, ''])}>+ Etapa</Button>
-            <Button className="w-full" onClick={handleAdd}>Criar Desafio</Button>
+            <Button className="w-full" onClick={handleAdd} disabled={submitting}>Criar Desafio</Button>
           </motion.div>
         )}
       </AnimatePresence>

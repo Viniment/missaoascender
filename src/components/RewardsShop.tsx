@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Gift, Coins, Plus, Trash2, Check } from 'lucide-react';
@@ -11,14 +11,23 @@ export default function RewardsShop() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [cost, setCost] = useState(50);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleAdd = () => {
+    if (submittingRef.current) return;
     if (!name.trim() || cost <= 0) return;
-    addReward({ name, cost });
-    setName('');
-    setCost(50);
-    setShowForm(false);
-    toast.success('Recompensa criada!');
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      addReward({ name, cost });
+      setName('');
+      setCost(50);
+      setShowForm(false);
+      toast.success('Recompensa criada!');
+    } finally {
+      setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
+    }
   };
 
   const handleRedeem = (id: string) => {
@@ -58,7 +67,7 @@ export default function RewardsShop() {
             <label className="text-xs text-muted-foreground">Custo em ouro</label>
             <Input type="number" min={1} value={cost} onChange={e => setCost(Number(e.target.value))} className="bg-secondary border-border" />
           </div>
-          <Button className="w-full" onClick={handleAdd}>Criar Recompensa</Button>
+          <Button className="w-full" onClick={handleAdd} disabled={submitting}>Criar Recompensa</Button>
         </motion.div>
       )}
 
