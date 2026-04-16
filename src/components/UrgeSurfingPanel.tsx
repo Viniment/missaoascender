@@ -223,22 +223,22 @@ export default function UrgeSurfingPanel() {
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center p-3 rounded-lg bg-secondary/50">
               <div className="font-display text-lg text-primary">{stats.totalCompleted}</div>
-              <div className="text-xs text-muted-foreground">Superados</div>
+              <div className="text-xs text-foreground">Superados</div>
             </div>
             <div className="text-center p-3 rounded-lg bg-secondary/50">
               <div className="font-display text-lg text-primary">{stats.streak}</div>
-              <div className="text-xs text-muted-foreground">Sequência</div>
+              <div className="text-xs text-foreground">Sequência</div>
             </div>
             <div className="text-center p-3 rounded-lg bg-secondary/50">
               <div className="font-display text-lg text-primary">{stats.totalSessions}</div>
-              <div className="text-xs text-muted-foreground">Sessões</div>
+              <div className="text-xs text-foreground">Sessões</div>
             </div>
           </div>
         )}
 
         {/* Impulse type selector */}
         <div className="space-y-2">
-          <label className="text-xs font-display text-muted-foreground">TIPO DE IMPULSO</label>
+          <label className="text-xs font-display text-foreground">TIPO DE IMPULSO</label>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(IMPULSE_LABELS) as ImpulseType[]).map(type => (
               <button
@@ -259,7 +259,7 @@ export default function UrgeSurfingPanel() {
 
         {/* Duration selector */}
         <div className="space-y-2">
-          <label className="text-xs font-display text-muted-foreground">DURAÇÃO</label>
+          <label className="text-xs font-display text-foreground">DURAÇÃO</label>
           <div className="flex gap-2">
             {DURATIONS.map(d => (
               <button
@@ -298,17 +298,18 @@ export default function UrgeSurfingPanel() {
 
   // ACTIVE VIEW
   if (phase === 'active') {
-    // Breathing ball: grows on inhale, stays on hold, shrinks on exhale
+    const MIN_SIZE = 20;
+    const MAX_SIZE = 80;
     const isInhale = breathingPhase === 0;
     const isExhale = breathingPhase === 2;
-    const isHold = breathingPhase === 1 || breathingPhase === 3;
     const breathingSize = isInhale
-      ? 40 + breathingProgress * 40
+      ? MIN_SIZE + breathingProgress * (MAX_SIZE - MIN_SIZE)
       : isExhale
-        ? 80 - breathingProgress * 40
-        : isHold && breathingPhase === 1
-          ? 80
-          : 40;
+        ? MAX_SIZE - breathingProgress * (MAX_SIZE - MIN_SIZE)
+        : breathingPhase === 1
+          ? MAX_SIZE
+          : MIN_SIZE;
+    const breathingOpacity = 0.3 + 0.7 * ((breathingSize - MIN_SIZE) / (MAX_SIZE - MIN_SIZE));
 
     const monsterScale = 0.5 + (monsterIntensity + waveIntensity) * 0.5;
     const monsterOpacity = 0.3 + monsterIntensity * 0.7;
@@ -368,9 +369,10 @@ export default function UrgeSurfingPanel() {
               width: breathingSize,
               height: breathingSize,
             }}
-            transition={{ duration: isHold ? 0.2 : BREATHING_DURATIONS[breathingPhase] * 0.8, ease: 'easeInOut' }}
+            transition={{ duration: 0.1 }}
             className="rounded-full"
             style={{
+              opacity: breathingOpacity,
               background: `radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.2))`,
               boxShadow: `0 0 ${12 + breathingSize * 0.2}px hsl(var(--primary) / 0.4), inset 0 0 ${breathingSize * 0.3}px hsl(var(--primary) / 0.15)`,
             }}
@@ -465,7 +467,7 @@ export default function UrgeSurfingPanel() {
         className="rpg-panel space-y-6 text-center border-border"
       >
         <div className="text-5xl opacity-50">🐲</div>
-        <h3 className="font-display text-sm text-muted-foreground">
+        <h3 className="font-display text-sm text-foreground">
           O impulso ainda não passou.
         </h3>
         <p className="text-sm text-foreground font-body">
