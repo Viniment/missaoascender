@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,7 +27,7 @@ export default function AffirmationsPanel() {
   const [weaknessMode, setWeaknessMode] = useState(false);
 
   const affirmations: SavedAffirmation[] = (state as any).affirmations || [];
-  const affirmationHistory: string[] = (state as any).affirmationHistory || [];
+  const affirmationHistory: string[] = useMemo(() => (state as any).affirmationHistory || [], [(state as any).affirmationHistory?.length]);
   const favorites = affirmations.filter(a => a.favorited);
 
   const maxHabitDone = Math.max(0, ...state.habits.map(h => Object.values(h.history).filter(v => v === 'done').length));
