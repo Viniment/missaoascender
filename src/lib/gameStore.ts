@@ -972,7 +972,6 @@ export function useGameStore() {
   }, []);
 
 
-  const pendingAchievementRef = useRef<AchievementDef | null>(null);
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
 
   useEffect(() => {
