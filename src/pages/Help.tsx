@@ -221,22 +221,36 @@ const groups: Group[] = [
         icon: Flame,
         title: 'Afirmações',
         color: 'text-gold',
-        content: `Frases poderosas que reprogramam sua identidade. Crie afirmações personalizadas no presente ("Eu sou disciplinado", "Eu controlo meus impulsos") e leia-as diariamente. A repetição constrói novas crenças no nível subconsciente.`,
+        content: `Frases poderosas que reprogramam sua identidade. Você pode criar afirmações manualmente ou gerá-las com IA personalizada para o seu momento.
+
+🎛️ MODOS DE GERAÇÃO IA (3 botões):
+• 🌅 Despertar — afirmação matinal energizante, baseada no seu Despertar Inicial e nos hábitos que você está construindo. Ideal pra começar o dia em estado de poder.
+• 🌙 Noturna — reflexão calma de fechamento do dia, baseada no seu último diário. Ideal pra dormir reconciliado com o que viveu.
+• ⚡ Fraqueza — modo CONFRONTO em fullscreen para momentos de recaída ou impulso forte. Frase direta, dura e despertadora — feita pra te tirar do automático.
+
+✍️ Botão Criar — escreve afirmação manual; já entra favoritada automaticamente.
+▶️ Botão Slideshow — apresenta suas favoritas em fullscreen para meditação/foco.
+
+🎯 AÇÕES POR AFIRMAÇÃO: favoritar (❤️), editar (✏️), excluir (🗑️), expandir em fullscreen (⛶) e regenerar com IA (🔄).
+
+🤖 COMO A IA PERSONALIZA: usa seu Despertar Inicial, último diário, emoção registrada, streak de hábitos, rank atual e o histórico das últimas 5 afirmações geradas — para evitar repetição e gerar algo que faz sentido pra você AGORA.`,
         benefits: [
-          'Reprograma crenças limitantes',
+          'Reprograma crenças limitantes no nível subconsciente',
           'Fortalece a identidade que você quer construir',
-          'Funciona como âncora mental nos momentos difíceis',
+          'Modo Fraqueza funciona como ferramenta anti-impulso em momentos críticos',
+          'IA personaliza com base no seu contexto real, não frases genéricas',
         ],
         tips: [
           'Use o presente: "Eu SOU", não "Eu vou ser"',
-          'Leia em voz alta de manhã e antes de dormir',
-          'Combine com visualização para efeito multiplicado',
+          'Comece o dia com Despertar e termine com Noturna',
+          'Quando bater impulso forte, abra o modo ⚡ Fraqueza ANTES de ceder',
+          'Favorite as que mais ressoam — vão aparecer no Slideshow',
           'Ative em: Configurações → Interface → Afirmações',
         ],
       },
       {
         icon: Waves,
-        title: 'Urge Surfing — Surfar a Urgência',
+        title: 'Urge Surfing — Surfar o Impulso',
         color: 'text-neon-cyan',
         content: `Técnica psicológica para lidar com impulsos compulsivos (vontade de procrastinar, comer mal, recair em vícios, etc.). Em vez de lutar contra a urgência, você a OBSERVA passar — como uma onda que sobe, atinge o pico e desce. Sessão guiada com respiração 4-7-8 e timer.`,
         benefits: [
