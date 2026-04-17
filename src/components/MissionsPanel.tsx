@@ -436,20 +436,54 @@ export default function MissionsPanel() {
             return <p className="text-xs text-muted-foreground text-center py-2">Nenhuma missão neste período.</p>;
           }
 
+          const XP_PER_HOUR_LOCAL: Record<string, number> = { 'Fácil': 3, 'Normal': 5, 'Difícil': 8, 'Insano': 12 };
+
+          const renderFailCard = (key: string, name: string, dateIso: string, xp: number) => (
+            <div key={key} className="rpg-panel p-3 space-y-2 opacity-60 border-destructive/30">
+              <div className="flex items-center gap-2">
+                <Repeat className="w-3.5 h-3.5 flex-shrink-0 text-destructive" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-sm font-semibold truncate line-through text-destructive">{name}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-display">
+                    {new Date(dateIso).toLocaleDateString('pt-BR')} às {new Date(dateIso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-x-2 gap-y-1.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ {xp} XP</span>
+                <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💀 FALHADA</span>
+              </div>
+            </div>
+          );
+
           return items.map((item, i) => {
             if (item.kind === 'mission') {
+              if (item.mission.status === 'Falhada') {
+                const penalty = -((XP_PER_HOUR_LOCAL[item.mission.difficulty] ?? 5) * 2);
+                return renderFailCard(
+                  `m-${item.mission.id}`,
+                  item.mission.name,
+                  item.mission.completedAt || new Date(item.date).toISOString(),
+                  penalty,
+                );
+              }
               return <MissionCard key={`m-${item.mission.id}`} mission={item.mission} today={today} />;
             }
             const h = item.entry;
             const isFail = !!h.failed;
+            if (isFail) {
+              return renderFailCard(`rh-${h.missionId}-${i}`, h.missionName, h.date, h.xp);
+            }
             return (
-              <div key={`rh-${h.missionId}-${i}`} className={`rpg-panel p-3 space-y-2 ${isFail ? 'opacity-60 border-destructive/30' : ''}`}>
+              <div key={`rh-${h.missionId}-${i}`} className="rpg-panel p-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Repeat className={`w-3.5 h-3.5 flex-shrink-0 ${isFail ? 'text-destructive' : 'text-primary'}`} />
+                  <Repeat className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`text-sm font-semibold truncate ${isFail ? 'line-through text-destructive' : 'text-foreground'}`}>{h.missionName}</span>
-                      {!isFail && h.executedHours != null && (
+                      <span className="text-sm font-semibold truncate text-foreground">{h.missionName}</span>
+                      {h.executedHours != null && (
                         <span className="text-[10px] font-display text-muted-foreground">({h.executedHours.toFixed(1)}h)</span>
                       )}
                     </div>
@@ -459,20 +493,11 @@ export default function MissionsPanel() {
                   </div>
                 </div>
                 <div className="flex items-center gap-x-2 gap-y-1.5 flex-wrap">
-                  {isFail ? (
-                    <>
-                      <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ {h.xp} XP</span>
-                      <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💀 FALHADA</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ +{h.xp} XP</span>
-                      {h.gold > 0 && (
-                        <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💰 +{h.gold} {h.gold === 1 ? 'Moeda' : 'Moedas'}</span>
-                      )}
-                      <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">✅ CONCLUÍDA</span>
-                    </>
+                  <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">⚡ +{h.xp} XP</span>
+                  {h.gold > 0 && (
+                    <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">💰 +{h.gold} {h.gold === 1 ? 'Moeda' : 'Moedas'}</span>
                   )}
+                  <span className="inline-flex items-center gap-1 bg-success/15 text-success px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">✅ CONCLUÍDA</span>
                 </div>
               </div>
             );
