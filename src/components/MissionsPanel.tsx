@@ -217,7 +217,7 @@ export default function MissionsPanel() {
   const allCompleted = state.missions.filter(m => m.status === 'Concluída');
   const failed = state.missions.filter(m => m.status === 'Falhada');
 
-  // Build completion history entries from repeatable missions
+  // Build completion history entries from repeatable missions (includes failed entries)
   const repeatableHistory = state.missions
     .filter(m => m.repeatable && m.completionHistory && m.completionHistory.length > 0)
     .flatMap(m => (m.completionHistory || []).map(h => ({ ...h, missionName: m.name, missionId: m.id, difficulty: m.difficulty, missionType: m.missionType })));
