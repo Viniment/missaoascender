@@ -23,25 +23,10 @@ const triggerLabel: Record<Trigger, string> = {
   protocol_expired: 'PROTOCOLO EXPIRADO',
 };
 
-const durezaStyles: Record<Dureza, { label: string; badge: string; border: string; glow: string }> = {
-  leve: {
-    label: 'LEVE',
-    badge: 'bg-warning/20 text-warning border-warning/40',
-    border: 'border-destructive/40',
-    glow: '',
-  },
-  medio: {
-    label: 'MÉDIO',
-    badge: 'bg-destructive/20 text-destructive border-destructive/50',
-    border: 'border-destructive/60',
-    glow: 'shadow-[0_0_24px_-6px_hsl(var(--destructive)/0.5)]',
-  },
-  brutal: {
-    label: 'BRUTAL',
-    badge: 'bg-destructive text-destructive-foreground border-destructive',
-    border: 'border-destructive',
-    glow: 'shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)]',
-  },
+const durezaLabel: Record<Dureza, string> = {
+  leve: 'LEVE',
+  medio: 'MÉDIO',
+  brutal: 'BRUTAL',
 };
 
 function daysAgo(iso: string): number {
