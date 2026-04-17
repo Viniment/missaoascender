@@ -558,7 +558,16 @@ export function useGameStore() {
         ...prev,
         ...prog,
         missions: prev.missions.map(m =>
-          m.id === id ? { ...m, status: 'Falhada' as const, startedAt: null } : m
+          m.id === id ? (m.repeatable
+            ? {
+                ...m,
+                startedAt: null,
+                executedHours: 0,
+                currentCount: m.missionType === 'Contagem' ? 0 : m.currentCount,
+                completionHistory: [...(m.completionHistory || []), { date: now.toISOString(), xp: penaltyXp, gold: 0, failed: true }],
+              }
+            : { ...m, status: 'Falhada' as const, startedAt: null }
+          ) : m
         ),
         failureProtocols: [...prev.failureProtocols, {
           id: crypto.randomUUID(),
