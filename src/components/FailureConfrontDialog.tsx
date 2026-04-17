@@ -166,19 +166,18 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
   }, [open, trigger, itemName]);
 
   if (!trigger) return null;
-  const styles = durezaStyles[dureza];
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className={`bg-card ${styles.border} ${styles.glow} max-w-md`}>
+      <DialogContent className="bg-card border-destructive shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)] w-[calc(100vw-2rem)] max-w-md sm:max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-6">
-            <DialogTitle className="font-display text-destructive flex items-center gap-2 text-base">
-              <Skull className="w-5 h-5" />
-              PROTOCOLO DE CONFRONTO
+            <DialogTitle className="font-display text-destructive flex items-center gap-2 text-sm sm:text-base">
+              <Skull className="w-5 h-5 shrink-0" />
+              <span className="truncate">PROTOCOLO DE CONFRONTO</span>
             </DialogTitle>
-            <span className={`text-[10px] font-display px-2 py-0.5 rounded border ${styles.badge}`}>
-              {styles.label}
+            <span className="text-[10px] font-display px-2 py-0.5 rounded border bg-destructive text-destructive-foreground border-destructive shrink-0">
+              {durezaLabel[dureza]}
             </span>
           </div>
         </DialogHeader>
@@ -188,22 +187,22 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
             <span className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">
               {triggerLabel[trigger]}
             </span>
-            <span className="text-sm font-display text-foreground truncate">{itemName}</span>
+            <span className="text-sm font-display text-foreground break-words min-w-0 flex-1">{itemName}</span>
             {typeof xpLost === 'number' && xpLost !== 0 && (
-              <span className="ml-auto inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">
                 ⚡ {xpLost} XP
               </span>
             )}
           </div>
 
-          <div className={`rpg-panel p-4 ${styles.border}`}>
+          <div className="rpg-panel p-3 sm:p-4 border-destructive">
             {loading ? (
               <div className="flex items-center gap-2 text-muted-foreground text-sm py-4">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Analisando seu padrão de falha…
               </div>
             ) : (
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
+              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line break-words">
                 {message}
               </p>
             )}
