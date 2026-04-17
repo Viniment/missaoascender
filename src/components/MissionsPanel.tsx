@@ -223,6 +223,13 @@ export default function MissionsPanel() {
     .flatMap(m => (m.completionHistory || []).map(h => ({ ...h, missionName: m.name, missionId: m.id, difficulty: m.difficulty, missionType: m.missionType })));
 
   const filterDays: Record<string, number | null> = { '7d': 7, '15d': 15, '30d': 30, 'all': null };
+  const filterByDays = (m: Mission) => {
+    const days = filterDays[completedFilter];
+    if (days === null) return true;
+    if (!m.completedAt) return false;
+    const diff = (Date.now() - new Date(m.completedAt).getTime()) / 86400000;
+    return diff <= days;
+  };
   const completed = allCompleted.filter(m => {
     const days = filterDays[completedFilter];
     if (days === null) return true;
@@ -386,7 +393,7 @@ export default function MissionsPanel() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Histórico ({completed.length + filteredHistory.length})</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Histórico</h3>
           <Select value={completedFilter} onValueChange={(v) => setCompletedFilter(v as typeof completedFilter)}>
             <SelectTrigger className="h-7 w-[110px] text-xs bg-secondary border-border">
               <SelectValue />
@@ -403,8 +410,14 @@ export default function MissionsPanel() {
           type HistoryItem =
             | { kind: 'mission'; date: number; mission: Mission }
             | { kind: 'history'; date: number; entry: typeof filteredHistory[number] };
+          const filteredFailed = failed.filter(filterByDays);
           const items: HistoryItem[] = [
             ...completed.map(m => ({
+              kind: 'mission' as const,
+              date: m.completedAt ? new Date(m.completedAt).getTime() : 0,
+              mission: m,
+            })),
+            ...filteredFailed.map(m => ({
               kind: 'mission' as const,
               date: m.completedAt ? new Date(m.completedAt).getTime() : 0,
               mission: m,
@@ -464,14 +477,7 @@ export default function MissionsPanel() {
         })()}
       </div>
 
-      {failed.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-xs text-destructive uppercase tracking-wider">Falhadas</h3>
-          {failed.slice(0, 5).map(m => (
-            <MissionCard key={m.id} mission={m} today={today} />
-          ))}
-        </div>
-      )}
+
 
       {/* Finish Time Mission Dialog */}
       <Dialog open={!!finishDialog} onOpenChange={() => setFinishDialog(null)}>

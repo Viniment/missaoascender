@@ -566,7 +566,7 @@ export function useGameStore() {
                 currentCount: m.missionType === 'Contagem' ? 0 : m.currentCount,
                 completionHistory: [...(m.completionHistory || []), { date: now.toISOString(), xp: penaltyXp, gold: 0, failed: true }],
               }
-            : { ...m, status: 'Falhada' as const, startedAt: null }
+            : { ...m, status: 'Falhada' as const, startedAt: null, completedAt: now.toISOString() }
           ) : m
         ),
         failureProtocols: [...prev.failureProtocols, {
