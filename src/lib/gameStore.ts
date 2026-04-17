@@ -31,7 +31,7 @@ export interface Mission {
   goldEarned?: number;
   completedAt?: string;
   repeatable?: boolean;
-  completionHistory?: { date: string; xp: number; gold: number; executedHours?: number }[];
+  completionHistory?: { date: string; xp: number; gold: number; executedHours?: number; failed?: boolean }[];
 }
 
 export interface Habit {
