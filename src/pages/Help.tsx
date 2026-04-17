@@ -465,7 +465,42 @@ export default function Help() {
                   </summary>
 
                   <div className="mt-4 space-y-4 pl-2 sm:pl-12">
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
+                    {typeof section.content === 'string' ? (
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {section.content.map((block, i) => {
+                          if (block.type === 'p') {
+                            return (
+                              <p key={i} className="text-sm text-muted-foreground leading-relaxed">
+                                {block.text}
+                              </p>
+                            );
+                          }
+                          if (block.type === 'subtitle') {
+                            return (
+                              <h5 key={i} className="font-display text-sm text-foreground pt-1 flex items-center gap-2">
+                                {block.emoji && <span>{block.emoji}</span>}
+                                <span>{block.text}</span>
+                              </h5>
+                            );
+                          }
+                          return (
+                            <ul key={i} className="space-y-2">
+                              {block.items.map((it, j) => (
+                                <li key={j} className="text-xs text-muted-foreground flex items-start gap-2.5 leading-relaxed">
+                                  <span className="text-base leading-none mt-0.5 flex-shrink-0">{it.emoji}</span>
+                                  <span>
+                                    <span className="font-display text-foreground">{it.label}</span>
+                                    <span className="text-muted-foreground"> — {it.desc}</span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     <div>
                       <h4 className="text-xs font-display text-success mb-2">✦ BENEFÍCIOS</h4>
