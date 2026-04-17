@@ -155,6 +155,7 @@ export interface PlayerState {
   visionLastViewedDate: string | null;
   theme: string;
   difficultyDivisor: number;
+  confrontationHistory?: { date: string; trigger: 'mission' | 'habit' | 'protocol_expired'; itemName: string; message: string; dureza: 'leve' | 'medio' | 'brutal' }[];
   _penaltyCompensated?: boolean;
 }
 

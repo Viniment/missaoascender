@@ -117,7 +117,7 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5)
       .map(j => {
-        const txt = (j.content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const txt = (j.text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
         return txt;
       })
       .filter(Boolean);
