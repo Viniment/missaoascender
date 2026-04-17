@@ -274,11 +274,11 @@ export const defaultState: PlayerState = {
 export function normalizePlayerStateForToday(state: PlayerState): PlayerState {
   const today = getTodayBrasilia();
 
-  // Backfill completedAt for missions completed before the update
+  // Backfill completedAt for missions completed or failed before the update
   if (state.missions) {
     const yesterday = new Date(Date.now() - 86400000).toISOString();
     state.missions = state.missions.map(m =>
-      m.status === 'Concluída' && !m.completedAt
+      (m.status === 'Concluída' || m.status === 'Falhada') && !m.completedAt
         ? { ...m, completedAt: yesterday }
         : m
     );
