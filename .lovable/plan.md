@@ -1,38 +1,27 @@
 
 
-## Problema
-A seção **Afirmações** está com texto longo embolado num único parágrafo (linha 224–236). Como o renderer usa `whitespace-pre-line` num `<p>` único, fica visualmente denso e difícil de escanear no mobile.
+## Entendimento
+Hoje o "Histórico" mostra:
+- ✅ Missões não-repetíveis **concluídas** (`status === 'Concluída'`)
+- ✅/💀 Entradas do `completionHistory` de missões **repetíveis** (concluídas e falhadas)
 
-## Solução
-Permitir que `content` seja um **array de blocos estruturados** (parágrafos, títulos pequenos, listas com ícone) — sem refatorar todas as seções, mantendo retrocompatibilidade com `string`.
+Mas missões não-repetíveis com `status === 'Falhada'` aparecem em uma seção separada **"Falhadas"** abaixo, sem ordenação cronológica junto com as outras.
 
-### Mudanças em `src/pages/Help.tsx`
+## Mudança em `src/components/MissionsPanel.tsx`
 
-**1. Estender o tipo `Section`:**
-```ts
-type ContentBlock =
-  | { type: 'p'; text: string }
-  | { type: 'subtitle'; emoji?: string; text: string }
-  | { type: 'list'; items: { emoji: string; label: string; desc: string }[] };
+1. **Incluir falhadas não-repetíveis no histórico unificado** (linhas ~402-417): adicionar `...failed.map(...)` ao array `items`, usando `m.failedAt` (ou `m.completedAt` como fallback) para ordenar.
 
-content: string | ContentBlock[];
-```
+2. **Renderizar `MissionCard` de falhada** dentro do loop como já é feito para concluídas (linha 425) — o `MissionCard` já lida com o estilo de status `Falhada`.
 
-**2. No render (linha 447):** detectar se `content` é string (manter `<p>` atual) ou array (renderizar bloco a bloco com espaçamento `space-y-3`, subtítulos em `font-display text-foreground`, listas com ícone destacado + descrição menor).
+3. **Aplicar o filtro de período** (`completedFilter`) também sobre as falhadas, igual já é feito para `completed`.
 
-**3. Reescrever `content` da seção Afirmações** como array bem formatado:
+4. **Remover a seção separada "Falhadas"** (linhas 467-474) — agora tudo vive no histórico unificado, ordenado por data desc.
 
-- **Parágrafo de abertura** — texto curto, claro
-- **Subtítulo "🎛️ Modos de Geração com IA"** + lista 3 itens (Despertar / Noturna / Fraqueza) com emoji destacado, nome em negrito e descrição
-- **Subtítulo "✍️ Criar Manualmente"** + parágrafo curto sobre o botão Criar
-- **Subtítulo "▶️ Slideshow"** + parágrafo sobre meditação com favoritas
-- **Subtítulo "🎯 Ações em cada Afirmação"** + lista compacta dos botões (favoritar/editar/excluir/expandir/regenerar)
-- **Subtítulo "🤖 Como a IA Personaliza"** + parágrafo explicando contexto (Despertar Inicial, diário, emoção, streak, rank, histórico)
+5. **Atualizar contador** do header: `Histórico ({items.length})` em vez de `completed.length + filteredHistory.length`.
 
-**4. Melhorar texto** — frases mais curtas, diretas, tom motivacional do app, sem repetições.
+## Verificação necessária
+Confirmar no `gameStore.ts` se missões não-repetíveis falhadas têm um campo de timestamp (`failedAt`, `completedAt` ou similar) — se não houver, usar `completedAt` que é setado em ambos os casos, ou adicionar fallback robusto.
 
-**5. Atualizar `benefits` e `tips`** levemente para ficarem mais punchy (5 itens cada, frases de até 70 chars).
-
-### Resultado
-Seção Afirmações fica visualmente respirável: blocos separados, hierarquia clara (subtítulo → conteúdo), fácil de escanear no mobile (753px). Outras seções continuam funcionando sem mudança.
+## Resultado
+Histórico unificado com missões concluídas e falhadas (repetíveis e não-repetíveis) ordenadas por data desc — falha registrada agora aparece por último (no topo); conclusão posterior aparece acima dela.
 
