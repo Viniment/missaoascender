@@ -223,6 +223,13 @@ export default function MissionsPanel() {
     .flatMap(m => (m.completionHistory || []).map(h => ({ ...h, missionName: m.name, missionId: m.id, difficulty: m.difficulty, missionType: m.missionType })));
 
   const filterDays: Record<string, number | null> = { '7d': 7, '15d': 15, '30d': 30, 'all': null };
+  const filterByDays = (m: Mission) => {
+    const days = filterDays[completedFilter];
+    if (days === null) return true;
+    if (!m.completedAt) return false;
+    const diff = (Date.now() - new Date(m.completedAt).getTime()) / 86400000;
+    return diff <= days;
+  };
   const completed = allCompleted.filter(m => {
     const days = filterDays[completedFilter];
     if (days === null) return true;
