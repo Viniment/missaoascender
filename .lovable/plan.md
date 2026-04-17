@@ -1,27 +1,25 @@
 
 
-## Entendimento
-Hoje o "Histórico" mostra:
-- ✅ Missões não-repetíveis **concluídas** (`status === 'Concluída'`)
-- ✅/💀 Entradas do `completionHistory` de missões **repetíveis** (concluídas e falhadas)
+## Objetivo
+No Histórico, toda missão **falhada** (repetível ou não) deve renderizar com o **mesmo card compacto** mostrado no print: ícone `Repeat` vermelho, nome riscado, data/hora, badges `⚡ -X XP` e `💀 FALHADA`. As **concluídas** continuam com `MissionCard` normal.
 
-Mas missões não-repetíveis com `status === 'Falhada'` aparecem em uma seção separada **"Falhadas"** abaixo, sem ordenação cronológica junto com as outras.
+## Mudança em `src/components/MissionsPanel.tsx` (loop do histórico, ~linhas 439-479)
 
-## Mudança em `src/components/MissionsPanel.tsx`
+1. **Detectar falha em qualquer item**: tratar `item.kind === 'mission'` com `mission.status === 'Falhada'` igual ao bloco atual de `kind === 'history'` com `isFail = true`.
 
-1. **Incluir falhadas não-repetíveis no histórico unificado** (linhas ~402-417): adicionar `...failed.map(...)` ao array `items`, usando `m.failedAt` (ou `m.completedAt` como fallback) para ordenar.
+2. **Extrair JSX do card de falha em um helper inline** (ou bloco compartilhado) que recebe: `name`, `date`, `xp` (negativo), e renderiza exatamente o layout da imagem:
+   - `rpg-panel p-3 space-y-2 opacity-60 border-destructive/30`
+   - `Repeat` vermelho + nome com `line-through text-destructive`
+   - data/hora `pt-BR`
+   - badges `⚡ {xp} XP` e `💀 FALHADA` (vermelhos)
 
-2. **Renderizar `MissionCard` de falhada** dentro do loop como já é feito para concluídas (linha 425) — o `MissionCard` já lida com o estilo de status `Falhada`.
+3. **Branching novo no `items.map`**:
+   - Se `kind === 'mission'` e `mission.status === 'Concluída'` → `<MissionCard />` (igual hoje)
+   - Se `kind === 'mission'` e `mission.status === 'Falhada'` → renderizar o **mesmo card compacto vermelho** usando `mission.name`, `mission.completedAt`, `mission.xp` (multiplicado por -1 ou usar a penalidade real se houver no objeto)
+   - Se `kind === 'history'` → continua exatamente igual
 
-3. **Aplicar o filtro de período** (`completedFilter`) também sobre as falhadas, igual já é feito para `completed`.
-
-4. **Remover a seção separada "Falhadas"** (linhas 467-474) — agora tudo vive no histórico unificado, ordenado por data desc.
-
-5. **Atualizar contador** do header: `Histórico ({items.length})` em vez de `completed.length + filteredHistory.length`.
-
-## Verificação necessária
-Confirmar no `gameStore.ts` se missões não-repetíveis falhadas têm um campo de timestamp (`failedAt`, `completedAt` ou similar) — se não houver, usar `completedAt` que é setado em ambos os casos, ou adicionar fallback robusto.
+4. **XP da falha não-repetível**: usar `-mission.xp` (mesma convenção do histórico repetível, que armazena `h.xp` já negativo). Verificar rapidamente em `gameStore.ts > failMission` qual valor é descontado pra mostrar o número correto.
 
 ## Resultado
-Histórico unificado com missões concluídas e falhadas (repetíveis e não-repetíveis) ordenadas por data desc — falha registrada agora aparece por último (no topo); conclusão posterior aparece acima dela.
+Histórico 100% visualmente consistente para falhas: o card vermelho compacto da imagem vira o **único estilo** de missão falhada, eliminando a diferença visual entre repetível e não-repetível. Concluídas mantêm o card cheio atual.
 
