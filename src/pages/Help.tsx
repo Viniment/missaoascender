@@ -6,11 +6,16 @@ import {
   Palette, SlidersHorizontal, Wand2,
 } from 'lucide-react';
 
+type ContentBlock =
+  | { type: 'p'; text: string }
+  | { type: 'subtitle'; emoji?: string; text: string }
+  | { type: 'list'; items: { emoji: string; label: string; desc: string }[] };
+
 type Section = {
   icon: any;
   title: string;
   color: string;
-  content: string;
+  content: string | ContentBlock[];
   benefits: string[];
   tips?: string[];
 };
