@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
 import RichEditor from '@/components/RichEditor';
 import RewardPopup from '@/components/RewardPopup';
+import FailureConfrontDialog from '@/components/FailureConfrontDialog';
 import { toast } from 'sonner';
 
 const CATEGORIES: MissionCategory[] = ['Estudo', 'Trabalho', 'Treino', 'Leitura', 'Espiritual', 'Social', 'Saúde', 'Mental', 'Financeiro', 'Criatividade'];
@@ -60,6 +61,8 @@ export default function MissionsPanel() {
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+  // Confront dialog (failure)
+  const [confront, setConfront] = useState<{ open: boolean; itemName: string; xpLost: number }>({ open: false, itemName: '', xpLost: 0 });
 
   // Edit mission dialog
   const [editDialog, setEditDialog] = useState<Mission | null>(null);
@@ -207,7 +210,7 @@ export default function MissionsPanel() {
     const baseXp = XP_PER_HOUR[mission.difficulty];
     const penaltyXp = -(baseXp * 2);
     failMission(id);
-    setRewardPopup({ open: true, xp: penaltyXp, gold: 0, title: '💀 MISSÃO FALHADA' });
+    setConfront({ open: true, itemName: mission.name, xpLost: penaltyXp });
   };
 
   const today = getTodayBrasilia();
@@ -601,6 +604,13 @@ export default function MissionsPanel() {
         xp={rewardPopup.xp}
         gold={rewardPopup.gold}
         title={rewardPopup.title}
+      />
+      <FailureConfrontDialog
+        open={confront.open}
+        onClose={() => setConfront(p => ({ ...p, open: false }))}
+        trigger="mission"
+        itemName={confront.itemName}
+        xpLost={confront.xpLost}
       />
     </div>
   );

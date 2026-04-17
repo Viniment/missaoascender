@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
 import RichEditor from '@/components/RichEditor';
 import RewardPopup from '@/components/RewardPopup';
+import FailureConfrontDialog from '@/components/FailureConfrontDialog';
 import { toast } from 'sonner';
 
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
@@ -35,6 +36,8 @@ export default function HabitsPanel() {
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+  // Confront dialog (failure)
+  const [confront, setConfront] = useState<{ open: boolean; itemName: string; xpLost: number }>({ open: false, itemName: '', xpLost: 0 });
   // Edit habit dialog
   const [editDialog, setEditDialog] = useState<typeof state.habits[number] | null>(null);
   const [editName, setEditName] = useState('');
@@ -101,7 +104,7 @@ export default function HabitsPanel() {
     if (status === 'done') {
       setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '✨ HÁBITO CONCLUÍDO' });
     } else {
-      setRewardPopup({ open: true, xp: -(baseXp * 2), gold: 0, title: '💀 HÁBITO FALHADO' });
+      setConfront({ open: true, itemName: habitName, xpLost: -(baseXp * 2) });
     }
   };
 
@@ -250,6 +253,13 @@ export default function HabitsPanel() {
         xp={rewardPopup.xp}
         gold={rewardPopup.gold}
         title={rewardPopup.title}
+      />
+      <FailureConfrontDialog
+        open={confront.open}
+        onClose={() => setConfront(p => ({ ...p, open: false }))}
+        trigger="habit"
+        itemName={confront.itemName}
+        xpLost={confront.xpLost}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { FailurePenaltyType } from '@/lib/gameStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import FailureConfrontDialog from '@/components/FailureConfrontDialog';
 
 const PENALTY_TYPES: FailurePenaltyType[] = ['Exercício', 'Meditação', 'Reflexão', 'Outro'];
 
@@ -30,12 +31,37 @@ export default function FailureProtocolAlert() {
     return () => clearInterval(interval);
   }, [pending.length]);
 
-  // Check expired on mount and each tick
-  useEffect(() => {
-    checkExpiredProtocols();
-  }, [checkExpiredProtocols]);
+  // Track which expired protocols already triggered the confront dialog
+  const confrontedRef = useRef<Set<string>>(new Set());
+  const [confront, setConfront] = useState<{ open: boolean; itemName: string }>({ open: false, itemName: '' });
+  const prevPendingIdsRef = useRef<Set<string>>(new Set(pending.map(p => p.id)));
 
-  if (pending.length === 0) return null;
+  // Detect newly expired protocols (transitioned from Pendente -> Concluído via timeout)
+  useEffect(() => {
+    const now = Date.now();
+    // Find protocols that just expired (were pending, deadline now passed)
+    pending.forEach(fp => {
+      if (new Date(fp.deadline).getTime() <= now && !confrontedRef.current.has(fp.id)) {
+        confrontedRef.current.add(fp.id);
+        setConfront({ open: true, itemName: fp.reason });
+      }
+    });
+    // Apply expirations to state
+    checkExpiredProtocols();
+    prevPendingIdsRef.current = new Set(pending.map(p => p.id));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending.length, checkExpiredProtocols]);
+
+  if (pending.length === 0) {
+    return (
+      <FailureConfrontDialog
+        open={confront.open}
+        onClose={() => setConfront(p => ({ ...p, open: false }))}
+        trigger="protocol_expired"
+        itemName={confront.itemName}
+      />
+    );
+  }
 
   const now = Date.now();
 
@@ -131,6 +157,13 @@ export default function FailureProtocolAlert() {
           );
         })}
       </AnimatePresence>
+
+      <FailureConfrontDialog
+        open={confront.open}
+        onClose={() => setConfront(p => ({ ...p, open: false }))}
+        trigger="protocol_expired"
+        itemName={confront.itemName}
+      />
     </div>
   );
 }
