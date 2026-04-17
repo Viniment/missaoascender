@@ -1,25 +1,34 @@
 
 
-## Objetivo
-No Histórico, toda missão **falhada** (repetível ou não) deve renderizar com o **mesmo card compacto** mostrado no print: ícone `Repeat` vermelho, nome riscado, data/hora, badges `⚡ -X XP` e `💀 FALHADA`. As **concluídas** continuam com `MissionCard` normal.
+## Entendimento
+O usuário relatou que as "afirmações" geradas na aba Afirmações soam como **conselhos** ("Você precisa...", "Lembre-se de...") em vez de **afirmações positivas em primeira pessoa** prontas para repetir ("Eu sou...", "Eu escolho...").
 
-## Mudança em `src/components/MissionsPanel.tsx` (loop do histórico, ~linhas 439-479)
+## Causa raiz
+No `supabase/functions/affirmations/index.ts`, o `SYSTEM_PROMPT` atual:
+- Diz "primeira pessoa OU segunda pessoa direta" → permite "Você..."
+- Permite tom "confrontador, sem rodeios" no modo fraqueza → vira conselho/cobrança
+- Diz "máximo 2 frases" → afirmação ideal é 1 frase curta
+- Não exige formato declarativo de identidade ("Eu sou", "Eu tenho", "Eu escolho")
 
-1. **Detectar falha em qualquer item**: tratar `item.kind === 'mission'` com `mission.status === 'Falhada'` igual ao bloco atual de `kind === 'history'` com `isFail = true`.
+Resultado: a IA gera conselhos disfarçados em vez de afirmações repetíveis.
 
-2. **Extrair JSX do card de falha em um helper inline** (ou bloco compartilhado) que recebe: `name`, `date`, `xp` (negativo), e renderiza exatamente o layout da imagem:
-   - `rpg-panel p-3 space-y-2 opacity-60 border-destructive/30`
-   - `Repeat` vermelho + nome com `line-through text-destructive`
-   - data/hora `pt-BR`
-   - badges `⚡ {xp} XP` e `💀 FALHADA` (vermelhos)
+## Mudança proposta
 
-3. **Branching novo no `items.map`**:
-   - Se `kind === 'mission'` e `mission.status === 'Concluída'` → `<MissionCard />` (igual hoje)
-   - Se `kind === 'mission'` e `mission.status === 'Falhada'` → renderizar o **mesmo card compacto vermelho** usando `mission.name`, `mission.completedAt`, `mission.xp` (multiplicado por -1 ou usar a penalidade real se houver no objeto)
-   - Se `kind === 'history'` → continua exatamente igual
+**Arquivo único:** `supabase/functions/affirmations/index.ts` — reescrever o `SYSTEM_PROMPT`.
 
-4. **XP da falha não-repetível**: usar `-mission.xp` (mesma convenção do histórico repetível, que armazena `h.xp` já negativo). Verificar rapidamente em `gameStore.ts > failMission` qual valor é descontado pra mostrar o número correto.
+Novas regras do prompt:
+1. **SEMPRE primeira pessoa** ("Eu...") — proibido "Você...", "Lembre-se", "Tente", "Precisa"
+2. **Formato declarativo de identidade**: começar com "Eu sou", "Eu tenho", "Eu escolho", "Eu mereço", "Eu construo", "Em mim..." etc.
+3. **1 frase só**, curta (máx ~15 palavras), pronta para o usuário ler em voz alta e repetir
+4. **Tempo presente** (nunca futuro tipo "vou conseguir")
+5. **Sem negação** ("Eu não sou fraco" → vira "Eu sou forte")
+6. **Adapta o conteúdo** aos modos (despertar/noturna/fraqueza) e ao contexto (awakening, diário, rank, streak), mas **mantém o formato de afirmação** — modo fraqueza vira afirmação de identidade resgatada, não confronto
+7. Continua em PT-BR, sem repetir histórico
+
+Adicionar 3-4 exemplos few-shot no prompt mostrando bom vs ruim:
+- ❌ "Você precisa parar de procrastinar agora." 
+- ✅ "Eu ajo no instante em que reconheço o que importa."
 
 ## Resultado
-Histórico 100% visualmente consistente para falhas: o card vermelho compacto da imagem vira o **único estilo** de missão falhada, eliminando a diferença visual entre repetível e não-repetível. Concluídas mantêm o card cheio atual.
+A aba Afirmações passa a entregar frases curtas, em primeira pessoa, declarativas — verdadeiras afirmações para repetir como mantra, não conselhos.
 
