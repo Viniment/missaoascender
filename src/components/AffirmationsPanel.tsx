@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Sun, Moon, Zap, Heart, Maximize2, Minimize2, RefreshCw, Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
+import { Flame, Sparkles, Heart, Maximize2, Minimize2, RefreshCw, Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -25,7 +25,6 @@ export default function AffirmationsPanel() {
   const [animating, setAnimating] = useState(false);
   const [displayedWords, setDisplayedWords] = useState<string[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
-  const [weaknessMode, setWeaknessMode] = useState(false);
 
   // CRUD states
   const [showCreate, setShowCreate] = useState(false);
@@ -163,12 +162,6 @@ export default function AffirmationsPanel() {
     }
   }, [createText, setState]);
 
-  const enterWeaknessMode = useCallback(() => {
-    setWeaknessMode(true);
-    setFullscreen(true);
-    generateAffirmation('fraqueza');
-  }, [generateAffirmation]);
-
   // Slideshow
   const slideshowItems = favorites;
   const openSlideshow = () => {
@@ -252,26 +245,17 @@ export default function AffirmationsPanel() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`fixed inset-0 z-[100] flex flex-col items-center justify-center p-8 ${
-            weaknessMode ? 'bg-black' : 'bg-background/95 backdrop-blur-xl'
-          }`}
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-8 bg-background/95 backdrop-blur-xl"
         >
           <button
-            onClick={() => { setFullscreen(false); setWeaknessMode(false); }}
+            onClick={() => setFullscreen(false)}
             className="absolute top-6 right-6 text-foreground/50 hover:text-foreground transition-colors"
           >
             <Minimize2 className="w-6 h-6" />
           </button>
 
           <div className="max-w-2xl text-center space-y-8">
-            {weaknessMode && (
-              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2 justify-center">
-                <Zap className="w-5 h-5 text-red-400" />
-                <span className="text-red-400 text-sm font-display uppercase tracking-widest">Momento de Fraqueza</span>
-              </motion.div>
-            )}
-
-            <div className={`text-2xl md:text-4xl font-display leading-relaxed ${weaknessMode ? 'text-red-100' : 'text-foreground'}`}>
+            <div className="text-2xl md:text-4xl font-display leading-relaxed text-foreground">
               {loading ? (
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
               ) : (
@@ -288,11 +272,6 @@ export default function AffirmationsPanel() {
                 <Button variant="ghost" size="sm" onClick={() => generateAffirmation(currentMode)} className="text-foreground/50 hover:text-foreground">
                   <RefreshCw className="w-4 h-4 mr-2" /> Nova
                 </Button>
-                {weaknessMode && (
-                  <Button variant="ghost" size="sm" onClick={() => { setWeaknessMode(false); setFullscreen(false); }} className="text-foreground/50 hover:text-foreground">
-                    Sair do modo
-                  </Button>
-                )}
               </motion.div>
             )}
           </div>
@@ -411,45 +390,24 @@ export default function AffirmationsPanel() {
         </motion.div>
       )}
 
-      {/* Mode buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <button
-          onClick={() => generateAffirmation('despertar')}
-          disabled={loading}
-          className="rpg-panel glow-purple flex flex-col items-center gap-2 py-4 hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          <Sun className="w-6 h-6 text-yellow-400" />
-          <span className="text-sm font-semibold text-foreground">Despertar</span>
-          <span className="text-xs text-foreground/60">Afirmação matinal</span>
-        </button>
-
-        <button
-          onClick={() => generateAffirmation('noturna')}
-          disabled={loading}
-          className="rpg-panel glow-purple flex flex-col items-center gap-2 py-4 hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          <Moon className="w-6 h-6 text-blue-400" />
-          <span className="text-sm font-semibold text-foreground">Noturna</span>
-          <span className="text-xs text-foreground/60">Reflexão do dia</span>
-        </button>
-
-        <button
-          onClick={enterWeaknessMode}
-          disabled={loading}
-          className="rpg-panel border-red-500/30 flex flex-col items-center gap-2 py-4 hover:bg-red-500/5 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          <Zap className="w-6 h-6 text-red-400" />
-          <span className="text-sm font-semibold text-foreground">Fraqueza</span>
-          <span className="text-xs text-foreground/60">Modo confronto</span>
-        </button>
-      </div>
+      {/* Generate button */}
+      <button
+        onClick={() => generateAffirmation('despertar')}
+        disabled={loading}
+        className="rpg-panel glow-purple w-full flex items-center justify-center gap-3 py-5 hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-50"
+      >
+        <Sparkles className={`w-6 h-6 text-primary ${loading ? 'animate-pulse' : ''}`} />
+        <span className="text-base font-display text-foreground uppercase tracking-wider">
+          {loading ? 'Gerando...' : 'Gerar Afirmação IA'}
+        </span>
+      </button>
 
       {/* Current affirmation */}
       {(currentText || loading) && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel glow-purple-strong relative">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs text-primary font-display uppercase tracking-wider">
-              {currentMode === 'despertar' ? '🌅 Despertar' : currentMode === 'noturna' ? '🌙 Noturna' : '⚡ Fraqueza'}
+              ✨ Afirmação
             </span>
             <div className="flex items-center gap-1">
               <Button size="icon" variant="ghost" className="h-7 w-7 text-foreground/50 hover:text-foreground" onClick={() => setFullscreen(true)}>
