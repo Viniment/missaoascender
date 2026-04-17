@@ -6,11 +6,16 @@ import {
   Palette, SlidersHorizontal, Wand2,
 } from 'lucide-react';
 
+type ContentBlock =
+  | { type: 'p'; text: string }
+  | { type: 'subtitle'; emoji?: string; text: string }
+  | { type: 'list'; items: { emoji: string; label: string; desc: string }[] };
+
 type Section = {
   icon: any;
   title: string;
   color: string;
-  content: string;
+  content: string | ContentBlock[];
   benefits: string[];
   tips?: string[];
 };
@@ -221,30 +226,46 @@ const groups: Group[] = [
         icon: Flame,
         title: 'Afirmações',
         color: 'text-gold',
-        content: `Frases poderosas que reprogramam sua identidade. Você pode criar afirmações manualmente ou gerá-las com IA personalizada para o seu momento.
+        content: [
+          { type: 'p', text: 'Frases poderosas que reprogramam sua identidade. Crie manualmente ou gere com IA personalizada para o seu momento.' },
 
-🎛️ MODOS DE GERAÇÃO IA (3 botões):
-• 🌅 Despertar — afirmação matinal energizante, baseada no seu Despertar Inicial e nos hábitos que você está construindo. Ideal pra começar o dia em estado de poder.
-• 🌙 Noturna — reflexão calma de fechamento do dia, baseada no seu último diário. Ideal pra dormir reconciliado com o que viveu.
-• ⚡ Fraqueza — modo CONFRONTO em fullscreen para momentos de recaída ou impulso forte. Frase direta, dura e despertadora — feita pra te tirar do automático.
+          { type: 'subtitle', emoji: '🎛️', text: 'Modos de Geração com IA' },
+          { type: 'list', items: [
+            { emoji: '🌅', label: 'Despertar', desc: 'Afirmação matinal energizante. Usa seu Despertar Inicial e hábitos pra começar o dia em estado de poder.' },
+            { emoji: '🌙', label: 'Noturna', desc: 'Reflexão calma de fechamento. Baseada no seu último diário — ideal pra dormir reconciliado.' },
+            { emoji: '⚡', label: 'Fraqueza', desc: 'Modo CONFRONTO em fullscreen. Frase dura e despertadora pra momentos de recaída ou impulso forte.' },
+          ]},
 
-✍️ Botão Criar — escreve afirmação manual; já entra favoritada automaticamente.
-▶️ Botão Slideshow — apresenta suas favoritas em fullscreen para meditação/foco.
+          { type: 'subtitle', emoji: '✍️', text: 'Criar Manualmente' },
+          { type: 'p', text: 'O botão Criar abre um campo livre pra escrever sua própria afirmação. Já entra favoritada automaticamente.' },
 
-🎯 AÇÕES POR AFIRMAÇÃO: favoritar (❤️), editar (✏️), excluir (🗑️), expandir em fullscreen (⛶) e regenerar com IA (🔄).
+          { type: 'subtitle', emoji: '▶️', text: 'Slideshow' },
+          { type: 'p', text: 'Apresenta suas afirmações favoritas em fullscreen, uma após a outra. Perfeito pra meditação, foco ou ritual matinal.' },
 
-🤖 COMO A IA PERSONALIZA: usa seu Despertar Inicial, último diário, emoção registrada, streak de hábitos, rank atual e o histórico das últimas 5 afirmações geradas — para evitar repetição e gerar algo que faz sentido pra você AGORA.`,
+          { type: 'subtitle', emoji: '🎯', text: 'Ações em cada Afirmação' },
+          { type: 'list', items: [
+            { emoji: '❤️', label: 'Favoritar', desc: 'Marca para aparecer no Slideshow.' },
+            { emoji: '✏️', label: 'Editar', desc: 'Ajusta o texto da afirmação.' },
+            { emoji: '🗑️', label: 'Excluir', desc: 'Remove permanentemente.' },
+            { emoji: '⛶', label: 'Expandir', desc: 'Abre em fullscreen pra leitura focada.' },
+            { emoji: '🔄', label: 'Regenerar', desc: 'Gera nova versão com IA mantendo o tema.' },
+          ]},
+
+          { type: 'subtitle', emoji: '🤖', text: 'Como a IA Personaliza' },
+          { type: 'p', text: 'A IA usa seu Despertar Inicial, último diário, emoção registrada, streak de hábitos, rank atual e o histórico das últimas 5 afirmações — pra evitar repetição e gerar algo que faz sentido pra você AGORA.' },
+        ],
         benefits: [
-          'Reprograma crenças limitantes no nível subconsciente',
+          'Reprograma crenças limitantes no subconsciente',
           'Fortalece a identidade que você quer construir',
-          'Modo Fraqueza funciona como ferramenta anti-impulso em momentos críticos',
-          'IA personaliza com base no seu contexto real, não frases genéricas',
+          'Modo Fraqueza vira anti-impulso em momentos críticos',
+          'IA personaliza com seu contexto real, não frases genéricas',
+          'Slideshow vira ritual diário de foco',
         ],
         tips: [
           'Use o presente: "Eu SOU", não "Eu vou ser"',
-          'Comece o dia com Despertar e termine com Noturna',
-          'Quando bater impulso forte, abra o modo ⚡ Fraqueza ANTES de ceder',
-          'Favorite as que mais ressoam — vão aparecer no Slideshow',
+          'Comece o dia com Despertar, termine com Noturna',
+          'Bateu impulso forte? Abra ⚡ Fraqueza ANTES de ceder',
+          'Favorite as que mais ressoam — vão pro Slideshow',
           'Ative em: Configurações → Interface → Afirmações',
         ],
       },
@@ -444,7 +465,42 @@ export default function Help() {
                   </summary>
 
                   <div className="mt-4 space-y-4 pl-2 sm:pl-12">
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
+                    {typeof section.content === 'string' ? (
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{section.content}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {section.content.map((block, i) => {
+                          if (block.type === 'p') {
+                            return (
+                              <p key={i} className="text-sm text-muted-foreground leading-relaxed">
+                                {block.text}
+                              </p>
+                            );
+                          }
+                          if (block.type === 'subtitle') {
+                            return (
+                              <h5 key={i} className="font-display text-sm text-foreground pt-1 flex items-center gap-2">
+                                {block.emoji && <span>{block.emoji}</span>}
+                                <span>{block.text}</span>
+                              </h5>
+                            );
+                          }
+                          return (
+                            <ul key={i} className="space-y-2">
+                              {block.items.map((it, j) => (
+                                <li key={j} className="text-xs text-muted-foreground flex items-start gap-2.5 leading-relaxed">
+                                  <span className="text-base leading-none mt-0.5 flex-shrink-0">{it.emoji}</span>
+                                  <span>
+                                    <span className="font-display text-foreground">{it.label}</span>
+                                    <span className="text-muted-foreground"> — {it.desc}</span>
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     <div>
                       <h4 className="text-xs font-display text-success mb-2">✦ BENEFÍCIOS</h4>
