@@ -386,7 +386,7 @@ export default function MissionsPanel() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Concluídas ({completed.length + filteredHistory.length})</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider">Histórico ({completed.length + filteredHistory.length})</h3>
           <Select value={completedFilter} onValueChange={(v) => setCompletedFilter(v as typeof completedFilter)}>
             <SelectTrigger className="h-7 w-[110px] text-xs bg-secondary border-border">
               <SelectValue />
