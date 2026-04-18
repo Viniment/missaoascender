@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Mirror, Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 
 function daysAgo(iso: string) {
   return (Date.now() - new Date(iso).getTime()) / 86400000;
