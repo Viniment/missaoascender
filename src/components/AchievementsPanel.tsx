@@ -10,6 +10,7 @@ const TYPE_LABELS: Record<string, string> = {
   mission: '⚔️ Missões',
   level: '📈 Progressão',
   discipline: '💀 Disciplina',
+  stoic: '🏛️ Estoicismo',
   special: '👑 Especial',
 };
 
