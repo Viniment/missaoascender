@@ -502,6 +502,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, -Math.max(3, Math.floor(executedHours * 2)), `Concluiu missão: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? (m.repeatable
             ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null, completionHistory: [...(m.completionHistory || []), { date: new Date().toISOString(), xp, gold, executedHours }] }
@@ -530,6 +531,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, -3, `Diária: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? { ...m, lastCompletedDate: today, xpEarned: xp, goldEarned: gold } : m
         ),
@@ -559,6 +561,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, isComplete ? -5 : -2, `Contagem: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? {
             ...m,
