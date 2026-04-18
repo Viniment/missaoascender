@@ -56,6 +56,7 @@ export default function Index() {
       case 'habits': return <HabitsPanel />;
       case 'challenges': return <ChallengesPanel />;
       case 'achievements': return <AchievementsPanel />;
+      case 'mirror': return <MirrorPanel />;
       case 'journal': return <JournalPanel />;
       case 'stoic': return <StoicPanel />;
       case 'affirmations': return <AffirmationsPanel />;
@@ -154,6 +155,7 @@ export default function Index() {
           {/* Left sidebar - Player */}
           <div className="lg:col-span-3 space-y-4">
             <PlayerCard />
+            <MonsterIndicator />
             <FailureProtocolAlert />
             <div className="hidden lg:block">
               <SystemPanel />
