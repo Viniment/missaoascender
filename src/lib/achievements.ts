@@ -1,6 +1,6 @@
 import type { PlayerState } from './gameStore';
 
-export type AchievementType = 'streak' | 'habit' | 'mission' | 'level' | 'discipline' | 'special';
+export type AchievementType = 'streak' | 'habit' | 'mission' | 'level' | 'discipline' | 'special' | 'stoic';
 
 export interface AchievementDef {
   id: string;
@@ -304,6 +304,269 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Cinco recompensas. Colhendo os frutos.',
     requirements: ['Resgatar 5 recompensas na loja'],
     check: s => s.rewards.filter(r => r.redeemed).length >= 5, progress: s => ({ current: Math.min(s.rewards.filter(r => r.redeemed).length, 5), target: 5 }) },
+
+  // ========== NEW: HABITS ==========
+  { id: 'habits-10', type: 'habit', label: '10 Hábitos Ativos', value: 10, rank: 'B', icon: '🧠',
+    description: 'Dez hábitos simultâneos. Disciplina em camadas.',
+    requirements: ['Ter 10 hábitos criados simultaneamente'],
+    check: s => s.habits.length >= 10, progress: s => ({ current: Math.min(s.habits.length, 10), target: 10 }) },
+  { id: 'habit-perfect-week', type: 'habit', label: 'Semana Perfeita', value: 7, rank: 'C', icon: '🧠',
+    description: '7 dias seguidos com TODOS os hábitos do dia concluídos.',
+    requirements: ['Concluir 100% dos hábitos por 7 dias seguidos'],
+    check: s => {
+      if (s.habits.length === 0) return false;
+      let streak = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const allDone = s.habits.every(h => h.history[key] === 'done');
+        if (allDone) { streak++; if (streak >= 7) return true; } else break;
+      }
+      return false;
+    },
+    progress: s => {
+      if (s.habits.length === 0) return { current: 0, target: 7 };
+      let streak = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const allDone = s.habits.every(h => h.history[key] === 'done');
+        if (allDone) streak++; else break;
+      }
+      return { current: Math.min(streak, 7), target: 7 };
+    } },
+  { id: 'habit-perfect-month', type: 'habit', label: 'Mês Impecável', value: 30, rank: 'A', icon: '🧠',
+    description: '30 dias seguidos com TODOS os hábitos do dia concluídos.',
+    requirements: ['Concluir 100% dos hábitos por 30 dias seguidos'],
+    check: s => {
+      if (s.habits.length === 0) return false;
+      let streak = 0;
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const allDone = s.habits.every(h => h.history[key] === 'done');
+        if (allDone) { streak++; if (streak >= 30) return true; } else break;
+      }
+      return false;
+    },
+    progress: s => {
+      if (s.habits.length === 0) return { current: 0, target: 30 };
+      let streak = 0;
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const allDone = s.habits.every(h => h.history[key] === 'done');
+        if (allDone) streak++; else break;
+      }
+      return { current: Math.min(streak, 30), target: 30 };
+    } },
+
+  // ========== NEW: MISSIONS ==========
+  { id: 'mission-200', type: 'mission', label: '200 Missões — Soberano', value: 200, rank: 'Monarca', icon: '⚔️',
+    description: 'Duzentas missões. Você é soberano da execução.',
+    requirements: ['Concluir 200 missões no total'],
+    check: s => completedMissions(s) >= 200, progress: s => ({ current: Math.min(completedMissions(s), 200), target: 200 }) },
+  { id: 'mission-day-5', type: 'mission', label: '5 Missões em 1 Dia', value: 5, rank: 'C', icon: '⚔️',
+    description: 'Cinco missões concluídas no mesmo dia. Surto produtivo.',
+    requirements: ['Concluir 5 missões em um único dia'],
+    check: s => {
+      const counts: Record<string, number> = {};
+      s.missions.forEach(m => {
+        if (m.completedAt) {
+          const d = m.completedAt.slice(0, 10);
+          counts[d] = (counts[d] || 0) + 1;
+        }
+        (m.completionHistory || []).forEach(h => {
+          if (!h.failed) {
+            const d = h.date.slice(0, 10);
+            counts[d] = (counts[d] || 0) + 1;
+          }
+        });
+      });
+      return Object.values(counts).some(c => c >= 5);
+    },
+    progress: s => {
+      const counts: Record<string, number> = {};
+      s.missions.forEach(m => {
+        if (m.completedAt) { const d = m.completedAt.slice(0, 10); counts[d] = (counts[d] || 0) + 1; }
+        (m.completionHistory || []).forEach(h => { if (!h.failed) { const d = h.date.slice(0, 10); counts[d] = (counts[d] || 0) + 1; } });
+      });
+      return { current: Math.min(Math.max(0, ...Object.values(counts)), 5), target: 5 };
+    } },
+  { id: 'mission-day-10', type: 'mission', label: '10 Missões em 1 Dia', value: 10, rank: 'B', icon: '⚔️',
+    description: 'Dez missões em um dia. Modo monstro ativado.',
+    requirements: ['Concluir 10 missões em um único dia'],
+    check: s => {
+      const counts: Record<string, number> = {};
+      s.missions.forEach(m => {
+        if (m.completedAt) { const d = m.completedAt.slice(0, 10); counts[d] = (counts[d] || 0) + 1; }
+        (m.completionHistory || []).forEach(h => { if (!h.failed) { const d = h.date.slice(0, 10); counts[d] = (counts[d] || 0) + 1; } });
+      });
+      return Object.values(counts).some(c => c >= 10);
+    },
+    progress: s => {
+      const counts: Record<string, number> = {};
+      s.missions.forEach(m => {
+        if (m.completedAt) { const d = m.completedAt.slice(0, 10); counts[d] = (counts[d] || 0) + 1; }
+        (m.completionHistory || []).forEach(h => { if (!h.failed) { const d = h.date.slice(0, 10); counts[d] = (counts[d] || 0) + 1; } });
+      });
+      return { current: Math.min(Math.max(0, ...Object.values(counts)), 10), target: 10 };
+    } },
+  { id: 'mission-category-master', type: 'mission', label: 'Mestre das 10 Categorias', value: 10, rank: 'A', icon: '⚔️',
+    description: 'Concluiu pelo menos 1 missão em todas as 10 categorias.',
+    requirements: ['Concluir missão em Estudo, Trabalho, Treino, Leitura, Espiritual, Social, Saúde, Mental, Financeiro, Criatividade'],
+    check: s => {
+      const cats = new Set(s.missions.filter(m => m.status === 'Concluída' || (m.completionHistory && m.completionHistory.some(h => !h.failed))).map(m => m.category));
+      return cats.size >= 10;
+    },
+    progress: s => {
+      const cats = new Set(s.missions.filter(m => m.status === 'Concluída' || (m.completionHistory && m.completionHistory.some(h => !h.failed))).map(m => m.category));
+      return { current: cats.size, target: 10 };
+    } },
+
+  // ========== NEW: JOURNAL ==========
+  { id: 'journal-deep-10', type: 'special', label: '10 Reflexões Profundas', value: 10, rank: 'C', icon: '📝',
+    description: 'Dez entradas em modo profundo. Mergulho real.',
+    requirements: ['Criar 10 entradas no diário em modo profundo'],
+    check: s => s.journal.filter(j => j.deepMode).length >= 10,
+    progress: s => ({ current: Math.min(s.journal.filter(j => j.deepMode).length, 10), target: 10 }) },
+  { id: 'journal-week-streak', type: 'special', label: 'Diário 7 Dias Seguidos', value: 7, rank: 'D', icon: '📝',
+    description: 'Escreveu no diário por 7 dias consecutivos.',
+    requirements: ['Escrever no diário 7 dias seguidos'],
+    check: s => {
+      const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
+      let streak = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) { streak++; if (streak >= 7) return true; } else break;
+      }
+      return false;
+    },
+    progress: s => {
+      const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
+      let streak = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) streak++; else break;
+      }
+      return { current: Math.min(streak, 7), target: 7 };
+    } },
+  { id: 'journal-month-streak', type: 'special', label: 'Diário 30 Dias Seguidos', value: 30, rank: 'A', icon: '📝',
+    description: 'Escreveu no diário por 30 dias consecutivos.',
+    requirements: ['Escrever no diário 30 dias seguidos'],
+    check: s => {
+      const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
+      let streak = 0;
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) { streak++; if (streak >= 30) return true; } else break;
+      }
+      return false;
+    },
+    progress: s => {
+      const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
+      let streak = 0;
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) streak++; else break;
+      }
+      return { current: Math.min(streak, 30), target: 30 };
+    } },
+
+  // ========== NEW: REFLECTIONS (Despertar) ==========
+  { id: 'reflections-10', type: 'special', label: '10 Reflexões do Despertar', value: 10, rank: 'D', icon: '🌅',
+    description: 'Dez reflexões respondidas no Despertar.',
+    requirements: ['Responder 10 reflexões no Despertar'],
+    check: s => (s.reflections?.length || 0) >= 10,
+    progress: s => ({ current: Math.min(s.reflections?.length || 0, 10), target: 10 }) },
+  { id: 'reflections-50', type: 'special', label: '50 Reflexões do Despertar', value: 50, rank: 'A', icon: '🌅',
+    description: 'Cinquenta reflexões. Visão clara do propósito.',
+    requirements: ['Responder 50 reflexões no Despertar'],
+    check: s => (s.reflections?.length || 0) >= 50,
+    progress: s => ({ current: Math.min(s.reflections?.length || 0, 50), target: 50 }) },
+
+  // ========== NEW: GOLD / REWARDS ==========
+  { id: 'gold-10000', type: 'special', label: '10000 Gold — Magnata', value: 10000, rank: 'Monarca', icon: '💰',
+    description: 'Dez mil moedas. Magnata da disciplina.',
+    requirements: ['Acumular 10000 Gold'],
+    check: s => s.gold >= 10000, progress: s => ({ current: Math.min(s.gold, 10000), target: 10000 }) },
+  { id: 'reward-20', type: 'special', label: '20 Recompensas Resgatadas', value: 20, rank: 'B', icon: '🎁',
+    description: 'Vinte recompensas. Você sabe se recompensar.',
+    requirements: ['Resgatar 20 recompensas na loja'],
+    check: s => s.rewards.filter(r => r.redeemed).length >= 20,
+    progress: s => ({ current: Math.min(s.rewards.filter(r => r.redeemed).length, 20), target: 20 }) },
+
+  // ========== NEW: CHALLENGES ==========
+  { id: 'challenge-complete-1', type: 'special', label: 'Primeiro Desafio Completo', value: 1, rank: 'D', icon: '🎯',
+    description: 'Completou todos os passos de um desafio.',
+    requirements: ['Concluir 100% dos passos de 1 desafio'],
+    check: s => s.challenges.some(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed),
+    progress: s => ({ current: s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length > 0 ? 1 : 0, target: 1 }) },
+  { id: 'challenge-complete-5', type: 'special', label: '5 Desafios Completos', value: 5, rank: 'A', icon: '🎯',
+    description: 'Cinco desafios completos. Foco implacável.',
+    requirements: ['Concluir 100% dos passos de 5 desafios'],
+    check: s => s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length >= 5,
+    progress: s => ({ current: Math.min(s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length, 5), target: 5 }) },
+
+  // ========== NEW: DISCIPLINE ==========
+  { id: 'protocol-30', type: 'discipline', label: '30 Protocolos — Inquebrável', value: 30, rank: 'S', icon: '💀',
+    description: 'Trinta protocolos. Você é inquebrável.',
+    requirements: ['Concluir 30 Protocolos de Falha'],
+    check: s => protocolsDone(s) >= 30, progress: s => ({ current: Math.min(protocolsDone(s), 30), target: 30 }) },
+  { id: 'comeback', type: 'discipline', label: 'Renascido', value: 7, rank: 'C', icon: '💀',
+    description: 'Recuperou um streak de 7+ dias após ter perdido 3+ dias. Renasceu.',
+    requirements: ['Após perder 3 ou mais dias, alcançar streak ≥ 7 novamente'],
+    check: s => s.streak >= 7 && s.missedDays >= 3,
+    progress: s => ({ current: s.missedDays >= 3 ? Math.min(s.streak, 7) : 0, target: 7 }) },
+
+  // ========== NEW: STOIC ==========
+  { id: 'stoic-1', type: 'stoic', label: 'Primeira Reflexão Estoica', value: 1, rank: 'E', icon: '🏛️',
+    description: 'Respondeu sua primeira reflexão estoica. A jornada filosófica começa.',
+    requirements: ['Salvar 1 reflexão estoica'],
+    check: s => ((s as any).stoicEntries?.length || 0) >= 1,
+    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 1), target: 1 }) },
+  { id: 'stoic-7', type: 'stoic', label: '7 Reflexões Estoicas', value: 7, rank: 'D', icon: '🏛️',
+    description: 'Sete reflexões. Marco Aurélio aprovaria.',
+    requirements: ['Salvar 7 reflexões estoicas'],
+    check: s => ((s as any).stoicEntries?.length || 0) >= 7,
+    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 7), target: 7 }) },
+  { id: 'stoic-30', type: 'stoic', label: '30 Reflexões Estoicas', value: 30, rank: 'B', icon: '🏛️',
+    description: 'Trinta reflexões. A virtude se enraíza.',
+    requirements: ['Salvar 30 reflexões estoicas'],
+    check: s => ((s as any).stoicEntries?.length || 0) >= 30,
+    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 30), target: 30 }) },
+  { id: 'stoic-100', type: 'stoic', label: '100 Reflexões — Filósofo Estoico', value: 100, rank: 'S', icon: '🏛️',
+    description: 'Cem reflexões. Filósofo estoico de fato.',
+    requirements: ['Salvar 100 reflexões estoicas'],
+    check: s => ((s as any).stoicEntries?.length || 0) >= 100,
+    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 100), target: 100 }) },
+  { id: 'stoic-streak-7', type: 'stoic', label: 'Diário Estoico 7 Dias', value: 7, rank: 'C', icon: '🏛️',
+    description: 'Sete dias seguidos respondendo o diário estoico.',
+    requirements: ['Salvar reflexão estoica em 7 dias seguidos'],
+    check: s => {
+      const dates = new Set(((s as any).stoicEntries || []).map((e: any) => e.date));
+      let streak = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) { streak++; if (streak >= 7) return true; } else break;
+      }
+      return false;
+    },
+    progress: s => {
+      const dates = new Set(((s as any).stoicEntries || []).map((e: any) => e.date));
+      let streak = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        if (dates.has(key)) streak++; else break;
+      }
+      return { current: Math.min(streak, 7), target: 7 };
+    } },
 ];
 
 export function checkNewAchievements(state: PlayerState, unlocked: UnlockedAchievement[]): AchievementDef[] {

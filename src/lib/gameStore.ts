@@ -120,6 +120,16 @@ export interface VisionItem {
   createdAt: string;
 }
 
+export interface StoicEntry {
+  id: string;
+  date: string;           // YYYY-MM-DD
+  questions: string[];
+  answers: string[];
+  theme?: string;
+  insight?: string;
+  createdAt: string;
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -156,6 +166,7 @@ export interface PlayerState {
   theme: string;
   difficultyDivisor: number;
   confrontationHistory?: { date: string; trigger: 'mission' | 'habit' | 'protocol_expired'; itemName: string; message: string; dureza: 'leve' | 'medio' | 'brutal' }[];
+  stoicEntries?: StoicEntry[];
   _penaltyCompensated?: boolean;
 }
 
@@ -269,6 +280,7 @@ export const defaultState: PlayerState = {
   visionLastViewedDate: null,
   theme: 'neon-purple',
   difficultyDivisor: 1,
+  stoicEntries: [],
   _penaltyCompensated: true,
 };
 
