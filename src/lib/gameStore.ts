@@ -604,6 +604,7 @@ export function useGameStore() {
       return {
         ...prev,
         ...prog,
+        monster: applyMonsterDelta(prev, +12, `Falhou missão: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? (m.repeatable
             ? {
@@ -690,6 +691,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, status === 'done' ? -4 : +8, status === 'done' ? `Hábito feito: ${habit.name}` : `Falhou hábito: ${habit.name}`),
         habits: prev.habits.map(h =>
           h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
         ),
