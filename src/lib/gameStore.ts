@@ -130,6 +130,21 @@ export interface StoicEntry {
   createdAt: string;
 }
 
+export type AiIntensity = 'leve' | 'moderado' | 'agressivo';
+export type InterventionFrequency = 'baixa' | 'media' | 'alta';
+
+export interface AiSettings {
+  intensity: AiIntensity;
+  monsterEnabled: boolean;
+  interventionFrequency: InterventionFrequency;
+}
+
+export interface MonsterState {
+  hp: number;          // 0 (morto) — 100 (gigante). Procrastinação cresce o monstro.
+  lastChange: string;  // ISO
+  lastReason?: string; // ex: "Falhou hábito X" ou "Concluiu missão Y"
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -167,6 +182,8 @@ export interface PlayerState {
   difficultyDivisor: number;
   confrontationHistory?: { date: string; trigger: 'mission' | 'habit' | 'protocol_expired'; itemName: string; message: string; dureza: 'leve' | 'medio' | 'brutal' }[];
   stoicEntries?: StoicEntry[];
+  monster?: MonsterState;
+  aiSettings?: AiSettings;
   _penaltyCompensated?: boolean;
 }
 
@@ -281,8 +298,22 @@ export const defaultState: PlayerState = {
   theme: 'neon-purple',
   difficultyDivisor: 1,
   stoicEntries: [],
+  monster: { hp: 50, lastChange: new Date().toISOString() },
+  aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   _penaltyCompensated: true,
 };
+
+function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
+
+function applyMonsterDelta(prev: PlayerState, delta: number, reason: string): MonsterState {
+  const current = prev.monster ?? { hp: 50, lastChange: new Date().toISOString() };
+  if (prev.aiSettings?.monsterEnabled === false) return current;
+  return {
+    hp: clampHp(current.hp + delta),
+    lastChange: new Date().toISOString(),
+    lastReason: reason,
+  };
+}
 
 export function normalizePlayerStateForToday(state: PlayerState): PlayerState {
   const today = getTodayBrasilia();
