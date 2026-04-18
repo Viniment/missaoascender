@@ -859,6 +859,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         streak: 0,
+        monster: applyMonsterDelta(prev, +20 * pending.length, `Protocolo expirado x${pending.length}`),
         failureProtocols: prev.failureProtocols.map(fp =>
           fp.status === 'Pendente' && new Date(fp.deadline) < now
             ? { ...fp, status: 'Concluído' as const }
@@ -870,6 +871,13 @@ export function useGameStore() {
         ].slice(0, 100),
       };
     });
+  }, []);
+
+  const updateAiSettings = useCallback((updates: Partial<AiSettings>) => {
+    setState(prev => ({
+      ...prev,
+      aiSettings: { ...(prev.aiSettings || { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' }), ...updates },
+    }));
   }, []);
 
   // Achievement checking
@@ -928,6 +936,7 @@ export function useGameStore() {
     completeFailureProtocol,
     updateFailureProtocolPenalty,
     checkExpiredProtocols,
+    updateAiSettings,
     newlyUnlocked,
     dismissAchievement,
   };
