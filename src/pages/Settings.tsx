@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -21,6 +21,7 @@ const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
+  { id: 'ai', label: 'IA Comportamental', description: 'Intensidade, monstro e intervenções', icon: Brain },
   { id: 'advanced', label: 'Avançado', description: 'Dificuldade e progressão', icon: Settings2 },
   { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Shield },
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
@@ -258,6 +259,84 @@ export default function Settings() {
             </div>
           </div>
         );
+
+      case 'ai': {
+        const ai = state.aiSettings || { intensity: 'moderado' as const, monsterEnabled: true, interventionFrequency: 'media' as const };
+        const intensities = [
+          { value: 'leve', label: 'Leve', desc: 'Confronto contido. Sem agressividade.' },
+          { value: 'moderado', label: 'Moderado', desc: 'Direto e firme (recomendado).' },
+          { value: 'agressivo', label: 'Agressivo', desc: 'Brutal. Cada palavra dói porque é verdade.' },
+        ] as const;
+        const freqs = [
+          { value: 'baixa', label: 'Baixa', desc: 'Só quando há padrão sério.' },
+          { value: 'media', label: 'Média', desc: 'A cada falha relevante (recomendado).' },
+          { value: 'alta', label: 'Alta', desc: 'Toda falha. Sem trégua.' },
+        ] as const;
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="IA Comportamental" description="Como a IA confronta sua procrastinação." />
+
+            <div className="rpg-panel space-y-3">
+              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Intensidade do confronto</h3>
+              {intensities.map(opt => {
+                const sel = ai.intensity === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setState(prev => ({ ...prev, aiSettings: { ...(prev.aiSettings || ai), intensity: opt.value } }))}
+                    className={cn(
+                      'w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all',
+                      sel ? 'border-primary/50 bg-primary/10' : 'border-border hover:border-primary/30 hover:bg-secondary/50'
+                    )}
+                  >
+                    <div className={cn('w-4 h-4 rounded-full border-2 mt-0.5 shrink-0', sel ? 'border-primary bg-primary' : 'border-muted-foreground')} />
+                    <div>
+                      <p className={cn('text-sm font-display tracking-wider text-foreground', sel && 'text-primary')}>{opt.label}</p>
+                      <p className="text-xs text-foreground/60">{opt.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="rpg-panel space-y-3">
+              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Frequência de intervenção</h3>
+              {freqs.map(opt => {
+                const sel = ai.interventionFrequency === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setState(prev => ({ ...prev, aiSettings: { ...(prev.aiSettings || ai), interventionFrequency: opt.value } }))}
+                    className={cn(
+                      'w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all',
+                      sel ? 'border-primary/50 bg-primary/10' : 'border-border hover:border-primary/30 hover:bg-secondary/50'
+                    )}
+                  >
+                    <div className={cn('w-4 h-4 rounded-full border-2 mt-0.5 shrink-0', sel ? 'border-primary bg-primary' : 'border-muted-foreground')} />
+                    <div>
+                      <p className={cn('text-sm font-display tracking-wider text-foreground', sel && 'text-primary')}>{opt.label}</p>
+                      <p className="text-xs text-foreground/60">{opt.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="rpg-panel">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-display tracking-wider text-foreground">Monstro da Procrastinação</p>
+                  <p className="text-xs text-foreground/60">Símbolo que cresce nas falhas e enfraquece nas ações.</p>
+                </div>
+                <Switch
+                  checked={ai.monsterEnabled !== false}
+                  onCheckedChange={(checked) => setState(prev => ({ ...prev, aiSettings: { ...(prev.aiSettings || ai), monsterEnabled: checked } }))}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       case 'failure':
         return (
