@@ -15,6 +15,8 @@ import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
 import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
 import StoicPanel from '@/components/StoicPanel';
+import MirrorPanel from '@/components/MirrorPanel';
+import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
@@ -26,6 +28,7 @@ const TABS = [
   { id: 'habits', label: 'Hábitos', icon: Sparkles },
   { id: 'challenges', label: 'Desafios', icon: Shield },
   { id: 'achievements', label: 'Conquistas', icon: Trophy },
+  { id: 'mirror', label: 'Espelho', icon: Eye },
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'stoic', label: 'Estoicismo', icon: ScrollText },
   { id: 'affirmations', label: 'Afirmações', icon: Flame },
