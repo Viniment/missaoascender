@@ -15,6 +15,8 @@ import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
 import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
 import StoicPanel from '@/components/StoicPanel';
+import MirrorPanel from '@/components/MirrorPanel';
+import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
@@ -26,6 +28,7 @@ const TABS = [
   { id: 'habits', label: 'Hábitos', icon: Sparkles },
   { id: 'challenges', label: 'Desafios', icon: Shield },
   { id: 'achievements', label: 'Conquistas', icon: Trophy },
+  { id: 'mirror', label: 'Espelho', icon: Eye },
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'stoic', label: 'Estoicismo', icon: ScrollText },
   { id: 'affirmations', label: 'Afirmações', icon: Flame },
@@ -53,6 +56,7 @@ export default function Index() {
       case 'habits': return <HabitsPanel />;
       case 'challenges': return <ChallengesPanel />;
       case 'achievements': return <AchievementsPanel />;
+      case 'mirror': return <MirrorPanel />;
       case 'journal': return <JournalPanel />;
       case 'stoic': return <StoicPanel />;
       case 'affirmations': return <AffirmationsPanel />;
@@ -151,6 +155,7 @@ export default function Index() {
           {/* Left sidebar - Player */}
           <div className="lg:col-span-3 space-y-4">
             <PlayerCard />
+            <MonsterIndicator />
             <FailureProtocolAlert />
             <div className="hidden lg:block">
               <SystemPanel />

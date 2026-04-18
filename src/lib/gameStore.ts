@@ -130,6 +130,21 @@ export interface StoicEntry {
   createdAt: string;
 }
 
+export type AiIntensity = 'leve' | 'moderado' | 'agressivo';
+export type InterventionFrequency = 'baixa' | 'media' | 'alta';
+
+export interface AiSettings {
+  intensity: AiIntensity;
+  monsterEnabled: boolean;
+  interventionFrequency: InterventionFrequency;
+}
+
+export interface MonsterState {
+  hp: number;          // 0 (morto) — 100 (gigante). Procrastinação cresce o monstro.
+  lastChange: string;  // ISO
+  lastReason?: string; // ex: "Falhou hábito X" ou "Concluiu missão Y"
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -167,6 +182,8 @@ export interface PlayerState {
   difficultyDivisor: number;
   confrontationHistory?: { date: string; trigger: 'mission' | 'habit' | 'protocol_expired'; itemName: string; message: string; dureza: 'leve' | 'medio' | 'brutal' }[];
   stoicEntries?: StoicEntry[];
+  monster?: MonsterState;
+  aiSettings?: AiSettings;
   _penaltyCompensated?: boolean;
 }
 
@@ -281,8 +298,22 @@ export const defaultState: PlayerState = {
   theme: 'neon-purple',
   difficultyDivisor: 1,
   stoicEntries: [],
+  monster: { hp: 50, lastChange: new Date().toISOString() },
+  aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   _penaltyCompensated: true,
 };
+
+function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
+
+function applyMonsterDelta(prev: PlayerState, delta: number, reason: string): MonsterState {
+  const current = prev.monster ?? { hp: 50, lastChange: new Date().toISOString() };
+  if (prev.aiSettings?.monsterEnabled === false) return current;
+  return {
+    hp: clampHp(current.hp + delta),
+    lastChange: new Date().toISOString(),
+    lastReason: reason,
+  };
+}
 
 export function normalizePlayerStateForToday(state: PlayerState): PlayerState {
   const today = getTodayBrasilia();
@@ -471,6 +502,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, -Math.max(3, Math.floor(executedHours * 2)), `Concluiu missão: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? (m.repeatable
             ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null, completionHistory: [...(m.completionHistory || []), { date: new Date().toISOString(), xp, gold, executedHours }] }
@@ -499,6 +531,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, -3, `Diária: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? { ...m, lastCompletedDate: today, xpEarned: xp, goldEarned: gold } : m
         ),
@@ -528,6 +561,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, isComplete ? -5 : -2, `Contagem: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? {
             ...m,
@@ -570,6 +604,7 @@ export function useGameStore() {
       return {
         ...prev,
         ...prog,
+        monster: applyMonsterDelta(prev, +12, `Falhou missão: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? (m.repeatable
             ? {
@@ -656,6 +691,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
+        monster: applyMonsterDelta(prev, status === 'done' ? -4 : +8, status === 'done' ? `Hábito feito: ${habit.name}` : `Falhou hábito: ${habit.name}`),
         habits: prev.habits.map(h =>
           h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
         ),
@@ -823,6 +859,7 @@ export function useGameStore() {
         ...prev,
         ...prog,
         streak: 0,
+        monster: applyMonsterDelta(prev, +20 * pending.length, `Protocolo expirado x${pending.length}`),
         failureProtocols: prev.failureProtocols.map(fp =>
           fp.status === 'Pendente' && new Date(fp.deadline) < now
             ? { ...fp, status: 'Concluído' as const }
@@ -834,6 +871,13 @@ export function useGameStore() {
         ].slice(0, 100),
       };
     });
+  }, []);
+
+  const updateAiSettings = useCallback((updates: Partial<AiSettings>) => {
+    setState(prev => ({
+      ...prev,
+      aiSettings: { ...(prev.aiSettings || { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' }), ...updates },
+    }));
   }, []);
 
   // Achievement checking
@@ -892,6 +936,7 @@ export function useGameStore() {
     completeFailureProtocol,
     updateFailureProtocolPenalty,
     checkExpiredProtocols,
+    updateAiSettings,
     newlyUnlocked,
     dismissAchievement,
   };

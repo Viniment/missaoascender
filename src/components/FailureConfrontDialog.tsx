@@ -130,6 +130,8 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
         streak: state.streak,
         failureFrequency7d,
         lastConfrontationMessages,
+        monster: state.monster ? { hp: state.monster.hp, lastReason: state.monster.lastReason } : undefined,
+        aiIntensity: state.aiSettings?.intensity ?? 'moderado',
       },
     };
 
@@ -169,10 +171,10 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="bg-card border-destructive shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)] w-[calc(100vw-2rem)] max-w-md sm:max-w-md p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="bg-card border-destructive shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)] w-[95vw] max-w-md p-4 sm:p-6 max-h-[92vh] overflow-y-auto rounded-xl gap-4">
+        <DialogHeader className="space-y-2">
           <div className="flex items-center justify-between gap-2 pr-6">
-            <DialogTitle className="font-display text-destructive flex items-center gap-2 text-sm sm:text-base">
+            <DialogTitle className="font-display text-destructive flex items-center gap-2 text-sm sm:text-base min-w-0">
               <Skull className="w-5 h-5 shrink-0" />
               <span className="truncate">PROTOCOLO DE CONFRONTO</span>
             </DialogTitle>
@@ -202,15 +204,23 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
                 Analisando seu padrão de falha…
               </div>
             ) : (
-              <p className="text-sm leading-relaxed text-foreground whitespace-pre-line break-words">
+              <p
+                className="text-base sm:text-base leading-relaxed text-foreground whitespace-pre-line break-words"
+                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+              >
                 {message}
               </p>
             )}
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="destructive" className="w-full font-display" onClick={onClose} disabled={loading}>
+        <DialogFooter className="mt-2">
+          <Button
+            variant="destructive"
+            className="w-full font-display h-12 text-base"
+            onClick={onClose}
+            disabled={loading}
+          >
             Eu reconheço
           </Button>
         </DialogFooter>

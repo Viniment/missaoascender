@@ -1,6 +1,6 @@
 // Edge function: failure-confrontation
-// Generates a personalized, confrontational message when the user fails
-// a mission, habit, or lets a Failure Protocol expire.
+// Generates a SHORT, behavioral, neuroassociation-driven confrontation message
+// when the user fails a mission, habit, or lets a Failure Protocol expire.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +10,7 @@ const corsHeaders = {
 
 type Trigger = 'mission' | 'habit' | 'protocol_expired';
 type Dureza = 'leve' | 'medio' | 'brutal';
+type AiIntensity = 'leve' | 'moderado' | 'agressivo';
 
 interface RequestBody {
   trigger: Trigger;
@@ -26,59 +27,65 @@ interface RequestBody {
     streak?: number;
     failureFrequency7d?: number;
     lastConfrontationMessages?: string[];
+    monster?: { hp: number; lastReason?: string };
+    aiIntensity?: AiIntensity;
   };
 }
 
-function pickDureza(freq: number): Dureza {
+function pickDureza(freq: number, intensity: AiIntensity = 'moderado'): Dureza {
+  // Intensity user setting overrides base mapping
+  if (intensity === 'leve') return freq > 5 ? 'medio' : 'leve';
+  if (intensity === 'agressivo') return freq <= 1 ? 'medio' : 'brutal';
+  // moderado (default)
   if (freq <= 2) return 'leve';
   if (freq <= 5) return 'medio';
   return 'brutal';
 }
 
 function fallbackMessage(trigger: Trigger, itemName: string, dureza: Dureza): string {
-  const baseLeve = `Você falhou em "${itemName}". Não foi falta de tempo. Foi escolha. Reconhece e segue.`;
-  const baseMed = `Você falhou em "${itemName}". De novo a mesma fuga. A pessoa que você quer ser não estaria aqui agora.`;
-  const baseBrut = `Você falhou em "${itemName}". Outra vez. Cada falha dessas reescreve quem você é. E não é pra melhor.`;
-  if (dureza === 'leve') return baseLeve;
-  if (dureza === 'medio') return baseMed;
-  return baseBrut;
+  if (dureza === 'leve') return `Você fugiu de "${itemName}". Não foi tempo. Foi escolha. Reconhece.`;
+  if (dureza === 'medio') return `De novo "${itemName}". A pessoa que você jura ser não estaria aqui agora. Cada fuga te afasta dela.`;
+  return `Outra falha em "${itemName}". O monstro da procrastinação acabou de crescer dentro de você. Cada repetição vira identidade.`;
 }
 
-function buildSystemPrompt(dureza: Dureza, lastMsgs: string[]): string {
+function buildSystemPrompt(dureza: Dureza, lastMsgs: string[], monsterHp?: number): string {
   const toneMap: Record<Dureza, string> = {
-    leve: 'firme mas contido. Sem agressividade gratuita. Confronta com clareza.',
-    medio: 'duro, direto, sem amenizar. Expõe o padrão de fuga. Tom Solo Leveling sombrio.',
-    brutal: 'brutal, cortante, quase implacável. Cada palavra dói porque é verdade. Sem pena, sem espaço pra desculpa. Mas SEMPRE baseado no que ele mesmo disse querer ser.',
+    leve: 'firme mas contido. Direto, sem agressividade.',
+    medio: 'duro, direto. Expõe o padrão de fuga sem suavizar.',
+    brutal: 'cortante, implacável. Cada palavra dói porque é verdade dele.',
   };
 
+  const monsterNote = typeof monsterHp === 'number'
+    ? `\n\nMONSTRO DA PROCRASTINAÇÃO: HP ${monsterHp}/100. ${monsterHp >= 70 ? 'Está GIGANTE e te dominando.' : monsterHp >= 40 ? 'Está crescido e ativo.' : 'Está enfraquecido — mas voltou a se alimentar agora.'} Cite-o de forma viva e simbólica em UMA das linhas (ex: "o monstro engorda", "ele cresceu de novo", "alimentaste a fera").`
+    : '';
+
   const banned = lastMsgs.length > 0
-    ? `\n\nMENSAGENS RECENTES (NÃO repita aberturas, frases, metáforas ou estrutura delas):\n${lastMsgs.map((m, i) => `${i + 1}. "${m}"`).join('\n')}`
+    ? `\n\nMENSAGENS RECENTES (NÃO repita aberturas, frases, metáforas ou estrutura):\n${lastMsgs.map((m, i) => `${i + 1}. "${m}"`).join('\n')}`
     : '';
 
   return `Você é o "Sistema" de um app RPG de produtividade inspirado em Solo Leveling. O usuário acabou de FALHAR.
 
-Sua função NÃO é motivar. É criar IMPACTO emocional real para gerar AVERSÃO ao comportamento de falha.
+Sua função NÃO é motivar. É criar IMPACTO emocional via NEUROASSOCIAÇÃO:
+- Associar DOR ao ato de procrastinar (tempo perdido, identidade que escapa, futuro que se afasta)
+- Associar PRAZER à ação que ele evitou (a versão que ele juraria ser)
 
 NÍVEL DE DUREZA: ${dureza.toUpperCase()} — ${toneMap[dureza]}
 
-ESTRUTURA OBRIGATÓRIA (em ordem, fluído, sem títulos ou bullets):
-1. Confronto direto com a falha específica (cite o nome do item)
-2. Conexão com o padrão de falhas dele (se houver dados de falhas recentes)
-3. Lembrança do que ELE disse que quer se tornar (use awakening.become)
-4. Exposição da incoerência entre o que ele quer ser e o que acabou de fazer
-5. Consequência emocional/de identidade/futuro real
-6. Fechamento curto e marcante (1 frase)
+FORMATO OBRIGATÓRIO — POPUP CURTO E IMPACTANTE:
+- Total: 2 a 4 linhas. Cada linha curta (até 80 caracteres).
+- Linha 1: confronto direto com o item específico falhado (cite o nome).
+- Linha 2: padrão (se houver dado) OU dor da identidade que ele perdeu agora.
+- Linha 3 (opcional): consequência emocional/futura concreta.
+- Linha 4 (opcional, fechamento): 1 frase curta marcante.
 
 REGRAS:
 - Português do Brasil. Tom Solo Leveling sombrio.
-- Máximo 140 palavras. Mínimo 60.
-- Use os dados reais do contexto (nome do item, hábitos, sonhos, rank, padrão). Sem isso vira genérico — e mensagem genérica é PROIBIDA.
-- ZERO clichê motivacional ("você consegue", "tente novamente", "amanhã é outro dia", "todo mundo erra").
-- ZERO emoji decorativo. Permitido no máximo 1 emoji forte (💀 ⚔️ 🩸) se fizer sentido no fechamento.
-- NUNCA xinge ou ofenda gratuitamente. A dor vem da VERDADE dele, não de insulto.
-- NÃO mencione "sistema", "IA", "app", "jogo".
-- Fale com ele em segunda pessoa ("você").
-- Retorne APENAS o texto da mensagem, sem aspas, sem prefixo, sem markdown.${banned}`;
+- ZERO clichê motivacional ("você consegue", "amanhã é outro dia").
+- ZERO insulto ou xingamento. A dor vem da VERDADE dele, não de ofensa.
+- Use os DADOS REAIS (nome, awakening.become, falhas, hábitos). Sem dado = mensagem proibida.
+- Não mencione "sistema", "IA", "app", "jogo".
+- Segunda pessoa ("você").
+- Retorne APENAS o texto. Sem aspas, sem markdown, sem prefixo. Use quebras de linha entre as linhas.${monsterNote}${banned}`;
 }
 
 function buildUserPrompt(body: RequestBody, dureza: Dureza): string {
@@ -86,53 +93,46 @@ function buildUserPrompt(body: RequestBody, dureza: Dureza): string {
   const triggerLabel = trigger === 'mission' ? 'MISSÃO' : trigger === 'habit' ? 'HÁBITO' : 'PROTOCOLO DE FALHA EXPIRADO';
 
   const parts: string[] = [];
-  parts.push(`TIPO DE FALHA: ${triggerLabel}`);
+  parts.push(`TIPO: ${triggerLabel}`);
   parts.push(`ITEM FALHADO: "${itemName}"`);
-  parts.push(`DUREZA CALCULADA: ${dureza}`);
+  parts.push(`DUREZA: ${dureza}`);
 
   if (c.awakening?.become) parts.push(`\nQUEM ELE QUER SE TORNAR: ${c.awakening.become}`);
   if (c.awakening?.reject) parts.push(`O QUE ELE QUER REJEITAR: ${c.awakening.reject}`);
   if (c.awakening?.pain) parts.push(`DOR QUE QUER EVITAR: ${c.awakening.pain}`);
 
-  if (c.rank || c.level) parts.push(`\nRANK ATUAL: ${c.rank || '?'} • Nível ${c.level ?? '?'} • Streak: ${c.streak ?? 0} dias`);
+  if (c.monster) parts.push(`\nMONSTRO DA PROCRASTINAÇÃO: HP ${c.monster.hp}/100${c.monster.lastReason ? ` (último evento: ${c.monster.lastReason})` : ''}`);
+
+  if (c.rank || c.level) parts.push(`\nRANK ${c.rank || '?'} • Nível ${c.level ?? '?'} • Streak: ${c.streak ?? 0} dias`);
   parts.push(`FALHAS NOS ÚLTIMOS 7 DIAS: ${c.failureFrequency7d ?? 0}`);
 
   if (c.failedRecent && c.failedRecent.length > 0) {
-    parts.push(`\nPADRÃO DE FALHAS RECENTES (mais recente primeiro):`);
-    c.failedRecent.slice(0, 8).forEach(f => {
+    parts.push(`\nPADRÃO DE FALHAS:`);
+    c.failedRecent.slice(0, 6).forEach(f => {
       const d = new Date(f.date);
       parts.push(`- ${f.type}: "${f.name}" em ${d.toLocaleDateString('pt-BR')}`);
     });
   }
 
-  if (c.completedRecent && c.completedRecent.length > 0) {
-    parts.push(`\nCONQUISTAS RECENTES (use só se for pra mostrar contraste/queda):`);
-    c.completedRecent.slice(0, 5).forEach(co => {
-      parts.push(`- "${co.name}"`);
-    });
-  }
-
   if (c.habits && c.habits.length > 0) {
-    parts.push(`\nHÁBITOS ATIVOS:`);
-    c.habits.slice(0, 6).forEach(h => {
-      parts.push(`- "${h.name}" • streak ${h.streak} • ${h.failuresLast7d} falhas em 7d`);
-    });
+    parts.push(`\nHÁBITOS:`);
+    c.habits.slice(0, 5).forEach(h => parts.push(`- "${h.name}" • streak ${h.streak} • ${h.failuresLast7d} falhas/7d`));
   }
 
   if (c.activeMissions && c.activeMissions.length > 0) {
-    parts.push(`\nMISSÕES ATIVAS AGORA:`);
-    c.activeMissions.slice(0, 6).forEach(m => parts.push(`- "${m.name}" (${m.difficulty})`));
+    parts.push(`\nMISSÕES ATIVAS:`);
+    c.activeMissions.slice(0, 4).forEach(m => parts.push(`- "${m.name}" (${m.difficulty})`));
   }
 
   if (c.recentJournal && c.recentJournal.length > 0) {
-    parts.push(`\nESCRITAS RECENTES DO DIÁRIO (use pra entender o estado emocional dele):`);
-    c.recentJournal.slice(0, 5).forEach((j, i) => {
-      const trimmed = j.length > 300 ? j.slice(0, 300) + '…' : j;
+    parts.push(`\nDIÁRIO RECENTE:`);
+    c.recentJournal.slice(0, 3).forEach((j, i) => {
+      const trimmed = j.length > 220 ? j.slice(0, 220) + '…' : j;
       parts.push(`[${i + 1}] ${trimmed}`);
     });
   }
 
-  parts.push(`\nGere a mensagem confrontadora agora seguindo TODAS as regras.`);
+  parts.push(`\nGere o popup de 2-4 linhas curtas seguindo TODAS as regras.`);
   return parts.join('\n');
 }
 
@@ -158,8 +158,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const dureza = pickDureza(body.context.failureFrequency7d ?? 0);
-    const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? []);
+    const dureza = pickDureza(body.context.failureFrequency7d ?? 0, body.context.aiIntensity ?? 'moderado');
+    const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? [], body.context.monster?.hp);
     const userPrompt = buildUserPrompt(body, dureza);
 
     const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
