@@ -1,60 +1,77 @@
 
-## Ajuste final de mobile — MonsterIndicator ainda está “colado”
+## Mobile: reorganizar coluna esquerda e compactar Monstro
 
-### O problema exato
-Pelo screenshot, o badge não está mais vazando, mas o bloco do título ainda ficou visualmente apertado no mobile:
-- o título quebra em 2 linhas;
-- o badge fica muito próximo da segunda linha;
-- o tracking largo da fonte + texto longo (“Monstro da Procrastinação”) deixa o cabeçalho denso demais em larguras pequenas.
+### Pedidos
+1. **SystemPanel** sai de cima (no mobile) e vai pro **final da página**.
+2. **MonsterIndicator** fica em **modo compacto** no mobile — ocupa pouca tela, expandível se quiser ver detalhes.
 
-### O que vou corrigir
+### Mudanças
 
-**1. Reestruturar o header do `MonsterIndicator`**
-Em vez de depender só do `flex-col`, separar claramente em 2 áreas:
-- linha 1: `Skull + título`
-- linha 2: badge sozinho
+**1. `src/pages/Index.tsx` — reorganizar ordem no mobile**
 
-Assim o badge nunca “encosta” no título.
-
-Estrutura desejada:
-```text
-[skull] MONSTRO DA
-        PROCRASTINAÇÃO
-
-        [AGONIZANTE]
+Hoje a coluna esquerda renderiza nessa ordem (e cai inteira em cima do conteúdo no mobile):
+```
+PlayerCard → MonsterIndicator → FailureProtocolAlert → SystemPanel
 ```
 
-**2. Dar mais respiro no mobile**
-No `src/components/MonsterIndicator.tsx`:
-- aumentar o espaçamento entre título e badge;
-- reduzir um pouco tracking/tamanho do título só no mobile;
-- garantir `leading` mais confortável;
-- deixar o badge com `w-fit` / `self-start` e margem superior clara;
-- se necessário, reduzir o texto do título em mobile para:
-  - desktop: “Monstro da Procrastinação”
-  - mobile: “Monstro da Procrastinação” com tracking menor e quebra mais limpa, sem apertar.
+Vou separar `SystemPanel` em um bloco próprio que:
+- no mobile: aparece **depois** do conteúdo principal (final da página);
+- no desktop (xl+): continua na coluna esquerda, no mesmo lugar de antes.
 
-**3. Refinar o card como um todo**
-- aumentar levemente o padding interno no eixo vertical;
-- revisar espaço entre header, barra de HP e texto descritivo;
-- evitar que tudo fique “amontoado” em telas de 320–390px.
+Estrutura nova:
+```tsx
+<div className="grid xl:grid-cols-12 gap-...">
+  {/* Coluna esquerda no desktop, topo no mobile */}
+  <div className="xl:col-span-4 2xl:col-span-3 space-y-5 order-1">
+    <PlayerCard />
+    <MonsterIndicator />
+    <FailureProtocolAlert />
+    {/* SystemPanel só aparece aqui no desktop */}
+    <div className="hidden xl:block">
+      <SystemPanel />
+    </div>
+  </div>
 
-**4. Auditoria rápida dos blocos vizinhos**
-Também vou revisar:
-- `PlayerCard`
-- `FailureProtocolAlert`
-- container principal em `Index.tsx`
+  {/* Conteúdo principal */}
+  <div className="xl:col-span-8 2xl:col-span-9 order-2">
+    {renderContent()}
+  </div>
 
-Objetivo: garantir que o problema não seja sensação geral de layout apertado no mobile, e não só do badge.
+  {/* SystemPanel no final, só no mobile */}
+  <div className="xl:hidden order-3">
+    <SystemPanel />
+  </div>
+</div>
+```
+
+**2. `src/components/MonsterIndicator.tsx` — modo compacto no mobile**
+
+Hoje o card usa: ícone + título grande + badge em linha separada + barra HP + descrição + reason. Ocupa muito vertical.
+
+Vou criar versão compacta (default no mobile) com layout em **uma única linha densa**:
+
+```
+[💀] Monstro · AGONIZANTE          [HP 12/100]
+     ▰▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱  (barra fina)
+                                    [▾ ver mais]
+```
+
+Detalhes:
+- Header em uma linha só: ícone pequeno + "Monstro" + separador "·" + badge inline (texto colorido, sem borda volumosa) + valor HP à direita.
+- Barra HP fina (`h-1.5` em vez de `h-2`).
+- Descrição (`stage.desc`) e `reason` ficam **escondidos** por padrão no mobile, atrás de um botão chevron (`Collapsible` ou simples `useState`).
+- Padding interno reduzido no mobile (`p-3 sm:p-4`).
+- No desktop (`sm:` ou `md:`+) mantém o layout atual (expandido sempre).
+
+Resultado: card mobile passa de ~140px de altura para ~60-70px quando colapsado.
+
+**3. Toques finais**
+- Garantir que `FailureProtocolAlert` (quando aparece) também não fique muito alto — mas só ajusto se notar problema; foco é nos 2 pedidos.
 
 ### Arquivos
-- `src/components/MonsterIndicator.tsx` — separar header em duas linhas e melhorar espaçamentos mobile.
-- `src/pages/Index.tsx` — pequeno ajuste se o container ainda estiver apertando demais em telas pequenas.
-- `src/components/PlayerCard.tsx` — só se eu encontrar outro ponto visualmente “colado” na mesma coluna.
+- `src/pages/Index.tsx` — reordenar SystemPanel (mobile no fim, desktop na esquerda).
+- `src/components/MonsterIndicator.tsx` — versão compacta colapsável no mobile, layout atual no desktop.
 
-### Resultado esperado
-No celular, o card do monstro fica:
-- sem overflow;
-- sem elementos encostados;
-- mais legível;
-- equilibrado em 320px, 375px, 390px e 414px.
+### Resultado
+- Mobile: PlayerCard → Monstro (compacto) → Alert (se houver) → Conteúdo → SystemPanel.
+- Desktop: inalterado.
