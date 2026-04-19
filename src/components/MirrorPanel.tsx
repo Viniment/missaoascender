@@ -84,13 +84,26 @@ export default function MirrorPanel() {
       : 0;
 
     return {
-      totalMissions, completed, failed, active, completionRate,
+      totalMissions, completed, failed, active, finalized, completionRate,
       habitFailures7d, habitDones7d,
       recurringFailures,
       totalHours,
       failures30d, dones30d, consistencyScore,
     };
   }, [state]);
+
+  const monsterHp = state.monster?.hp ?? 0;
+  const exercises = useMemo(() => buildExercises({
+    recurringFailures: stats.recurringFailures,
+    consistencyScore: stats.consistencyScore,
+    failures30d: stats.failures30d,
+    dones30d: stats.dones30d,
+    completionRate: stats.completionRate,
+    monsterHp,
+    activeMissions: (state.missions || []).filter(m => m.status === 'Ativa').map(m => m.name),
+    awakeningBecome: state.awakening?.become,
+    hasFinalized: stats.finalized > 0,
+  }), [stats, monsterHp, state.missions, state.awakening]);
 
   const promised = state.awakening?.become?.trim();
   const reject = state.awakening?.reject?.trim();
