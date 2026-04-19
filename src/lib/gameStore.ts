@@ -367,10 +367,10 @@ export function computeMonsterHp(state: PlayerState): number {
 function applyMonsterDelta(prev: PlayerState, _delta: number, reason: string): MonsterState {
   const current = prev.monster ?? { hp: 0, lastChange: new Date().toISOString() };
   if (prev.aiSettings?.monsterEnabled === false) return current;
-  // HP is now derived from history — recompute from current state.
-  // Note: caller must merge this AFTER updating habits/missions for the new event to count.
+  // HP is derived from history at read-time (see computeMonsterHp).
+  // Here we only record the latest event reason for display.
   return {
-    hp: computeMonsterHp(prev),
+    hp: current.hp, // placeholder; the consumer recomputes from history
     lastChange: new Date().toISOString(),
     lastReason: reason,
   };
