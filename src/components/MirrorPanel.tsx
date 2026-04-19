@@ -20,7 +20,8 @@ export default function MirrorPanel() {
     const completed = missions.filter(m => m.status === 'Concluída').length;
     const failed = missions.filter(m => m.status === 'Falhada').length;
     const active = missions.filter(m => m.status === 'Ativa').length;
-    const completionRate = totalMissions > 0 ? Math.round((completed / totalMissions) * 100) : 0;
+    const finalized = completed + failed;
+    const completionRate = finalized > 0 ? Math.round((completed / finalized) * 100) : 0;
 
     // Habit streaks vs failures (last 7 days)
     const habitFailures7d: Record<string, number> = {};
