@@ -1,52 +1,35 @@
 
-## Refazer UI de correção retroativa — modo "voltar no tempo"
+## Auto-cancelar Protocolo de Falha ao corrigir hábito para concluído
 
-### Pedido
-Hoje cada hábito mostra timeline de 3 dias (Hoje/Ontem/Anteontem) inline, ocupa muita altura e fica visualmente poluído. Usuário quer:
-- Visualização limpa (só "Hoje" por padrão).
-- Um botão global tipo **"← Voltar para Ontem"** / **"← Anteontem"** que muda o contexto e mostra **todos os hábitos daquele dia** com seus status, permitindo corrigir em massa.
+### Problema
+Quando o usuário marca "falhou" sem querer, um Protocolo de Falha é criado. Ao corrigir para "concluído", o XP volta — mas o protocolo continua pendente, exigindo ação.
 
 ### Solução
+Em `markHabit` (`src/lib/gameStore.ts`), quando a transição for `failed → done`, remover (ou marcar como Concluído) automaticamente o protocolo pendente cuja `reason === "Hábito falhado: <nome do hábito>"`.
 
-**1. `HabitsPanel.tsx` — seletor de dia global**
+### Mudança
+No bloco já existente (~linha 784) que monta `newProtocols`, adicionar caso simétrico:
 
-Adicionar um controle no topo da lista de hábitos:
-
-```
-HÁBITOS                              [+ Novo]
-
-[← Anteontem]  [← Ontem]  [● Hoje]
-```
-
-- 3 botões/abas (Hoje, Ontem, Anteontem). Default = Hoje.
-- Estado local: `viewDate` (string YYYY-MM-DD).
-- Quando muda, o `HabitCard` passa a renderizar baseado em `viewDate` em vez de `today`.
-
-Quando `viewDate !== today`, mostrar uma faixa visual de aviso:
-```
-🕐 Visualizando: Ontem (18/04) — alterações recalculam XP
+```ts
+// Auto-cancelar protocolo se usuário corrigiu failed → done
+if (previous === 'failed' && status === 'done') {
+  const reasonTag = `Hábito falhado: ${habit.name}`;
+  newProtocols = newProtocols.filter(
+    fp => !(fp.status === 'Pendente' && fp.reason === reasonTag)
+  );
+}
 ```
 
-**2. `HabitCard` — voltar ao layout simples**
+Detalhes:
+- Usa `filter` (remove) em vez de marcar Concluído, para não poluir histórico com protocolo "fantasma" que nunca foi executado de verdade. Esses protocolos foram criados por erro do usuário.
+- Funciona para `targetDate === today` (caso do bug relatado) e também para correções retroativas (defensivo).
+- Adicionar log informativo: "Protocolo de falha cancelado: <nome>" quando isso ocorrer, para o usuário entender.
 
-Remover a timeline de 3 dias. Voltar para o layout antigo (1 linha de ações Check/X), mas operando sobre `viewDate` recebido por prop:
-- Mostra status do `viewDate` (✔️ done, ❌ failed, ou vazio).
-- Botões Check/X funcionam para esse dia.
-- Se já marcado, clicar no outro botão pede confirmação (`AlertDialog`) — "Alterar status para Concluído?".
-- Card fica com altura compacta como antes.
+### Escopo
+Só hábitos por enquanto (é onde o bug ocorre). Missões usam outro fluxo de protocolo e não foram pedidas.
 
-**3. Comportamento de marcação**
-- `viewDate === today` (default): comportamento atual — popup de recompensa, etc.
-- `viewDate !== today`: chama `markHabit(id, status, viewDate)` e mostra apenas toast simples ("Hábito de ontem atualizado"). Sem RewardPopup nem FailureConfront (já são correções retroativas).
-- A lógica de reversão de XP/ouro no `gameStore.markHabit` já está implementada — não muda.
-
-**4. Ordenação**
-- Manter sort: hábitos sem status no `viewDate` aparecem primeiro, marcados depois.
-
-### Arquivos
-- `src/components/HabitsPanel.tsx` — adicionar seletor de dia (Hoje/Ontem/Anteontem) + faixa de aviso + remover timeline inline do `HabitCard` e voltar ao layout simples baseado em `viewDate`.
+### Arquivo
+- `src/lib/gameStore.ts` — função `markHabit`, adicionar cancelamento automático do protocolo + log.
 
 ### Resultado
-- Visual limpo no dia normal (só Hoje).
-- 1 clique para "voltar pra ontem" e ver/corrigir tudo daquele dia em lote.
-- Sem ocupar espaço extra em cada card.
+Marcou "falhou" por engano → corrige para "concluído" → protocolo de falha desaparece automaticamente, XP/ouro recalculados, log mostra a correção e o cancelamento.
