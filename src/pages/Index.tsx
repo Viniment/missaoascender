@@ -16,11 +16,12 @@ import AchievementsPanel from '@/components/AchievementsPanel';
 import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
 import StoicPanel from '@/components/StoicPanel';
 import MirrorPanel from '@/components/MirrorPanel';
+import CounselPanel from '@/components/CounselPanel';
 import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers, Flame, Waves, ScrollText } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Menu, X, Settings, Trophy, HelpCircle, Layers, Flame, Waves, ScrollText, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TABS = [
@@ -29,6 +30,7 @@ const TABS = [
   { id: 'challenges', label: 'Desafios', icon: Shield },
   { id: 'achievements', label: 'Conquistas', icon: Trophy },
   { id: 'mirror', label: 'Espelho', icon: Eye },
+  { id: 'counsel', label: 'Conselho', icon: Compass },
   { id: 'journal', label: 'Diário', icon: BookOpen },
   { id: 'stoic', label: 'Estoicismo', icon: ScrollText },
   { id: 'affirmations', label: 'Afirmações', icon: Flame },
@@ -57,6 +59,7 @@ export default function Index() {
       case 'challenges': return <ChallengesPanel />;
       case 'achievements': return <AchievementsPanel />;
       case 'mirror': return <MirrorPanel />;
+      case 'counsel': return <CounselPanel />;
       case 'journal': return <JournalPanel />;
       case 'stoic': return <StoicPanel />;
       case 'affirmations': return <AffirmationsPanel />;

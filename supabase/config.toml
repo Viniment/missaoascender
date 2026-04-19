@@ -1,1 +1,4 @@
 project_id = "wuxcgdallnewizweixxa"
+
+[functions.counsel]
+verify_jwt = false
