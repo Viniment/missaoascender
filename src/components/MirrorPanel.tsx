@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Wrench, Timer, Target, BookOpen, Skull, Scissors, Wind, Sparkles, Info } from 'lucide-react';
+import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, ShieldOff, Waves, Utensils, Repeat, Hourglass, Snowflake, MoonStar, NotebookPen, Clock, Replace, Info, Zap } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function daysAgo(iso: string) {
@@ -184,14 +184,14 @@ export default function MirrorPanel() {
         </p>
       </motion.div>
 
-      {/* Reprogramming Protocol */}
+      {/* Habit Deactivation Protocol */}
       {exercises.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel border-primary/30 bg-primary/5">
           <h3 className="font-display text-xs tracking-widest text-primary uppercase mb-1 flex items-center gap-2">
-            <Wrench className="w-4 h-4" /> Protocolo de Reprogramação
+            <ShieldOff className="w-4 h-4" /> Protocolo de Desativação de Hábitos
           </h3>
           <p className="text-[11px] text-foreground/60 mb-3">
-            🛠️ Ações para quebrar o padrão — escolhidas a partir do que o espelho detectou agora.
+            🧠 Práticas progressivas para enfraquecer o poder dos hábitos automáticos. Não são exercícios pontuais — são treinos que reescrevem o cérebro ao longo de dias e semanas.
           </p>
           <ul className="space-y-2">
             {exercises.map((ex, i) => (
@@ -199,7 +199,10 @@ export default function MirrorPanel() {
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 text-primary shrink-0">{ex.icon}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-sm text-foreground leading-tight">{ex.name}</p>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <p className="font-display text-sm text-foreground leading-tight">{ex.name}</p>
+                      <span className="text-[10px] uppercase tracking-wider text-primary/70 bg-primary/10 px-2 py-0.5 rounded shrink-0">{ex.duration}</span>
+                    </div>
                     <p className="text-xs text-foreground/80 mt-1">{ex.howto}</p>
                     <p className="text-[11px] text-primary/80 italic mt-1">{ex.why}</p>
                   </div>
@@ -300,74 +303,119 @@ interface Exercise {
   name: string;
   howto: string;
   why: string;
+  duration: string;
   icon: React.ReactNode;
+  priority: number;
 }
 
 function buildExercises(d: ExerciseInput): Exercise[] {
   const out: Exercise[] = [];
+  const topFailure = d.recurringFailures[0]?.[0];
+  const topCount = d.recurringFailures[0]?.[1];
 
-  if (d.recurringFailures.length > 0) {
-    const [topName, topCount] = d.recurringFailures[0];
+  if (d.recurringFailures.length > 0 || d.monsterHp >= 60) {
     out.push({
-      name: 'Regra dos 2 minutos',
-      howto: `Faça AGORA uma versão mínima de "${topName}" — só 2 minutos. O objetivo é quebrar a inércia, não terminar.`,
-      why: `Detectado: "${topName}" falhou ${topCount}× — o cérebro travou antes de começar. Reduzir o atrito mata o padrão.`,
-      icon: <Timer className="w-4 h-4" />,
+      name: 'Urge Surfing',
+      howto: 'Quando o impulso de fugir/procrastinar vier, sente-se. Observe a sensação no corpo por 5-10 min sem agir. Note onde dói, como pulsa. Não lute, não obedeça — só observe até passar.',
+      why: topFailure
+        ? `Detectado: "${topFailure}" falhou ${topCount}× — o impulso está vencendo. Urge surfing ensina o cérebro que o impulso passa sem ser obedecido.`
+        : `Monstro em ${d.monsterHp}/100 — o impulso está te dominando. Treinar a observar sem agir desativa o automatismo.`,
+      duration: 'Sempre que vier',
+      icon: <Waves className="w-4 h-4" />,
+      priority: 10,
     });
   }
 
   if (d.consistencyScore < 50 && d.consistencyScore > 0) {
     out.push({
-      name: 'Implementação de Intenção',
-      howto: 'Escreva agora: "QUANDO [gatilho específico] acontecer, EU FAREI [ação concreta]". Ex: "Quando acordar, vou beber água antes do celular".',
-      why: `Consistência últimos 30d: ${d.consistencyScore}%. Decisões no momento falham — pré-decisões funcionam.`,
-      icon: <Target className="w-4 h-4" />,
+      name: 'Jejum de Dopamina (24h)',
+      howto: '1 dia inteiro sem: redes sociais, doces, pornô, jogos, streaming, notícias. Só trabalho real, leitura, exercício, conversas presenciais. Reseta a sensibilidade dos receptores de dopamina.',
+      why: `Consistência últimos 30d: ${d.consistencyScore}%. Receptores saturados — qualquer coisa difícil parece insuportável. Jejum recalibra o sistema.`,
+      duration: '1× por semana',
+      icon: <ShieldOff className="w-4 h-4" />,
+      priority: 9,
     });
   }
 
-  if (d.failures30d > d.dones30d && d.failures30d > 0) {
+  out.push({
+    name: 'Diário de Gatilhos',
+    howto: 'Toda vez que o impulso de procrastinar/sabotar vier: anote em 3 colunas — HORA, CONTEXTO (onde estava, o que fazia), EMOÇÃO (tédio, ansiedade, raiva). Não julgue, só registre.',
+    why: 'Em 7 dias o padrão fica visível: você descobre os gatilhos exatos. Sem ver o gatilho, não há como desativá-lo.',
+    duration: 'Praticar por 7 dias',
+    icon: <NotebookPen className="w-4 h-4" />,
+    priority: 7,
+  });
+
+  out.push({
+    name: 'Regra dos 10 Minutos',
+    howto: 'Quando bater o impulso de ceder ao mau hábito (rolar feed, comer compulsivo, etc), espere 10 minutos. Pode ceder depois — mas só depois. Use timer.',
+    why: 'O pico do impulso dura 90s-10min. Esperar treina o córtex pré-frontal a vencer o sistema límbico. Quase sempre o impulso some.',
+    duration: 'Sempre que vier',
+    icon: <Clock className="w-4 h-4" />,
+    priority: 7,
+  });
+
+  if (d.recurringFailures.length > 0) {
     out.push({
-      name: 'Premeditatio Malorum (estoico)',
-      howto: 'Pegue papel e escreva por 3 min: "Se eu continuar fugindo dessas tarefas por 1 ano, minha vida será ___". Detalhe sem suavizar.',
-      why: `Últimos 30d: ${d.failures30d} falhas vs ${d.dones30d} feitos. O cérebro precisa SENTIR a consequência futura, não só pensar nela.`,
-      icon: <BookOpen className="w-4 h-4" />,
+      name: 'Habit Stacking Reverso',
+      howto: topFailure
+        ? `Logo após o gatilho que normalmente leva a falhar "${topFailure}", insira 2 minutos da ação OPOSTA. Ex: pegou o celular? Faça 10 flexões antes de desbloquear.`
+        : 'Logo após o gatilho do mau hábito, insira 2 minutos da ação oposta. Ex: pegou o celular? Faça 10 flexões antes de desbloquear.',
+      why: 'Reescreve a rota neural: o gatilho deixa de levar à fuga e passa a levar à ação. Em 21 dias, vira automático.',
+      duration: 'Praticar por 21 dias',
+      icon: <Repeat className="w-4 h-4" />,
+      priority: 8,
+    });
+
+    out.push({
+      name: 'Substituição de Recompensa',
+      howto: 'Identifique a recompensa real do mau hábito (alívio? prazer? estímulo?). Liste 3 alternativas saudáveis que entregam o mesmo neurotransmissor. Use uma delas quando o impulso vier.',
+      why: 'O cérebro não larga um hábito — ele troca por outro. Sem recompensa substituta, o velho hábito sempre volta.',
+      duration: 'Praticar por 30 dias',
+      icon: <Replace className="w-4 h-4" />,
+      priority: 6,
+    });
+  }
+
+  if (d.completionRate < 40 && d.hasFinalized) {
+    out.push({
+      name: 'Janela de Atenção (Pomodoro com sofrimento)',
+      howto: '25 min cravados na tarefa difícil. Se vier impulso de fugir, escreva o impulso num papel ao lado e CONTINUE. Ao fim, 5 min de pausa real (sem tela).',
+      why: `Taxa de ${d.completionRate}% nas finalizadas — você foge antes de entrar em foco profundo. Treinar tolerar o desconforto inicial é a chave.`,
+      duration: '3× ao dia',
+      icon: <Hourglass className="w-4 h-4" />,
+      priority: 8,
     });
   }
 
   if (d.monsterHp >= 70) {
     out.push({
-      name: 'Confronto de Identidade',
-      howto: d.awakeningBecome
-        ? `Releia em voz alta: "Eu juro me tornar ${d.awakeningBecome}". Depois escreva 1 ação que essa pessoa faria nos próximos 30 minutos — e faça.`
-        : 'Vá em "Despertar", releia em voz alta quem você jurou se tornar, e escreva 1 ação que essa pessoa faria agora.',
-      why: `Monstro em ${d.monsterHp}/100 — está te dominando. Identidade é o único contra-ataque real.`,
-      icon: <Skull className="w-4 h-4" />,
+      name: 'Cold Exposure',
+      howto: 'Banho frio de 2 minutos por dia (água o mais fria possível). Comece em 30s e suba. Respire pelo nariz, não fuja.',
+      why: `Monstro em ${d.monsterHp}/100 — sua tolerância ao desconforto está zerada. Frio treina o sistema nervoso a NÃO fugir do desconforto. Vira músculo.`,
+      duration: 'Diário por 30 dias',
+      icon: <Snowflake className="w-4 h-4" />,
+      priority: 9,
     });
   }
 
-  if (d.completionRate < 40 && d.hasFinalized && d.activeMissions.length > 0) {
-    out.push({
-      name: 'Decomposição Radical',
-      howto: `Pegue "${d.activeMissions[0]}" e quebre em 3 micro-passos de 5 min cada. Faça SÓ o primeiro agora.`,
-      why: `Taxa de ${d.completionRate}% nas finalizadas — missões estão grandes demais pro estado atual. Reduza ou trave.`,
-      icon: <Scissors className="w-4 h-4" />,
-    });
-  }
-
-  // Sempre presentes — regulação emocional
   out.push({
-    name: 'Box Breathing 4-4-4-4',
-    howto: 'Antes da próxima tarefa: inspire 4s · segure 4s · expire 4s · segure 4s. Repita 4 ciclos. Dispara o sistema parassimpático.',
-    why: 'Procrastinação raramente é preguiça — é desregulação emocional. Acalmar o sistema vem antes de agir.',
-    icon: <Wind className="w-4 h-4" />,
+    name: 'Mindful Eating',
+    howto: '1 refeição por dia sem tela, sem pressa. Mastigue cada garfada 20×. Sinta sabor, textura, temperatura. Pouse o talher entre garfadas.',
+    why: 'Religa a consciência ao corpo. Quem come no automático, vive no automático. É treino de presença barato e diário.',
+    duration: '1× ao dia',
+    icon: <Utensils className="w-4 h-4" />,
+    priority: 5,
   });
 
   out.push({
-    name: 'Visualização do Eu Futuro',
-    howto: 'Feche os olhos por 60s. Sinta (não pense) como será TER FEITO a tarefa: o alívio, o orgulho, o corpo relaxado. Depois abra e comece.',
-    why: 'O cérebro responde a recompensa antecipada. Associa prazer à ação antes de executá-la.',
-    icon: <Sparkles className="w-4 h-4" />,
+    name: 'Digital Sunset',
+    howto: 'Sem tela (celular, TV, computador) por 1 hora antes de dormir. Substitua por leitura física, conversa, ou nada. Celular fora do quarto.',
+    why: 'Tela noturna destrói sono profundo → dia seguinte sem função executiva → você procrastina sem conseguir reagir. Restaurar o sono é restaurar a vontade.',
+    duration: 'Praticar por 7 dias',
+    icon: <MoonStar className="w-4 h-4" />,
+    priority: 6,
   });
 
-  return out.slice(0, 6);
+  return out.sort((a, b) => b.priority - a.priority).slice(0, 6);
 }
