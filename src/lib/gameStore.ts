@@ -797,12 +797,14 @@ export function useGameStore() {
         );
         cancelledProtocol = newProtocols.length < before;
       }
-      if (status === 'failed' && !previous && targetDate === today) {
+      let activatedProtocol = false;
+      const becameFailed = status === 'failed' && previous !== 'failed';
+      if (becameFailed) {
         const punishment = pickPunishment(prev);
         if (punishment) {
           const now = new Date();
           const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-          newProtocols = [...prev.failureProtocols, {
+          newProtocols = [...newProtocols, {
             id: crypto.randomUUID(),
             triggeredAt: now.toISOString(),
             deadline: deadline.toISOString(),
@@ -811,6 +813,7 @@ export function useGameStore() {
             punishment,
             status: 'Pendente' as const,
           }];
+          activatedProtocol = true;
         }
       }
 
@@ -828,6 +831,7 @@ export function useGameStore() {
         failureProtocols: newProtocols,
         log: [
           ...(cancelledProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }] : []),
+          ...(activatedProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha ativado: ${habit.name}`, xp: 0, gold: 0 }] : []),
           { date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta },
           ...prev.log,
         ].slice(0, 100),
