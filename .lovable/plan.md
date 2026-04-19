@@ -1,76 +1,46 @@
-## Nova aba "Conselho" — Coach IA personalizado
 
-Aba dedicada onde o usuário descreve sobre o que quer conselho, e a IA responde como **coach/terapeuta realista** usando TODO o contexto do jogador (despertar, hábitos, missões, diário, monstro, progressão).
+## Configurações: gerenciar guias visíveis + melhorar exibição do menu
 
-## UX
+### Parte 1 — Toggle de guias em Configurações
 
-1. Nova aba `Conselho` (ícone `Compass`) no menu principal de `Index.tsx`.
-2. Painel `CounselPanel.tsx`:
-  - Textarea grande: *"Sobre o que você precisa de conselho hoje?"* (ex: "tô travado pra começar a estudar", "briguei com minha mãe", "tô pensando em desistir do projeto X").
-  - (Opcional) Select de **tom**: `Direto e duro` | `Analítico` | `Compassivo mas firme` (default: direto).
-  - (Opcional) Toggle: *"Incluir meu diário recente nas últimas 2 semanas"* (default: ON).
-  - Botão `Pedir conselho` → loading → resposta renderizada em markdown.
-  - Histórico dos últimos 10 conselhos salvos em `state.counselHistory[]` (data, pergunta, resposta, tom) — colapsáveis abaixo.
+Já existe `state.disabledTabs: string[]` em `gameStore` e `Index.tsx` já filtra com `visibleTabs`. Falta UI pra controlar isso.
 
-## Backend — edge function `counsel`
+**`src/pages/Settings.tsx`** — nova seção **"Guias visíveis"**:
+- Lista todas as 14 guias (`missions`, `habits`, `challenges`, `achievements`, `mirror`, `counsel`, `journal`, `stoic`, `affirmations`, `timer`, `urge-surfing`, `visualizar`, `awakening`, `rewards`).
+- Cada uma com `Switch` (ícone + nome + descrição curta de 1 linha).
+- Toggle chama action `toggleTab(id)` no gameStore que adiciona/remove de `disabledTabs`.
+- Botões rápidos: `Ativar todas` / `Desativar opcionais` (mantém só missions+habits).
+- Aviso: "Missões e Hábitos não podem ser desativadas" (núcleo do app — sempre forçadas como visíveis).
 
-Recebe: `{ question, tone, context }` onde `context` é um snapshot enxuto do `PlayerState` montado no client (pra não vazar tudo desnecessariamente):
+**`src/lib/gameStore.ts`** — adicionar action `toggleTab(tabId: string)` que alterna o id no array `disabledTabs`.
 
-```
-{
-  awakening: { become, reject, dailyTheme },
-  level, rank, xp, streak,
-  monsterHp, monsterStage,
-  habits: [{ name, streak, completionRate30d, recentFails }],
-  missions: [{ title, status, daysOpen, category }],
-  recentJournal: [{ date, mood, snippet }],   // últimas 10 entradas, truncadas
-  recentCounsels: [{ question, snippet }],     // pra continuidade
-  metrics: { completionRate30d, consistencyScore, recurringFailures }
-}
-```
+### Parte 2 — Melhorar exibição do menu (header de `Index.tsx`)
 
-Modelo: `google/gemini-2.5-pro` (precisa raciocínio profundo + contexto grande). Sem streaming nesta v1 (resposta única, mais simples). Trata 429/402 com toast.
+**Problema atual:** 14 guias no header desktop estouram horizontal. No mobile é grid 4×N que fica apertado. Viewport atual do user é 753px (tablet) — está no breakpoint ruim entre desktop nav (md:flex) e mobile menu.
 
-## System prompt (núcleo)
+**Solução desktop (≥ md):**
+- Header com **scroll horizontal suave** + fade nas bordas (gradient mask) quando overflow.
+- Guias agrupadas visualmente com pequeno separator entre grupos:
+  - **Ação:** Missões, Hábitos, Desafios, Conquistas
+  - **Reflexão:** Espelho, Conselho, Diário, Estoicismo, Afirmações
+  - **Ferramentas:** Timer, Urge Surfing, Visualizar, Despertar
+  - **Loja:** Loja
+- Botão ativo com glow purple mais marcado (border-glow + bg primary/15).
+- Hover sutil com scale-[1.02] e transition.
 
-```
-Você é um conselheiro pessoal — mistura coach executivo, terapeuta cognitivo-comportamental e mentor estoico. PT-BR.
+**Solução mobile (< md):**
+- Trocar grid 4×N por **bottom sheet** (`Sheet` do shadcn) que abre do bottom com lista vertical de guias agrupadas (mesmos grupos do desktop), cada item com ícone à esquerda + nome + descrição curta.
+- Item ativo destacado com bg primary/10 + border-l-2 primary.
+- Mais "respirável" que o grid atual e cabe mais conteúdo sem apertar.
 
-REGRAS:
-- Você NÃO é amigo. Você é honesto. Não suaviza para agradar.
-- Use os DADOS REAIS do usuário fornecidos. Cite padrões específicos ("você falhou X 4 vezes nas últimas 2 semanas", "seu HP do monstro está em 78 — você está perdendo a guerra interna").
-- Estrutura da resposta:
-  1. **Diagnóstico** (2-3 frases): o que você vê REALMENTE acontecendo, não o que ele disse.
-  2. **Por que pensou isso**: cite os dados concretos que sustentam o diagnóstico.
-  3. **Conselho** (3-5 frases): direção clara e realista.
-  4. **Ação imediata** (1 item): algo que pode fazer nas próximas 24h.
-- Sem clichês ("acredite em si"). Sem listas de auto-ajuda genérica.
-- Se ele estiver se vitimizando ou mentindo pra si mesmo, aponte. Com firmeza, sem crueldade.
-- Se os dados mostrarem que ele tá indo bem e só duvidando, valide com EVIDÊNCIA.
-- Tom ajustado pelo parâmetro `tone` recebido.
-- Markdown permitido (negrito, headings nível 3 max).
-```
+**Tablet (md específico, 753px):** o scroll horizontal do desktop já resolve.
 
-## Persistência
+### Arquivos
+- `src/lib/gameStore.ts` — adicionar `toggleTab` action.
+- `src/pages/Settings.tsx` — nova seção "Guias visíveis" com switches + presets.
+- `src/pages/Index.tsx` — refatorar header (scroll horizontal desktop + Sheet mobile + grupos).
 
-- Conselhos salvos em `state.counselHistory` (localStorage + Supabase via `usePlayerData` que já sincroniza tudo de `game_state`). Sem nova tabela.
-- Limite: 50 itens (FIFO).
-
-## Arquivos
-
-**Novos:**
-
-- `supabase/functions/counsel/index.ts` — edge function (similar a `stoic-insight`, sem stream).
-- `src/components/CounselPanel.tsx` — UI.
-
-**Editados:**
-
-- `src/lib/gameStore.ts` — adicionar tipo `CounselEntry` + campo `counselHistory: CounselEntry[]` no `PlayerState` e `defaultState`. Adicionar action `addCounsel(entry)`.
-- `src/pages/Index.tsx` — nova aba `Conselho`.
-- `supabase/config.toml` — registrar função `counsel` com `verify_jwt = false`.
-
-## Pergunta rápida
-
-Quer **histórico do conselho persistido** (cada conselho fica salvo e pode ser revisitado) ou **conselhos efêmeros** (só o último, mais leve)?
-
-- **(A)** Histórico (até 50, recomendado — útil pra ver evolução)
+### Notas técnicas
+- `disabledTabs` já persiste via `usePlayerData` (faz parte do `game_state` jsonb). Sem migração de banco.
+- Forçar `missions` e `habits` sempre visíveis no `visibleTabs` filter (mesmo se aparecerem em `disabledTabs` por algum motivo).
+- Grupos definidos como constante `TAB_GROUPS` em `Index.tsx` pra reutilizar entre desktop e mobile.
