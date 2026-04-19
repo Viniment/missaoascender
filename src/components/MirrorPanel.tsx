@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Wrench, Timer, Target, BookOpen, Skull, Scissors, Wind, Sparkles, Info } from 'lucide-react';
+import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, ShieldOff, Waves, Utensils, Repeat, Hourglass, Snowflake, MoonStar, NotebookPen, Clock, Replace, Info, Zap } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function daysAgo(iso: string) {
