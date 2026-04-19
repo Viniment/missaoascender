@@ -21,9 +21,10 @@ import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Menu, Settings, HelpCircle, X } from 'lucide-react';
+import { Menu, Settings, HelpCircle, X, ChevronDown, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { TAB_GROUPS, ALL_TABS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
 import { cn } from '@/lib/utils';
 
@@ -75,42 +76,80 @@ export default function Index() {
             ⟐ ASCENSÃO
           </button>
 
-          {/* Desktop grouped nav with horizontal scroll + edge fades */}
-          <nav className="hidden md:block flex-1 min-w-0 relative">
-            <div
-              className="overflow-x-auto scrollbar-none"
-              style={{
-                maskImage: 'linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%)',
-              }}
-            >
-              <div className="flex items-center gap-1 px-6 py-1 w-max">
-                {visibleGroups.map((group, gi) => (
-                  <div key={group.id} className="flex items-center gap-1">
-                    {gi > 0 && <div className="h-5 w-px bg-border/60 mx-1" />}
+          {/* Desktop grouped nav with dropdowns per group */}
+          <nav className="hidden md:flex flex-1 min-w-0 items-center justify-center gap-1.5">
+            {visibleGroups.map(group => {
+              const groupActive = group.tabs.some(t => t.id === activeTab);
+              const isSingle = group.tabs.length === 1;
+
+              if (isSingle) {
+                const tab = group.tabs[0];
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={group.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    title={tab.description}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all',
+                      active
+                        ? 'bg-primary/15 text-primary border-glow'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    )}
+                  >
+                    <tab.icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              }
+
+              return (
+                <DropdownMenu key={group.id}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all outline-none',
+                        groupActive
+                          ? 'bg-primary/15 text-primary border-glow'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                      )}
+                    >
+                      <span>{group.label}</span>
+                      <ChevronDown className="w-3 h-3 opacity-70" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-[260px] bg-popover border-border p-1.5">
                     {group.tabs.map(tab => {
                       const active = activeTab === tab.id;
                       return (
-                        <button
+                        <DropdownMenuItem
                           key={tab.id}
-                          onClick={() => setActiveTab(tab.id)}
-                          title={tab.description}
+                          onSelect={() => setActiveTab(tab.id)}
                           className={cn(
-                            'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-body whitespace-nowrap transition-all',
+                            'flex items-start gap-2.5 px-2 py-2 rounded-md cursor-pointer transition-colors border-l-2',
                             active
-                              ? 'bg-primary/15 text-primary border-glow scale-[1.02]'
-                              : 'text-muted-foreground hover:text-foreground hover:bg-secondary hover:scale-[1.02]'
+                              ? 'bg-primary/10 border-primary text-primary'
+                              : 'border-transparent hover:bg-secondary/60'
                           )}
                         >
-                          <tab.icon className="w-3.5 h-3.5" />
-                          {tab.label}
-                        </button>
+                          <div className={cn(
+                            'w-9 h-9 rounded-md flex items-center justify-center shrink-0 transition-colors',
+                            active ? 'bg-primary/20 text-primary' : 'bg-secondary text-foreground/60'
+                          )}>
+                            <tab.icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <p className="text-sm font-display tracking-wider leading-tight">{tab.label}</p>
+                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{tab.description}</p>
+                          </div>
+                          {active && <Check className="w-3.5 h-3.5 text-primary mt-2 shrink-0" />}
+                        </DropdownMenuItem>
                       );
                     })}
-                  </div>
-                ))}
-              </div>
-            </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-1 shrink-0">
