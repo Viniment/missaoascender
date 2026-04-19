@@ -33,12 +33,12 @@ export default function PlayerCard() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h2 className="font-display text-lg text-foreground truncate">{state.name}</h2>
-            <span className={`font-display text-xs font-bold ${rankColors[state.rank]} bg-secondary/80 px-1.5 py-0.5 rounded`}>
+          <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+            <h2 className="font-display text-lg text-foreground truncate min-w-0">{state.name}</h2>
+            <span className={`font-display text-xs font-bold ${rankColors[state.rank]} bg-secondary/80 px-1.5 py-0.5 rounded shrink-0`}>
               {state.rank}
             </span>
-            <span className="font-display text-xs font-bold text-foreground bg-secondary/80 px-1.5 py-0.5 rounded">
+            <span className="font-display text-xs font-bold text-foreground bg-secondary/80 px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap">
               Nível {state.level}
             </span>
           </div>
@@ -70,10 +70,10 @@ export default function PlayerCard() {
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="flex flex-col items-center gap-1 py-2 rounded-md bg-secondary/50">
+    <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-md bg-secondary/50 min-w-0">
       {icon}
-      <span className="text-xs text-foreground">{label}</span>
-      <span className="font-display text-sm text-foreground">{value}</span>
+      <span className="text-xs text-foreground truncate max-w-full">{label}</span>
+      <span className="font-display text-sm text-foreground truncate max-w-full">{value}</span>
     </div>
   );
 }
