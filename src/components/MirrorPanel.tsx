@@ -152,6 +152,18 @@ export default function MirrorPanel() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rpg-panel">
         <h3 className="font-display text-xs tracking-widest text-foreground/60 uppercase mb-3 flex items-center gap-2">
           <TrendingUp className="w-4 h-4" /> Taxa de Conclusão (Missões)
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="ml-1 text-foreground/40 hover:text-foreground/80">
+                  <Info className="w-3 h-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[260px] text-xs">
+                Calculada apenas sobre missões finalizadas (Concluídas + Falhadas). Ativas não contam.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </h3>
         <div className="relative h-3 bg-secondary rounded-full overflow-hidden mb-2">
           <motion.div
@@ -165,12 +177,38 @@ export default function MirrorPanel() {
           <Stat icon={<CheckCircle2 className="w-3 h-3 text-success" />} v={stats.completed} l="Feitas" />
           <Stat icon={<XCircle className="w-3 h-3 text-destructive" />} v={stats.failed} l="Falhas" />
           <Stat icon={<TrendingUp className="w-3 h-3 text-primary" />} v={stats.active} l="Ativas" />
-          <Stat icon={<TrendingUp className="w-3 h-3 text-foreground/60" />} v={`${stats.completionRate}%`} l="Taxa" />
+          <Stat icon={<TrendingUp className="w-3 h-3 text-foreground/60" />} v={stats.finalized > 0 ? `${stats.completionRate}%` : '—'} l="Taxa" />
         </div>
         <p className="text-[11px] text-foreground/50 mt-3">
-          {stats.totalHours.toFixed(1)}h investidas em missões cronometradas.
+          {stats.totalHours.toFixed(1)}h investidas em missões cronometradas. Taxa baseada em {stats.finalized} missõ{stats.finalized === 1 ? 'ão' : 'es'} finalizada{stats.finalized === 1 ? '' : 's'}.
         </p>
       </motion.div>
+
+      {/* Reprogramming Protocol */}
+      {exercises.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel border-primary/30 bg-primary/5">
+          <h3 className="font-display text-xs tracking-widest text-primary uppercase mb-1 flex items-center gap-2">
+            <Wrench className="w-4 h-4" /> Protocolo de Reprogramação
+          </h3>
+          <p className="text-[11px] text-foreground/60 mb-3">
+            🛠️ Ações para quebrar o padrão — escolhidas a partir do que o espelho detectou agora.
+          </p>
+          <ul className="space-y-2">
+            {exercises.map((ex, i) => (
+              <li key={i} className="rounded-md border border-border/40 bg-background/40 p-3">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 text-primary shrink-0">{ex.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-sm text-foreground leading-tight">{ex.name}</p>
+                    <p className="text-xs text-foreground/80 mt-1">{ex.howto}</p>
+                    <p className="text-[11px] text-primary/80 italic mt-1">{ex.why}</p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
 
       {/* Recurring failure patterns */}
       {stats.recurringFailures.length > 0 && (
