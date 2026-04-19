@@ -1,17 +1,16 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Skull } from 'lucide-react';
+import { Skull, ChevronDown } from 'lucide-react';
 import { computeMonsterHp } from '@/lib/gameStore';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function MonsterIndicator() {
   const { state } = useGame();
+  const [expanded, setExpanded] = useState(false);
 
-  // HP derived from real history of habits + missions (last 30 days, weighted).
   const hp = useMemo(() => computeMonsterHp(state), [state]);
   const reason = state.monster?.lastReason;
 
-  // Detect dormant state (no events in window)
   const hasAnyEvent = useMemo(() => {
     const now = Date.now();
     const DAY = 86400000;
@@ -29,7 +28,6 @@ export default function MonsterIndicator() {
 
   if (state.aiSettings?.monsterEnabled === false) return null;
 
-  // Stage by HP
   const stage = !hasAnyEvent
     ? { label: 'ADORMECIDO', color: 'success', desc: 'Aja para acordá-lo… ou enterre-o de vez.' }
     : hp >= 80 ? { label: 'COLOSSO', color: 'destructive', desc: 'Te domina. Cada fuga o engorda.' }
@@ -52,33 +50,67 @@ export default function MonsterIndicator() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={`rpg-panel border ${colorClass}`}
+      className={`rpg-panel border ${colorClass} p-3 sm:p-4`}
     >
-      <div className="mb-4">
-        <div className="flex items-start gap-2 mb-3">
-          <Skull className="w-4 h-4 shrink-0 mt-0.5" />
-          <h3 className="font-display text-[11px] leading-snug tracking-wider sm:tracking-widest uppercase min-w-0 flex-1">
-            Monstro da Procrastinação
-          </h3>
+      {/* MOBILE: compact one-line header */}
+      <div className="sm:hidden">
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="w-full flex items-center gap-2 text-left"
+        >
+          <Skull className="w-3.5 h-3.5 shrink-0" />
+          <span className="font-display text-[10px] tracking-wider uppercase shrink-0">Monstro</span>
+          <span className="text-foreground/40 text-[10px]">·</span>
+          <span className="font-display text-[10px] tracking-wider truncate">{stage.label}</span>
+          <span className="ml-auto font-display text-[10px] tabular-nums shrink-0">{hp}/100</span>
+          <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </button>
+        <div className="relative h-1.5 bg-secondary rounded-full overflow-hidden mt-2">
+          <motion.div
+            className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
+            initial={{ width: 0 }}
+            animate={{ width: `${hp}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          />
         </div>
-        <span className="inline-block text-[10px] font-display px-2 py-1 rounded border border-current whitespace-nowrap w-fit ml-6">
-          {stage.label}
-        </span>
+        {expanded && (
+          <div className="mt-2 space-y-1">
+            <p className="text-[11px] text-foreground/70 leading-snug">{stage.desc}</p>
+            {reason && hasAnyEvent && (
+              <p className="text-[10px] text-foreground/50 italic">↳ {reason}</p>
+            )}
+          </div>
+        )}
       </div>
-      <div className="relative h-2 bg-secondary rounded-full overflow-hidden mb-2">
-        <motion.div
-          className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
-          initial={{ width: 0 }}
-          animate={{ width: `${hp}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
+
+      {/* DESKTOP: full layout */}
+      <div className="hidden sm:block">
+        <div className="mb-4">
+          <div className="flex items-start gap-2 mb-3">
+            <Skull className="w-4 h-4 shrink-0 mt-0.5" />
+            <h3 className="font-display text-[11px] leading-snug tracking-widest uppercase min-w-0 flex-1">
+              Monstro da Procrastinação
+            </h3>
+          </div>
+          <span className="inline-block text-[10px] font-display px-2 py-1 rounded border border-current whitespace-nowrap w-fit ml-6">
+            {stage.label}
+          </span>
+        </div>
+        <div className="relative h-2 bg-secondary rounded-full overflow-hidden mb-2">
+          <motion.div
+            className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
+            initial={{ width: 0 }}
+            animate={{ width: `${hp}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          />
+        </div>
+        <p className="text-[11px] text-foreground/70 leading-snug">
+          HP <span className="font-display">{hp}/100</span> · {stage.desc}
+        </p>
+        {reason && hasAnyEvent && (
+          <p className="text-[10px] text-foreground/50 italic mt-1 truncate">↳ {reason}</p>
+        )}
       </div>
-      <p className="text-[11px] text-foreground/70 leading-snug">
-        HP <span className="font-display">{hp}/100</span> · {stage.desc}
-      </p>
-      {reason && hasAnyEvent && (
-        <p className="text-[10px] text-foreground/50 italic mt-1 truncate">↳ {reason}</p>
-      )}
     </motion.div>
   );
 }
