@@ -298,18 +298,79 @@ export const defaultState: PlayerState = {
   theme: 'neon-purple',
   difficultyDivisor: 1,
   stoicEntries: [],
-  monster: { hp: 50, lastChange: new Date().toISOString() },
+  monster: { hp: 0, lastChange: new Date().toISOString() },
   aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   _penaltyCompensated: true,
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
 
-function applyMonsterDelta(prev: PlayerState, delta: number, reason: string): MonsterState {
-  const current = prev.monster ?? { hp: 50, lastChange: new Date().toISOString() };
+/**
+ * Compute monster HP from real history of habits and missions.
+ * - Window: last 30 days
+ * - Weight: events from last 7 days count 2×, days 8-30 count 1×
+ * - HP = round(failures / (successes + failures) * 100)
+ * - No data → HP = 0 (monster dormant)
+ */
+export function computeMonsterHp(state: PlayerState): number {
+  const now = Date.now();
+  const DAY = 86400000;
+  const weight = (timestamp: number): number => {
+    const ageDays = (now - timestamp) / DAY;
+    if (ageDays < 0 || ageDays > 30) return 0;
+    return ageDays <= 7 ? 2 : 1;
+  };
+
+  let successes = 0;
+  let failures = 0;
+
+  // Habits: history is { [yyyy-mm-dd]: 'done' | 'failed' }
+  for (const habit of state.habits || []) {
+    const history = habit.history || {};
+    for (const [dateStr, status] of Object.entries(history)) {
+      const ts = new Date(dateStr + 'T12:00:00').getTime();
+      const w = weight(ts);
+      if (!w) continue;
+      if (status === 'done') successes += w;
+      else if (status === 'failed') failures += w;
+    }
+  }
+
+  // Missions: completionHistory entries + final status fallback
+  for (const mission of state.missions || []) {
+    const ch = mission.completionHistory || [];
+    let counted = false;
+    for (const entry of ch) {
+      const ts = new Date(entry.date).getTime();
+      const w = weight(ts);
+      if (!w) continue;
+      counted = true;
+      if (entry.failed) failures += w;
+      else successes += w;
+    }
+    // For non-repeatable missions without history, use final status + completedAt
+    if (!counted && mission.completedAt && (mission.status === 'Concluída' || mission.status === 'Falhada')) {
+      const ts = new Date(mission.completedAt).getTime();
+      const w = weight(ts);
+      if (w) {
+        if (mission.status === 'Falhada') failures += w;
+        else successes += w;
+      }
+    }
+  }
+
+  const total = successes + failures;
+  if (total === 0) return 0;
+  return clampHp(Math.round((failures / total) * 100));
+}
+
+function applyMonsterDelta(prev: PlayerState, _delta: number, reason: string): MonsterState {
+  const current = prev.monster ?? { hp: 0, lastChange: new Date().toISOString() };
   if (prev.aiSettings?.monsterEnabled === false) return current;
+  // HP is now derived from history — recompute from current state.
+  // Note: caller must merge this AFTER updating habits/missions for the new event to count.
   return {
-    hp: clampHp(current.hp + delta),
+    hp: computeMonsterHp(prev),
     lastChange: new Date().toISOString(),
     lastReason: reason,
   };
