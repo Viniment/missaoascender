@@ -710,10 +710,22 @@ export function useGameStore() {
   }, [pickPunishment]);
 
   const deleteMission = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      missions: prev.missions.filter(m => m.id !== id),
-    }));
+    setState(prev => {
+      const mission = prev.missions.find(m => m.id === id);
+      const reasonTag = mission ? `Missão falhada: ${mission.name}` : null;
+      const newProtocols = reasonTag
+        ? prev.failureProtocols.filter(fp => !(fp.status === 'Pendente' && fp.reason === reasonTag))
+        : prev.failureProtocols;
+      const cancelled = newProtocols.length < prev.failureProtocols.length;
+      return {
+        ...prev,
+        missions: prev.missions.filter(m => m.id !== id),
+        failureProtocols: newProtocols,
+        log: cancelled && mission
+          ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${mission.name}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100)
+          : prev.log,
+      };
+    });
   }, []);
 
   const editMission = useCallback((id: string, updates: Partial<Omit<Mission, 'id' | 'status'>>) => {
