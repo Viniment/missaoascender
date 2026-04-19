@@ -21,9 +21,10 @@ import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import { useGame } from '@/lib/GameContext';
-import { Menu, Settings, HelpCircle, X } from 'lucide-react';
+import { Menu, Settings, HelpCircle, X, ChevronDown, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { TAB_GROUPS, ALL_TABS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
 import { cn } from '@/lib/utils';
 
