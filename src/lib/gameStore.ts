@@ -710,10 +710,22 @@ export function useGameStore() {
   }, [pickPunishment]);
 
   const deleteMission = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      missions: prev.missions.filter(m => m.id !== id),
-    }));
+    setState(prev => {
+      const mission = prev.missions.find(m => m.id === id);
+      const reasonTag = mission ? `Missão falhada: ${mission.name}` : null;
+      const newProtocols = reasonTag
+        ? prev.failureProtocols.filter(fp => !(fp.status === 'Pendente' && fp.reason === reasonTag))
+        : prev.failureProtocols;
+      const cancelled = newProtocols.length < prev.failureProtocols.length;
+      return {
+        ...prev,
+        missions: prev.missions.filter(m => m.id !== id),
+        failureProtocols: newProtocols,
+        log: cancelled && mission
+          ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${mission.name}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100)
+          : prev.log,
+      };
+    });
   }, []);
 
   const editMission = useCallback((id: string, updates: Partial<Omit<Mission, 'id' | 'status'>>) => {
@@ -840,10 +852,22 @@ export function useGameStore() {
   }, [pickPunishment]);
 
   const deleteHabit = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      habits: prev.habits.filter(h => h.id !== id),
-    }));
+    setState(prev => {
+      const habit = prev.habits.find(h => h.id === id);
+      const reasonTag = habit ? `Hábito falhado: ${habit.name}` : null;
+      const newProtocols = reasonTag
+        ? prev.failureProtocols.filter(fp => !(fp.status === 'Pendente' && fp.reason === reasonTag))
+        : prev.failureProtocols;
+      const cancelled = newProtocols.length < prev.failureProtocols.length;
+      return {
+        ...prev,
+        habits: prev.habits.filter(h => h.id !== id),
+        failureProtocols: newProtocols,
+        log: cancelled && habit
+          ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100)
+          : prev.log,
+      };
+    });
   }, []);
 
   const addJournalEntry = useCallback((entry: Omit<JournalEntry, 'id'>) => {
