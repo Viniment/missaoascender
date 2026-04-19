@@ -783,6 +783,16 @@ export function useGameStore() {
 
       // Only trigger failure protocol on first-time fail of TODAY (not corrections / past days)
       let newProtocols = prev.failureProtocols;
+      let cancelledProtocol = false;
+      // Auto-cancel pending failure protocol when correcting failed → done
+      if (previous === 'failed' && status === 'done') {
+        const reasonTag = `Hábito falhado: ${habit.name}`;
+        const before = newProtocols.length;
+        newProtocols = newProtocols.filter(
+          fp => !(fp.status === 'Pendente' && fp.reason === reasonTag)
+        );
+        cancelledProtocol = newProtocols.length < before;
+      }
       if (status === 'failed' && !previous && targetDate === today) {
         const now = new Date();
         const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -810,7 +820,11 @@ export function useGameStore() {
           h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
         ),
         failureProtocols: newProtocols,
-        log: [{ date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta }, ...prev.log].slice(0, 100),
+        log: [
+          ...(cancelledProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }] : []),
+          { date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta },
+          ...prev.log,
+        ].slice(0, 100),
       };
     });
   }, [pickPunishment]);
