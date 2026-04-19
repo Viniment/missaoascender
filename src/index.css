@@ -230,3 +230,13 @@ div[style*="Edit with Lovable"],
 #lovable-badge { 
   display: none !important; 
 }
+
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
