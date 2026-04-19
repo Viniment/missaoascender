@@ -1,59 +1,38 @@
 
-## Como funciona hoje (resposta direta)
+Substituir "Protocolo de Reprogramação" no Espelho por **"Protocolo de Desativação de Hábitos"** — ações progressivas de longo prazo (não exercícios pontuais) que enfraquecem o poder dos hábitos automáticos de procrastinação/autossabotagem.
 
-**Taxa de Conclusão (Espelho):** `completionRate = concluídas / TOTAL de missões` — onde TOTAL inclui **Ativas + Concluídas + Falhadas**. É por isso que parece baixa: missões em andamento puxam a taxa pra baixo, como você notou.
+## O que muda em `src/components/MirrorPanel.tsx`
 
-**HP do Monstro (0–100, começa em 50):**
-- Concluir missão Tempo: **−3 a −X** (2× horas executadas, mín 3)
-- Concluir missão Diária: **−3** · Contagem: **−2** (passo) ou **−5** (completa)
-- Hábito feito: **−4** · Hábito falhado: **+8**
-- Falhar missão: **+12**
-- Protocolo de falha expirado: **+20 por protocolo**
-- Limitado entre 0 e 100. Desativável em Configurações.
+**Remover:** seção atual "Protocolo de Reprogramação" (Box Breathing, Visualização do Eu Futuro, Premeditatio Malorum, etc. — são exercícios de momento, não desativação de padrão).
 
----
+**Adicionar:** novo bloco "Protocolo de Desativação" com técnicas de neurociência comportamental focadas em **quebrar o loop do hábito** ao longo de dias/semanas.
 
-## Mudanças propostas
+## Técnicas no catálogo
 
-### 1) Corrigir taxa do Espelho (ignorar Ativas)
-Em `src/components/MirrorPanel.tsx`:
-- `completionRate = concluídas / (concluídas + falhadas)` — ignora Ativas
-- Mesmo princípio para hábitos (já é assim: só conta `done` + `failed`, ignora dias sem marcação) ✅
-- Adicionar tooltip/legenda curta: *"Calculada apenas sobre missões finalizadas (concluídas + falhadas). Ativas não contam."*
-- Manter o card "Ativas" como informativo, mas tirar do denominador da taxa
+Cada uma com: nome, como praticar (instrução clara), duração sugerida, e por que funciona (vinculado ao padrão detectado).
 
-### 2) Nova seção no fim do Espelho — **"Protocolo de Reprogramação"**
-Bloco gerado dinamicamente com base no que a análise detectou (não genérico):
+| Técnica | Quando aparece | O que faz |
+|---|---|---|
+| **Urge Surfing** | falhas recorrentes / monsterHp ≥ 60 | Observar o impulso por 5-10min sem agir. Ensina o cérebro que o impulso passa sem ser obedecido. |
+| **Jejum de Dopamina** (24h) | consistência < 50% | 1 dia sem redes, doces, pornô, jogos. Reseta sensibilidade dos receptores. |
+| **Mindful Eating** | falhas em hábitos de saúde/comida | Comer 1 refeição/dia sem tela, mastigando 20×. Reconecta consciência ao corpo. |
+| **Habit Stacking Reverso** | recurringFailures > 0 | Após o gatilho do mau hábito, inserir 2min de ação oposta. Reescreve a rota neural. |
+| **Janela de Atenção** (Pomodoro com sofrimento) | completionRate < 40% | 25min na tarefa difícil — se vier impulso de fugir, escreva o impulso no papel e continue. |
+| **Cold Exposure** (banho frio 2min) | monsterHp ≥ 70 | Treina tolerância ao desconforto. Procrastinação é fuga do desconforto. |
+| **Digital Sunset** | falhas vespertinas | Sem tela 1h antes de dormir por 7 dias. Restaura função executiva. |
+| **Diário de Gatilhos** | sempre presente | Anotar TODA vez que o impulso vier: hora, contexto, emoção. Em 7 dias, padrão fica visível. |
+| **Regra dos 10 Minutos** | sempre presente | Quando vier impulso de procrastinar, esperar 10min antes de ceder. Quase sempre passa. |
+| **Substituição de Recompensa** | recurringFailures > 0 | Identificar a recompensa do mau hábito e substituir por uma saudável que dê o mesmo neurotransmissor. |
 
-**Estrutura:**
-- Título: `🛠️ AÇÕES PARA QUEBRAR O PADRÃO`
-- 3 a 5 exercícios práticos personalizados, escolhidos por regras locais (sem custo de IA) + 1 botão opcional `✨ Gerar plano com IA` para análise mais profunda
+## Estrutura visual
 
-**Regras de seleção dos exercícios** (baseadas nos dados já calculados):
+Cards com:
+- Ícone + nome da técnica
+- **Como praticar** (1-2 linhas claras)
+- **Duração**: ex "Praticar por 7 dias" / "1× ao dia" / "Sempre que o impulso vier"
+- **Por que** (vinculado ao dado detectado): ex *"Detectado: 3 hábitos falharam essa semana — urge surfing treina o cérebro a não obedecer o impulso"*
 
-| Gatilho detectado | Exercício recomendado |
-|---|---|
-| `recurringFailures.length > 0` | **Regra dos 2 minutos**: pegar a tarefa mais falhada e definir uma versão de 2 min agora |
-| `consistencyScore < 50` | **Implementação de Intenção**: escrever "Quando X acontecer, eu farei Y" para 1 hábito |
-| `failures30d > dones30d` | **Premeditatio Malorum**: listar por escrito o pior cenário se continuar evitando |
-| `monster.hp >= 70` | **Confronto de identidade**: reler o "Despertar" em voz alta + escrever 1 ação imediata |
-| `completionRate < 40%` | **Decomposição radical**: pegar 1 missão Ativa parada e quebrar em 3 micro-passos |
-| Sempre presente | **Box breathing 4-4-4-4** antes da próxima tarefa (regulação emocional) |
-| Sempre presente | **Visualização do "eu futuro"**: 60s imaginando-se tendo feito a tarefa |
-
-Cada exercício mostrado como card pequeno com:
-- Ícone + nome
-- 1 linha de instrução prática
-- Por que (vínculo ao padrão detectado, ex: *"Detectado: 'Estudar' falhou 4× — comece com 2min agora"*)
-
-### 3) Botão opcional "Plano IA personalizado"
-Reusa a edge function `failure-confrontation` (ou cria uma nova leve) passando: padrões de falha, despertar, monster.hp → retorna 3 ações específicas no nível mental/emocional. **Sem auto-disparo** — só ao clicar, pra economizar tokens.
-
----
+Mostrar 4-6 técnicas selecionadas por relevância (não todas de uma vez).
 
 ## Arquivos
-- `src/components/MirrorPanel.tsx` — corrige fórmula da taxa + adiciona seção "Protocolo de Reprogramação" com lógica de regras
-- (opcional) nova edge function `mirror-action-plan` se você quiser o botão IA — posso deixar pra próxima iteração se preferir só o local agora
-
-## Pergunta rápida
-Quer já incluir o botão "Plano IA personalizado" ou ficamos só com os exercícios baseados em regras locais (instantâneos, sem custo)?
+- `src/components/MirrorPanel.tsx` — substituir função `buildExercises` por `buildDeactivationProtocol`, atualizar JSX da seção, trocar título e ícones.
