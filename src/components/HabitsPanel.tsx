@@ -98,10 +98,14 @@ export default function HabitsPanel() {
     }
   };
 
-  const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty) => {
+  const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty, date: string, isCorrection: boolean) => {
     const baseXp = XP_MAP[habitDifficulty] || 5;
     const baseGold = GOLD_MAP[habitDifficulty] || 2;
-    markHabit(id, status);
+    markHabit(id, status, date);
+    if (isCorrection) {
+      toast.success(`Status atualizado: ${status === 'done' ? '✔️ Concluído' : '❌ Falhado'}`);
+      return;
+    }
     if (status === 'done') {
       setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '✨ HÁBITO CONCLUÍDO' });
     } else {
