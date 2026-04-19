@@ -347,6 +347,15 @@ function buildExercises(d: ExerciseInput): Exercise[] {
   });
 
   out.push({
+    name: 'Tédio dos 20 Minutos',
+    howto: 'Sente-se de frente para a parede. 20 minutos olhando, sem celular, sem livro, sem música, sem dormir. Só olhar. Quando vier impulso de pegar o telefone ou levantar — fique. Deixe o tédio chegar até o fundo.',
+    why: 'O cérebro viciado em estímulo foge do tédio como foge da dor. Treinar tolerar o vazio reativa a capacidade de focar no chato (que é onde mora o trabalho real). Sem tolerância ao tédio, não existe disciplina.',
+    duration: '1× ao dia',
+    icon: <Armchair className="w-4 h-4" />,
+    priority: 7,
+  });
+
+  out.push({
     name: 'Regra dos 10 Minutos',
     howto: 'Quando bater o impulso de ceder ao mau hábito (rolar feed, comer compulsivo, etc), espere 10 minutos. Pode ceder depois — mas só depois. Use timer.',
     why: 'O pico do impulso dura 90s-10min. Esperar treina o córtex pré-frontal a vencer o sistema límbico. Quase sempre o impulso some.',
