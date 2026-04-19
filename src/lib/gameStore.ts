@@ -130,6 +130,17 @@ export interface StoicEntry {
   createdAt: string;
 }
 
+export type CounselTone = 'direto' | 'analitico' | 'firme';
+
+export interface CounselEntry {
+  id: string;
+  date: string;          // ISO
+  question: string;
+  tone: CounselTone;
+  advice: string;
+  includedJournal: boolean;
+}
+
 export type AiIntensity = 'leve' | 'moderado' | 'agressivo';
 export type InterventionFrequency = 'baixa' | 'media' | 'alta';
 
@@ -184,6 +195,7 @@ export interface PlayerState {
   stoicEntries?: StoicEntry[];
   monster?: MonsterState;
   aiSettings?: AiSettings;
+  counselHistory?: CounselEntry[];
   _penaltyCompensated?: boolean;
 }
 
@@ -300,6 +312,7 @@ export const defaultState: PlayerState = {
   stoicEntries: [],
   monster: { hp: 0, lastChange: new Date().toISOString() },
   aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
+  counselHistory: [],
   _penaltyCompensated: true,
 };
 
@@ -934,6 +947,25 @@ export function useGameStore() {
     });
   }, []);
 
+  const addCounsel = useCallback((entry: Omit<CounselEntry, 'id' | 'date'>) => {
+    setState(prev => {
+      const newEntry: CounselEntry = {
+        ...entry,
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+      };
+      const history = [newEntry, ...(prev.counselHistory || [])].slice(0, 50);
+      return { ...prev, counselHistory: history };
+    });
+  }, []);
+
+  const deleteCounsel = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      counselHistory: (prev.counselHistory || []).filter(c => c.id !== id),
+    }));
+  }, []);
+
   const updateAiSettings = useCallback((updates: Partial<AiSettings>) => {
     setState(prev => ({
       ...prev,
@@ -998,6 +1030,8 @@ export function useGameStore() {
     updateFailureProtocolPenalty,
     checkExpiredProtocols,
     updateAiSettings,
+    addCounsel,
+    deleteCounsel,
     newlyUnlocked,
     dismissAchievement,
   };
