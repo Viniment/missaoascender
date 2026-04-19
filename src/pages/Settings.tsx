@@ -15,6 +15,7 @@ import ThemeSelector from '@/components/ThemeSelector';
 import type { ThemeId } from '@/components/ThemeSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { TAB_GROUPS, CORE_TAB_IDS, ALL_TABS } from '@/lib/tabs';
 
 
 const sections = [
@@ -175,38 +176,79 @@ export default function Settings() {
           </div>
         );
 
-      case 'interface':
+      case 'interface': {
+        const disabled = state.disabledTabs || [];
+        const setDisabled = (next: string[]) => setState(prev => ({ ...prev, disabledTabs: next }));
+        const enableAll = () => setDisabled([]);
+        const onlyCore = () => setDisabled(ALL_TABS.filter(t => !t.core).map(t => t.id));
         return (
           <div className="space-y-6">
-            <SectionHeader title="Interface" description="Escolha quais abas ficam visíveis na navegação." />
-            <div className="rpg-panel space-y-1">
-              {[
-                { id: 'challenges', label: 'Desafios' },
-                { id: 'journal', label: 'Diário' },
-                { id: 'affirmations', label: 'Afirmações' },
-                { id: 'timer', label: 'Timer' },
-                { id: 'visualizar', label: 'Visualizar' },
-                { id: 'awakening', label: 'Despertar' },
-                { id: 'urge-surfing', label: 'Urge Surfing' },
-              ].map(tab => {
-                const disabled = (state.disabledTabs || []).includes(tab.id);
-                return (
-                  <div key={tab.id} className="flex items-center justify-between py-2 px-1 rounded-md hover:bg-secondary/50 transition-colors">
-                    <span className="text-sm font-body text-foreground">{tab.label}</span>
-                    <Switch
-                      checked={!disabled}
-                      onCheckedChange={(checked) => {
-                        const current = state.disabledTabs || [];
-                        const next = checked ? current.filter(t => t !== tab.id) : [...current, tab.id];
-                        setState(prev => ({ ...prev, disabledTabs: next }));
-                      }}
-                    />
-                  </div>
-                );
-              })}
+            <SectionHeader title="Interface" description="Escolha quais guias aparecem no menu principal." />
+
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={enableAll} className="text-xs">
+                Ativar todas
+              </Button>
+              <Button size="sm" variant="outline" onClick={onlyCore} className="text-xs">
+                Só essenciais
+              </Button>
             </div>
+            <p className="text-[11px] text-foreground/50 -mt-3">
+              Missões e Hábitos são o núcleo do sistema e não podem ser desativadas.
+            </p>
+
+            {TAB_GROUPS.map(group => (
+              <div key={group.id} className="rpg-panel space-y-2">
+                <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">
+                  {group.label}
+                </h3>
+                <div className="space-y-1">
+                  {group.tabs.map(tab => {
+                    const isCore = !!tab.core;
+                    const isOn = !disabled.includes(tab.id);
+                    return (
+                      <div
+                        key={tab.id}
+                        className="flex items-center gap-3 py-2 px-2 rounded-md hover:bg-secondary/50 transition-colors"
+                      >
+                        <div className={cn(
+                          'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                          isOn ? 'bg-primary/15 text-primary' : 'bg-secondary text-foreground/40'
+                        )}>
+                          <tab.icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-display tracking-wider text-foreground flex items-center gap-2">
+                            {tab.label}
+                            {isCore && (
+                              <span className="text-[9px] font-body tracking-widest text-primary/70 border border-primary/30 rounded px-1.5 py-0.5">
+                                NÚCLEO
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[11px] text-foreground/50 truncate">{tab.description}</p>
+                        </div>
+                        <Switch
+                          checked={isOn}
+                          disabled={isCore}
+                          onCheckedChange={(checked) => {
+                            if (isCore) return;
+                            const current = state.disabledTabs || [];
+                            const next = checked
+                              ? current.filter(t => t !== tab.id)
+                              : [...current, tab.id];
+                            setDisabled(next);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         );
+      }
 
       case 'advanced':
         return (
