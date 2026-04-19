@@ -162,8 +162,8 @@ export default function Index() {
           </Sheet>
 
           {/* Content */}
-          <div className="px-4 sm:px-6 py-4 sm:py-8 max-w-[1400px] mx-auto w-full">
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-8">
+          <div className="px-3 sm:px-6 py-4 sm:py-8 max-w-[1400px] mx-auto w-full">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-8">
               {/* Left - Player */}
               <div className="xl:col-span-4 2xl:col-span-3 space-y-5">
                 <PlayerCard />

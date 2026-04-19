@@ -23,7 +23,7 @@ export default function PlayerCard() {
       animate={{ opacity: 1, y: 0 }}
       className="rpg-panel neon-glow"
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-3 sm:gap-4">
         <div className="relative w-16 h-16 rounded-full border-2 border-primary overflow-hidden glow-purple flex-shrink-0 bg-secondary flex items-center justify-center">
           {state.avatar ? (
             <img src={state.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -33,8 +33,8 @@ export default function PlayerCard() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-            <h2 className="font-display text-lg text-foreground truncate min-w-0">{state.name}</h2>
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+            <h2 className="font-display text-base sm:text-lg text-foreground truncate min-w-0 w-full sm:w-auto sm:flex-1">{state.name}</h2>
             <span className={`font-display text-xs font-bold ${rankColors[state.rank]} bg-secondary/80 px-1.5 py-0.5 rounded shrink-0`}>
               {state.rank}
             </span>
@@ -42,9 +42,8 @@ export default function PlayerCard() {
               Nível {state.level}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground italic mb-2">"{state.title}"</p>
+          <p className="text-xs text-muted-foreground italic mb-2 sm:mb-3 break-words">"{state.title}"</p>
 
-          {/* XP Bar */}
           <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
             <motion.div
               className="absolute inset-y-0 left-0 xp-bar-fill rounded-full"
@@ -52,14 +51,14 @@ export default function PlayerCard() {
               animate={{ width: `${xpPercent}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
             />
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-display text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-display text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] px-2 text-center">
               {state.xp} / {state.xpToNext} XP
             </span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mt-4">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-4">
         <Stat icon={<Coins className="w-3.5 h-3.5 text-gold" />} label="Ouro" value={state.gold} />
         <Stat icon={<Flame className="w-3.5 h-3.5 text-destructive" />} label="Streak" value={state.streak} />
         <Stat icon={<Trophy className="w-3.5 h-3.5 text-primary" />} label="Conquistas" value={`${(state.achievements || []).length}/${ACHIEVEMENTS.length}`} />
