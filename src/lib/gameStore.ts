@@ -675,6 +675,18 @@ export function useGameStore() {
       const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       const punishment = pickPunishment(prev);
 
+      const newProtocols = punishment
+        ? [...prev.failureProtocols, {
+            id: crypto.randomUUID(),
+            triggeredAt: now.toISOString(),
+            deadline: deadline.toISOString(),
+            reason: `Missão falhada: ${mission.name}`,
+            penaltyType: 'Exercício' as FailurePenaltyType,
+            punishment,
+            status: 'Pendente' as const,
+          }]
+        : prev.failureProtocols;
+
       return {
         ...prev,
         ...prog,
@@ -691,15 +703,7 @@ export function useGameStore() {
             : { ...m, status: 'Falhada' as const, startedAt: null, completedAt: now.toISOString() }
           ) : m
         ),
-        failureProtocols: [...prev.failureProtocols, {
-          id: crypto.randomUUID(),
-          triggeredAt: now.toISOString(),
-          deadline: deadline.toISOString(),
-          reason: `Missão falhada: ${mission.name}`,
-          penaltyType: 'Exercício' as FailurePenaltyType,
-          punishment,
-          status: 'Pendente' as const,
-        }],
+        failureProtocols: newProtocols,
         log: [{ date: now.toISOString(), action: `❌ Missão falhada: ${mission.name}`, xp: penaltyXp, gold: 0 }, ...prev.log].slice(0, 100),
       };
     });
