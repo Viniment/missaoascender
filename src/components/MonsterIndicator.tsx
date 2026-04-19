@@ -54,10 +54,10 @@ export default function MonsterIndicator() {
       animate={{ opacity: 1 }}
       className={`rpg-panel border ${colorClass}`}
     >
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
         <Skull className="w-4 h-4 shrink-0" />
-        <h3 className="font-display text-xs tracking-widest uppercase">Monstro da Procrastinação</h3>
-        <span className="ml-auto text-[10px] font-display px-2 py-0.5 rounded border border-current">
+        <h3 className="font-display text-xs tracking-widest uppercase min-w-0 flex-1">Monstro da Procrastinação</h3>
+        <span className="text-[10px] font-display px-2 py-0.5 rounded border border-current shrink-0 whitespace-nowrap">
           {stage.label}
         </span>
       </div>
