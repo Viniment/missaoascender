@@ -1,56 +1,76 @@
+## Nova aba "Conselho" — Coach IA personalizado
 
-## Diagnóstico
+Aba dedicada onde o usuário descreve sobre o que quer conselho, e a IA responde como **coach/terapeuta realista** usando TODO o contexto do jogador (despertar, hábitos, missões, diário, monstro, progressão).
 
-Hoje o HP do monstro **não é calculado a partir do histórico** — ele é um contador acumulado que sobe/desce a cada evento. Problemas:
+## UX
 
-1. **Começa em 50 fixo** mesmo sem você ter feito nada — sensação de injustiça.
-2. **Não reflete a proporção real** entre acertos e falhas. Se você fez 20 hábitos e falhou 1 (95% de sucesso), o HP pode estar alto só porque uma falha recente bateu +8 e os 20 acertos antigos já foram "absorvidos".
-3. **Sem decay temporal** — uma falha de 30 dias atrás pesa igual a uma de hoje.
+1. Nova aba `Conselho` (ícone `Compass`) no menu principal de `Index.tsx`.
+2. Painel `CounselPanel.tsx`:
+  - Textarea grande: *"Sobre o que você precisa de conselho hoje?"* (ex: "tô travado pra começar a estudar", "briguei com minha mãe", "tô pensando em desistir do projeto X").
+  - (Opcional) Select de **tom**: `Direto e duro` | `Analítico` | `Compassivo mas firme` (default: direto).
+  - (Opcional) Toggle: *"Incluir meu diário recente nas últimas 2 semanas"* (default: ON).
+  - Botão `Pedir conselho` → loading → resposta renderizada em markdown.
+  - Histórico dos últimos 10 conselhos salvos em `state.counselHistory[]` (data, pergunta, resposta, tom) — colapsáveis abaixo.
 
-## Proposta: HP derivado de proporção real (com peso temporal)
+## Backend — edge function `counsel`
 
-Trocar o HP acumulado por um **cálculo derivado** dos últimos 30 dias:
+Recebe: `{ question, tone, context }` onde `context` é um snapshot enxuto do `PlayerState` montado no client (pra não vazar tudo desnecessariamente):
 
 ```
-sucessos = hábitos feitos + missões concluídas (últimos 30d)
-falhas   = hábitos falhados + missões falhadas (últimos 30d)
-
-taxaFalha = falhas / (sucessos + falhas)
-hp = round(taxaFalha * 100)
+{
+  awakening: { become, reject, dailyTheme },
+  level, rank, xp, streak,
+  monsterHp, monsterStage,
+  habits: [{ name, streak, completionRate30d, recentFails }],
+  missions: [{ title, status, daysOpen, category }],
+  recentJournal: [{ date, mood, snippet }],   // últimas 10 entradas, truncadas
+  recentCounsels: [{ question, snippet }],     // pra continuidade
+  metrics: { completionRate30d, consistencyScore, recurringFailures }
+}
 ```
 
-**Peso temporal:** eventos dos últimos 7 dias contam **2×**, 8–30 dias contam **1×**. Isso faz o monstro reagir rápido a mudanças recentes sem ignorar o histórico.
+Modelo: `google/gemini-2.5-pro` (precisa raciocínio profundo + contexto grande). Sem streaming nesta v1 (resposta única, mais simples). Trata 429/402 com toast.
 
-**Sem dados (usuário novo):** HP = 0 (monstro adormecido, não nasce em 50).
+## System prompt (núcleo)
 
-### Exemplo com seus números
-- 20 hábitos feitos + 3 missões feitas = 23 sucessos
-- 1 hábito falhado + 1 missão falhada = 2 falhas
-- taxaFalha = 2 / 25 = 8% → **HP ≈ 8** (AGONIZANTE) ✅
+```
+Você é um conselheiro pessoal — mistura coach executivo, terapeuta cognitivo-comportamental e mentor estoico. PT-BR.
 
-Hoje você provavelmente está em ~50 só por causa do valor inicial.
+REGRAS:
+- Você NÃO é amigo. Você é honesto. Não suaviza para agradar.
+- Use os DADOS REAIS do usuário fornecidos. Cite padrões específicos ("você falhou X 4 vezes nas últimas 2 semanas", "seu HP do monstro está em 78 — você está perdendo a guerra interna").
+- Estrutura da resposta:
+  1. **Diagnóstico** (2-3 frases): o que você vê REALMENTE acontecendo, não o que ele disse.
+  2. **Por que pensou isso**: cite os dados concretos que sustentam o diagnóstico.
+  3. **Conselho** (3-5 frases): direção clara e realista.
+  4. **Ação imediata** (1 item): algo que pode fazer nas próximas 24h.
+- Sem clichês ("acredite em si"). Sem listas de auto-ajuda genérica.
+- Se ele estiver se vitimizando ou mentindo pra si mesmo, aponte. Com firmeza, sem crueldade.
+- Se os dados mostrarem que ele tá indo bem e só duvidando, valide com EVIDÊNCIA.
+- Tom ajustado pelo parâmetro `tone` recebido.
+- Markdown permitido (negrito, headings nível 3 max).
+```
 
-## Mudanças
+## Persistência
 
-**`src/lib/gameStore.ts`**
-- Criar função `computeMonsterHp(state)` que percorre `habits[].history` e `missions[].completionHistory` + status final.
-- Remover os ajustes manuais de `monster.hp` espalhados (não somar mais +12/-3 etc).
-- Recalcular HP em todo evento que modifica hábito/missão (ou no seletor, on-the-fly).
-- Manter `lastReason` (texto do último evento) só para o tooltip.
-- `defaultState.monster.hp` passa a ser `0`.
+- Conselhos salvos em `state.counselHistory` (localStorage + Supabase via `usePlayerData` que já sincroniza tudo de `game_state`). Sem nova tabela.
+- Limite: 50 itens (FIFO).
 
-**`src/components/MonsterIndicator.tsx`**
-- Sem mudança estrutural — só passa a ler o HP calculado.
-- Ajustar texto quando HP = 0 e não há histórico: "Adormecido. Aja para acordá-lo... ou enterre-o de vez."
+## Arquivos
 
-**`src/components/MirrorPanel.tsx`**
-- Nada muda (já lê `state.monster.hp`).
+**Novos:**
 
-## Migração de dados existentes
-Na primeira renderização após o update, o HP é recalculado do histórico — usuários atuais verão o número se ajustar imediatamente para refletir a realidade. Sem migração de banco necessária (HP fica em `game_state` jsonb).
+- `supabase/functions/counsel/index.ts` — edge function (similar a `stoic-insight`, sem stream).
+- `src/components/CounselPanel.tsx` — UI.
+
+**Editados:**
+
+- `src/lib/gameStore.ts` — adicionar tipo `CounselEntry` + campo `counselHistory: CounselEntry[]` no `PlayerState` e `defaultState`. Adicionar action `addCounsel(entry)`.
+- `src/pages/Index.tsx` — nova aba `Conselho`.
+- `supabase/config.toml` — registrar função `counsel` com `verify_jwt = false`.
 
 ## Pergunta rápida
-Prefere:
-- **(A)** Janela fixa de 30 dias com peso 2× nos últimos 7d (recomendado, equilibrado)
-- **(B)** Janela curta só dos últimos 7 dias (mais reativo, esquece rápido)
-- **(C)** Histórico completo sem decay (mais "justo", mas lento pra reagir)
+
+Quer **histórico do conselho persistido** (cada conselho fica salvo e pode ser revisitado) ou **conselhos efêmeros** (só o último, mais leve)?
+
+- **(A)** Histórico (até 50, recomendado — útil pra ver evolução)
