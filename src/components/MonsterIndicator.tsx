@@ -52,65 +52,34 @@ export default function MonsterIndicator() {
       animate={{ opacity: 1 }}
       className={`rpg-panel border ${colorClass} p-3 sm:p-4`}
     >
-      {/* MOBILE: compact one-line header */}
-      <div className="sm:hidden">
-        <button
-          onClick={() => setExpanded(v => !v)}
-          className="w-full flex items-center gap-2 text-left"
-        >
-          <Skull className="w-3.5 h-3.5 shrink-0" />
-          <span className="font-display text-[10px] tracking-wider uppercase shrink-0">Monstro</span>
-          <span className="text-foreground/40 text-[10px]">·</span>
-          <span className="font-display text-[10px] tracking-wider truncate">{stage.label}</span>
-          <span className="ml-auto font-display text-[10px] tabular-nums shrink-0">{hp}/100</span>
-          <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-        </button>
-        <div className="relative h-1.5 bg-secondary rounded-full overflow-hidden mt-2">
-          <motion.div
-            className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
-            initial={{ width: 0 }}
-            animate={{ width: `${hp}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          />
-        </div>
-        {expanded && (
-          <div className="mt-2 space-y-1">
-            <p className="text-[11px] text-foreground/70 leading-snug">{stage.desc}</p>
-            {reason && hasAnyEvent && (
-              <p className="text-[10px] text-foreground/50 italic">↳ {reason}</p>
-            )}
-          </div>
-        )}
+      {/* Compact one-line header (all viewports) */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center gap-2 text-left"
+      >
+        <Skull className="w-3.5 h-3.5 shrink-0" />
+        <span className="font-display text-[10px] tracking-wider uppercase shrink-0">Monstro</span>
+        <span className="text-foreground/40 text-[10px]">·</span>
+        <span className="font-display text-[10px] tracking-wider truncate">{stage.label}</span>
+        <span className="ml-auto font-display text-[10px] tabular-nums shrink-0">{hp}/100</span>
+        <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+      </button>
+      <div className="relative h-1.5 bg-secondary rounded-full overflow-hidden mt-2">
+        <motion.div
+          className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
+          initial={{ width: 0 }}
+          animate={{ width: `${hp}%` }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        />
       </div>
-
-      {/* DESKTOP: full layout */}
-      <div className="hidden sm:block">
-        <div className="mb-4">
-          <div className="flex items-start gap-2 mb-3">
-            <Skull className="w-4 h-4 shrink-0 mt-0.5" />
-            <h3 className="font-display text-[11px] leading-snug tracking-widest uppercase min-w-0 flex-1">
-              Monstro da Procrastinação
-            </h3>
-          </div>
-          <span className="inline-block text-[10px] font-display px-2 py-1 rounded border border-current whitespace-nowrap w-fit ml-6">
-            {stage.label}
-          </span>
+      {expanded && (
+        <div className="mt-2 space-y-1">
+          <p className="text-[11px] text-foreground/70 leading-snug">{stage.desc}</p>
+          {reason && hasAnyEvent && (
+            <p className="text-[10px] text-foreground/50 italic">↳ {reason}</p>
+          )}
         </div>
-        <div className="relative h-2 bg-secondary rounded-full overflow-hidden mb-2">
-          <motion.div
-            className={`absolute inset-y-0 left-0 ${barColor} rounded-full`}
-            initial={{ width: 0 }}
-            animate={{ width: `${hp}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          />
-        </div>
-        <p className="text-[11px] text-foreground/70 leading-snug">
-          HP <span className="font-display">{hp}/100</span> · {stage.desc}
-        </p>
-        {reason && hasAnyEvent && (
-          <p className="text-[10px] text-foreground/50 italic mt-1 truncate">↳ {reason}</p>
-        )}
-      </div>
+      )}
     </motion.div>
   );
 }
