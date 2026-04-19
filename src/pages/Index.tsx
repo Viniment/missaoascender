@@ -20,12 +20,13 @@ import CounselPanel from '@/components/CounselPanel';
 import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
+import AppSidebar from '@/components/AppSidebar';
 import { useGame } from '@/lib/GameContext';
-import { Menu, Settings, HelpCircle, X, ChevronDown, Check } from 'lucide-react';
+import { Menu, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { TAB_GROUPS, ALL_TABS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
+import { TAB_GROUPS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
 import { cn } from '@/lib/utils';
 
 export default function Index() {
@@ -65,203 +66,139 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <button
-            onClick={() => setActiveTab('missions')}
-            className="font-display text-lg tracking-widest text-primary glow-text-purple hover:opacity-80 transition-opacity shrink-0"
-          >
-            ⟐ ASCENSÃO
-          </button>
-
-          {/* Desktop grouped nav with dropdowns per group */}
-          <nav className="hidden md:flex flex-1 min-w-0 items-center justify-center gap-1.5">
-            {visibleGroups.map(group => {
-              const groupActive = group.tabs.some(t => t.id === activeTab);
-              const isSingle = group.tabs.length === 1;
-
-              if (isSingle) {
-                const tab = group.tabs[0];
-                const active = activeTab === tab.id;
-                return (
-                  <button
-                    key={group.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    title={tab.description}
-                    className={cn(
-                      'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all',
-                      active
-                        ? 'bg-primary/15 text-primary border-glow'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                    )}
-                  >
-                    <tab.icon className="w-3.5 h-3.5" />
-                    {tab.label}
-                  </button>
-                );
-              }
-
-              return (
-                <DropdownMenu key={group.id}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      className={cn(
-                        'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-display tracking-wider whitespace-nowrap transition-all outline-none',
-                        groupActive
-                          ? 'bg-primary/15 text-primary border-glow'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                      )}
-                    >
-                      <span>{group.label}</span>
-                      <ChevronDown className="w-3 h-3 opacity-70" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-[260px] bg-popover border-border p-1.5">
-                    {group.tabs.map(tab => {
-                      const active = activeTab === tab.id;
-                      return (
-                        <DropdownMenuItem
-                          key={tab.id}
-                          onSelect={() => setActiveTab(tab.id)}
-                          className={cn(
-                            'flex items-start gap-2.5 px-2 py-2 rounded-md cursor-pointer transition-colors border-l-2',
-                            active
-                              ? 'bg-primary/10 border-primary text-primary'
-                              : 'border-transparent hover:bg-secondary/60'
-                          )}
-                        >
-                          <div className={cn(
-                            'w-9 h-9 rounded-md flex items-center justify-center shrink-0 transition-colors',
-                            active ? 'bg-primary/20 text-primary' : 'bg-secondary text-foreground/60'
-                          )}>
-                            <tab.icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0 pt-0.5">
-                            <p className="text-sm font-display tracking-wider leading-tight">{tab.label}</p>
-                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">{tab.description}</p>
-                          </div>
-                          {active && <Check className="w-3.5 h-3.5 text-primary mt-2 shrink-0" />}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => navigate('/help')}
-              className="text-muted-foreground hover:text-primary transition-colors p-1.5"
-              title="Ajuda"
-            >
-              <HelpCircle className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/settings')}
-              className="text-muted-foreground hover:text-primary transition-colors p-1.5"
-              title="Configurações"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-            <button
-              className="md:hidden text-foreground p-1.5"
-              onClick={() => setMobileMenu(true)}
-              aria-label="Abrir menu"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-          </div>
+    <SidebarProvider defaultOpen>
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Desktop sidebar */}
+        <div className="hidden md:block">
+          <AppSidebar activeTab={activeTab} onSelect={setActiveTab} />
         </div>
-      </header>
 
-      {/* Mobile bottom sheet menu */}
-      <Sheet open={mobileMenu} onOpenChange={setMobileMenu}>
-        <SheetContent side="bottom" className="h-[85vh] bg-background border-border p-0 flex flex-col">
-          <SheetHeader className="px-5 py-4 border-b border-border shrink-0">
-            <SheetTitle className="font-display text-base tracking-widest text-primary glow-text-purple text-left">
-              NAVEGAÇÃO
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-5">
-            {visibleGroups.map(group => (
-              <div key={group.id}>
-                <p className="font-display text-[10px] tracking-[0.2em] text-foreground/40 uppercase px-3 mb-2">
-                  {group.label}
-                </p>
-                <div className="space-y-1">
-                  {group.tabs.map(tab => {
-                    const active = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleSelectTab(tab.id)}
-                        className={cn(
-                          'w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-all border-l-2',
-                          active
-                            ? 'bg-primary/10 border-primary text-primary'
-                            : 'border-transparent text-foreground hover:bg-secondary/60'
-                        )}
-                      >
-                        <div className={cn(
-                          'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-                          active ? 'bg-primary/20 text-primary' : 'bg-secondary text-foreground/60'
-                        )}>
-                          <tab.icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-display tracking-wider">{tab.label}</p>
-                          <p className="text-[11px] text-foreground/50 truncate">{tab.description}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
+        <SidebarInset className="flex-1 min-w-0 bg-background">
+          {/* Header */}
+          <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
+            <div className="px-4 h-14 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <SidebarTrigger className="hidden md:inline-flex text-muted-foreground hover:text-primary" />
+                <button
+                  onClick={() => setActiveTab('missions')}
+                  className="md:hidden font-display text-lg tracking-widest text-primary glow-text-purple hover:opacity-80 transition-opacity shrink-0"
+                >
+                  ⟐ ASCENSÃO
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => navigate('/help')}
+                  className="text-muted-foreground hover:text-primary transition-colors p-1.5"
+                  title="Ajuda"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="text-muted-foreground hover:text-primary transition-colors p-1.5"
+                  title="Configurações"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+                <button
+                  className="md:hidden text-foreground p-1.5"
+                  onClick={() => setMobileMenu(true)}
+                  aria-label="Abrir menu"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile bottom sheet menu */}
+          <Sheet open={mobileMenu} onOpenChange={setMobileMenu}>
+            <SheetContent side="bottom" className="h-[85vh] bg-background border-border p-0 flex flex-col">
+              <SheetHeader className="px-5 py-4 border-b border-border shrink-0">
+                <SheetTitle className="font-display text-base tracking-widest text-primary glow-text-purple text-left">
+                  NAVEGAÇÃO
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex-1 overflow-y-auto px-3 py-3 space-y-5">
+                {visibleGroups.map(group => (
+                  <div key={group.id}>
+                    <p className="font-display text-[10px] tracking-[0.2em] text-foreground/40 uppercase px-3 mb-2">
+                      {group.label}
+                    </p>
+                    <div className="space-y-1">
+                      {group.tabs.map(tab => {
+                        const active = activeTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => handleSelectTab(tab.id)}
+                            className={cn(
+                              'w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-all border-l-2',
+                              active
+                                ? 'bg-primary/10 border-primary text-primary'
+                                : 'border-transparent text-foreground hover:bg-secondary/60'
+                            )}
+                          >
+                            <div className={cn(
+                              'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                              active ? 'bg-primary/20 text-primary' : 'bg-secondary text-foreground/60'
+                            )}>
+                              <tab.icon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-display tracking-wider">{tab.label}</p>
+                              <p className="text-[11px] text-foreground/50 truncate">{tab.description}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          {/* Content */}
+          <div className="px-4 py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left - Player */}
+              <div className="lg:col-span-3 space-y-4">
+                <PlayerCard />
+                <MonsterIndicator />
+                <FailureProtocolAlert />
+                <div className="hidden lg:block">
+                  <SystemPanel />
                 </div>
               </div>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left sidebar - Player */}
-          <div className="lg:col-span-3 space-y-4">
-            <PlayerCard />
-            <MonsterIndicator />
-            <FailureProtocolAlert />
-            <div className="hidden lg:block">
-              <SystemPanel />
+              {/* Main content */}
+              <div className="lg:col-span-6">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {renderContent()}
+                </motion.div>
+              </div>
+
+              {/* Right - System (mobile only here) */}
+              <div className="lg:col-span-3 space-y-4">
+                <div className="lg:hidden">
+                  <SystemPanel />
+                </div>
+              </div>
             </div>
           </div>
+        </SidebarInset>
 
-          {/* Main content */}
-          <div className="lg:col-span-6">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              {renderContent()}
-            </motion.div>
-          </div>
-
-          {/* Right sidebar - System */}
-          <div className="lg:col-span-3 space-y-4">
-            <div className="lg:hidden">
-              <SystemPanel />
-            </div>
-          </div>
-        </div>
+        {/* Achievement unlock overlay */}
+        <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
       </div>
-
-      {/* Achievement unlock overlay */}
-      <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
-    </div>
+    </SidebarProvider>
   );
 }
