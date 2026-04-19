@@ -162,20 +162,18 @@ export default function Index() {
           </Sheet>
 
           {/* Content */}
-          <div className="px-4 py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="px-6 py-8 max-w-[1400px] mx-auto w-full">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
               {/* Left - Player */}
-              <div className="lg:col-span-3 space-y-4">
+              <div className="xl:col-span-4 2xl:col-span-3 space-y-5">
                 <PlayerCard />
                 <MonsterIndicator />
                 <FailureProtocolAlert />
-                <div className="hidden lg:block">
-                  <SystemPanel />
-                </div>
+                <SystemPanel />
               </div>
 
               {/* Main content */}
-              <div className="lg:col-span-6">
+              <div className="xl:col-span-8 2xl:col-span-9 min-w-0">
                 <motion.div
                   key={activeTab}
                   initial={{ opacity: 0, y: 10 }}
@@ -184,13 +182,6 @@ export default function Index() {
                 >
                   {renderContent()}
                 </motion.div>
-              </div>
-
-              {/* Right - System (mobile only here) */}
-              <div className="lg:col-span-3 space-y-4">
-                <div className="lg:hidden">
-                  <SystemPanel />
-                </div>
               </div>
             </div>
           </div>
