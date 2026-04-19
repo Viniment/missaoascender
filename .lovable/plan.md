@@ -1,77 +1,51 @@
 
-## Mobile: reorganizar coluna esquerda e compactar Monstro
+## Permitir marcar/recorrigir tarefas até 2 dias atrás
 
-### Pedidos
-1. **SystemPanel** sai de cima (no mobile) e vai pro **final da página**.
-2. **MonsterIndicator** fica em **modo compacto** no mobile — ocupa pouca tela, expandível se quiser ver detalhes.
+### Pedido
+- Usuário quer poder atualizar status (concluído/falhado) de itens **até 2 dias atrás**, não só do dia atual.
+- Caso de uso: marcou "falhar" sem querer numa tarefa que concluiu — precisa corrigir.
+
+### Escopo: o que conta como "tarefa"
+Pelo código, há 2 tipos com status diário:
+1. **Hábitos** (`HabitsPanel`) — `history[date] = 'done' | 'failed'`. Marcação só do dia atual.
+2. **Missões** (`MissionsPanel`) — preciso conferir se têm histórico diário ou status único. Vou inspecionar.
+
+Foco principal: **hábitos**, pois é onde o erro descrito acontece (botões Check/X por dia).
 
 ### Mudanças
 
-**1. `src/pages/Index.tsx` — reorganizar ordem no mobile**
+**1. `src/lib/gameStore.ts` — ajustar `markHabit`**
+- Hoje provavelmente recebe `(id, status)` e usa `today` interno.
+- Mudar assinatura para aceitar **data opcional** (`date?: string`), default = hoje.
+- Validar que a data está dentro da janela: `today`, `today-1`, `today-2`. Rejeitar fora disso.
+- Recompensas/penalidades XP: aplicar normalmente quando muda de "vazio → done/failed". Ao **corrigir** (ex: `failed → done`), reverter a penalidade anterior e aplicar a recompensa nova (ou vice-versa). Isso evita XP duplicado/perdido.
 
-Hoje a coluna esquerda renderiza nessa ordem (e cai inteira em cima do conteúdo no mobile):
-```
-PlayerCard → MonsterIndicator → FailureProtocolAlert → SystemPanel
-```
+**2. `src/lib/GameContext.tsx`** — propagar nova assinatura de `markHabit(id, status, date?)`.
 
-Vou separar `SystemPanel` em um bloco próprio que:
-- no mobile: aparece **depois** do conteúdo principal (final da página);
-- no desktop (xl+): continua na coluna esquerda, no mesmo lugar de antes.
-
-Estrutura nova:
-```tsx
-<div className="grid xl:grid-cols-12 gap-...">
-  {/* Coluna esquerda no desktop, topo no mobile */}
-  <div className="xl:col-span-4 2xl:col-span-3 space-y-5 order-1">
-    <PlayerCard />
-    <MonsterIndicator />
-    <FailureProtocolAlert />
-    {/* SystemPanel só aparece aqui no desktop */}
-    <div className="hidden xl:block">
-      <SystemPanel />
-    </div>
-  </div>
-
-  {/* Conteúdo principal */}
-  <div className="xl:col-span-8 2xl:col-span-9 order-2">
-    {renderContent()}
-  </div>
-
-  {/* SystemPanel no final, só no mobile */}
-  <div className="xl:hidden order-3">
-    <SystemPanel />
-  </div>
-</div>
-```
-
-**2. `src/components/MonsterIndicator.tsx` — modo compacto no mobile**
-
-Hoje o card usa: ícone + título grande + badge em linha separada + barra HP + descrição + reason. Ocupa muito vertical.
-
-Vou criar versão compacta (default no mobile) com layout em **uma única linha densa**:
+**3. `src/components/HabitsPanel.tsx` — UI de histórico recente**
+No `HabitCard`, hoje mostra só botões para o dia atual. Adicionar uma **mini timeline de 3 dias** (hoje, ontem, anteontem):
 
 ```
-[💀] Monstro · AGONIZANTE          [HP 12/100]
-     ▰▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱  (barra fina)
-                                    [▾ ver mais]
+[Hoje ✓] [Ontem ✗ ⟲] [Anteontem — ✓✗]
 ```
 
-Detalhes:
-- Header em uma linha só: ícone pequeno + "Monstro" + separador "·" + badge inline (texto colorido, sem borda volumosa) + valor HP à direita.
-- Barra HP fina (`h-1.5` em vez de `h-2`).
-- Descrição (`stage.desc`) e `reason` ficam **escondidos** por padrão no mobile, atrás de um botão chevron (`Collapsible` ou simples `useState`).
-- Padding interno reduzido no mobile (`p-3 sm:p-4`).
-- No desktop (`sm:` ou `md:`+) mantém o layout atual (expandido sempre).
+- Cada dia tem rótulo curto ("Hoje", "Ontem", "2d") + status atual + botões pra alterar.
+- Se já marcado: mostra ícone do status + botão pequeno pra **reverter/alterar** (ex: ícone de undo ou os 2 botões check/x menores).
+- Se vazio: 2 botões check/x.
+- Confirmação antes de **alterar** um status já marcado (evita novo clique acidental): `AlertDialog` simples — "Alterar status de Ontem para Concluído?".
 
-Resultado: card mobile passa de ~140px de altura para ~60-70px quando colapsado.
+**4. `MissionsPanel`** — vou olhar primeiro. Se missão tem só status único (Ativa/Concluída/Falhada), não há "data" pra editar; basta permitir alternar status livremente (sem janela de 2 dias). Se tiver histórico diário, aplicar mesma lógica dos hábitos.
 
-**3. Toques finais**
-- Garantir que `FailureProtocolAlert` (quando aparece) também não fique muito alto — mas só ajusto se notar problema; foco é nos 2 pedidos.
+### Detalhes técnicos
+- Reaproveitar `XP_MAP` / `GOLD_MAP` para reverter recompensas: ao trocar `done → failed`, fazer `-xp -gold` e aplicar `-xp*2`. Ao trocar `failed → done`, somar `+xp*2` (reverter penalidade) e dar `+xp +gold`.
+- Não disparar `RewardPopup` em correções (só em primeira marcação) para não confundir.
+- Não permitir marcar dias futuros nem além de 2 dias atrás.
 
 ### Arquivos
-- `src/pages/Index.tsx` — reordenar SystemPanel (mobile no fim, desktop na esquerda).
-- `src/components/MonsterIndicator.tsx` — versão compacta colapsável no mobile, layout atual no desktop.
+- `src/lib/gameStore.ts` — `markHabit(id, status, date?)` com janela e reversão de XP.
+- `src/lib/GameContext.tsx` — repassar parâmetro.
+- `src/components/HabitsPanel.tsx` — UI de 3 dias com confirmação de alteração.
+- `src/components/MissionsPanel.tsx` — investigar e ajustar se aplicável.
 
 ### Resultado
-- Mobile: PlayerCard → Monstro (compacto) → Alert (se houver) → Conteúdo → SystemPanel.
-- Desktop: inalterado.
+Usuário pode corrigir um "X" acidental de hoje, ontem ou anteontem em 2 cliques (com confirmação), e o XP/ouro é recalculado corretamente.
