@@ -831,6 +831,7 @@ export function useGameStore() {
         failureProtocols: newProtocols,
         log: [
           ...(cancelledProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }] : []),
+          ...(activatedProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha ativado: ${habit.name}`, xp: 0, gold: 0 }] : []),
           { date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta },
           ...prev.log,
         ].slice(0, 100),
