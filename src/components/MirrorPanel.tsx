@@ -184,14 +184,14 @@ export default function MirrorPanel() {
         </p>
       </motion.div>
 
-      {/* Reprogramming Protocol */}
+      {/* Habit Deactivation Protocol */}
       {exercises.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel border-primary/30 bg-primary/5">
           <h3 className="font-display text-xs tracking-widest text-primary uppercase mb-1 flex items-center gap-2">
-            <Wrench className="w-4 h-4" /> Protocolo de Reprogramação
+            <ShieldOff className="w-4 h-4" /> Protocolo de Desativação de Hábitos
           </h3>
           <p className="text-[11px] text-foreground/60 mb-3">
-            🛠️ Ações para quebrar o padrão — escolhidas a partir do que o espelho detectou agora.
+            🧠 Práticas progressivas para enfraquecer o poder dos hábitos automáticos. Não são exercícios pontuais — são treinos que reescrevem o cérebro ao longo de dias e semanas.
           </p>
           <ul className="space-y-2">
             {exercises.map((ex, i) => (
@@ -199,7 +199,10 @@ export default function MirrorPanel() {
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 text-primary shrink-0">{ex.icon}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-sm text-foreground leading-tight">{ex.name}</p>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <p className="font-display text-sm text-foreground leading-tight">{ex.name}</p>
+                      <span className="text-[10px] uppercase tracking-wider text-primary/70 bg-primary/10 px-2 py-0.5 rounded shrink-0">{ex.duration}</span>
+                    </div>
                     <p className="text-xs text-foreground/80 mt-1">{ex.howto}</p>
                     <p className="text-[11px] text-primary/80 italic mt-1">{ex.why}</p>
                   </div>
