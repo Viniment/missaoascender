@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import type { MissionDifficulty } from '@/lib/gameStore';
 import { getTodayBrasilia } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, X, Trash2, Sparkles, Video, Pencil, FileText } from 'lucide-react';
+import { Plus, Check, X, Trash2, Sparkles, Video, Pencil, FileText, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,8 +23,19 @@ const XP_MAP: Record<MissionDifficulty, number> = { 'Fácil': 3, 'Normal': 5, 'D
 const GOLD_MAP: Record<MissionDifficulty, number> = { 'Fácil': 1, 'Normal': 2, 'Difícil': 3 };
 const diffColors: Record<MissionDifficulty, string> = { 'Fácil': 'text-success', 'Normal': 'text-warning', 'Difícil': 'text-destructive' };
 
+const offsetDate = (base: string, offset: number) => {
+  const d = new Date(base + 'T12:00:00');
+  d.setDate(d.getDate() - offset);
+  return d.toISOString().split('T')[0];
+};
+
+const formatBR = (date: string) => {
+  const [y, m, d] = date.split('-');
+  return `${d}/${m}`;
+};
+
 export default function HabitsPanel() {
-  const { state, addHabit, markHabit, deleteHabit, editHabit } = useGame();
+  const { state, addHabit, markHabit, editHabit } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [hasDescription, setHasDescription] = useState(false);
@@ -34,6 +45,16 @@ export default function HabitsPanel() {
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
   const [videoUrl, setVideoUrl] = useState('');
   const today = getTodayBrasilia();
+  const [viewDate, setViewDate] = useState(today);
+
+  const dayOptions = useMemo(() => [
+    { date: offsetDate(today, 2), label: 'Anteontem' },
+    { date: offsetDate(today, 1), label: 'Ontem' },
+    { date: today, label: 'Hoje' },
+  ], [today]);
+
+  const isHistorical = viewDate !== today;
+  const viewLabel = dayOptions.find(d => d.date === viewDate)?.label ?? 'Hoje';
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
@@ -82,7 +103,6 @@ export default function HabitsPanel() {
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      // Auto-calculate end date: today + 30 days
       const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
       todayDate.setDate(todayDate.getDate() + 30);
       const endDate = todayDate.toISOString().split('T')[0];
@@ -98,10 +118,14 @@ export default function HabitsPanel() {
     }
   };
 
-  const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty, date: string, isCorrection: boolean) => {
+  const handleMark = (id: string, status: 'done' | 'failed', habitName: string, habitDifficulty: MissionDifficulty, isCorrection: boolean) => {
     const baseXp = XP_MAP[habitDifficulty] || 5;
     const baseGold = GOLD_MAP[habitDifficulty] || 2;
-    markHabit(id, status, date);
+    markHabit(id, status, viewDate);
+    if (isHistorical) {
+      toast.success(`${viewLabel}: ${status === 'done' ? '✔️ Concluído' : '❌ Falhado'}`);
+      return;
+    }
     if (isCorrection) {
       toast.success(`Status atualizado: ${status === 'done' ? '✔️ Concluído' : '❌ Falhado'}`);
       return;
@@ -163,7 +187,6 @@ export default function HabitsPanel() {
               </Select>
             </div>
 
-            {/* Reward preview */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground bg-secondary/50 rounded-md px-3 py-2">
               <Sparkles className="w-3.5 h-3.5 text-primary" />
               <span>
@@ -180,16 +203,43 @@ export default function HabitsPanel() {
         )}
       </AnimatePresence>
 
+      {/* Day selector */}
+      {state.habits.length > 0 && (
+        <div className="flex items-center gap-1 bg-secondary/40 rounded-md p-1">
+          {dayOptions.map(({ date, label }) => {
+            const active = viewDate === date;
+            return (
+              <button
+                key={date}
+                onClick={() => setViewDate(date)}
+                className={`flex-1 text-xs font-display uppercase tracking-wider py-1.5 rounded transition-colors ${
+                  active ? 'bg-primary/20 text-primary ring-1 ring-primary/40' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {isHistorical && (
+        <div className="flex items-center gap-2 text-xs text-warning bg-warning/10 border border-warning/30 rounded-md px-3 py-2">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span>Visualizando <strong>{viewLabel}</strong> ({formatBR(viewDate)}) — alterações recalculam XP/ouro.</span>
+        </div>
+      )}
+
       <div className="space-y-2">
         {[...state.habits]
           .sort((a, b) => {
-            const aDone = !!a.history[today];
-            const bDone = !!b.history[today];
+            const aDone = !!a.history[viewDate];
+            const bDone = !!b.history[viewDate];
             if (aDone === bDone) return 0;
             return aDone ? 1 : -1;
           })
           .map(h => (
-            <HabitCard key={h.id} habit={h} today={today} onMark={handleMark} onEdit={() => openEditHabit(h)} />
+            <HabitCard key={h.id} habit={h} viewDate={viewDate} onMark={handleMark} onEdit={() => openEditHabit(h)} />
           ))}
         {state.habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum hábito criado.</p>
@@ -270,49 +320,35 @@ export default function HabitsPanel() {
   );
 }
 
-function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; today: string; onMark: (id: string, status: 'done' | 'failed', name: string, diff: MissionDifficulty, date: string, isCorrection: boolean) => void; onEdit: () => void }) {
+function HabitCard({ habit: h, viewDate, onMark, onEdit }: { habit: ReturnType<typeof useGame>['state']['habits'][number]; viewDate: string; onMark: (id: string, status: 'done' | 'failed', name: string, diff: MissionDifficulty, isCorrection: boolean) => void; onEdit: () => void }) {
   const { deleteHabit } = useGame();
   const [showVideo, setShowVideo] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
-  const [confirmChange, setConfirmChange] = useState<{ date: string; status: 'done' | 'failed'; label: string } | null>(null);
-  const todayStatus = h.history[today];
+  const [confirmChange, setConfirmChange] = useState<{ status: 'done' | 'failed' } | null>(null);
+  const status = h.history[viewDate];
   const xp = XP_MAP[h.difficulty] || 5;
   const gold = GOLD_MAP[h.difficulty] || 2;
   const diffColor = diffColors[h.difficulty] || '';
 
-  // Build last 3 days (today, yesterday, 2 days ago) — Brasília-safe
-  const buildDate = (offset: number) => {
-    const d = new Date(today + 'T12:00:00');
-    d.setDate(d.getDate() - offset);
-    return d.toISOString().split('T')[0];
-  };
-  const days = [
-    { date: buildDate(0), label: 'Hoje' },
-    { date: buildDate(1), label: 'Ontem' },
-    { date: buildDate(2), label: 'Anteontem' },
-  ];
-
-  const handleClick = (date: string, status: 'done' | 'failed', label: string) => {
-    const current = h.history[date];
-    const isCorrection = !!current && current !== status;
-    if (isCorrection) {
-      setConfirmChange({ date, status, label });
-    } else if (current === status) {
-      // toggle off not supported; ignore
-      return;
+  const handleClick = (newStatus: 'done' | 'failed') => {
+    if (status === newStatus) return;
+    if (status && status !== newStatus) {
+      setConfirmChange({ status: newStatus });
     } else {
-      onMark(h.id, status, h.name, h.difficulty, date, false);
+      onMark(h.id, newStatus, h.name, h.difficulty, false);
     }
   };
 
   return (
-    <motion.div layout className={`rpg-panel space-y-2 transition-all ${todayStatus ? `opacity-80 ${todayStatus === 'done' ? 'border-success/40' : 'border-destructive/40'}` : 'glow-purple'}`}>
+    <motion.div layout className={`rpg-panel space-y-2 transition-all ${status ? `opacity-80 ${status === 'done' ? 'border-success/40' : 'border-destructive/40'}` : 'glow-purple'}`}>
       <div className="flex items-center gap-2">
         <span className="text-xl" style={{ filter: `drop-shadow(0 0 4px ${h.color})` }}>{h.icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-sm font-semibold text-foreground truncate">{h.name}</span>
             <span className={`text-[10px] font-display ${diffColor}`}>{h.difficulty}</span>
+            {status === 'done' && <span className="text-[10px] text-success">✔️</span>}
+            {status === 'failed' && <span className="text-[10px] text-destructive">❌</span>}
             {h.description && (
               <button
                 onClick={() => setShowDescription(true)}
@@ -333,55 +369,32 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
             )}
           </div>
         </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={`h-8 w-8 ${status === 'done' ? 'text-success bg-success/10' : 'text-success/60 hover:text-success'}`}
+          onClick={() => handleClick('done')}
+          title={status === 'failed' ? 'Corrigir para concluído' : 'Marcar como concluído'}
+          disabled={status === 'done'}
+        >
+          <Check className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={`h-8 w-8 ${status === 'failed' ? 'text-destructive bg-destructive/10' : 'text-destructive/60 hover:text-destructive'}`}
+          onClick={() => handleClick('failed')}
+          title={status === 'done' ? 'Corrigir para falhado' : 'Marcar como falhado'}
+          disabled={status === 'failed'}
+        >
+          <X className="w-4 h-4" />
+        </Button>
         <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
           <Pencil className="w-3.5 h-3.5" />
         </Button>
         <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => deleteHabit(h.id)}>
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
-      </div>
-
-      {/* 3-day timeline */}
-      <div className="flex flex-col sm:flex-row gap-1.5">
-        {days.map(({ date, label }) => {
-          const status = h.history[date];
-          return (
-            <div
-              key={date}
-              className={`flex items-center justify-between gap-2 flex-1 bg-secondary/40 rounded-md px-2 py-1.5 ${
-                status === 'done' ? 'border border-success/30' : status === 'failed' ? 'border border-destructive/30' : 'border border-border/40'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">{label}</span>
-                {status === 'done' && <span className="text-[10px] text-success">✔️</span>}
-                {status === 'failed' && <span className="text-[10px] text-destructive">❌</span>}
-              </div>
-              <div className="flex gap-0.5">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={`h-6 w-6 ${status === 'done' ? 'text-success bg-success/10' : 'text-success/60 hover:text-success'}`}
-                  onClick={() => handleClick(date, 'done', label)}
-                  title={status === 'failed' ? 'Corrigir para concluído' : 'Marcar como concluído'}
-                  disabled={status === 'done'}
-                >
-                  <Check className="w-3.5 h-3.5" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={`h-6 w-6 ${status === 'failed' ? 'text-destructive bg-destructive/10' : 'text-destructive/60 hover:text-destructive'}`}
-                  onClick={() => handleClick(date, 'failed', label)}
-                  title={status === 'done' ? 'Corrigir para falhado' : 'Marcar como falhado'}
-                  disabled={status === 'failed'}
-                >
-                  <X className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            </div>
-          );
-        })}
       </div>
 
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -412,7 +425,7 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
             <AlertDialogTitle>Alterar status?</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmChange && (
-                <>Deseja alterar <strong>{confirmChange.label}</strong> para <strong>{confirmChange.status === 'done' ? 'Concluído ✔️' : 'Falhado ❌'}</strong>? O XP e ouro serão recalculados.</>
+                <>Deseja alterar este hábito para <strong>{confirmChange.status === 'done' ? 'Concluído ✔️' : 'Falhado ❌'}</strong>? O XP e ouro serão recalculados.</>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -421,7 +434,7 @@ function HabitCard({ habit: h, today, onMark, onEdit }: { habit: ReturnType<type
             <AlertDialogAction
               onClick={() => {
                 if (confirmChange) {
-                  onMark(h.id, confirmChange.status, h.name, h.difficulty, confirmChange.date, true);
+                  onMark(h.id, confirmChange.status, h.name, h.difficulty, true);
                   setConfirmChange(null);
                 }
               }}
@@ -446,7 +459,6 @@ function HeatmapSection() {
     <div className="rpg-panel">
       <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Heatmap (30 dias)</h4>
       {state.habits.slice(0, 5).map(h => {
-        // Start from earliest history date, or today if no history yet
         const dates = Object.keys(h.history).sort();
         const firstDate = new Date((dates[0] || today) + 'T12:00:00');
         const days = Array.from({ length: 30 }, (_, i) => {
