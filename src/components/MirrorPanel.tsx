@@ -283,3 +283,91 @@ function Stat({ icon, v, l }: { icon: React.ReactNode; v: number | string; l: st
     </div>
   );
 }
+
+interface ExerciseInput {
+  recurringFailures: [string, number][];
+  consistencyScore: number;
+  failures30d: number;
+  dones30d: number;
+  completionRate: number;
+  monsterHp: number;
+  activeMissions: string[];
+  awakeningBecome?: string;
+  hasFinalized: boolean;
+}
+
+interface Exercise {
+  name: string;
+  howto: string;
+  why: string;
+  icon: React.ReactNode;
+}
+
+function buildExercises(d: ExerciseInput): Exercise[] {
+  const out: Exercise[] = [];
+
+  if (d.recurringFailures.length > 0) {
+    const [topName, topCount] = d.recurringFailures[0];
+    out.push({
+      name: 'Regra dos 2 minutos',
+      howto: `Faça AGORA uma versão mínima de "${topName}" — só 2 minutos. O objetivo é quebrar a inércia, não terminar.`,
+      why: `Detectado: "${topName}" falhou ${topCount}× — o cérebro travou antes de começar. Reduzir o atrito mata o padrão.`,
+      icon: <Timer className="w-4 h-4" />,
+    });
+  }
+
+  if (d.consistencyScore < 50 && d.consistencyScore > 0) {
+    out.push({
+      name: 'Implementação de Intenção',
+      howto: 'Escreva agora: "QUANDO [gatilho específico] acontecer, EU FAREI [ação concreta]". Ex: "Quando acordar, vou beber água antes do celular".',
+      why: `Consistência últimos 30d: ${d.consistencyScore}%. Decisões no momento falham — pré-decisões funcionam.`,
+      icon: <Target className="w-4 h-4" />,
+    });
+  }
+
+  if (d.failures30d > d.dones30d && d.failures30d > 0) {
+    out.push({
+      name: 'Premeditatio Malorum (estoico)',
+      howto: 'Pegue papel e escreva por 3 min: "Se eu continuar fugindo dessas tarefas por 1 ano, minha vida será ___". Detalhe sem suavizar.',
+      why: `Últimos 30d: ${d.failures30d} falhas vs ${d.dones30d} feitos. O cérebro precisa SENTIR a consequência futura, não só pensar nela.`,
+      icon: <BookOpen className="w-4 h-4" />,
+    });
+  }
+
+  if (d.monsterHp >= 70) {
+    out.push({
+      name: 'Confronto de Identidade',
+      howto: d.awakeningBecome
+        ? `Releia em voz alta: "Eu juro me tornar ${d.awakeningBecome}". Depois escreva 1 ação que essa pessoa faria nos próximos 30 minutos — e faça.`
+        : 'Vá em "Despertar", releia em voz alta quem você jurou se tornar, e escreva 1 ação que essa pessoa faria agora.',
+      why: `Monstro em ${d.monsterHp}/100 — está te dominando. Identidade é o único contra-ataque real.`,
+      icon: <Skull className="w-4 h-4" />,
+    });
+  }
+
+  if (d.completionRate < 40 && d.hasFinalized && d.activeMissions.length > 0) {
+    out.push({
+      name: 'Decomposição Radical',
+      howto: `Pegue "${d.activeMissions[0]}" e quebre em 3 micro-passos de 5 min cada. Faça SÓ o primeiro agora.`,
+      why: `Taxa de ${d.completionRate}% nas finalizadas — missões estão grandes demais pro estado atual. Reduza ou trave.`,
+      icon: <Scissors className="w-4 h-4" />,
+    });
+  }
+
+  // Sempre presentes — regulação emocional
+  out.push({
+    name: 'Box Breathing 4-4-4-4',
+    howto: 'Antes da próxima tarefa: inspire 4s · segure 4s · expire 4s · segure 4s. Repita 4 ciclos. Dispara o sistema parassimpático.',
+    why: 'Procrastinação raramente é preguiça — é desregulação emocional. Acalmar o sistema vem antes de agir.',
+    icon: <Wind className="w-4 h-4" />,
+  });
+
+  out.push({
+    name: 'Visualização do Eu Futuro',
+    howto: 'Feche os olhos por 60s. Sinta (não pense) como será TER FEITO a tarefa: o alívio, o orgulho, o corpo relaxado. Depois abra e comece.',
+    why: 'O cérebro responde a recompensa antecipada. Associa prazer à ação antes de executá-la.',
+    icon: <Sparkles className="w-4 h-4" />,
+  });
+
+  return out.slice(0, 6);
+}
