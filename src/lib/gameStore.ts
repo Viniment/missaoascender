@@ -733,20 +733,57 @@ export function useGameStore() {
     }));
   }, []);
 
-  const markHabit = useCallback((id: string, status: 'done' | 'failed') => {
+  const markHabit = useCallback((id: string, status: 'done' | 'failed', date?: string) => {
     const today = getTodayBrasilia();
+    const targetDate = date || today;
+
+    // Validate window: only today, today-1, today-2 allowed
+    const todayMs = new Date(today + 'T12:00:00').getTime();
+    const targetMs = new Date(targetDate + 'T12:00:00').getTime();
+    const diffDays = Math.round((todayMs - targetMs) / 86400000);
+    if (diffDays < 0 || diffDays > 2) return;
+
     setState(prev => {
       const habit = prev.habits.find(h => h.id === id);
       if (!habit) return prev;
 
       const baseXp = XP_PER_HOUR[habit.difficulty] || 5;
       const baseGold = GOLD_PER_HOUR[habit.difficulty] || 2;
-      const xp = status === 'done' ? baseXp : -(baseXp * 2);
-      const gold = status === 'done' ? baseGold : 0;
-      const prog = processLevelUp(Math.max(0, prev.xp + xp), prev.level, prev.rank, prev.difficultyDivisor || 1);
+      const previous = habit.history[targetDate];
 
+      // If same status, no-op
+      if (previous === status) return prev;
+
+      // Compute net XP / gold delta considering reversal of previous status
+      let xpDelta = 0;
+      let goldDelta = 0;
+      let monsterDelta = 0;
+
+      // Revert previous (if any)
+      if (previous === 'done') {
+        xpDelta -= baseXp;
+        goldDelta -= baseGold;
+        monsterDelta += 4; // reverse the -4
+      } else if (previous === 'failed') {
+        xpDelta += baseXp * 2; // reverse the penalty
+        monsterDelta -= 8; // reverse the +8
+      }
+
+      // Apply new status
+      if (status === 'done') {
+        xpDelta += baseXp;
+        goldDelta += baseGold;
+        monsterDelta -= 4;
+      } else {
+        xpDelta -= baseXp * 2;
+        monsterDelta += 8;
+      }
+
+      const prog = processLevelUp(Math.max(0, prev.xp + xpDelta), prev.level, prev.rank, prev.difficultyDivisor || 1);
+
+      // Only trigger failure protocol on first-time fail of TODAY (not corrections / past days)
       let newProtocols = prev.failureProtocols;
-      if (status === 'failed') {
+      if (status === 'failed' && !previous && targetDate === today) {
         const now = new Date();
         const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const punishment = pickPunishment(prev);
@@ -761,16 +798,19 @@ export function useGameStore() {
         }];
       }
 
+      const dateLabel = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'ontem' : 'anteontem';
+      const actionPrefix = previous ? 'Hábito corrigido' : 'Hábito';
+
       return {
         ...prev,
         ...prog,
-        gold: prev.gold + gold,
-        monster: applyMonsterDelta(prev, status === 'done' ? -4 : +8, status === 'done' ? `Hábito feito: ${habit.name}` : `Falhou hábito: ${habit.name}`),
+        gold: Math.max(0, prev.gold + goldDelta),
+        monster: applyMonsterDelta(prev, monsterDelta, `${actionPrefix} (${dateLabel}): ${habit.name}`),
         habits: prev.habits.map(h =>
-          h.id === id ? { ...h, history: { ...h.history, [today]: status } } : h
+          h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
         ),
         failureProtocols: newProtocols,
-        log: [{ date: new Date().toISOString(), action: `Hábito ${status === 'done' ? '✔️' : '❌'}: ${habit.name}`, xp, gold }, ...prev.log].slice(0, 100),
+        log: [{ date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta }, ...prev.log].slice(0, 100),
       };
     });
   }, [pickPunishment]);
