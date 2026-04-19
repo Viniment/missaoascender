@@ -1,28 +1,35 @@
 
-## Não criar Protocolo de Falha quando não há punição habilitada
+## Ativar Protocolo de Falha ao corrigir tarefa para "falhada"
 
 ### Problema
-Hoje, ao falhar um hábito/missão, o protocolo é criado mesmo quando `pickPunishment()` retorna `undefined` (nenhuma punição ativa). Resultado: protocolo "vazio" sem consequência real (ou nem aparece visualmente, conforme o usuário relatou).
+Hoje, quando o usuário corrige um hábito de `done` → `failed` (retroativo ou hoje), o XP/ouro são debitados, mas **não é criado Protocolo de Falha**. A criação do protocolo só acontece no fluxo "primeira marcação como falhada" (quando `previous` é `undefined`).
 
-### Regra desejada
-Protocolo de Falha **só é criado se houver pelo menos uma punição habilitada**. Sem punição ativa → nada de protocolo (XP/ouro/monstro continuam sendo aplicados normalmente).
+### Causa
+Em `src/lib/gameStore.ts`, dentro de `markHabit`, o bloco que cria `failureProtocols` provavelmente está condicionado a `!previous` (primeira marcação) em vez de "qualquer transição que resulte em `failed`".
 
-### Mudança em `src/lib/gameStore.ts`
+### Solução
+Ajustar a condição em `markHabit` para criar protocolo sempre que **o status final for `failed` e o anterior não era `failed`** (ou seja: `undefined → failed` E `done → failed`).
 
-**1. `markHabit` (~linha 794-815)** — só adicionar ao `newProtocols` se `punishment` existir:
 ```ts
-const punishment = pickPunishment(prev);
-if (punishment) {
-  newProtocols = [...prev.failureProtocols, { ...,  punishment, ... }];
+const becameFailed = status === 'failed' && previous !== 'failed';
+if (becameFailed) {
+  const punishment = pickPunishment(prev);
+  if (punishment) {
+    newProtocols = [...newProtocols, { ...protocolData, punishment }];
+    // log: "Protocolo de falha ativado: <nome>"
+  }
 }
 ```
 
-**2. `failMission` (~linha 676-702)** — mesma lógica: se `pickPunishment` retornar `undefined`, não incluir no `failureProtocols` (mantém o resto do retorno igual, só remove a entrada do array).
-
-### Observações
-- Toast/log de "❌ Hábito/Missão falhada" continuam normalmente.
-- Penalidade de XP/ouro/monstro continua sendo aplicada (não depende de punição).
-- Se o usuário ativar uma punição depois, próximas falhas voltam a gerar protocolo.
+### Simetria com a regra existente
+- `failed → done` (corrigir acerto): remove protocolo pendente ✅ (já existe)
+- `done → failed` (corrigir erro): **cria protocolo** ✅ (novo, este plano)
+- `undefined → failed`: cria protocolo ✅ (já existe)
+- `undefined → done`: nada ✅
+- Sem punição habilitada: nunca cria ✅ (regra anterior mantida)
 
 ### Arquivo
-- `src/lib/gameStore.ts` — `markHabit` e `failMission`: condicionar criação do protocolo a `punishment !== undefined`.
+- `src/lib/gameStore.ts` — função `markHabit`: trocar condição de criação do protocolo de "primeira marcação" para "transição para failed", mantendo o gate de `pickPunishment`.
+
+### Resultado
+Marcou "concluído" sem querer → corrige para "falhado" → protocolo de falha é ativado normalmente (se houver punição habilitada), com log informativo.
