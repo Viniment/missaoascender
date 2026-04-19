@@ -852,10 +852,22 @@ export function useGameStore() {
   }, [pickPunishment]);
 
   const deleteHabit = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      habits: prev.habits.filter(h => h.id !== id),
-    }));
+    setState(prev => {
+      const habit = prev.habits.find(h => h.id === id);
+      const reasonTag = habit ? `Hábito falhado: ${habit.name}` : null;
+      const newProtocols = reasonTag
+        ? prev.failureProtocols.filter(fp => !(fp.status === 'Pendente' && fp.reason === reasonTag))
+        : prev.failureProtocols;
+      const cancelled = newProtocols.length < prev.failureProtocols.length;
+      return {
+        ...prev,
+        habits: prev.habits.filter(h => h.id !== id),
+        failureProtocols: newProtocols,
+        log: cancelled && habit
+          ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100)
+          : prev.log,
+      };
+    });
   }, []);
 
   const addJournalEntry = useCallback((entry: Omit<JournalEntry, 'id'>) => {
