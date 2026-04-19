@@ -1,21 +1,42 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Skull } from 'lucide-react';
+import { computeMonsterHp } from '@/lib/gameStore';
+import { useMemo } from 'react';
 
 export default function MonsterIndicator() {
   const { state } = useGame();
-  if (state.aiSettings?.monsterEnabled === false) return null;
 
-  const hp = state.monster?.hp ?? 50;
+  // HP derived from real history of habits + missions (last 30 days, weighted).
+  const hp = useMemo(() => computeMonsterHp(state), [state]);
   const reason = state.monster?.lastReason;
 
+  // Detect dormant state (no events in window)
+  const hasAnyEvent = useMemo(() => {
+    const now = Date.now();
+    const DAY = 86400000;
+    for (const h of state.habits || []) {
+      for (const dateStr of Object.keys(h.history || {})) {
+        if ((now - new Date(dateStr + 'T12:00:00').getTime()) / DAY <= 30) return true;
+      }
+    }
+    for (const m of state.missions || []) {
+      if ((m.completionHistory || []).some(e => (now - new Date(e.date).getTime()) / DAY <= 30)) return true;
+      if (m.completedAt && (now - new Date(m.completedAt).getTime()) / DAY <= 30) return true;
+    }
+    return false;
+  }, [state.habits, state.missions]);
+
+  if (state.aiSettings?.monsterEnabled === false) return null;
+
   // Stage by HP
-  const stage =
-    hp >= 80 ? { label: 'COLOSSO', color: 'destructive', desc: 'Te domina. Cada fuga o engorda.' } :
-    hp >= 60 ? { label: 'ATIVO', color: 'destructive', desc: 'Cresceu. Está vencendo as últimas batalhas.' } :
-    hp >= 40 ? { label: 'CRESCENDO', color: 'warning', desc: 'Se alimentando das suas falhas.' } :
-    hp >= 20 ? { label: 'FRACO', color: 'success', desc: 'Recuando. Continue agindo.' } :
-                { label: 'AGONIZANTE', color: 'success', desc: 'Quase morto. Não solte agora.' };
+  const stage = !hasAnyEvent
+    ? { label: 'ADORMECIDO', color: 'success', desc: 'Aja para acordá-lo… ou enterre-o de vez.' }
+    : hp >= 80 ? { label: 'COLOSSO', color: 'destructive', desc: 'Te domina. Cada fuga o engorda.' }
+    : hp >= 60 ? { label: 'ATIVO', color: 'destructive', desc: 'Cresceu. Está vencendo as últimas batalhas.' }
+    : hp >= 40 ? { label: 'CRESCENDO', color: 'warning', desc: 'Se alimentando das suas falhas.' }
+    : hp >= 20 ? { label: 'FRACO', color: 'success', desc: 'Recuando. Continue agindo.' }
+    :             { label: 'AGONIZANTE', color: 'success', desc: 'Quase morto. Não solte agora.' };
 
   const colorClass =
     stage.color === 'destructive' ? 'text-destructive border-destructive/40 bg-destructive/10' :
@@ -51,7 +72,7 @@ export default function MonsterIndicator() {
       <p className="text-[11px] text-foreground/70 leading-snug">
         HP <span className="font-display">{hp}/100</span> · {stage.desc}
       </p>
-      {reason && (
+      {reason && hasAnyEvent && (
         <p className="text-[10px] text-foreground/50 italic mt-1 truncate">↳ {reason}</p>
       )}
     </motion.div>
