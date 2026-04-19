@@ -6,7 +6,6 @@ import { useMemo } from 'react';
 
 export default function MonsterIndicator() {
   const { state } = useGame();
-  if (state.aiSettings?.monsterEnabled === false) return null;
 
   // HP derived from real history of habits + missions (last 30 days, weighted).
   const hp = useMemo(() => computeMonsterHp(state), [state]);
@@ -27,6 +26,8 @@ export default function MonsterIndicator() {
     }
     return false;
   }, [state.habits, state.missions]);
+
+  if (state.aiSettings?.monsterEnabled === false) return null;
 
   // Stage by HP
   const stage = !hasAnyEvent
