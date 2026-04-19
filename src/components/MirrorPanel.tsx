@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, ShieldOff, Waves, Utensils, Repeat, Hourglass, Snowflake, MoonStar, NotebookPen, Clock, Replace, Info, Zap } from 'lucide-react';
+import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, ShieldOff, Waves, Utensils, Repeat, Hourglass, Snowflake, MoonStar, NotebookPen, Clock, Replace, Info, Zap, Armchair } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function daysAgo(iso: string) {
@@ -343,6 +343,15 @@ function buildExercises(d: ExerciseInput): Exercise[] {
     why: 'Em 7 dias o padrão fica visível: você descobre os gatilhos exatos. Sem ver o gatilho, não há como desativá-lo.',
     duration: 'Praticar por 7 dias',
     icon: <NotebookPen className="w-4 h-4" />,
+    priority: 7,
+  });
+
+  out.push({
+    name: 'Tédio dos 20 Minutos',
+    howto: 'Sente-se de frente para a parede. 20 minutos olhando, sem celular, sem livro, sem música, sem dormir. Só olhar. Quando vier impulso de pegar o telefone ou levantar — fique. Deixe o tédio chegar até o fundo.',
+    why: 'O cérebro viciado em estímulo foge do tédio como foge da dor. Treinar tolerar o vazio reativa a capacidade de focar no chato (que é onde mora o trabalho real). Sem tolerância ao tédio, não existe disciplina.',
+    duration: '1× ao dia',
+    icon: <Armchair className="w-4 h-4" />,
     priority: 7,
   });
 
