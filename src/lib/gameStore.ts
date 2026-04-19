@@ -820,7 +820,11 @@ export function useGameStore() {
           h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
         ),
         failureProtocols: newProtocols,
-        log: [{ date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta }, ...prev.log].slice(0, 100),
+        log: [
+          ...(cancelledProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }] : []),
+          { date: new Date().toISOString(), action: `${actionPrefix} ${status === 'done' ? '✔️' : '❌'} (${dateLabel}): ${habit.name}`, xp: xpDelta, gold: goldDelta },
+          ...prev.log,
+        ].slice(0, 100),
       };
     });
   }, [pickPunishment]);
