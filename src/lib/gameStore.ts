@@ -794,18 +794,20 @@ export function useGameStore() {
         cancelledProtocol = newProtocols.length < before;
       }
       if (status === 'failed' && !previous && targetDate === today) {
-        const now = new Date();
-        const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
         const punishment = pickPunishment(prev);
-        newProtocols = [...prev.failureProtocols, {
-          id: crypto.randomUUID(),
-          triggeredAt: now.toISOString(),
-          deadline: deadline.toISOString(),
-          reason: `Hábito falhado: ${habit.name}`,
-          penaltyType: 'Exercício' as FailurePenaltyType,
-          punishment,
-          status: 'Pendente' as const,
-        }];
+        if (punishment) {
+          const now = new Date();
+          const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+          newProtocols = [...prev.failureProtocols, {
+            id: crypto.randomUUID(),
+            triggeredAt: now.toISOString(),
+            deadline: deadline.toISOString(),
+            reason: `Hábito falhado: ${habit.name}`,
+            penaltyType: 'Exercício' as FailurePenaltyType,
+            punishment,
+            status: 'Pendente' as const,
+          }];
+        }
       }
 
       const dateLabel = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'ontem' : 'anteontem';
