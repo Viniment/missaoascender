@@ -156,6 +156,27 @@ export interface MonsterState {
   lastReason?: string; // ex: "Falhou hábito X" ou "Concluiu missão Y"
 }
 
+export interface IdentityFailureReflection {
+  date: string;
+  action: string;
+  pattern: string;
+  response?: string;
+}
+
+export interface IdentityState {
+  enabled: boolean;
+  newIdentity: string;
+  codeOfConduct: string[];
+  dominantTraits: string[];
+  oldPatterns: string[];
+  oldExcuses: string[];
+  stabilityLevel: number;
+  alignedActions: number;
+  patternRelapses: number;
+  lastRitualAt?: string;
+  failureReflections: IdentityFailureReflection[];
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -196,7 +217,27 @@ export interface PlayerState {
   monster?: MonsterState;
   aiSettings?: AiSettings;
   counselHistory?: CounselEntry[];
+  identity?: IdentityState;
   _penaltyCompensated?: boolean;
+}
+
+export const defaultIdentity: IdentityState = {
+  enabled: false,
+  newIdentity: '',
+  codeOfConduct: [],
+  dominantTraits: [],
+  oldPatterns: [],
+  oldExcuses: [],
+  stabilityLevel: 0,
+  alignedActions: 0,
+  patternRelapses: 0,
+  failureReflections: [],
+};
+
+function recalcStability(aligned: number, relapses: number): number {
+  const total = aligned + relapses;
+  if (total === 0) return 0;
+  return Math.round((aligned / total) * 100);
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -313,6 +354,7 @@ export const defaultState: PlayerState = {
   monster: { hp: 0, lastChange: new Date().toISOString() },
   aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   counselHistory: [],
+  identity: defaultIdentity,
   _penaltyCompensated: true,
 };
 
