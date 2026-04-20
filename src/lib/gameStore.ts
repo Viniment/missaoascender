@@ -1262,6 +1262,7 @@ export function useGameStore() {
     failChallenge,
     addReflection,
     deleteReflection,
+    setAwakeningConfig,
     completeFailureProtocol,
     updateFailureProtocolPenalty,
     checkExpiredProtocols,
