@@ -168,7 +168,7 @@ serve(async (req) => {
         const failed = Object.values(hist).filter((v: any) => v === 'failed').length;
         userPrompt += `• ${h.name}: ${done} feitos / ${failed} falhados\n`;
       });
-      userPrompto += `\n`;
+      userPrompt += `\n`;
     }
 
     if (punishments) {
