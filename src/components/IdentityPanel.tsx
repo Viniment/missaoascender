@@ -281,10 +281,38 @@ export default function IdentityPanel() {
         </CardContent>
       </Card>
 
+      {/* Status */}
+      <div className="flex justify-center">
+        <Badge
+          variant="outline"
+          className={identity.enabled
+            ? 'border-primary/50 text-primary bg-primary/10'
+            : 'border-muted-foreground/30 text-muted-foreground'}
+        >
+          {identity.enabled ? '● Sistema ativo' : '○ Sistema inativo'}
+        </Badge>
+      </div>
+
       {/* Ações */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <Button onClick={() => setImmersive(true)} className="font-display tracking-wider">
-          <Zap className="w-4 h-4 mr-2" /> ASSUMIR IDENTIDADE
+        <Button
+          onClick={() => {
+            const wasOff = !identity.enabled;
+            if (wasOff) toggleIdentitySystem(true);
+            setImmersive(true);
+            if (wasOff) toast.success('Identidade assumida. Sistema ativo.');
+          }}
+          className={
+            identity.enabled
+              ? 'font-display tracking-wider ring-2 ring-primary/60 shadow-[0_0_20px_hsl(var(--primary)/0.4)]'
+              : 'font-display tracking-wider'
+          }
+        >
+          {identity.enabled ? (
+            <><ShieldCheck className="w-4 h-4 mr-2" /> IDENTIDADE ATIVA</>
+          ) : (
+            <><Zap className="w-4 h-4 mr-2" /> ASSUMIR IDENTIDADE</>
+          )}
         </Button>
         <Button variant="outline" onClick={() => setRitual(true)}>
           <Eye className="w-4 h-4 mr-2" /> Ritual de Reidentificação
