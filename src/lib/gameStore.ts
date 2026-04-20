@@ -1237,6 +1237,12 @@ export function useGameStore() {
     updateAiSettings,
     addCounsel,
     deleteCounsel,
+    updateIdentity,
+    toggleIdentitySystem,
+    logAlignedAction,
+    logPatternRelapse,
+    addFailureReflection,
+    markRitualDone,
     newlyUnlocked,
     dismissAchievement,
   };

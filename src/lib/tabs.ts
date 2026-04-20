@@ -1,8 +1,8 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Trophy, Layers, Flame, Waves, ScrollText, Compass, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Trophy, Layers, Flame, Waves, ScrollText, Compass, User, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'challenges' | 'achievements'
-  | 'mirror' | 'counsel' | 'journal' | 'stoic' | 'affirmations'
+  | 'mirror' | 'counsel' | 'journal' | 'stoic' | 'affirmations' | 'identity'
   | 'timer' | 'urge-surfing' | 'visualizar' | 'awakening'
   | 'rewards';
 
@@ -40,6 +40,7 @@ export const TAB_GROUPS: TabGroup[] = [
       { id: 'journal', label: 'Diário', icon: BookOpen, description: 'Registro de pensamentos e emoções' },
       { id: 'stoic', label: 'Estoicismo', icon: ScrollText, description: 'Reflexões diárias guiadas' },
       { id: 'affirmations', label: 'Afirmações', icon: Flame, description: 'Reprogramação mental diária' },
+      { id: 'identity', label: 'Identidade', icon: User, description: 'Recondicionamento de identidade' },
     ],
   },
   {
