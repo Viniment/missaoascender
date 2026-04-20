@@ -377,6 +377,7 @@ export const defaultState: PlayerState = {
   aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   counselHistory: [],
   identity: defaultIdentity,
+  awakeningConfig: defaultAwakeningConfig,
   _penaltyCompensated: true,
 };
 
