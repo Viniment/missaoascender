@@ -1105,6 +1105,79 @@ export function useGameStore() {
     }));
   }, []);
 
+  // ===== Identity System =====
+  const updateIdentity = useCallback((updates: Partial<IdentityState>) => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      const next = { ...cur, ...updates };
+      next.stabilityLevel = recalcStability(next.alignedActions, next.patternRelapses);
+      return { ...prev, identity: next };
+    });
+  }, []);
+
+  const toggleIdentitySystem = useCallback((enabled: boolean) => {
+    setState(prev => ({
+      ...prev,
+      identity: { ...(prev.identity || defaultIdentity), enabled },
+    }));
+  }, []);
+
+  const logAlignedAction = useCallback(() => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      if (!cur.enabled) return prev;
+      const aligned = cur.alignedActions + 1;
+      return {
+        ...prev,
+        identity: {
+          ...cur,
+          alignedActions: aligned,
+          stabilityLevel: recalcStability(aligned, cur.patternRelapses),
+        },
+      };
+    });
+  }, []);
+
+  const logPatternRelapse = useCallback(() => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      if (!cur.enabled) return prev;
+      const relapses = cur.patternRelapses + 1;
+      return {
+        ...prev,
+        identity: {
+          ...cur,
+          patternRelapses: relapses,
+          stabilityLevel: recalcStability(cur.alignedActions, relapses),
+        },
+      };
+    });
+  }, []);
+
+  const addFailureReflection = useCallback((reflection: IdentityFailureReflection) => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      const reflections = [reflection, ...cur.failureReflections].slice(0, 50);
+      const relapses = cur.patternRelapses + 1;
+      return {
+        ...prev,
+        identity: {
+          ...cur,
+          failureReflections: reflections,
+          patternRelapses: relapses,
+          stabilityLevel: recalcStability(cur.alignedActions, relapses),
+        },
+      };
+    });
+  }, []);
+
+  const markRitualDone = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      identity: { ...(prev.identity || defaultIdentity), lastRitualAt: new Date().toISOString() },
+    }));
+  }, []);
+
   // Achievement checking
   const pendingAchievementRef = useRef<AchievementDef | null>(null);
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
