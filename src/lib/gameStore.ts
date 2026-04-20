@@ -218,8 +218,30 @@ export interface PlayerState {
   aiSettings?: AiSettings;
   counselHistory?: CounselEntry[];
   identity?: IdentityState;
+  awakeningConfig?: AwakeningConfig;
   _penaltyCompensated?: boolean;
 }
+
+export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
+export type AwakeningFocus = 'auto' | 'disciplina' | 'emocao' | 'identidade' | 'clareza' | 'autoconfianca';
+export type AwakeningQuantity = 'auto' | 3 | 5;
+export type AwakeningMode = 'adaptativo' | 'manual';
+export type AwakeningExerciseType = 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra';
+
+export interface AwakeningConfig {
+  intensity: AwakeningIntensity;
+  focus: AwakeningFocus;
+  quantity: AwakeningQuantity;
+  mode: AwakeningMode;
+  manualType?: AwakeningExerciseType;
+}
+
+export const defaultAwakeningConfig: AwakeningConfig = {
+  intensity: 'moderado',
+  focus: 'auto',
+  quantity: 'auto',
+  mode: 'adaptativo',
+};
 
 export const defaultIdentity: IdentityState = {
   enabled: false,
