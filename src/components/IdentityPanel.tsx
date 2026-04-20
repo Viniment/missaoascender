@@ -298,7 +298,7 @@ export default function IdentityPanel() {
         <Button
           onClick={() => {
             const wasOff = !identity.enabled;
-            if (wasOff) toggleIdentitySystem();
+            if (wasOff) toggleIdentitySystem(true);
             setImmersive(true);
             if (wasOff) toast.success('Identidade assumida. Sistema ativo.');
           }}
