@@ -293,25 +293,25 @@ export default function IdentityPanel() {
 
       {/* Modo imersivo */}
       <Dialog open={immersive} onOpenChange={setImmersive}>
-        <DialogContent className="max-w-2xl bg-background border-primary/40 p-8 sm:p-12">
-          <div className="space-y-6 text-center">
+        <DialogContent className="max-w-md sm:max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto bg-background border-primary/40 p-5 sm:p-6">
+          <div className="space-y-4 text-center">
             <p className="text-[10px] font-display tracking-[0.3em] text-primary/60 uppercase">Identidade Assumida</p>
-            <h2 className="text-2xl sm:text-3xl font-display text-foreground leading-tight">
+            <h2 className="text-lg sm:text-xl font-display text-foreground leading-tight">
               {identity.newIdentity}
             </h2>
             {identity.codeOfConduct.length > 0 && (
-              <ol className="space-y-2 text-left max-w-md mx-auto">
+              <ol className="space-y-1.5 text-left max-w-md mx-auto">
                 {identity.codeOfConduct.map((rule, i) => (
-                  <li key={i} className="text-base text-foreground/90 border-l-2 border-primary pl-3">
+                  <li key={i} className="text-xs sm:text-sm text-foreground/90 border-l-2 border-primary pl-2.5">
                     {rule}
                   </li>
                 ))}
               </ol>
             )}
-            <p className="text-sm font-display italic text-primary pt-4 border-t border-primary/20">
+            <p className="text-xs sm:text-sm font-display italic text-primary pt-3 border-t border-primary/20">
               Pare de agir como quem você foi.<br />Aja como quem você decidiu ser.
             </p>
-            <Button onClick={() => setImmersive(false)} variant="outline" className="font-display tracking-wider">
+            <Button onClick={() => setImmersive(false)} size="sm" variant="outline" className="font-display tracking-wider">
               Continuar
             </Button>
           </div>
