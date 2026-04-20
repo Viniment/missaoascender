@@ -139,6 +139,14 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
         lastConfrontationMessages,
         monster: state.monster ? { hp: state.monster.hp, lastReason: state.monster.lastReason } : undefined,
         aiIntensity: state.aiSettings?.intensity ?? 'moderado',
+        identity: identityMode ? {
+          newIdentity: identity.newIdentity,
+          codeOfConduct: identity.codeOfConduct,
+          dominantTraits: identity.dominantTraits,
+          oldPatterns: identity.oldPatterns,
+          oldExcuses: identity.oldExcuses,
+          stabilityLevel: identity.stabilityLevel,
+        } : undefined,
       },
     };
 
