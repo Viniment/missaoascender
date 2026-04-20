@@ -286,4 +286,3 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
     </Dialog>
   );
 }
-}
