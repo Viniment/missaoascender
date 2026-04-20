@@ -218,8 +218,30 @@ export interface PlayerState {
   aiSettings?: AiSettings;
   counselHistory?: CounselEntry[];
   identity?: IdentityState;
+  awakeningConfig?: AwakeningConfig;
   _penaltyCompensated?: boolean;
 }
+
+export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
+export type AwakeningFocus = 'auto' | 'disciplina' | 'emocao' | 'identidade' | 'clareza' | 'autoconfianca';
+export type AwakeningQuantity = 'auto' | 3 | 5;
+export type AwakeningMode = 'adaptativo' | 'manual';
+export type AwakeningExerciseType = 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra';
+
+export interface AwakeningConfig {
+  intensity: AwakeningIntensity;
+  focus: AwakeningFocus;
+  quantity: AwakeningQuantity;
+  mode: AwakeningMode;
+  manualType?: AwakeningExerciseType;
+}
+
+export const defaultAwakeningConfig: AwakeningConfig = {
+  intensity: 'moderado',
+  focus: 'auto',
+  quantity: 'auto',
+  mode: 'adaptativo',
+};
 
 export const defaultIdentity: IdentityState = {
   enabled: false,
@@ -355,6 +377,7 @@ export const defaultState: PlayerState = {
   aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   counselHistory: [],
   identity: defaultIdentity,
+  awakeningConfig: defaultAwakeningConfig,
   _penaltyCompensated: true,
 };
 
@@ -467,6 +490,7 @@ function loadState(): PlayerState {
       }
       // Merge identity defaults for migration
       merged.identity = { ...defaultIdentity, ...(merged.identity || {}) };
+      merged.awakeningConfig = { ...defaultAwakeningConfig, ...(merged.awakeningConfig || {}) };
       return merged;
     }
   } catch { /* ignore */ }
@@ -1031,6 +1055,13 @@ export function useGameStore() {
     }));
   }, []);
 
+  const setAwakeningConfig = useCallback((partial: Partial<AwakeningConfig>) => {
+    setState(prev => ({
+      ...prev,
+      awakeningConfig: { ...defaultAwakeningConfig, ...(prev.awakeningConfig || {}), ...partial },
+    }));
+  }, []);
+
   const completeFailureProtocol = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
@@ -1231,6 +1262,7 @@ export function useGameStore() {
     failChallenge,
     addReflection,
     deleteReflection,
+    setAwakeningConfig,
     completeFailureProtocol,
     updateFailureProtocolPenalty,
     checkExpiredProtocols,

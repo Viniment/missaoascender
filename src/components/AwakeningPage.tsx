@@ -1,12 +1,14 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2 } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Brain, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import RichEditor from './RichEditor';
+import AwakeningConfigSheet from './AwakeningConfigSheet';
+import AwakeningExerciseDialog, { type GeneratedExercise } from './AwakeningExerciseDialog';
 
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection } = useGame();
@@ -16,55 +18,56 @@ export default function AwakeningPage() {
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
+  const [exercisesOpen, setExercisesOpen] = useState(false);
+  const [detectedState, setDetectedState] = useState('');
+  const [exercises, setExercises] = useState<GeneratedExercise[]>([]);
 
-  const handleSuggest = useCallback(async () => {
+  const handleGenerate = useCallback(async () => {
     if (loadingAI) return;
     setLoadingAI(true);
     try {
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
         body: {
           journal: (state.journal || []).slice(0, 3).map(j => ({
-            title: j.title,
-            text: j.text,
-            emotion: j.emotion,
-            intensity: j.intensity,
-            deepMode: j.deepMode,
+            title: j.title, text: j.text, emotion: j.emotion, intensity: j.intensity, deepMode: j.deepMode,
           })),
           awakening: state.awakening,
           rank: state.rank,
           reflections: (state.reflections || []).slice(0, 5).map(r => ({
-            question: r.question,
-            answerHtml: r.answerHtml,
-            date: r.date,
+            question: r.question, answerHtml: r.answerHtml, date: r.date,
           })),
+          missions: (state.missions || []).map(m => ({ name: m.name, status: m.status })),
+          habits: (state.habits || []).map(h => ({ name: h.name, history: h.history })),
+          challenges: (state.challenges || []).map(c => ({ name: c.name, failed: c.failed })),
+          punishments: (state.failureProtocols || []).map(p => ({ status: p.status, reason: p.reason })),
+          identity: state.identity,
+          config: (state as any).awakeningConfig,
         },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const questions: string[] = data?.questions || [];
-      if (questions.length === 0) throw new Error('Nenhuma pergunta gerada');
+      const exs: GeneratedExercise[] = data?.exercises || [];
+      if (exs.length < 3) throw new Error('Não foi possível gerar exercícios.');
 
-      const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-      const html = [
-        `<p><strong>Reflexão guiada — ${dateStr}</strong></p>`,
-        `<p></p>`,
-        ...questions.flatMap((q, i) => [
-          `<p><strong>${i + 1}. ${q}</strong></p>`,
-          `<p><em>Responda aqui...</em></p>`,
-          `<p></p>`,
-        ]),
-      ].join('');
-
-      setQuestion('[IA] 5 perguntas de reflexão');
-      setAnswer(html);
-      toast.success('Perguntas geradas! Responda cada uma abaixo.');
+      setDetectedState(data.detectedState || 'Reflexão profunda');
+      setExercises(exs);
+      setExercisesOpen(true);
+      toast.success('Exercícios gerados!');
     } catch (err: any) {
       console.error(err);
-      toast.error(err?.message || 'Erro ao gerar perguntas.');
+      const msg = err?.message || 'Erro ao gerar exercícios.';
+      if (msg.includes('429') || msg.toLowerCase().includes('limite')) {
+        toast.error('Limite de requisições. Tente em alguns segundos.');
+      } else if (msg.includes('402') || msg.toLowerCase().includes('crédito')) {
+        toast.error('Créditos insuficientes na IA.');
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoadingAI(false);
     }
-  }, [loadingAI, state.journal, state.awakening, state.rank]);
+  }, [loadingAI, state]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
@@ -94,18 +97,34 @@ export default function AwakeningPage() {
 
       {/* New reflection block */}
       <div className="rpg-panel space-y-4">
-        <Button
-          variant="outline"
-          className="w-full border-primary/40 hover:bg-primary/10"
-          onClick={handleSuggest}
-          disabled={loadingAI}
-        >
-          {loadingAI ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando perguntas...</>
-          ) : (
-            <><Sparkles className="w-4 h-4 mr-2 text-primary" /> Sugerir perguntas (IA)</>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex-1 border-primary/40 hover:bg-primary/10 text-xs sm:text-sm font-display uppercase tracking-wider"
+            onClick={handleGenerate}
+            disabled={loadingAI}
+          >
+            {loadingAI ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analisando seu estado...</>
+            ) : (
+              <>
+                <Brain className="w-4 h-4 mr-2 text-primary" />
+                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                Gerador de Exercícios
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="border-primary/40 hover:bg-primary/10 shrink-0"
+            onClick={() => setConfigOpen(true)}
+            disabled={loadingAI}
+            title="Configurar"
+          >
+            <Settings2 className="w-4 h-4" />
+          </Button>
+        </div>
 
         <Input
           placeholder="Sua pergunta..."
@@ -124,6 +143,14 @@ export default function AwakeningPage() {
           <Send className="w-4 h-4 mr-2" /> Salvar Reflexão
         </Button>
       </div>
+
+      <AwakeningConfigSheet open={configOpen} onOpenChange={setConfigOpen} />
+      <AwakeningExerciseDialog
+        open={exercisesOpen}
+        onOpenChange={setExercisesOpen}
+        detectedState={detectedState}
+        exercises={exercises}
+      />
 
       {/* History */}
       {state.reflections && state.reflections.length > 0 && (
