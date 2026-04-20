@@ -182,16 +182,30 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, trigger, itemName]);
 
-  if (!trigger) return null;
+  const handleConfirm = () => {
+    if (identityMode) {
+      const p = patternInput.trim();
+      if (!p) return;
+      addFailureReflection({
+        date: new Date().toISOString(),
+        action: itemName,
+        pattern: p,
+        response: message,
+      });
+    }
+    onClose();
+  };
+
+  const submitDisabled = loading || (identityMode && !patternInput.trim());
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="bg-card border-destructive shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)] w-[95vw] max-w-md p-4 sm:p-6 max-h-[92vh] overflow-y-auto rounded-xl gap-4">
+    <Dialog open={open} onOpenChange={(o) => { if (!o && !identityMode) onClose(); else if (!o && identityMode && patternInput.trim()) onClose(); }}>
+      <DialogContent className="bg-card border-destructive shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)] w-[95vw] max-w-lg p-4 sm:p-6 max-h-[90vh] overflow-y-auto rounded-xl gap-4">
         <DialogHeader className="space-y-2">
           <div className="flex items-center justify-between gap-2 pr-6">
             <DialogTitle className="font-display text-destructive flex items-center gap-2 text-sm sm:text-base min-w-0">
               <Skull className="w-5 h-5 shrink-0" />
-              <span className="truncate">PROTOCOLO DE CONFRONTO</span>
+              <span className="truncate">{identityMode ? 'PADRÃO DETECTADO' : 'PROTOCOLO DE CONFRONTO'}</span>
             </DialogTitle>
             <span className="text-[10px] font-display px-2 py-0.5 rounded border bg-destructive text-destructive-foreground border-destructive shrink-0">
               {durezaLabel[dureza]}
@@ -220,26 +234,56 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
               </div>
             ) : (
               <p
-                className="text-base sm:text-base leading-relaxed text-foreground whitespace-pre-line break-words"
+                className="text-base leading-relaxed text-foreground whitespace-pre-line break-words"
                 style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
               >
                 {message}
               </p>
             )}
           </div>
+
+          {identityMode && !loading && (
+            <div className="space-y-2">
+              {identity.oldPatterns.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {identity.oldPatterns.map((p, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPatternInput(p)}
+                      className="text-[11px] px-2 py-1 rounded border border-muted-foreground/30 text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <Label htmlFor="pattern" className="text-xs text-muted-foreground">
+                Qual padrão apareceu? <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="pattern"
+                value={patternInput}
+                onChange={e => setPatternInput(e.target.value)}
+                placeholder="Nomeie o padrão antigo que decidiu por você."
+                className="min-h-[80px] resize-y"
+                maxLength={300}
+              />
+            </div>
+          )}
         </div>
 
-        <DialogFooter className="mt-2">
+        <DialogFooter className="mt-2 flex flex-col sm:flex-row gap-2">
           <Button
             variant="destructive"
             className="w-full font-display h-12 text-base"
-            onClick={onClose}
-            disabled={loading}
+            onClick={handleConfirm}
+            disabled={submitDisabled}
           >
-            Eu reconheço
+            {identityMode ? 'Reconheço o padrão' : 'Eu reconheço'}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
 }
