@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Skull, Loader2 } from 'lucide-react';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getTodayBrasilia } from '@/lib/utils';
+import { defaultIdentity } from '@/lib/gameStore';
 
 type Trigger = 'mission' | 'habit' | 'protocol_expired';
 type Dureza = 'leve' | 'medio' | 'brutal';
@@ -34,13 +37,17 @@ function daysAgo(iso: string): number {
 }
 
 export default function FailureConfrontDialog({ open, onClose, trigger, itemName, xpLost }: Props) {
-  const { state, setState } = useGame();
+  const { state, setState, addFailureReflection } = useGame();
+  const identity = state.identity || defaultIdentity;
+  const identityMode = identity.enabled && identity.newIdentity.trim().length > 0;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [dureza, setDureza] = useState<Dureza>('leve');
+  const [patternInput, setPatternInput] = useState('');
 
   useEffect(() => {
     if (!open || !trigger) return;
+    setPatternInput('');
     let cancelled = false;
     setLoading(true);
     setMessage('');
