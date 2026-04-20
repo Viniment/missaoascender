@@ -17,6 +17,7 @@ import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
 import StoicPanel from '@/components/StoicPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
+import IdentityPanel from '@/components/IdentityPanel';
 import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
@@ -52,6 +53,7 @@ export default function Index() {
       case 'journal': return <JournalPanel />;
       case 'stoic': return <StoicPanel />;
       case 'affirmations': return <AffirmationsPanel />;
+      case 'identity': return <IdentityPanel />;
       case 'timer': return <PomodoroTimer />;
       case 'urge-surfing': return <UrgeSurfingPanel />;
       case 'visualizar': return <VisualizarPanel />;

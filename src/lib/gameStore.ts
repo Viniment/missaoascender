@@ -156,6 +156,27 @@ export interface MonsterState {
   lastReason?: string; // ex: "Falhou hábito X" ou "Concluiu missão Y"
 }
 
+export interface IdentityFailureReflection {
+  date: string;
+  action: string;
+  pattern: string;
+  response?: string;
+}
+
+export interface IdentityState {
+  enabled: boolean;
+  newIdentity: string;
+  codeOfConduct: string[];
+  dominantTraits: string[];
+  oldPatterns: string[];
+  oldExcuses: string[];
+  stabilityLevel: number;
+  alignedActions: number;
+  patternRelapses: number;
+  lastRitualAt?: string;
+  failureReflections: IdentityFailureReflection[];
+}
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -196,7 +217,27 @@ export interface PlayerState {
   monster?: MonsterState;
   aiSettings?: AiSettings;
   counselHistory?: CounselEntry[];
+  identity?: IdentityState;
   _penaltyCompensated?: boolean;
+}
+
+export const defaultIdentity: IdentityState = {
+  enabled: false,
+  newIdentity: '',
+  codeOfConduct: [],
+  dominantTraits: [],
+  oldPatterns: [],
+  oldExcuses: [],
+  stabilityLevel: 0,
+  alignedActions: 0,
+  patternRelapses: 0,
+  failureReflections: [],
+};
+
+function recalcStability(aligned: number, relapses: number): number {
+  const total = aligned + relapses;
+  if (total === 0) return 0;
+  return Math.round((aligned / total) * 100);
 }
 
 const RANKS = ['E', 'D', 'C', 'B', 'A', 'S', 'Monarca'] as const;
@@ -297,7 +338,7 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
-  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing'],
+  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing', 'identity'],
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,
@@ -313,6 +354,7 @@ export const defaultState: PlayerState = {
   monster: { hp: 0, lastChange: new Date().toISOString() },
   aiSettings: { intensity: 'moderado', monsterEnabled: true, interventionFrequency: 'media' },
   counselHistory: [],
+  identity: defaultIdentity,
   _penaltyCompensated: true,
 };
 
@@ -423,6 +465,8 @@ function loadState(): PlayerState {
           (p: any) => VALID_PUNISHMENT_CATEGORIES.includes(p.category)
         );
       }
+      // Merge identity defaults for migration
+      merged.identity = { ...defaultIdentity, ...(merged.identity || {}) };
       return merged;
     }
   } catch { /* ignore */ }
@@ -1061,6 +1105,79 @@ export function useGameStore() {
     }));
   }, []);
 
+  // ===== Identity System =====
+  const updateIdentity = useCallback((updates: Partial<IdentityState>) => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      const next = { ...cur, ...updates };
+      next.stabilityLevel = recalcStability(next.alignedActions, next.patternRelapses);
+      return { ...prev, identity: next };
+    });
+  }, []);
+
+  const toggleIdentitySystem = useCallback((enabled: boolean) => {
+    setState(prev => ({
+      ...prev,
+      identity: { ...(prev.identity || defaultIdentity), enabled },
+    }));
+  }, []);
+
+  const logAlignedAction = useCallback(() => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      if (!cur.enabled) return prev;
+      const aligned = cur.alignedActions + 1;
+      return {
+        ...prev,
+        identity: {
+          ...cur,
+          alignedActions: aligned,
+          stabilityLevel: recalcStability(aligned, cur.patternRelapses),
+        },
+      };
+    });
+  }, []);
+
+  const logPatternRelapse = useCallback(() => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      if (!cur.enabled) return prev;
+      const relapses = cur.patternRelapses + 1;
+      return {
+        ...prev,
+        identity: {
+          ...cur,
+          patternRelapses: relapses,
+          stabilityLevel: recalcStability(cur.alignedActions, relapses),
+        },
+      };
+    });
+  }, []);
+
+  const addFailureReflection = useCallback((reflection: IdentityFailureReflection) => {
+    setState(prev => {
+      const cur = prev.identity || defaultIdentity;
+      const reflections = [reflection, ...cur.failureReflections].slice(0, 50);
+      const relapses = cur.patternRelapses + 1;
+      return {
+        ...prev,
+        identity: {
+          ...cur,
+          failureReflections: reflections,
+          patternRelapses: relapses,
+          stabilityLevel: recalcStability(cur.alignedActions, relapses),
+        },
+      };
+    });
+  }, []);
+
+  const markRitualDone = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      identity: { ...(prev.identity || defaultIdentity), lastRitualAt: new Date().toISOString() },
+    }));
+  }, []);
+
   // Achievement checking
   const pendingAchievementRef = useRef<AchievementDef | null>(null);
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
@@ -1120,6 +1237,12 @@ export function useGameStore() {
     updateAiSettings,
     addCounsel,
     deleteCounsel,
+    updateIdentity,
+    toggleIdentitySystem,
+    logAlignedAction,
+    logPatternRelapse,
+    addFailureReflection,
+    markRitualDone,
     newlyUnlocked,
     dismissAchievement,
   };

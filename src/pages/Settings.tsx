@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -23,6 +23,7 @@ const sections = [
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
   { id: 'ai', label: 'IA Comportamental', description: 'Intensidade, monstro e intervenções', icon: Brain },
+  { id: 'identity', label: 'Identidade', description: 'Sistema de recondicionamento', icon: Fingerprint },
   { id: 'advanced', label: 'Avançado', description: 'Dificuldade e progressão', icon: Settings2 },
   { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Shield },
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
@@ -376,6 +377,49 @@ export default function Settings() {
                 />
               </div>
             </div>
+          </div>
+        );
+      }
+
+      case 'identity': {
+        const ident = state.identity || { enabled: false, newIdentity: '', codeOfConduct: [], dominantTraits: [], oldPatterns: [], oldExcuses: [], stabilityLevel: 0, alignedActions: 0, patternRelapses: 0, failureReflections: [] };
+        const tabHidden = (state.disabledTabs || []).includes('identity');
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Sistema de Identidade" description="Recondicionamento de identidade — não motivação." />
+            <div className="rpg-panel space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-display tracking-wider text-foreground">Ativar Sistema de Identidade</p>
+                  <p className="text-xs text-foreground/60">Toda IA do app passa a operar em modo recondicionamento.</p>
+                </div>
+                <Switch
+                  checked={ident.enabled}
+                  onCheckedChange={(checked) => setState(prev => ({
+                    ...prev,
+                    identity: { ...(prev.identity || ident), enabled: checked },
+                  }))}
+                />
+              </div>
+              <div className="border-t border-border pt-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-display tracking-wider text-foreground">Mostrar guia "Identidade" no menu</p>
+                  <p className="text-xs text-foreground/60">Exibe ou esconde a aba na navegação principal.</p>
+                </div>
+                <Switch
+                  checked={!tabHidden}
+                  onCheckedChange={(checked) => setState(prev => ({
+                    ...prev,
+                    disabledTabs: checked
+                      ? (prev.disabledTabs || []).filter(t => t !== 'identity')
+                      : [...(prev.disabledTabs || []), 'identity'],
+                  }))}
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-foreground/50 italic">
+              Configure sua identidade pela aba "Identidade" no menu principal.
+            </p>
           </div>
         );
       }

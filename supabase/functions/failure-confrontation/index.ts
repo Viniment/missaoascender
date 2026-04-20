@@ -29,6 +29,14 @@ interface RequestBody {
     lastConfrontationMessages?: string[];
     monster?: { hp: number; lastReason?: string };
     aiIntensity?: AiIntensity;
+    identity?: {
+      newIdentity: string;
+      codeOfConduct: string[];
+      dominantTraits: string[];
+      oldPatterns: string[];
+      oldExcuses: string[];
+      stabilityLevel: number;
+    };
   };
 }
 
@@ -48,7 +56,7 @@ function fallbackMessage(trigger: Trigger, itemName: string, dureza: Dureza): st
   return `Outra falha em "${itemName}". O monstro da procrastinação acabou de crescer dentro de você. Cada repetição vira identidade.`;
 }
 
-function buildSystemPrompt(dureza: Dureza, lastMsgs: string[], monsterHp?: number): string {
+function buildSystemPrompt(dureza: Dureza, lastMsgs: string[], monsterHp?: number, identity?: RequestBody['context']['identity']): string {
   const toneMap: Record<Dureza, string> = {
     leve: 'firme mas contido. Direto, sem agressividade.',
     medio: 'duro, direto. Expõe o padrão de fuga sem suavizar.',
@@ -57,6 +65,19 @@ function buildSystemPrompt(dureza: Dureza, lastMsgs: string[], monsterHp?: numbe
 
   const monsterNote = typeof monsterHp === 'number'
     ? `\n\nMONSTRO DA PROCRASTINAÇÃO: HP ${monsterHp}/100. ${monsterHp >= 70 ? 'Está GIGANTE e te dominando.' : monsterHp >= 40 ? 'Está crescido e ativo.' : 'Está enfraquecido — mas voltou a se alimentar agora.'} Cite-o de forma viva e simbólica em UMA das linhas (ex: "o monstro engorda", "ele cresceu de novo", "alimentaste a fera").`
+    : '';
+
+  const identityNote = identity && identity.newIdentity
+    ? `\n\nMODO RECONDICIONAMENTO DE IDENTIDADE ATIVO.
+- Identidade escolhida: "${identity.newIdentity}"
+- Código de conduta: ${(identity.codeOfConduct || []).join(' | ') || '—'}
+- Padrões do eu antigo: ${(identity.oldPatterns || []).join(', ') || '—'}
+
+REGRA: a falha NÃO é dele. É do PADRÃO ANTIGO agindo. Use:
+- "Você não decidiu falhar. Você deixou o padrão decidir."
+- "Isso é o padrão antigo. Não confunda com quem você é."
+- Nomeie o padrão se possível (use os padrões antigos listados).
+- Reforce a ruptura entre "eu real" e "eu antigo". NÃO valide emoção como justificativa.`
     : '';
 
   const banned = lastMsgs.length > 0
@@ -85,7 +106,7 @@ REGRAS:
 - Use os DADOS REAIS (nome, awakening.become, falhas, hábitos). Sem dado = mensagem proibida.
 - Não mencione "sistema", "IA", "app", "jogo".
 - Segunda pessoa ("você").
-- Retorne APENAS o texto. Sem aspas, sem markdown, sem prefixo. Use quebras de linha entre as linhas.${monsterNote}${banned}`;
+- Retorne APENAS o texto. Sem aspas, sem markdown, sem prefixo. Use quebras de linha entre as linhas.${monsterNote}${identityNote}${banned}`;
 }
 
 function buildUserPrompt(body: RequestBody, dureza: Dureza): string {
@@ -159,7 +180,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const dureza = pickDureza(body.context.failureFrequency7d ?? 0, body.context.aiIntensity ?? 'moderado');
-    const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? [], body.context.monster?.hp);
+    const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? [], body.context.monster?.hp, body.context.identity);
     const userPrompt = buildUserPrompt(body, dureza);
 
     const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

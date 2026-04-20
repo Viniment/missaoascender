@@ -58,7 +58,25 @@ serve(async (req) => {
 
     const toneInstruction = TONE_LABELS[tone] || TONE_LABELS.direto;
 
-    let userPrompt = `TOM SOLICITADO: ${toneInstruction}\n\n`;
+    const identity = (context as any)?.identity;
+    let identityBlock = '';
+    if (identity && identity.newIdentity) {
+      identityBlock = `\n\nMODO RECONDICIONAMENTO DE IDENTIDADE ATIVO.
+TOM: direto, sem suavização, sem motivação genérica. NÃO valide emoção como justificativa.
+- Quando o comportamento dele estiver alinhado com a identidade escolhida, reforce: "Isso é consistência. Isso é quem você está se tornando."
+- Quando ele estiver no padrão antigo, corte a justificativa: "Isso é o padrão antigo. Não confunda com quem você é."
+- Sempre enfraqueça a ligação emocional com o "eu antigo" e fortaleça o "eu escolhido".
+- Use o código de conduta dele como referência objetiva.
+
+IDENTIDADE ESCOLHIDA: ${identity.newIdentity}
+CÓDIGO DE CONDUTA: ${(identity.codeOfConduct || []).join(' | ') || '—'}
+TRAÇOS DOMINANTES: ${(identity.dominantTraits || []).join(', ') || '—'}
+PADRÕES DO EU ANTIGO: ${(identity.oldPatterns || []).join(', ') || '—'}
+DESCULPAS COMUNS: ${(identity.oldExcuses || []).join(', ') || '—'}
+NÍVEL DE IDENTIDADE ESTÁVEL: ${identity.stabilityLevel ?? 0}%`;
+    }
+
+    let userPrompt = `TOM SOLICITADO: ${toneInstruction}${identityBlock}\n\n`;
     userPrompt += `=== CONTEXTO DO JOGADOR ===\n`;
     userPrompt += JSON.stringify(context ?? {}, null, 2);
     userPrompt += `\n\n=== PERGUNTA DO USUÁRIO ===\n${question.trim()}\n\n`;
