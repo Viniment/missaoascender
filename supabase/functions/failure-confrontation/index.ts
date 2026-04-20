@@ -180,7 +180,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const dureza = pickDureza(body.context.failureFrequency7d ?? 0, body.context.aiIntensity ?? 'moderado');
-    const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? [], body.context.monster?.hp);
+    const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? [], body.context.monster?.hp, body.context.identity);
     const userPrompt = buildUserPrompt(body, dureza);
 
     const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
