@@ -182,6 +182,8 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, trigger, itemName]);
 
+  if (!trigger) return null;
+
   const handleConfirm = () => {
     if (identityMode) {
       const p = patternInput.trim();
