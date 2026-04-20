@@ -465,6 +465,8 @@ function loadState(): PlayerState {
           (p: any) => VALID_PUNISHMENT_CATEGORIES.includes(p.category)
         );
       }
+      // Merge identity defaults for migration
+      merged.identity = { ...defaultIdentity, ...(merged.identity || {}) };
       return merged;
     }
   } catch { /* ignore */ }
