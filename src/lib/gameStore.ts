@@ -1055,6 +1055,13 @@ export function useGameStore() {
     }));
   }, []);
 
+  const setAwakeningConfig = useCallback((partial: Partial<AwakeningConfig>) => {
+    setState(prev => ({
+      ...prev,
+      awakeningConfig: { ...defaultAwakeningConfig, ...(prev.awakeningConfig || {}), ...partial },
+    }));
+  }, []);
+
   const completeFailureProtocol = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
