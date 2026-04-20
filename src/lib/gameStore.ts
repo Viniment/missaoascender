@@ -490,6 +490,7 @@ function loadState(): PlayerState {
       }
       // Merge identity defaults for migration
       merged.identity = { ...defaultIdentity, ...(merged.identity || {}) };
+      merged.awakeningConfig = { ...defaultAwakeningConfig, ...(merged.awakeningConfig || {}) };
       return merged;
     }
   } catch { /* ignore */ }
