@@ -1,14 +1,29 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Brain, Settings2 } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import RichEditor from './RichEditor';
 import AwakeningConfigSheet from './AwakeningConfigSheet';
-import AwakeningExerciseDialog, { type GeneratedExercise } from './AwakeningExerciseDialog';
+import type { AwakeningExerciseType } from '@/lib/gameStore';
+
+interface GeneratedExercise {
+  title: string;
+  prompt: string;
+  type: AwakeningExerciseType;
+  objective: string;
+}
+
+const TYPE_EMOJI: Record<AwakeningExerciseType, string> = {
+  consciencia: '🔎',
+  confronto: '⚔️',
+  reprogramacao: '🧬',
+  direcionamento: '🧭',
+  quebra: '🔥',
+};
 
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection } = useGame();
@@ -19,12 +34,37 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
-  const [exercisesOpen, setExercisesOpen] = useState(false);
-  const [detectedState, setDetectedState] = useState('');
-  const [exercises, setExercises] = useState<GeneratedExercise[]>([]);
+
+  const buildExercisesHtml = useCallback((detectedState: string, exercises: GeneratedExercise[]) => {
+    const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const parts: string[] = [
+      `<h3>🌅 Despertar — ${detectedState}</h3>`,
+      `<p><em>${dateStr}</em></p>`,
+      `<hr/>`,
+    ];
+    exercises.forEach((ex, i) => {
+      const emoji = TYPE_EMOJI[ex.type] || '✦';
+      parts.push(`<h4>${i + 1}. ${emoji} ${ex.title}</h4>`);
+      if (ex.objective) parts.push(`<p><em>${ex.objective}</em></p>`);
+      parts.push(`<blockquote><p>${ex.prompt}</p></blockquote>`);
+      parts.push(`<p><strong>Sua resposta:</strong></p>`);
+      parts.push(`<p></p>`);
+      parts.push(`<p></p>`);
+      parts.push(`<hr/>`);
+    });
+    return parts.join('');
+  }, []);
 
   const handleGenerate = useCallback(async () => {
     if (loadingAI) return;
+
+    // Confirm overwrite if editor has meaningful content
+    const hasContent = answer && answer.replace(/<[^>]+>/g, '').trim().length > 0;
+    if (hasContent) {
+      const ok = window.confirm('O campo já tem conteúdo. Substituir pelas perguntas geradas?');
+      if (!ok) return;
+    }
+
     setLoadingAI(true);
     try {
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
@@ -50,10 +90,18 @@ export default function AwakeningPage() {
       const exs: GeneratedExercise[] = data?.exercises || [];
       if (exs.length < 3) throw new Error('Não foi possível gerar exercícios.');
 
-      setDetectedState(data.detectedState || 'Reflexão profunda');
-      setExercises(exs);
-      setExercisesOpen(true);
-      toast.success('Exercícios gerados!');
+      const detectedState = data.detectedState || 'Reflexão profunda';
+      const html = buildExercisesHtml(detectedState, exs);
+
+      setQuestion(`Despertar — ${detectedState}`);
+      setAnswer(html);
+      toast.success('Perguntas inseridas. Responda abaixo de cada uma.');
+
+      // Scroll to editor
+      setTimeout(() => {
+        const el = document.querySelector('.ProseMirror') as HTMLElement | null;
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
     } catch (err: any) {
       console.error(err);
       const msg = err?.message || 'Erro ao gerar exercícios.';
@@ -67,7 +115,7 @@ export default function AwakeningPage() {
     } finally {
       setLoadingAI(false);
     }
-  }, [loadingAI, state]);
+  }, [loadingAI, state, answer, buildExercisesHtml]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
@@ -97,20 +145,19 @@ export default function AwakeningPage() {
 
       {/* New reflection block */}
       <div className="rpg-panel space-y-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full">
           <Button
             variant="outline"
-            className="flex-1 border-primary/40 hover:bg-primary/10 text-xs sm:text-sm font-display uppercase tracking-wider"
+            className="flex-1 min-w-0 border-primary/40 hover:bg-primary/10 text-[11px] sm:text-sm font-display uppercase tracking-wider px-2 sm:px-4"
             onClick={handleGenerate}
             disabled={loadingAI}
           >
             {loadingAI ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analisando seu estado...</>
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" /> <span className="truncate">Analisando...</span></>
             ) : (
               <>
-                <Brain className="w-4 h-4 mr-2 text-primary" />
-                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                Gerador de Exercícios
+                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" />
+                <span className="truncate">Gerador de Exercícios</span>
               </>
             )}
           </Button>
@@ -121,6 +168,7 @@ export default function AwakeningPage() {
             onClick={() => setConfigOpen(true)}
             disabled={loadingAI}
             title="Configurar"
+            aria-label="Configurar gerador"
           >
             <Settings2 className="w-4 h-4" />
           </Button>
@@ -145,12 +193,6 @@ export default function AwakeningPage() {
       </div>
 
       <AwakeningConfigSheet open={configOpen} onOpenChange={setConfigOpen} />
-      <AwakeningExerciseDialog
-        open={exercisesOpen}
-        onOpenChange={setExercisesOpen}
-        detectedState={detectedState}
-        exercises={exercises}
-      />
 
       {/* History */}
       {state.reflections && state.reflections.length > 0 && (

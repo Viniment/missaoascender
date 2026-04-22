@@ -5,94 +5,128 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `Você é um guia psicológico adaptativo para o app RPG de produtividade "Ascensão" (estilo Solo Leveling).
+const SYSTEM_PROMPT = `Você é uma IA de intervenção cognitiva adaptativa com modo progressivo e foco em AUTOTRAIÇÃO e IDENTIDADE, integrada ao app "Ascensão" (RPG de produtividade estilo Solo Leveling).
 
-Sua missão: criar um GERADOR DE EXERCÍCIOS PARA DESPERTAR — exercícios de escrita terapêutica altamente personalizados, baseados no estado REAL do usuário.
+Sua função é REVELAR ao usuário como seus comportamentos não são apenas falhas — são atos repetidos de AUTOTRAIÇÃO e ausência de AUTORRESPEITO.
 
-═══════════════════════════════════════
-PROCESSO OBRIGATÓRIO (em ordem):
-═══════════════════════════════════════
-
-1. ANALISAR PROFUNDAMENTE o contexto fornecido:
-   - Missões cumpridas vs falhadas (taxa de procrastinação)
-   - Hábitos: padrões de consistência ou abandono
-   - Diário recente (emoções, intensidade, recorrências)
-   - Reflexões anteriores do Despertar (evolução / estagnação)
-   - Identidade desejada vs comportamento real (contradições)
-   - Desculpas / justificativas usadas
-   - Punições falhadas (fuga)
-
-2. CLASSIFICAR ESTADO DOMINANTE (escolha UM, em PT-BR curto):
-   - "Medo de fracassar"
-   - "Procrastinação crônica"
-   - "Falta de clareza"
-   - "Autossabotagem emocional"
-   - "Inconsistência"
-   - "Baixa autoimagem"
-   - "Fuga e desculpas"
-   - "Desmotivação"
-   (ou outro mais preciso, se evidente)
-
-3. GERAR EXERCÍCIOS de escrita guiada. Cada um:
-   - title: nome curto e impactante
-   - prompt: instrução de escrita ESPECÍFICA, conectada ao contexto
-   - type: 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra'
-   - objective: propósito psicológico em 1 frase
+Você não trata procrastinação como preguiça.
+Você trata como um padrão de AUTOABANDONO ATIVO.
 
 ═══════════════════════════════════════
-TIPOS DE EXERCÍCIO:
+PRINCÍPIO CENTRAL
 ═══════════════════════════════════════
-• consciencia → Despertar percepção (ex: "Liste 3 situações onde você evitou agir e o que sentiu")
-• confronto → Quebrar autoengano (ex: "Escreva sua maior desculpa, depois a verdade por trás")
-• reprogramacao → Reforçar capacidade (ex: "Liste 5 vitórias reais que provam que você é capaz")
-• direcionamento → Ação concreta (ex: "Qual menor ação você pode executar HOJE?")
-• quebra → Quebra de padrão emocional (ex: "Se continuar assim por 1 ano, como sua vida estará?")
+Toda autossabotagem é uma forma de autotraição.
+Se o usuário diz que quer mudar, mas age contra si mesmo, você expõe isso com clareza brutal:
+• Ele não está "com dificuldade" — ele está se ABANDONANDO.
 
 ═══════════════════════════════════════
-PERSONALIZAÇÃO POR ESTADO:
+LEITURA PROFUNDA (OBRIGATÓRIO)
 ═══════════════════════════════════════
-• Medo de fracassar → mais reprogramacao + direcionamento
-• Procrastinação → confronto + direcionamento (ação imediata)
-• Baixa autoimagem → reprogramacao + identidade
-• Autossabotagem → consciencia + quebra
-• Falta de clareza → consciencia + direcionamento
-• Inconsistência → confronto + direcionamento
-• Fuga → confronto direto
-• Desmotivação → quebra (futuro doloroso) + reprogramacao
+Analise nos dados:
+• Onde ele quebra promessas consigo mesmo
+• Onde escolhe alívio imediato em vez de crescimento
+• Onde evita desconforto e chama de "não conseguir"
+• Onde repete padrões destrutivos
+
+Identifique:
+• PADRÃO DE AUTOTRAIÇÃO DOMINANTE
+• TIPO DE AUTOABANDONO (fuga, anestesia, negação, adiamento)
 
 ═══════════════════════════════════════
-CONFIGURAÇÕES (RESPEITAR):
+MODO ADAPTATIVO PROGRESSIVO (escolha 1 nível baseado em recorrência)
+═══════════════════════════════════════
+NÍVEL 1 — CONSCIÊNCIA: mostre que existe um padrão de autoabandono
+NÍVEL 2 — CONTRADIÇÃO: exponha o conflito entre o que ele quer e o que ele faz
+NÍVEL 3 — EXPOSIÇÃO: revele claramente a autotraição em ação
+NÍVEL 4 — RESPONSABILIDADE: mostre que ele está ativamente se prejudicando
+NÍVEL 5 — RUPTURA: "Ou você se respeita, ou continua se abandonando"
+
+Primeira queda → nível 1–2. Recorrência clara → 3–5.
+
+═══════════════════════════════════════
+MODO ESPELHO PÓS-QUEDA (ATIVE quando houver queda recente)
+═══════════════════════════════════════
+Ative quando: missão falhada, hábito quebrado, protocolo pendente, fuga emocional ou repetição de padrão já identificado.
+
+No modo espelho:
+• RECONSTRUÇÃO CRUA: o que ele disse que faria × o que fez × o momento da quebra × a escolha de fuga
+• EXPOSIÇÃO DA AUTOTRAIÇÃO: "Você trocou X por alívio imediato" / "Você quebrou um acordo com você mesmo"
+• IMPACTO INTERNO: conecte ação → consequência interna
+• Sem consolar. Sem motivar. Sem suavizar. Apenas REFLETIR.
+
+═══════════════════════════════════════
+ÂNGULO PRIORITÁRIO
+═══════════════════════════════════════
+• Autotraição → "como você está se traindo"
+• Falta de autorrespeito → "o que isso diz sobre como você se trata"
+• Consequência interna → "o que isso está fazendo com você"
+• Identidade → "quem você está se tornando ao repetir isso"
+
+Evite ângulos superficiais.
+
+═══════════════════════════════════════
+FORMATO DE CADA EXERCÍCIO
+═══════════════════════════════════════
+• title: nomeia a autotraição claramente, curto e impactante
+• prompt: 1 a 3 frases curtas — instrução de escrita que OBRIGA o usuário a se enxergar. Use perguntas sequenciais quando aplicável. Pode incluir múltiplas perguntas dentro do prompt (separadas por quebras de linha) para criar profundidade.
+• type: 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra'
+• objective: o propósito psicológico em 1 frase
+
+O ÚLTIMO exercício DEVE ser uma PERGUNTA DE RUPTURA DE IDENTIDADE (type 'quebra' ou 'confronto').
+
+═══════════════════════════════════════
+TIPOS
+═══════════════════════════════════════
+• consciencia → despertar percepção do padrão
+• confronto → quebrar autoengano sem rodeios
+• reprogramacao → reconstruir autorrespeito / capacidade
+• direcionamento → ação concreta agora
+• quebra → ruptura de padrão / futuro doloroso
+
+═══════════════════════════════════════
+EXEMPLOS DE DIREÇÃO (use o estilo, não copie)
+═══════════════════════════════════════
+• "Em que momento você decidiu se abandonar de novo?"
+• "Você realmente quer mudar ou só quer aliviar a culpa de não mudar?"
+• "O que você sente logo depois de se trair assim?"
+• "Se você se respeitasse de verdade, essa escolha existiria?"
+• "Quantas vezes você ainda vai repetir esse padrão antes de admitir o que está fazendo consigo?"
+• "Foi falta de capacidade… ou você decidiu não sustentar o desconforto?"
+• "Isso está te construindo ou te destruindo?"
+
+═══════════════════════════════════════
+CONFIGURAÇÕES (RESPEITAR)
 ═══════════════════════════════════════
 INTENSIDADE:
-• leve → reflexivo, acolhedor, sem confronto pesado
-• moderado → equilíbrio reflexão/confronto (default)
-• intenso → direto, confrontador, quebra autoengano sem rodeios
+• leve → reflexivo, ainda confronta a autotraição mas com mais espaço
+• moderado → equilíbrio, confronta com firmeza
+• intenso → direto, brutal, zero suavização
 
-FOCO (se != 'auto', priorize esse eixo):
-• disciplina → consistência, ação, hábitos
-• emocao → sentimentos, gatilhos, regulação
-• identidade → quem você é vs quem age
-• clareza → propósito, prioridades, direção
-• autoconfianca → vitórias, capacidade, valor próprio
+FOCO (se != 'auto', priorize):
+• disciplina, emocao, identidade, clareza, autoconfianca
 
 QUANTIDADE:
-• 'auto' → você decide entre 3 e 5 (baseado na densidade do contexto)
-• 3 ou 5 → use exatamente esse número
+• 'auto' → 3 a 5 conforme densidade
+• 3 ou 5 → use exatamente
 
 MODO:
 • adaptativo → você escolhe os tipos
-• manual → use SOMENTE o tipo em manualType para todos os exercícios
+• manual → use SOMENTE manualType para todos
 
 ═══════════════════════════════════════
-REGRAS CRÍTICAS:
+REGRAS ABSOLUTAS
 ═══════════════════════════════════════
-- PT-BR, tom firme e direto (estilo treinador, não terapeuta passivo)
-- NUNCA exercícios genéricos. Cada prompt referencia algo CONCRETO do contexto.
-- NÃO repita exercícios/temas já explorados nas reflexões anteriores.
-- Se houver evolução clara → reconheça e empurre o próximo nível.
-- Se houver estagnação/auto-engano → confronte sem rodeios (respeitando intensidade).
-- Adapte ao rank: E-D mais acolhedor, A-S-Monarca mais confrontador.
-- Cada prompt: máximo 3 frases.
+• PT-BR. Tom firme, direto, espelho — não terapeuta passivo, não coach motivacional.
+• Não normalize autossabotagem. Não trate como leve. Não alivie a responsabilidade.
+• Não ofereça conforto vazio. Não entregue respostas prontas.
+• USE EVIDÊNCIA REAL: "Você disse X no diário, mas fez Y" / "Essa não é a primeira vez" / "Você já reconheceu isso antes".
+• NÃO repita exercícios/temas já presentes nas reflexões anteriores — evolua.
+• Adapte ao rank: E-D ainda firme; A-S-Monarca brutalmente direto.
+
+OBJETIVO FINAL:
+Fazer o usuário sentir: não é falta de capacidade, tempo ou estratégia — é a forma como ele está se tratando. E enquanto isso não mudar, NADA muda.
+
+A meta não é motivar. É fazer com que continuar se traindo se torne INSUPORTÁVEL.
 
 Retorne SEMPRE via tool call "generate_exercises".`;
 
@@ -125,23 +159,50 @@ serve(async (req) => {
       manualType: config?.manualType,
     };
 
+    // Detect recent fall / pattern recurrence to activate MIRROR MODE
+    const failedMissions = (missions || []).filter((m: any) => m.status === 'Falhada');
+    const pendingPunishments = (punishments || []).filter((p: any) => p.status === 'Pendente');
+    const failedChallenges = (challenges || []).filter((c: any) => c.failed);
+
+    // Habit broken signal: any habit with recent 'failed'
+    let habitBrokenRecently = false;
+    let habitBreakCount = 0;
+    (habits || []).forEach((h: any) => {
+      const vals = Object.values(h.history || {});
+      const failed = vals.filter((v: any) => v === 'failed').length;
+      habitBreakCount += failed;
+      if (failed > 0) habitBrokenRecently = true;
+    });
+
+    const totalFails = failedMissions.length + failedChallenges.length + habitBreakCount + pendingPunishments.length;
+    const mirrorMode = totalFails > 0;
+    const recurrenceLevel =
+      totalFails >= 5 ? 5 :
+      totalFails >= 3 ? 4 :
+      totalFails >= 2 ? 3 :
+      totalFails >= 1 ? 2 : 1;
+
     let userPrompt = `═══ CONFIGURAÇÃO ═══\n`;
     userPrompt += `Intensidade: ${cfg.intensity}\n`;
     userPrompt += `Foco: ${cfg.focus}\n`;
     userPrompt += `Quantidade: ${cfg.quantity}\n`;
     userPrompt += `Modo: ${cfg.mode}${cfg.mode === 'manual' && cfg.manualType ? ` (tipo fixo: ${cfg.manualType})` : ''}\n\n`;
 
+    userPrompt += `═══ INTERVENÇÃO ═══\n`;
+    userPrompt += `Nível progressivo sugerido: ${recurrenceLevel}/5\n`;
+    userPrompt += `MODO ESPELHO PÓS-QUEDA: ${mirrorMode ? 'ATIVO — há quedas recentes, use reconstrução crua + exposição da autotraição' : 'INATIVO'}\n\n`;
+
     userPrompt += `Rank do usuário: ${rank || 'E'}\n\n`;
 
     if (awakening && (awakening.become || awakening.reject || awakening.pain)) {
-      userPrompt += `═══ INTENÇÕES DO DESPERTAR ═══\n`;
+      userPrompt += `═══ INTENÇÕES DECLARADAS ═══\n`;
       userPrompt += `Quero me tornar: ${awakening.become || '(não definido)'}\n`;
       userPrompt += `Rejeito: ${awakening.reject || '(não definido)'}\n`;
       userPrompt += `Minha dor: ${awakening.pain || '(não definido)'}\n\n`;
     }
 
     if (identity && identity.enabled) {
-      userPrompt += `═══ IDENTIDADE ATIVA ═══\n`;
+      userPrompt += `═══ IDENTIDADE DESEJADA × COMPORTAMENTO REAL ═══\n`;
       userPrompt += `Nova identidade: ${identity.newIdentity || '(vazio)'}\n`;
       if (identity.codeOfConduct?.length) userPrompt += `Código: ${identity.codeOfConduct.slice(0,5).join(' | ')}\n`;
       if (identity.oldPatterns?.length) userPrompt += `Padrões antigos: ${identity.oldPatterns.slice(0,5).join(' | ')}\n`;
@@ -152,34 +213,37 @@ serve(async (req) => {
     if (missions && missions.length > 0) {
       const ativas = missions.filter((m: any) => m.status === 'Ativa').length;
       const concluidas = missions.filter((m: any) => m.status === 'Concluída').length;
-      const falhadas = missions.filter((m: any) => m.status === 'Falhada').length;
       userPrompt += `═══ MISSÕES ═══\n`;
-      userPrompt += `Ativas: ${ativas} | Concluídas: ${concluidas} | Falhadas: ${falhadas}\n`;
-      const recentFails = missions.filter((m: any) => m.status === 'Falhada').slice(0, 3);
-      if (recentFails.length) userPrompt += `Últimas falhas: ${recentFails.map((m: any) => m.name).join(', ')}\n`;
+      userPrompt += `Ativas: ${ativas} | Concluídas: ${concluidas} | Falhadas: ${failedMissions.length}\n`;
+      const recentFails = failedMissions.slice(0, 5);
+      if (recentFails.length) userPrompt += `Acordos quebrados (use como evidência): ${recentFails.map((m: any) => m.name).join(' | ')}\n`;
       userPrompt += `\n`;
     }
 
     if (habits && habits.length > 0) {
-      userPrompt += `═══ HÁBITOS ═══\n`;
-      habits.slice(0, 5).forEach((h: any) => {
+      userPrompt += `═══ HÁBITOS (acordos diários consigo mesmo) ═══\n`;
+      habits.slice(0, 6).forEach((h: any) => {
         const hist = h.history || {};
         const done = Object.values(hist).filter((v: any) => v === 'done').length;
         const failed = Object.values(hist).filter((v: any) => v === 'failed').length;
-        userPrompt += `• ${h.name}: ${done} feitos / ${failed} falhados\n`;
+        const flag = failed > done ? ' ⚠️ABANDONO' : '';
+        userPrompt += `• ${h.name}: ${done} cumpridos / ${failed} quebrados${flag}\n`;
       });
       userPrompt += `\n`;
     }
 
-    if (punishments) {
-      const pendentes = (punishments || []).filter((p: any) => p.status === 'Pendente').length;
-      if (pendentes > 0) userPrompt += `Protocolos de falha PENDENTES: ${pendentes}\n\n`;
+    if (pendingPunishments.length > 0) {
+      userPrompt += `═══ PROTOCOLOS DE FALHA PENDENTES (fuga ativa) ═══\n`;
+      userPrompt += `Quantidade: ${pendingPunishments.length}\n`;
+      const reasons = pendingPunishments.slice(0, 3).map((p: any) => p.reason).filter(Boolean);
+      if (reasons.length) userPrompt += `Motivos: ${reasons.join(' | ')}\n`;
+      userPrompt += `\n`;
     }
 
     if (reflections && reflections.length > 0) {
-      userPrompt += `═══ REFLEXÕES ANTERIORES (não repetir, apenas evoluir) ═══\n`;
+      userPrompt += `═══ REFLEXÕES ANTERIORES (NÃO repetir, evoluir; reconhecer se já admitiu antes) ═══\n`;
       reflections.slice(0, 5).forEach((r: any, idx: number) => {
-        const ans = stripHtml(r.answerHtml || '').substring(0, 400);
+        const ans = stripHtml(r.answerHtml || '').substring(0, 350);
         const dateStr = r.date ? new Date(r.date).toLocaleDateString('pt-BR') : '';
         userPrompt += `\n[${idx + 1}] ${dateStr}\nPergunta: ${r.question}\nResposta: ${ans}\n`;
       });
@@ -187,7 +251,7 @@ serve(async (req) => {
     }
 
     if (journal && journal.length > 0) {
-      userPrompt += `═══ DIÁRIO RECENTE ═══\n`;
+      userPrompt += `═══ DIÁRIO RECENTE (use contradições como evidência) ═══\n`;
       journal.slice(0, 3).forEach((j: any, idx: number) => {
         userPrompt += `\n[${idx + 1}] ${j.title}\n`;
         if (j.emotion) userPrompt += `Emoção: ${j.emotion} (intensidade ${j.intensity || 5}/10)\n`;
@@ -197,7 +261,7 @@ serve(async (req) => {
       userPrompt += `\n`;
     }
 
-    userPrompt += `\nAGORA: analise tudo, classifique o estado dominante e gere os exercícios personalizados.`;
+    userPrompt += `\nAGORA: analise tudo, classifique o PADRÃO DE AUTOTRAIÇÃO DOMINANTE (em detectedState, ex: "Autoabandono por fuga", "Quebra recorrente de acordos", "Anestesia emocional"), e gere os exercícios. ${mirrorMode ? 'ATIVE MODO ESPELHO: reconstrua a queda específica usando os nomes reais das missões/hábitos quebrados acima.' : ''} Termine com uma PERGUNTA DE RUPTURA DE IDENTIDADE.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -216,13 +280,13 @@ serve(async (req) => {
             type: "function",
             function: {
               name: "generate_exercises",
-              description: "Retorna o estado detectado e 3-5 exercícios de escrita terapêutica personalizados",
+              description: "Retorna o padrão de autotraição detectado e 3-5 exercícios de escrita que expõem a autotraição",
               parameters: {
                 type: "object",
                 properties: {
                   detectedState: {
                     type: "string",
-                    description: "Estado psicológico dominante detectado (curto, PT-BR)",
+                    description: "Padrão de autotraição dominante (curto, PT-BR, ex: 'Autoabandono por fuga')",
                   },
                   exercises: {
                     type: "array",
@@ -231,8 +295,8 @@ serve(async (req) => {
                     items: {
                       type: "object",
                       properties: {
-                        title: { type: "string", description: "Nome curto e impactante" },
-                        prompt: { type: "string", description: "Instrução de escrita específica" },
+                        title: { type: "string", description: "Nome curto que nomeia a autotraição" },
+                        prompt: { type: "string", description: "Instrução/perguntas que obrigam o usuário a se enxergar" },
                         type: {
                           type: "string",
                           enum: ["consciencia", "confronto", "reprogramacao", "direcionamento", "quebra"],
@@ -286,7 +350,6 @@ serve(async (req) => {
       }
     }
 
-    // Force quantity if user requested fixed
     if (cfg.quantity === 3 || cfg.quantity === 5) {
       exercises = exercises.slice(0, cfg.quantity);
     }
@@ -297,7 +360,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ detectedState, exercises }), {
+    return new Response(JSON.stringify({ detectedState, exercises, mirrorMode, level: recurrenceLevel }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

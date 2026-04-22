@@ -360,7 +360,7 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
-  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing', 'identity'],
+  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing', 'identity', 'stoic', 'challenges'],
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,
