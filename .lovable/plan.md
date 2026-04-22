@@ -1,108 +1,59 @@
 
-## GERADOR DE EXERCÍCIOS PARA DESPERTAR — substituir "Sugerir perguntas (IA)"
 
-Transforma o botão atual numa ferramenta adaptativa que analisa o estado do usuário e gera 3–5 exercícios de escrita terapêutica personalizados, com configurações de intensidade, foco, quantidade e modo. Experiência guiada um-exercício-por-vez.
+## Ajustes no Despertar + remoção de painéis
 
----
+### 1. Botão de configuração responsivo (mobile fix)
+**`src/components/AwakeningPage.tsx`** — o `Button` "Gerador de Exercícios" + ícone Settings estão num `flex` lado a lado e estouram em telas pequenas (Android). Solução:
+- Texto interno do botão principal mais compacto: remover ícone `Brain` (manter só `Sparkles`), usar `truncate`, `min-w-0 flex-1`, e quebrar linha se preciso.
+- Garantir `shrink-0` no botão de engrenagem (já tem) e que o container tenha `w-full overflow-hidden`.
+- Em telas <380px: usar `text-[11px]` no texto do botão.
 
-### 1. Edge function — `supabase/functions/awakening-questions/index.ts`
+### 2. Novo fluxo: gerar perguntas direto no campo do Despertar (estilo Word/Notion)
+**Mudança de comportamento:** em vez de abrir o modal `AwakeningExerciseDialog`, ao clicar em **"Gerador de Exercícios"** as perguntas geradas pela IA são inseridas diretamente no `RichEditor` da página, formatadas como um documento editável com espaços para responder embaixo de cada pergunta.
 
-**Novo body de input:**
+**`AwakeningPage.tsx`:**
+- `handleGenerate` passa a montar HTML do tipo:
+  ```html
+  <h3>🌅 Despertar — {detectedState}</h3>
+  <p><em>Data</em></p>
+  <hr/>
+  <h4>1. {título}</h4>
+  <blockquote>{prompt}</blockquote>
+  <p><em>Sua resposta:</em></p>
+  <p></p><p></p>
+  <hr/>
+  ... (repete por exercício)
+  ```
+- Insere esse HTML no `RichEditor` (substituindo conteúdo atual, com confirmação se o campo não estiver vazio).
+- Auto-preenche o campo `question` com `Despertar — {detectedState}`.
+- Remove o uso do `AwakeningExerciseDialog` na página (dialog deletado).
+- Foco automático no editor após gerar; toast: "Perguntas inseridas. Responda abaixo de cada uma."
+
+### 3. Novo prompt da IA — Modo Autotraição + Espelho
+**`supabase/functions/awakening-questions/index.ts`** — substitui o `SYSTEM_PROMPT` atual pelo prompt completo enviado pelo usuário (IA de intervenção cognitiva adaptativa, foco em autotraição, identidade, modo espelho pós-queda, níveis 1–5).
+
+Lógica adicional:
+- Detectar **queda recente** (missão falhada/hábito quebrado/protocolo pendente nos últimos dias) → ativar **MODO ESPELHO** automaticamente e injetar instrução no user prompt.
+- Detectar **nível progressivo** (1–5) com base em recorrência: 1ª vez = nível 1–2, recorrências = nível 3–5.
+- Tool call `generate_exercises` mantém a estrutura (`detectedState`, `exercises[{title, prompt, type, objective}]`), mas `detectedState` agora descreve o padrão de autotraição (ex.: "Autoabandono por fuga", "Quebra recorrente de acordos").
+- Tipos podem ganhar mapeamento implícito ao novo tom (confronto e quebra ficam em destaque).
+
+### 4. Remover painéis Afirmações, Estoicismo, Identidade, Desafios, Urge Surfing
+**`src/lib/gameStore.ts`** — atualizar default de `disabledTabs` para incluir todos:
 ```ts
-{
-  journal, awakening, rank, reflections,
-  missions, habits, challenges, punishments, // contexto completo
-  identity,
-  config: {
-    intensity: 'leve' | 'moderado' | 'intenso',
-    focus: 'auto' | 'disciplina' | 'emocao' | 'identidade' | 'clareza' | 'autoconfianca',
-    quantity: 'auto' | 3 | 5,
-    mode: 'adaptativo' | 'manual',
-    manualType?: 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra'
-  }
-}
+disabledTabs: ['affirmations', 'stoic', 'identity', 'challenges', 'urge-surfing', 'visualizar']
 ```
+Isso oculta da sidebar e do mobile menu sem deletar código (usuários antigos que já têm `disabledTabs` salvo no Supabase mantêm preferência; novos usuários e quem nunca mexeu vê só o essencial).
 
-**Novo system prompt (PT-BR)** instrui a IA a:
-1. Analisar tudo (missões falhadas, procrastinação, emoções no diário, reflexões anteriores, desculpas, identidade vs comportamento)
-2. Classificar **estado dominante** (medo de fracassar / procrastinação / falta de clareza / autossabotagem / inconsistência / baixa autoimagem / fuga / desmotivação)
-3. Escolher **tipos de exercício** (consciência, confronto, reprogramação, direcionamento, quebra de padrão) respeitando `focus` e `mode`
-4. Adaptar tom à `intensity`
-5. Não repetir exercícios já presentes no histórico
-6. Cada exercício: `title`, `prompt` (instrução de escrita), `type`, `objective` (propósito psicológico)
-
-**Tool call estruturado:**
-```ts
-generate_exercises({
-  detectedState: string,
-  exercises: [{ title, prompt, type, objective }] // 3 a 5
-})
-```
-
-Retorna `{ detectedState, exercises }`. Mantém handlers 429/402.
-
----
-
-### 2. Frontend — `src/components/AwakeningPage.tsx`
-
-a) **Botão renomeado**: "GERADOR DE EXERCÍCIOS PARA DESPERTAR" (Sparkles + Brain)
-b) **Engrenagem ao lado** abre `AwakeningConfigSheet` (config persistida)
-c) Ao clicar no botão principal: chama edge function com config atual + contexto completo, abre `AwakeningExerciseDialog`
-d) Loading: "Analisando seu estado atual..." com spinner
-e) Erros: toast claro (rate limit / créditos)
-
----
-
-### 3. Novo componente `src/components/AwakeningExerciseDialog.tsx`
-
-Modal guiado:
-- Header: "Estado detectado: {detectedState}" + progresso "Exercício 2/4"
-- Card do exercício: badge do tipo, title, objetivo (muted/itálico), prompt em destaque
-- `Textarea` grande para resposta
-- Botões: [← Anterior] [Próximo →] / no último [Concluir Despertar]
-- Ao concluir: monta HTML formatado com todas perguntas+respostas e chama `addReflection({ question: 'Despertar guiado — {detectedState}', answerHtml, date })`
-- Toast: "Despertar concluído. +15 XP"
-- X fecha sem salvar (confirma se há respostas)
-
----
-
-### 4. Novo componente `src/components/AwakeningConfigSheet.tsx`
-
-Sheet com:
-- **Intensidade** (RadioGroup: Leve / Moderado / Intenso)
-- **Foco** (Select: Auto / Disciplina / Emoção / Identidade / Clareza / Autoconfiança)
-- **Quantidade** (RadioGroup: Auto / 3 / 5)
-- **Modo** (RadioGroup: Adaptativo / Manual → mostra Select de tipo)
-
----
-
-### 5. Estado global — `src/lib/gameStore.ts` + `GameContext.tsx`
-
-Adicionar à `PlayerState`:
-```ts
-awakeningConfig: {
-  intensity: 'moderado',
-  focus: 'auto',
-  quantity: 'auto',
-  mode: 'adaptativo',
-  manualType?: string
-}
-```
-Expor `setAwakeningConfig(partial)` no contexto.
-
----
+**Adicional:** migração leve no carregamento — se o `disabledTabs` salvo NÃO contiver esses IDs, adicionar (uma vez) via flag `tabsCleanupV2` no estado, para aplicar a limpeza também a usuários existentes.
 
 ### Arquivos
+- **Editar:** `src/components/AwakeningPage.tsx`, `supabase/functions/awakening-questions/index.ts`, `src/lib/gameStore.ts`, `src/lib/GameContext.tsx` (migração)
+- **Não usar mais (mas manter arquivo):** `src/components/AwakeningExerciseDialog.tsx` — pode ficar órfão ou ser removido. Recomendo **remover import** e deixar o arquivo (caso queira reverter).
 
-**Editar:** `supabase/functions/awakening-questions/index.ts`, `src/components/AwakeningPage.tsx`, `src/lib/gameStore.ts`, `src/lib/GameContext.tsx`
+### Resultado
+- Botão de configuração não estoura mais em Android.
+- Clicar em "Gerador de Exercícios" agora insere as perguntas direto no editor rico, com espaço para escrever abaixo de cada uma — experiência tipo Notion.
+- IA gera perguntas no tom de autotraição/espelho, com modo progressivo e ativação automática pós-queda.
+- Sidebar/menu mostra apenas: Missões, Hábitos, Conquistas, Espelho, Conselho, Diário, Timer, Despertar, Loja.
 
-**Criar:** `src/components/AwakeningExerciseDialog.tsx`, `src/components/AwakeningConfigSheet.tsx`
-
----
-
-### Garantias
-
-- Histórico antigo de reflexões continua funcionando
-- Usuário pode cancelar (X fecha modal)
-- Estética intensa mantida (neon roxo, glow, fontes display)
-- Responsivo: mobile usa quase tela cheia, desktop max-w-lg
