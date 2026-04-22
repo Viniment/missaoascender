@@ -219,6 +219,7 @@ export interface PlayerState {
   counselHistory?: CounselEntry[];
   identity?: IdentityState;
   awakeningConfig?: AwakeningConfig;
+  tabsCleanupV2?: boolean;
   _penaltyCompensated?: boolean;
 }
 
