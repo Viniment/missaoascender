@@ -8,16 +8,9 @@ import HabitsPanel from '@/components/HabitsPanel';
 import JournalPanel from '@/components/JournalPanel';
 import AwakeningPage from '@/components/AwakeningPage';
 import RewardsShop from '@/components/RewardsShop';
-import VisualizarPanel from '@/components/VisualizarPanel';
-import AffirmationsPanel from '@/components/AffirmationsPanel';
-
-import ChallengesPanel from '@/components/ChallengesPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
-import UrgeSurfingPanel from '@/components/UrgeSurfingPanel';
-import StoicPanel from '@/components/StoicPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
-import IdentityPanel from '@/components/IdentityPanel';
 import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
@@ -46,17 +39,11 @@ export default function Index() {
     switch (activeTab) {
       case 'missions': return <MissionsPanel />;
       case 'habits': return <HabitsPanel />;
-      case 'challenges': return <ChallengesPanel />;
       case 'achievements': return <AchievementsPanel />;
       case 'mirror': return <MirrorPanel />;
       case 'counsel': return <CounselPanel />;
       case 'journal': return <JournalPanel />;
-      case 'stoic': return <StoicPanel />;
-      case 'affirmations': return <AffirmationsPanel />;
-      case 'identity': return <IdentityPanel />;
       case 'timer': return <PomodoroTimer />;
-      case 'urge-surfing': return <UrgeSurfingPanel />;
-      case 'visualizar': return <VisualizarPanel />;
       case 'awakening': return <AwakeningPage />;
       case 'rewards': return <RewardsShop />;
     }

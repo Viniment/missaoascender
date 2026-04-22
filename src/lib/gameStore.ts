@@ -361,7 +361,7 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
-  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing', 'identity', 'stoic', 'challenges'],
+  disabledTabs: [],
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,

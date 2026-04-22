@@ -149,7 +149,7 @@ export default function CounselPanel() {
     try {
       const context = buildContext(state, includeJournal);
       const { data, error } = await supabase.functions.invoke('counsel', {
-        body: { question: q, tone, context },
+        body: { question: q, tone, context, aiSettings: state.aiSettings },
       });
 
       if (error) throw error;

@@ -29,6 +29,7 @@ interface RequestBody {
     lastConfrontationMessages?: string[];
     monster?: { hp: number; lastReason?: string };
     aiIntensity?: AiIntensity;
+    aiFrequency?: 'baixa' | 'media' | 'alta';
     identity?: {
       newIdentity: string;
       codeOfConduct: string[];
@@ -179,7 +180,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const dureza = pickDureza(body.context.failureFrequency7d ?? 0, body.context.aiIntensity ?? 'moderado');
+    let dureza = pickDureza(body.context.failureFrequency7d ?? 0, body.context.aiIntensity ?? 'moderado');
+    // Frequency: 'baixa' softens 1 step, 'alta' hardens 1 step
+    if (body.context.aiFrequency === 'baixa') dureza = dureza === 'brutal' ? 'medio' : dureza === 'medio' ? 'leve' : 'leve';
+    if (body.context.aiFrequency === 'alta') dureza = dureza === 'leve' ? 'medio' : dureza === 'medio' ? 'brutal' : 'brutal';
     const systemPrompt = buildSystemPrompt(dureza, body.context.lastConfrontationMessages ?? [], body.context.monster?.hp, body.context.identity);
     const userPrompt = buildUserPrompt(body, dureza);
 

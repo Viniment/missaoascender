@@ -1,9 +1,9 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Shield, Timer, Trophy, Layers, Flame, Waves, ScrollText, Compass, User, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, type LucideIcon } from 'lucide-react';
 
 export type TabId =
-  | 'missions' | 'habits' | 'challenges' | 'achievements'
-  | 'mirror' | 'counsel' | 'journal' | 'stoic' | 'affirmations' | 'identity'
-  | 'timer' | 'urge-surfing' | 'visualizar' | 'awakening'
+  | 'missions' | 'habits' | 'achievements'
+  | 'mirror' | 'counsel' | 'journal'
+  | 'timer' | 'awakening'
   | 'rewards';
 
 export interface TabDef {
@@ -27,7 +27,6 @@ export const TAB_GROUPS: TabGroup[] = [
     tabs: [
       { id: 'missions', label: 'Missões', icon: Swords, description: 'Suas missões ativas e progresso', core: true },
       { id: 'habits', label: 'Hábitos', icon: Sparkles, description: 'Construa rotinas diárias', core: true },
-      { id: 'challenges', label: 'Desafios', icon: Shield, description: 'Provações de múltiplas etapas' },
       { id: 'achievements', label: 'Conquistas', icon: Trophy, description: 'Marcos desbloqueados' },
     ],
   },
@@ -38,9 +37,7 @@ export const TAB_GROUPS: TabGroup[] = [
       { id: 'mirror', label: 'Espelho', icon: Eye, description: 'Veja sua sombra com clareza' },
       { id: 'counsel', label: 'Conselho', icon: Compass, description: 'Coach IA com seus dados reais' },
       { id: 'journal', label: 'Diário', icon: BookOpen, description: 'Registro de pensamentos e emoções' },
-      { id: 'stoic', label: 'Estoicismo', icon: ScrollText, description: 'Reflexões diárias guiadas' },
-      { id: 'affirmations', label: 'Afirmações', icon: Flame, description: 'Reprogramação mental diária' },
-      { id: 'identity', label: 'Identidade', icon: User, description: 'Recondicionamento de identidade' },
+      { id: 'awakening', label: 'Despertar', icon: ScrollText, description: 'Exercícios de escrita terapêutica' },
     ],
   },
   {
@@ -48,9 +45,6 @@ export const TAB_GROUPS: TabGroup[] = [
     label: 'Ferramentas',
     tabs: [
       { id: 'timer', label: 'Timer', icon: Timer, description: 'Pomodoro e sessões focadas' },
-      { id: 'urge-surfing', label: 'Urge Surfing', icon: Waves, description: 'Surfe os impulsos sem ceder' },
-      { id: 'visualizar', label: 'Visualizar', icon: Layers, description: 'Quadro de visão e metas' },
-      { id: 'awakening', label: 'Despertar', icon: Eye, description: 'Reconecte com seu propósito' },
     ],
   },
   {

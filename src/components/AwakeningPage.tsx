@@ -1,14 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Settings2 } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import RichEditor from './RichEditor';
-import AwakeningConfigSheet from './AwakeningConfigSheet';
-import type { AwakeningExerciseType } from '@/lib/gameStore';
+type AwakeningExerciseType = 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra';
 
 interface GeneratedExercise {
   title: string;
@@ -33,7 +32,6 @@ export default function AwakeningPage() {
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [configOpen, setConfigOpen] = useState(false);
 
   const buildExercisesHtml = useCallback((detectedState: string, exercises: GeneratedExercise[]) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -79,10 +77,8 @@ export default function AwakeningPage() {
           })),
           missions: (state.missions || []).map(m => ({ name: m.name, status: m.status })),
           habits: (state.habits || []).map(h => ({ name: h.name, history: h.history })),
-          challenges: (state.challenges || []).map(c => ({ name: c.name, failed: c.failed })),
           punishments: (state.failureProtocols || []).map(p => ({ status: p.status, reason: p.reason })),
-          identity: state.identity,
-          config: (state as any).awakeningConfig,
+          aiSettings: state.aiSettings,
         },
       });
       if (error) throw error;
@@ -145,34 +141,24 @@ export default function AwakeningPage() {
 
       {/* New reflection block */}
       <div className="rpg-panel space-y-4">
-        <div className="flex gap-2 w-full">
-          <Button
-            variant="outline"
-            className="flex-1 min-w-0 border-primary/40 hover:bg-primary/10 text-[11px] sm:text-sm font-display uppercase tracking-wider px-2 sm:px-4"
-            onClick={handleGenerate}
-            disabled={loadingAI}
-          >
-            {loadingAI ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" /> <span className="truncate">Analisando...</span></>
-            ) : (
-              <>
-                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" />
-                <span className="truncate">Gerador de Exercícios</span>
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="border-primary/40 hover:bg-primary/10 shrink-0"
-            onClick={() => setConfigOpen(true)}
-            disabled={loadingAI}
-            title="Configurar"
-            aria-label="Configurar gerador"
-          >
-            <Settings2 className="w-4 h-4" />
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          className="w-full border-primary/40 hover:bg-primary/10 text-[11px] sm:text-sm font-display uppercase tracking-wider px-2 sm:px-4"
+          onClick={handleGenerate}
+          disabled={loadingAI}
+        >
+          {loadingAI ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" /> <span className="truncate">Analisando...</span></>
+          ) : (
+            <>
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" />
+              <span className="truncate">Gerador de Exercícios</span>
+            </>
+          )}
+        </Button>
+        <p className="text-[10px] text-foreground/40 text-center -mt-2">
+          Tom e quantidade controlados em <span className="text-primary">Configurações → IA Comportamental</span>.
+        </p>
 
         <Input
           placeholder="Sua pergunta..."
@@ -191,8 +177,6 @@ export default function AwakeningPage() {
           <Send className="w-4 h-4 mr-2" /> Salvar Reflexão
         </Button>
       </div>
-
-      <AwakeningConfigSheet open={configOpen} onOpenChange={setConfigOpen} />
 
       {/* History */}
       {state.reflections && state.reflections.length > 0 && (
