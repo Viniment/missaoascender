@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain, Fingerprint } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -15,15 +15,14 @@ import ThemeSelector from '@/components/ThemeSelector';
 import type { ThemeId } from '@/components/ThemeSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { TAB_GROUPS, CORE_TAB_IDS, ALL_TABS } from '@/lib/tabs';
+import { TAB_GROUPS, ALL_TABS } from '@/lib/tabs';
 
 
 const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
-  { id: 'ai', label: 'IA Comportamental', description: 'Intensidade, monstro e intervenções', icon: Brain },
-  { id: 'identity', label: 'Identidade', description: 'Sistema de recondicionamento', icon: Fingerprint },
+  { id: 'ai', label: 'IA Comportamental', description: 'Tom e frequência de TODA IA do app', icon: Brain },
   { id: 'advanced', label: 'Avançado', description: 'Dificuldade e progressão', icon: Settings2 },
   { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Shield },
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
@@ -306,21 +305,22 @@ export default function Settings() {
       case 'ai': {
         const ai = state.aiSettings || { intensity: 'moderado' as const, monsterEnabled: true, interventionFrequency: 'media' as const };
         const intensities = [
-          { value: 'leve', label: 'Leve', desc: 'Confronto contido. Sem agressividade.' },
+          { value: 'leve', label: 'Leve', desc: 'Tom firme mas contido. Sem agressividade.' },
           { value: 'moderado', label: 'Moderado', desc: 'Direto e firme (recomendado).' },
           { value: 'agressivo', label: 'Agressivo', desc: 'Brutal. Cada palavra dói porque é verdade.' },
         ] as const;
         const freqs = [
-          { value: 'baixa', label: 'Baixa', desc: 'Só quando há padrão sério.' },
-          { value: 'media', label: 'Média', desc: 'A cada falha relevante (recomendado).' },
-          { value: 'alta', label: 'Alta', desc: 'Toda falha. Sem trégua.' },
+          { value: 'baixa', label: 'Baixa', desc: 'Menos perguntas, só intervém em padrão sério.' },
+          { value: 'media', label: 'Média', desc: 'Quantidade equilibrada (recomendado).' },
+          { value: 'alta', label: 'Alta', desc: 'Mais perguntas, intervém em toda falha.' },
         ] as const;
         return (
           <div className="space-y-6">
-            <SectionHeader title="IA Comportamental" description="Como a IA confronta sua procrastinação." />
+            <SectionHeader title="IA Comportamental" description="Calibra TODA IA do app: Despertar, Conselho, Confronto de Falhas e o Monstro." />
 
             <div className="rpg-panel space-y-3">
-              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Intensidade do confronto</h3>
+              <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Intensidade do tom</h3>
+              <p className="text-[11px] text-foreground/50">Define como a IA fala com você em todos os contextos.</p>
               {intensities.map(opt => {
                 const sel = ai.intensity === opt.value;
                 return (
@@ -344,6 +344,7 @@ export default function Settings() {
 
             <div className="rpg-panel space-y-3">
               <h3 className="font-display text-xs tracking-widest text-foreground/50 uppercase">Frequência de intervenção</h3>
+              <p className="text-[11px] text-foreground/50">Quantos exercícios o Despertar gera e quando o Confronto dispara.</p>
               {freqs.map(opt => {
                 const sel = ai.interventionFrequency === opt.value;
                 return (
@@ -377,49 +378,6 @@ export default function Settings() {
                 />
               </div>
             </div>
-          </div>
-        );
-      }
-
-      case 'identity': {
-        const ident = state.identity || { enabled: false, newIdentity: '', codeOfConduct: [], dominantTraits: [], oldPatterns: [], oldExcuses: [], stabilityLevel: 0, alignedActions: 0, patternRelapses: 0, failureReflections: [] };
-        const tabHidden = (state.disabledTabs || []).includes('identity');
-        return (
-          <div className="space-y-6">
-            <SectionHeader title="Sistema de Identidade" description="Recondicionamento de identidade — não motivação." />
-            <div className="rpg-panel space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-display tracking-wider text-foreground">Ativar Sistema de Identidade</p>
-                  <p className="text-xs text-foreground/60">Toda IA do app passa a operar em modo recondicionamento.</p>
-                </div>
-                <Switch
-                  checked={ident.enabled}
-                  onCheckedChange={(checked) => setState(prev => ({
-                    ...prev,
-                    identity: { ...(prev.identity || ident), enabled: checked },
-                  }))}
-                />
-              </div>
-              <div className="border-t border-border pt-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-display tracking-wider text-foreground">Mostrar guia "Identidade" no menu</p>
-                  <p className="text-xs text-foreground/60">Exibe ou esconde a aba na navegação principal.</p>
-                </div>
-                <Switch
-                  checked={!tabHidden}
-                  onCheckedChange={(checked) => setState(prev => ({
-                    ...prev,
-                    disabledTabs: checked
-                      ? (prev.disabledTabs || []).filter(t => t !== 'identity')
-                      : [...(prev.disabledTabs || []), 'identity'],
-                  }))}
-                />
-              </div>
-            </div>
-            <p className="text-[11px] text-foreground/50 italic">
-              Configure sua identidade pela aba "Identidade" no menu principal.
-            </p>
           </div>
         );
       }
