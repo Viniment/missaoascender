@@ -219,6 +219,7 @@ export interface PlayerState {
   counselHistory?: CounselEntry[];
   identity?: IdentityState;
   awakeningConfig?: AwakeningConfig;
+  tabsCleanupV2?: boolean;
   _penaltyCompensated?: boolean;
 }
 
@@ -360,7 +361,7 @@ export const defaultState: PlayerState = {
   reflections: [],
   failureProtocols: [],
   achievements: [],
-  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing', 'identity'],
+  disabledTabs: ['visualizar', 'affirmations', 'urge-surfing', 'identity', 'stoic', 'challenges'],
   pomodoroStartedAt: null,
   pomodoroDuration: null,
   pomodoroMode: null,
