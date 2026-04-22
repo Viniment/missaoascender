@@ -33,6 +33,13 @@ export function usePlayerData(
         if (Array.isArray(merged.punishments)) {
           merged.punishments = merged.punishments.filter(p => VALID_PUNISHMENT_CATEGORIES.includes(p.category));
         }
+        // One-time tab cleanup: hide stoic/challenges/identity/affirmations/urge-surfing/visualizar
+        if (!merged.tabsCleanupV2) {
+          const toHide = ['visualizar', 'affirmations', 'urge-surfing', 'identity', 'stoic', 'challenges'];
+          const current = Array.isArray(merged.disabledTabs) ? merged.disabledTabs : [];
+          merged.disabledTabs = Array.from(new Set([...current, ...toHide]));
+          merged.tabsCleanupV2 = true;
+        }
         setState(() => merged);
       }
 
