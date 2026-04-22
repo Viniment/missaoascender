@@ -41,7 +41,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, tone, context } = await req.json();
+    const { question, tone, context, aiSettings } = await req.json();
 
     if (!question || typeof question !== "string" || question.trim().length < 3) {
       return new Response(JSON.stringify({ error: "Pergunta inválida" }), {
@@ -56,7 +56,19 @@ serve(async (req) => {
       });
     }
 
-    const toneInstruction = TONE_LABELS[tone] || TONE_LABELS.direto;
+    const baseTone = TONE_LABELS[tone] || TONE_LABELS.direto;
+    const intensityNote: Record<string, string> = {
+      leve: 'CALIBRAÇÃO GLOBAL: tom contido. Firme mas sem agressividade. Use menos confronto.',
+      moderado: 'CALIBRAÇÃO GLOBAL: tom direto e firme. Confronta padrões sem amaciar.',
+      agressivo: 'CALIBRAÇÃO GLOBAL: tom brutal. Cada frase corta. Zero conforto. Expõe a autotraição sem rodeios.',
+    };
+    const freqNote: Record<string, string> = {
+      baixa: 'PROFUNDIDADE: resposta enxuta — só o essencial.',
+      media: 'PROFUNDIDADE: resposta balanceada (padrão).',
+      alta: 'PROFUNDIDADE: resposta densa, múltiplas evidências, máximo confronto.',
+    };
+    const calibration = `\n\n${intensityNote[aiSettings?.intensity] || intensityNote.moderado}\n${freqNote[aiSettings?.interventionFrequency] || freqNote.media}`;
+    const toneInstruction = baseTone + calibration;
 
     const identity = (context as any)?.identity;
     let identityBlock = '';

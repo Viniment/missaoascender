@@ -29,6 +29,7 @@ interface RequestBody {
     lastConfrontationMessages?: string[];
     monster?: { hp: number; lastReason?: string };
     aiIntensity?: AiIntensity;
+    aiFrequency?: 'baixa' | 'media' | 'alta';
     identity?: {
       newIdentity: string;
       codeOfConduct: string[];
