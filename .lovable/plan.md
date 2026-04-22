@@ -1,59 +1,78 @@
 
 
-## Ajustes no Despertar + remoção de painéis
+## Remoção definitiva de painéis + IA Comportamental global
 
-### 1. Botão de configuração responsivo (mobile fix)
-**`src/components/AwakeningPage.tsx`** — o `Button` "Gerador de Exercícios" + ícone Settings estão num `flex` lado a lado e estouram em telas pequenas (Android). Solução:
-- Texto interno do botão principal mais compacto: remover ícone `Brain` (manter só `Sparkles`), usar `truncate`, `min-w-0 flex-1`, e quebrar linha se preciso.
-- Garantir `shrink-0` no botão de engrenagem (já tem) e que o container tenha `w-full overflow-hidden`.
-- Em telas <380px: usar `text-[11px]` no texto do botão.
+### 1. Remover de vez: Afirmações, Estoicismo, Identidade, Desafios, Urge Surfing
 
-### 2. Novo fluxo: gerar perguntas direto no campo do Despertar (estilo Word/Notion)
-**Mudança de comportamento:** em vez de abrir o modal `AwakeningExerciseDialog`, ao clicar em **"Gerador de Exercícios"** as perguntas geradas pela IA são inseridas diretamente no `RichEditor` da página, formatadas como um documento editável com espaços para responder embaixo de cada pergunta.
+Não vão mais ser ocultadas por flag — vão ser **removidas do código**.
 
-**`AwakeningPage.tsx`:**
-- `handleGenerate` passa a montar HTML do tipo:
-  ```html
-  <h3>🌅 Despertar — {detectedState}</h3>
-  <p><em>Data</em></p>
-  <hr/>
-  <h4>1. {título}</h4>
-  <blockquote>{prompt}</blockquote>
-  <p><em>Sua resposta:</em></p>
-  <p></p><p></p>
-  <hr/>
-  ... (repete por exercício)
-  ```
-- Insere esse HTML no `RichEditor` (substituindo conteúdo atual, com confirmação se o campo não estiver vazio).
-- Auto-preenche o campo `question` com `Despertar — {detectedState}`.
-- Remove o uso do `AwakeningExerciseDialog` na página (dialog deletado).
-- Foco automático no editor após gerar; toast: "Perguntas inseridas. Responda abaixo de cada uma."
+**`src/lib/tabs.ts`** — remover dos `TAB_GROUPS` os tabs: `challenges`, `stoic`, `affirmations`, `identity`, `urge-surfing`. Atualizar o tipo `TabId`.
 
-### 3. Novo prompt da IA — Modo Autotraição + Espelho
-**`supabase/functions/awakening-questions/index.ts`** — substitui o `SYSTEM_PROMPT` atual pelo prompt completo enviado pelo usuário (IA de intervenção cognitiva adaptativa, foco em autotraição, identidade, modo espelho pós-queda, níveis 1–5).
+**`src/pages/Index.tsx`** — remover imports e `case`s no `renderContent` para: `ChallengesPanel`, `StoicPanel`, `AffirmationsPanel`, `IdentityPanel`, `UrgeSurfingPanel`.
 
-Lógica adicional:
-- Detectar **queda recente** (missão falhada/hábito quebrado/protocolo pendente nos últimos dias) → ativar **MODO ESPELHO** automaticamente e injetar instrução no user prompt.
-- Detectar **nível progressivo** (1–5) com base em recorrência: 1ª vez = nível 1–2, recorrências = nível 3–5.
-- Tool call `generate_exercises` mantém a estrutura (`detectedState`, `exercises[{title, prompt, type, objective}]`), mas `detectedState` agora descreve o padrão de autotraição (ex.: "Autoabandono por fuga", "Quebra recorrente de acordos").
-- Tipos podem ganhar mapeamento implícito ao novo tom (confronto e quebra ficam em destaque).
+**`src/pages/Settings.tsx`** — remover a seção `identity` da lista `sections` e seu `case` no `renderContent`. Também remove o ícone `Fingerprint` do import.
 
-### 4. Remover painéis Afirmações, Estoicismo, Identidade, Desafios, Urge Surfing
-**`src/lib/gameStore.ts`** — atualizar default de `disabledTabs` para incluir todos:
-```ts
-disabledTabs: ['affirmations', 'stoic', 'identity', 'challenges', 'urge-surfing', 'visualizar']
+**Arquivos a deletar** (não usados em nenhum outro lugar):
+- `src/components/AffirmationsPanel.tsx`
+- `src/components/StoicPanel.tsx`
+- `src/components/IdentityPanel.tsx`
+- `src/components/IdentityRitualDialog.tsx`
+- `src/components/ChallengesPanel.tsx`
+- `src/components/UrgeSurfingPanel.tsx`
+- `supabase/functions/affirmations/`
+- `supabase/functions/stoic-questions/`
+- `supabase/functions/stoic-insight/`
+
+**`src/lib/gameStore.ts`** — limpar `disabledTabs` default (não precisa mais ocultar). Manter `identity`, `stoicEntries`, `challenges` no `PlayerState` para não quebrar o save de usuários antigos (apenas ficam órfãos, sem UI).
+
+### 2. IA Comportamental global — intensidade + frequência afetam TODA IA
+
+Hoje `aiSettings` está em `gameStore` mas **nenhuma edge function lê**. Vou propagar.
+
+**Em todos os componentes que invocam edge functions de IA**, passar `aiSettings` no body:
+- `AwakeningPage.tsx` → `awakening-questions`
+- `CounselPanel.tsx` → `counsel`
+- `FailureConfrontDialog.tsx` → `failure-confrontation`
+
+**Edge functions a atualizar** (`awakening-questions`, `counsel`, `failure-confrontation`):
+
+Aceitar `aiSettings: { intensity, interventionFrequency }` no body e injetar no system prompt um bloco de calibração:
+
 ```
-Isso oculta da sidebar e do mobile menu sem deletar código (usuários antigos que já têm `disabledTabs` salvo no Supabase mantêm preferência; novos usuários e quem nunca mexeu vê só o essencial).
+INTENSIDADE DO USUÁRIO: {intensity}
+- leve     → tom firme mas contido, sem agressividade, foco em clareza
+- moderado → direto, confronta padrões, sem amaciar (padrão)
+- agressivo → brutal, cada frase corta, zero conforto, expõe a autotraição
 
-**Adicional:** migração leve no carregamento — se o `disabledTabs` salvo NÃO contiver esses IDs, adicionar (uma vez) via flag `tabsCleanupV2` no estado, para aplicar a limpeza também a usuários existentes.
+FREQUÊNCIA: {interventionFrequency}
+- baixa → 2 perguntas/insights, só o essencial
+- media → 3-4 perguntas/insights (padrão)
+- alta  → 5 perguntas/insights, máximo confronto
+```
+
+Para `awakening-questions`: `interventionFrequency` substitui o `quantity` quando estiver em `auto`.
+Para `counsel`/`failure-confrontation`: `intensity` substitui/calibra o tom já existente.
+
+### 3. Frequência também controla *quando* a IA aparece
+
+**`FailureProtocolAlert.tsx` / `FailureConfrontDialog.tsx`** — ler `state.aiSettings.interventionFrequency`:
+- `baixa` → confrontar só após 2+ falhas no mesmo item ou protocolo expirado
+- `media` → toda falha relevante (atual)
+- `alta` → toda e qualquer falha, inclusive saídas de pomodoro abortadas
+
+(Implementação: gate simples no `useEffect` que dispara o confronto.)
+
+### 4. Settings — IA Comportamental fica como única seção de IA
+
+Remove a seção "Identidade" do `sections`. A seção "IA Comportamental" continua com **Intensidade** + **Frequência** + toggle do **Monstro**, e ganha um texto explicativo:
+
+> "Estas configurações afetam todas as IAs do app: Despertar, Conselho, Confronto de Falhas e o Monstro da Procrastinação."
 
 ### Arquivos
-- **Editar:** `src/components/AwakeningPage.tsx`, `supabase/functions/awakening-questions/index.ts`, `src/lib/gameStore.ts`, `src/lib/GameContext.tsx` (migração)
-- **Não usar mais (mas manter arquivo):** `src/components/AwakeningExerciseDialog.tsx` — pode ficar órfão ou ser removido. Recomendo **remover import** e deixar o arquivo (caso queira reverter).
+- **Editar:** `src/lib/tabs.ts`, `src/pages/Index.tsx`, `src/pages/Settings.tsx`, `src/lib/gameStore.ts`, `src/components/AwakeningPage.tsx`, `src/components/CounselPanel.tsx`, `src/components/FailureConfrontDialog.tsx`, `src/components/FailureProtocolAlert.tsx`, `supabase/functions/awakening-questions/index.ts`, `supabase/functions/counsel/index.ts`, `supabase/functions/failure-confrontation/index.ts`
+- **Deletar:** 6 componentes + 3 edge functions listadas acima
 
 ### Resultado
-- Botão de configuração não estoura mais em Android.
-- Clicar em "Gerador de Exercícios" agora insere as perguntas direto no editor rico, com espaço para escrever abaixo de cada uma — experiência tipo Notion.
-- IA gera perguntas no tom de autotraição/espelho, com modo progressivo e ativação automática pós-queda.
-- Sidebar/menu mostra apenas: Missões, Hábitos, Conquistas, Espelho, Conselho, Diário, Timer, Despertar, Loja.
+- Sidebar/menu/Settings limpos: sem Afirmações, Estoicismo, Identidade, Desafios, Urge Surfing (não dá mais nem para reativar — sumiram do código).
+- Configuração de **IA Comportamental** agora é o cérebro central: intensidade muda o tom de toda IA, frequência muda quantas perguntas/insights e quando elas disparam.
 
