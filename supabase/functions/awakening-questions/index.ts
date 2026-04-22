@@ -138,8 +138,8 @@ serve(async (req) => {
   try {
     const {
       journal, awakening, rank, reflections,
-      missions, habits, challenges, punishments, identity,
-      config,
+      missions, habits, punishments,
+      aiSettings,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -151,18 +151,21 @@ serve(async (req) => {
 
     const stripHtml = (s: string) => (s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
+    // Map global aiSettings to awakening config
+    const intensityMap: Record<string, string> = { leve: 'leve', moderado: 'moderado', agressivo: 'intenso' };
+    const freqQuantity: Record<string, 3 | 5 | 'auto'> = { baixa: 3, media: 'auto', alta: 5 };
     const cfg = {
-      intensity: config?.intensity || 'moderado',
-      focus: config?.focus || 'auto',
-      quantity: config?.quantity || 'auto',
-      mode: config?.mode || 'adaptativo',
-      manualType: config?.manualType,
+      intensity: intensityMap[aiSettings?.intensity] || 'moderado',
+      focus: 'auto',
+      quantity: freqQuantity[aiSettings?.interventionFrequency] ?? 'auto',
+      mode: 'adaptativo',
+      manualType: undefined as string | undefined,
     };
 
     // Detect recent fall / pattern recurrence to activate MIRROR MODE
     const failedMissions = (missions || []).filter((m: any) => m.status === 'Falhada');
     const pendingPunishments = (punishments || []).filter((p: any) => p.status === 'Pendente');
-    const failedChallenges = (challenges || []).filter((c: any) => c.failed);
+    const failedChallenges: any[] = [];
 
     // Habit broken signal: any habit with recent 'failed'
     let habitBrokenRecently = false;
@@ -201,14 +204,7 @@ serve(async (req) => {
       userPrompt += `Minha dor: ${awakening.pain || '(não definido)'}\n\n`;
     }
 
-    if (identity && identity.enabled) {
-      userPrompt += `═══ IDENTIDADE DESEJADA × COMPORTAMENTO REAL ═══\n`;
-      userPrompt += `Nova identidade: ${identity.newIdentity || '(vazio)'}\n`;
-      if (identity.codeOfConduct?.length) userPrompt += `Código: ${identity.codeOfConduct.slice(0,5).join(' | ')}\n`;
-      if (identity.oldPatterns?.length) userPrompt += `Padrões antigos: ${identity.oldPatterns.slice(0,5).join(' | ')}\n`;
-      if (identity.oldExcuses?.length) userPrompt += `Desculpas antigas: ${identity.oldExcuses.slice(0,5).join(' | ')}\n`;
-      userPrompt += `Estabilidade: ${identity.stabilityLevel || 0}% | Ações alinhadas: ${identity.alignedActions || 0} | Recaídas: ${identity.patternRelapses || 0}\n\n`;
-    }
+    // identity removed
 
     if (missions && missions.length > 0) {
       const ativas = missions.filter((m: any) => m.status === 'Ativa').length;
