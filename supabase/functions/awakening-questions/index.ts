@@ -185,11 +185,6 @@ serve(async (req) => {
       totalFails >= 2 ? 3 :
       totalFails >= 1 ? 2 : 1;
 
-    // Contexto rico opcional vindo do client (buildAiContext)
-    const richCtx = (await Promise.resolve((globalThis as any).__nope__ ?? null)) ?? null;
-    // Lê do body original (já consumido — refazer parse não, usar variável)
-    // O frontend agora envia também `context` no body — extraímos abaixo.
-
     let userPrompt = `═══ CONFIGURAÇÃO ═══\n`;
     userPrompt += `Intensidade: ${cfg.intensity}\n`;
     userPrompt += `Foco: ${cfg.focus}\n`;
