@@ -95,7 +95,13 @@ export default function AwakeningPage() {
 
       setQuestion(`Despertar — ${detectedState}`);
       setAnswer(html);
-      toast.success('Perguntas inseridas. Responda abaixo de cada uma.');
+
+      // Toast diferenciado por modo (reconhece evolução em vez do genérico)
+      const mode = data.mode as string | undefined;
+      if (mode === 'evolution') toast.success('✨ Reconhecendo sua evolução. Responda os exercícios abaixo.');
+      else if (mode === 'expansion') toast.success('🚀 Modo expansão ativado. Próximo nível.');
+      else if (mode === 'mirror') toast.success('🪞 Modo espelho — confronte o que aconteceu esta semana.');
+      else toast.success('Perguntas inseridas. Responda abaixo de cada uma.');
 
       // Scroll to editor
       setTimeout(() => {

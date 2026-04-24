@@ -14,6 +14,7 @@ const daysAgo = (iso: string): number =>
 
 export type ConsistencyTrend = 'melhorando' | 'estavel' | 'piorando';
 export type EmotionalDrift = 'apatia' | 'raiva' | 'esperanca' | 'culpa' | 'tristeza' | 'neutro';
+export type BehavioralEvolution = 'progredindo' | 'estavel' | 'regredindo';
 
 export interface AiContextDerived {
   failureRate7d: number;          // 0..1 (proporção de tentativas falhadas nos últimos 7d)
@@ -28,6 +29,9 @@ export interface AiContextDerived {
   emotionalDrift: EmotionalDrift;
   pendingPunishmentsCount: number;
   expiredPunishmentsCount: number;
+  // NOVO: detecção de evolução cruzando comportamento + diário recente
+  recentJournalSummary: string;    // 1 linha: emoção dominante + mudança vs entradas mais antigas
+  behavioralEvolution: BehavioralEvolution;
 }
 
 export interface AiContext {
@@ -133,6 +137,61 @@ function detectContradictions(
     }
   }
   return out.slice(0, 2);
+}
+
+// Sinal de "humor" agregado a partir do diário (positivo / negativo / neutro).
+function entryMoodScore(entry: { emotion?: string; intensity?: number; text?: string }): number {
+  const e = (entry.emotion || '').toLowerCase();
+  const t = (entry.text || '').toLowerCase();
+  let score = 0;
+  if (/feliz|grat|orgul|esperan|alegr|leve|focad|disciplin|consegu|venci|firme/.test(e + ' ' + t)) score += 1;
+  if (/triste|raiva|frustr|culpa|vergonha|cansad|exaust|apát|apati|vazio|fracass|recaí|recai/.test(e + ' ' + t)) score -= 1;
+  // Modulação por intensidade reportada (1-10)
+  const i = typeof entry.intensity === 'number' ? entry.intensity : 5;
+  if (score !== 0) score *= (i / 5);
+  return score;
+}
+
+function summarizeRecentJournal(
+  recent: Array<{ emotion?: string; intensity?: number; text?: string }>,
+): { summary: string; recentScore: number; olderScore: number } {
+  if (!recent.length) return { summary: 'Sem entradas recentes no diário.', recentScore: 0, olderScore: 0 };
+  const recent3 = recent.slice(0, 3);
+  const older3 = recent.slice(3, 6);
+  const avg = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
+  const recentScore = avg(recent3.map(entryMoodScore));
+  const olderScore = avg(older3.map(entryMoodScore));
+  const dominantEmotion = recent3.find(e => e.emotion)?.emotion || 'sem emoção declarada';
+  const delta = recentScore - olderScore;
+  let trend = 'estável';
+  if (delta > 0.4) trend = 'evolução clara no diário';
+  else if (delta < -0.4) trend = 'queda no estado do diário';
+  return {
+    summary: `Diário recente: ${dominantEmotion} · ${trend} (recente=${recentScore.toFixed(1)} vs anterior=${olderScore.toFixed(1)})`,
+    recentScore, olderScore,
+  };
+}
+
+function deriveBehavioralEvolution(
+  consistencyTrend: ConsistencyTrend,
+  journalDelta: number,
+  failureCount7d: number,
+  daysSinceLastFail: number,
+): BehavioralEvolution {
+  // Sinais positivos
+  let pos = 0;
+  if (consistencyTrend === 'melhorando') pos += 2;
+  if (failureCount7d === 0) pos += 1;
+  if (daysSinceLastFail >= 5) pos += 1;
+  if (journalDelta > 0.3) pos += 1;
+  // Sinais negativos
+  let neg = 0;
+  if (consistencyTrend === 'piorando') neg += 2;
+  if (failureCount7d >= 3) neg += 1;
+  if (journalDelta < -0.3) neg += 1;
+  if (pos - neg >= 2) return 'progredindo';
+  if (neg - pos >= 2) return 'regredindo';
+  return 'estavel';
 }
 
 export function buildAiContext(state: PlayerState): AiContext {
@@ -308,6 +367,17 @@ export function buildAiContext(state: PlayerState): AiContext {
     recurringFailedItems,
   );
 
+  // Sinais de evolução cruzando comportamento + diário (peso nos dados recentes)
+  const journalAgg = summarizeRecentJournal(recentJournal);
+  const journalDelta = journalAgg.recentScore - journalAgg.olderScore;
+  const dslf = isFinite(daysSinceLastFail) ? Math.floor(daysSinceLastFail) : 9999;
+  const behavioralEvolution = deriveBehavioralEvolution(
+    consistencyTrend,
+    journalDelta,
+    failsLast7d.length,
+    dslf,
+  );
+
   return {
     rank: state.rank,
     level: state.level,
@@ -326,7 +396,7 @@ export function buildAiContext(state: PlayerState): AiContext {
       failureCount7d: failsLast7d.length,
       failureCount30d: failsLast30d.length,
       consistencyTrend,
-      daysSinceLastFail: isFinite(daysSinceLastFail) ? Math.floor(daysSinceLastFail) : 9999,
+      daysSinceLastFail: dslf,
       longestStreak,
       relapseAfterEvolution,
       recurringFailedItems: recurringFailedItems.slice(0, 5),
@@ -334,6 +404,8 @@ export function buildAiContext(state: PlayerState): AiContext {
       emotionalDrift,
       pendingPunishmentsCount: pendingPunishments.length,
       expiredPunishmentsCount: expiredPunishments.length,
+      recentJournalSummary: journalAgg.summary,
+      behavioralEvolution,
     },
     angleHistory: (state.aiAngleHistory || []).slice(-10),
     aiSettings: {
