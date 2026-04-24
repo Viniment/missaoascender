@@ -564,10 +564,20 @@ export default function MissionsPanel() {
               }
               return null;
             })()}
+            <label className="flex items-start gap-2 text-xs text-foreground/80 bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 cursor-pointer">
+              <Checkbox checked={finishConfirmed} onCheckedChange={(v) => setFinishConfirmed(!!v)} className="mt-0.5" />
+              <span>Confirmo que quero <strong>encerrar a missão agora</strong>. Isto vai parar o cronômetro e registrar o tempo acima.</span>
+            </label>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setFinishDialog(null)}>Cancelar</Button>
-            <Button onClick={handleFinishTimeMission}>Confirmar</Button>
+            <Button
+              onClick={handleFinishTimeMission}
+              disabled={!finishConfirmed || (Date.now() - finishOpenedAt) < 1200}
+              variant="destructive"
+            >
+              Encerrar e registrar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
