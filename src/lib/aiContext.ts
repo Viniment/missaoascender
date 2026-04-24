@@ -367,6 +367,17 @@ export function buildAiContext(state: PlayerState): AiContext {
     recurringFailedItems,
   );
 
+  // Sinais de evolução cruzando comportamento + diário (peso nos dados recentes)
+  const journalAgg = summarizeRecentJournal(recentJournal);
+  const journalDelta = journalAgg.recentScore - journalAgg.olderScore;
+  const dslf = isFinite(daysSinceLastFail) ? Math.floor(daysSinceLastFail) : 9999;
+  const behavioralEvolution = deriveBehavioralEvolution(
+    consistencyTrend,
+    journalDelta,
+    failsLast7d.length,
+    dslf,
+  );
+
   return {
     rank: state.rank,
     level: state.level,
@@ -385,7 +396,7 @@ export function buildAiContext(state: PlayerState): AiContext {
       failureCount7d: failsLast7d.length,
       failureCount30d: failsLast30d.length,
       consistencyTrend,
-      daysSinceLastFail: isFinite(daysSinceLastFail) ? Math.floor(daysSinceLastFail) : 9999,
+      daysSinceLastFail: dslf,
       longestStreak,
       relapseAfterEvolution,
       recurringFailedItems: recurringFailedItems.slice(0, 5),
@@ -393,6 +404,8 @@ export function buildAiContext(state: PlayerState): AiContext {
       emotionalDrift,
       pendingPunishmentsCount: pendingPunishments.length,
       expiredPunishmentsCount: expiredPunishments.length,
+      recentJournalSummary: journalAgg.summary,
+      behavioralEvolution,
     },
     angleHistory: (state.aiAngleHistory || []).slice(-10),
     aiSettings: {
