@@ -574,7 +574,7 @@ export default function MissionsPanel() {
             <Button variant="secondary" onClick={() => setFinishDialog(null)}>Cancelar</Button>
             <Button
               onClick={handleFinishTimeMission}
-              disabled={!finishConfirmed || (Date.now() - finishOpenedAt) < 1200}
+              disabled={!finishConfirmed || finishCooldown}
               variant="destructive"
             >
               Encerrar e registrar
