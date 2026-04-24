@@ -157,10 +157,9 @@ export default function MissionsPanel() {
     setFinishTime(formatTime(now));
     setFinishStartedAt(mission.startedAt || now.toISOString());
     setFinishConfirmed(false);
-    setFinishOpenedAt(Date.now());
+    setFinishCooldown(true);
     setFinishDialog(mission.id);
-    // força re-render após o cooldown para liberar o botão
-    setTimeout(() => setFinishOpenedAt(prev => prev), 1300);
+    setTimeout(() => setFinishCooldown(false), 1200);
   };
 
   const handleFinishTimeMission = () => {
