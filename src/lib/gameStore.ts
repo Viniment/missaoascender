@@ -1316,6 +1316,7 @@ export function useGameStore() {
     logPatternRelapse,
     addFailureReflection,
     markRitualDone,
+    appendAiAngle,
     newlyUnlocked,
     dismissAchievement,
   };
