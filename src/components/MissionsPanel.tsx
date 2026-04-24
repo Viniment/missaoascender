@@ -159,6 +159,8 @@ export default function MissionsPanel() {
     setFinishConfirmed(false);
     setFinishOpenedAt(Date.now());
     setFinishDialog(mission.id);
+    // força re-render após o cooldown para liberar o botão
+    setTimeout(() => setFinishOpenedAt(prev => prev), 1300);
   };
 
   const handleFinishTimeMission = () => {
