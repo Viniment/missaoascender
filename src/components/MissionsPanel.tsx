@@ -173,6 +173,17 @@ export default function MissionsPanel() {
     }
 
     const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
+
+    // Guarda anti bug do jejum: rejeitar valores inválidos ou suspeitos
+    if (!isFinite(hours) || hours <= 0) {
+      toast.error('Horário inválido. Verifique o início e o fim.');
+      return;
+    }
+    if (hours > 18) {
+      const ok = window.confirm(`Você está registrando ${hours.toFixed(1)}h. Tem certeza? (valores muito altos costumam ser erro de fuso/horário)`);
+      if (!ok) return;
+    }
+
     const mission = state.missions.find(m => m.id === finishDialog);
     if (mission) {
       const xp = Math.floor(hours * XP_PER_HOUR[mission.difficulty]);
