@@ -740,12 +740,39 @@ export function useGameStore() {
       const mission = prev.missions.find(m => m.id === id);
       if (!mission || mission.status !== 'Ativa') return prev;
 
+      // ===== GUARDAS ANTI FALSO-POSITIVO (bug do jejum) =====
+      const now = new Date();
+      const nowMs = now.getTime();
+
+      // Guarda 1: cooldown global de 5s após último settle (complete OU fail)
+      if (mission.lastSettledAt) {
+        const sinceSettle = nowMs - new Date(mission.lastSettledAt).getTime();
+        if (sinceSettle < 5000) {
+          if (typeof console !== 'undefined') console.warn('[failMission] bloqueado: cooldown pós-settle', mission.name);
+          return prev;
+        }
+      }
+
+      // Guarda 2: missão de Tempo repetível SEM timer rodando = nada para falhar
+      if (mission.missionType === 'Tempo' && mission.repeatable && !mission.startedAt) {
+        if (typeof console !== 'undefined') console.warn('[failMission] bloqueado: repetível sem timer ativo', mission.name);
+        return prev;
+      }
+
+      // Guarda 3: entrada recente em completionHistory (< 5s) = acabou de concluir
+      if (mission.repeatable && mission.completionHistory && mission.completionHistory.length > 0) {
+        const last = mission.completionHistory[mission.completionHistory.length - 1];
+        if (last && !last.failed && (nowMs - new Date(last.date).getTime()) < 5000) {
+          if (typeof console !== 'undefined') console.warn('[failMission] bloqueado: completion < 5s', mission.name);
+          return prev;
+        }
+      }
+
       const baseXp = XP_PER_HOUR[mission.difficulty];
       const penaltyXp = -(baseXp * 2);
       const prog = processLevelUp(Math.max(0, prev.xp + penaltyXp), prev.level, prev.rank, prev.difficultyDivisor || 1);
 
-      const now = new Date();
-      const deadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const deadline = new Date(nowMs + 24 * 60 * 60 * 1000);
       const punishment = pickPunishment(prev);
 
       const newProtocols = punishment
@@ -771,9 +798,10 @@ export function useGameStore() {
                 startedAt: null,
                 executedHours: 0,
                 currentCount: m.missionType === 'Contagem' ? 0 : m.currentCount,
+                lastSettledAt: now.toISOString(),
                 completionHistory: [...(m.completionHistory || []), { date: now.toISOString(), xp: penaltyXp, gold: 0, failed: true }],
               }
-            : { ...m, status: 'Falhada' as const, startedAt: null, completedAt: now.toISOString() }
+            : { ...m, status: 'Falhada' as const, startedAt: null, completedAt: now.toISOString(), lastSettledAt: now.toISOString() }
           ) : m
         ),
         failureProtocols: newProtocols,
@@ -781,6 +809,14 @@ export function useGameStore() {
       };
     });
   }, [pickPunishment]);
+
+  const appendAiAngle = useCallback((angle: string) => {
+    if (!angle || typeof angle !== 'string') return;
+    setState(prev => ({
+      ...prev,
+      aiAngleHistory: [...((prev.aiAngleHistory || []).slice(-9)), angle],
+    }));
+  }, []);
 
   const deleteMission = useCallback((id: string) => {
     setState(prev => {
