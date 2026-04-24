@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Skull, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
-import { getTodayBrasilia } from '@/lib/utils';
-import { defaultIdentity } from '@/lib/gameStore';
+import { buildAiContext } from '@/lib/aiContext';
 
 type Trigger = 'mission' | 'habit' | 'protocol_expired';
-type Dureza = 'leve' | 'medio' | 'brutal';
 
 interface Props {
   open: boolean;
@@ -21,159 +18,64 @@ interface Props {
 }
 
 const triggerLabel: Record<Trigger, string> = {
-  mission: 'MISSÃO FALHADA',
-  habit: 'HÁBITO ABANDONADO',
-  protocol_expired: 'PROTOCOLO EXPIRADO',
+  mission: 'MISSÃO QUEBRADA',
+  habit: 'ACORDO ROMPIDO',
+  protocol_expired: 'PROTOCOLO ABANDONADO',
 };
 
-const durezaLabel: Record<Dureza, string> = {
-  leve: 'LEVE',
-  medio: 'MÉDIO',
-  brutal: 'BRUTAL',
-};
-
-function daysAgo(iso: string): number {
-  return (Date.now() - new Date(iso).getTime()) / 86400000;
-}
+const READ_LOCK_MS = 4000; // anti-skip reflexo
 
 export default function FailureConfrontDialog({ open, onClose, trigger, itemName, xpLost }: Props) {
-  const { state, setState, addFailureReflection } = useGame();
-  const identity = state.identity || defaultIdentity;
-  const identityMode = identity.enabled && identity.newIdentity.trim().length > 0;
+  const { state, setState, appendAiAngle } = useGame();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [dureza, setDureza] = useState<Dureza>('leve');
-  const [patternInput, setPatternInput] = useState('');
+  const [angle, setAngle] = useState<string>('');
+  const [unlockedAt, setUnlockedAt] = useState<number>(0); // quando o botão libera
+  const [now, setNow] = useState<number>(Date.now());
+
+  // tick para countdown do botão
+  useEffect(() => {
+    if (!open) return;
+    const t = setInterval(() => setNow(Date.now()), 200);
+    return () => clearInterval(t);
+  }, [open]);
 
   useEffect(() => {
     if (!open || !trigger) return;
-    setPatternInput('');
     let cancelled = false;
     setLoading(true);
     setMessage('');
+    setAngle('');
+    setUnlockedAt(0);
 
-    const today = getTodayBrasilia();
+    const ctx = buildAiContext(state);
 
-    // Build context
-    const failedRecentMissions = state.missions
-      .filter(m => m.status === 'Falhada' && m.completedAt)
-      .map(m => ({ name: m.name, date: m.completedAt!, type: 'mission' as const }));
-
-    const failedRepeatable = state.missions
-      .filter(m => m.repeatable && m.completionHistory)
-      .flatMap(m => (m.completionHistory || [])
-        .filter(h => h.failed)
-        .map(h => ({ name: m.name, date: h.date, type: 'mission' as const })));
-
-    const failedHabits: { name: string; date: string; type: 'habit' }[] = [];
-    state.habits.forEach(h => {
-      Object.entries(h.history || {}).forEach(([date, status]) => {
-        if (status === 'failed') failedHabits.push({ name: h.name, date, type: 'habit' });
-      });
-    });
-
-    const failedProtocols = (state.failureProtocols || [])
-      .filter(fp => fp.status === 'Concluído' && fp.deadline && new Date(fp.deadline) < new Date(fp.triggeredAt || fp.deadline))
-      .map(fp => ({ name: fp.reason, date: fp.deadline, type: 'protocol' as const }));
-
-    const allFailed = [...failedRecentMissions, ...failedRepeatable, ...failedHabits, ...failedProtocols]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    const failureFrequency7d = allFailed.filter(f => daysAgo(f.date) <= 7).length;
-
-    const completedMissions = state.missions
-      .filter(m => m.status === 'Concluída' && m.completedAt)
-      .map(m => ({ name: m.name, date: m.completedAt! }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
-
-    const habitsCtx = state.habits.map(h => {
-      const entries = Object.entries(h.history || {}).sort((a, b) => b[0].localeCompare(a[0]));
-      // streak from today backwards
-      let streak = 0;
-      let cursor = new Date(today);
-      while (true) {
-        const key = cursor.toISOString().slice(0, 10);
-        const s = (h.history || {})[key];
-        if (s === 'done') {
-          streak++;
-          cursor.setDate(cursor.getDate() - 1);
-        } else break;
-      }
-      const failuresLast7d = entries.filter(([d, s]) => s === 'failed' && daysAgo(d) <= 7).length;
-      return { name: h.name, streak, failuresLast7d };
-    });
-
-    const recentJournal = (state.journal || [])
-      .slice()
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5)
-      .map(j => {
-        const txt = (j.text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-        return txt;
-      })
-      .filter(Boolean);
-
-    const activeMissions = state.missions
-      .filter(m => m.status === 'Ativa')
-      .map(m => ({ name: m.name, difficulty: m.difficulty }));
-
-    const lastConfrontationMessages = (state.confrontationHistory || [])
-      .slice(-3)
-      .map(c => c.message);
-
-    const payload = {
-      trigger,
-      itemName,
-      context: {
-        awakening: state.awakening,
-        recentJournal,
-        activeMissions,
-        failedRecent: allFailed.slice(0, 10),
-        completedRecent: completedMissions,
-        habits: habitsCtx,
-        rank: state.rank,
-        level: state.level,
-        streak: state.streak,
-        failureFrequency7d,
-        lastConfrontationMessages,
-        monster: state.monster ? { hp: state.monster.hp, lastReason: state.monster.lastReason } : undefined,
-        aiIntensity: state.aiSettings?.intensity ?? 'moderado',
-        aiFrequency: state.aiSettings?.interventionFrequency ?? 'media',
-        identity: identityMode ? {
-          newIdentity: identity.newIdentity,
-          codeOfConduct: identity.codeOfConduct,
-          dominantTraits: identity.dominantTraits,
-          oldPatterns: identity.oldPatterns,
-          oldExcuses: identity.oldExcuses,
-          stabilityLevel: identity.stabilityLevel,
-        } : undefined,
-      },
-    };
-
-    supabase.functions.invoke('failure-confrontation', { body: payload })
+    supabase.functions.invoke('failure-confrontation', {
+      body: { trigger, itemName, context: ctx },
+    })
       .then(({ data, error }) => {
         if (cancelled) return;
-        if (error || !data?.message) {
-          setMessage(`Você falhou em "${itemName}". Sem desculpa hoje. Reconhece e segue.`);
-          setDureza('medio');
-        } else {
-          setMessage(data.message);
-          setDureza((data.dureza as Dureza) || 'medio');
-          // Persist in confrontationHistory (keep last 20)
-          setState(prev => ({
-            ...prev,
-            confrontationHistory: [
-              ...((prev.confrontationHistory || []).slice(-19)),
-              { date: new Date().toISOString(), trigger, itemName, message: data.message, dureza: data.dureza || 'medio' },
-            ],
-          }));
-        }
+        const msg: string = (data && (data.message as string)) || `Você quebrou "${itemName}". Não foi tempo. Foi escolha.`;
+        const ang: string = (data && (data.angle as string)) || 'autotraicao';
+        if (error) console.warn('[failure-confrontation] error', error);
+        setMessage(msg);
+        setAngle(ang);
+        appendAiAngle(ang);
+        // persistir histórico (compat: mantém schema antigo)
+        setState(prev => ({
+          ...prev,
+          confrontationHistory: [
+            ...((prev.confrontationHistory || []).slice(-19)),
+            { date: new Date().toISOString(), trigger, itemName, message: msg, dureza: 'medio' },
+          ],
+        }));
+        setUnlockedAt(Date.now() + READ_LOCK_MS);
       })
-      .catch(() => {
+      .catch((err) => {
         if (cancelled) return;
-        setMessage(`Você falhou em "${itemName}". Sem desculpa hoje. Reconhece e segue.`);
-        setDureza('medio');
+        console.error('[failure-confrontation] exception', err);
+        setMessage(`Você quebrou "${itemName}". Não foi tempo. Foi escolha.`);
+        setUnlockedAt(Date.now() + READ_LOCK_MS);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -185,106 +87,105 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
 
   if (!trigger) return null;
 
-  const handleConfirm = () => {
-    if (identityMode) {
-      const p = patternInput.trim();
-      if (!p) return;
-      addFailureReflection({
-        date: new Date().toISOString(),
-        action: itemName,
-        pattern: p,
-        response: message,
-      });
-    }
-    onClose();
-  };
+  const lines = message.split('\n').filter(l => l.trim().length > 0);
+  const headLine = lines[0] || message;
+  const restLines = lines.slice(1);
 
-  const submitDisabled = loading || (identityMode && !patternInput.trim());
+  const remainingMs = Math.max(0, unlockedAt - now);
+  const canConfirm = !loading && remainingMs === 0 && message.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o && !identityMode) onClose(); else if (!o && identityMode && patternInput.trim()) onClose(); }}>
-      <DialogContent className="bg-card border-destructive shadow-[0_0_36px_-4px_hsl(var(--destructive)/0.8)] w-[95vw] max-w-lg p-4 sm:p-6 max-h-[90vh] overflow-y-auto rounded-xl gap-4">
-        <DialogHeader className="space-y-2">
-          <div className="flex items-center justify-between gap-2 pr-6">
-            <DialogTitle className="font-display text-destructive flex items-center gap-2 text-sm sm:text-base min-w-0">
-              <Skull className="w-5 h-5 shrink-0" />
-              <span className="truncate">{identityMode ? 'PADRÃO DETECTADO' : 'PROTOCOLO DE CONFRONTO'}</span>
-            </DialogTitle>
-            <span className="text-[10px] font-display px-2 py-0.5 rounded border bg-destructive text-destructive-foreground border-destructive shrink-0">
-              {durezaLabel[dureza]}
-            </span>
-          </div>
-        </DialogHeader>
+    <Dialog open={open} onOpenChange={() => { /* travado: só fecha pelo botão */ }}>
+      <DialogContent
+        className="bg-card border-destructive shadow-[0_0_60px_-4px_hsl(var(--destructive)/0.9)] w-[95vw] max-w-lg p-0 max-h-[92vh] overflow-y-auto rounded-xl gap-0 [&>button]:hidden"
+      >
+        {/* Pulso vermelho de fundo */}
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none rounded-xl"
+          initial={{ opacity: 0.35 }}
+          animate={{ opacity: [0.25, 0.5, 0.25] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            background: 'radial-gradient(ellipse at center, hsl(var(--destructive) / 0.18) 0%, transparent 70%)',
+          }}
+        />
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">
+        <div className="relative p-5 sm:p-7 space-y-5">
+          <DialogHeader className="space-y-3">
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="flex justify-center"
+            >
+              <div className="w-14 h-14 rounded-full bg-destructive/15 border border-destructive flex items-center justify-center shadow-[0_0_28px_hsl(var(--destructive)/0.7)]">
+                <Skull className="w-8 h-8 text-destructive animate-pulse" />
+              </div>
+            </motion.div>
+            <DialogTitle className="text-center font-display text-destructive text-xs tracking-[0.3em] uppercase">
               {triggerLabel[trigger]}
-            </span>
-            <span className="text-sm font-display text-foreground break-words min-w-0 flex-1">{itemName}</span>
-            {typeof xpLost === 'number' && xpLost !== 0 && (
-              <span className="inline-flex items-center gap-1 bg-destructive/15 text-destructive px-1.5 py-0.5 rounded font-display text-[10px] whitespace-nowrap">
-                ⚡ {xpLost} XP
-              </span>
-            )}
-          </div>
+            </DialogTitle>
+            <div className="text-center">
+              <span className="text-base sm:text-lg font-display text-foreground break-words">{itemName}</span>
+              {typeof xpLost === 'number' && xpLost !== 0 && (
+                <span className="block mt-1 text-[11px] font-display text-destructive/80">⚡ {xpLost} XP perdidos</span>
+              )}
+            </div>
+          </DialogHeader>
 
-          <div className="rpg-panel p-3 sm:p-4 border-destructive">
+          {/* Mensagem */}
+          <div className="rpg-panel border-destructive/60 p-4 sm:p-5 bg-background/60 backdrop-blur-sm">
             {loading ? (
-              <div className="flex items-center gap-2 text-muted-foreground text-sm py-4">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Analisando seu padrão de falha…
+              <div className="flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-xs font-display tracking-wider uppercase">Reconstruindo o que você fez…</span>
               </div>
             ) : (
-              <p
-                className="text-base leading-relaxed text-foreground whitespace-pre-line break-words"
-                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-3"
               >
-                {message}
-              </p>
+                <p
+                  className="font-display text-lg sm:text-xl leading-snug text-foreground"
+                  style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                >
+                  {headLine}
+                </p>
+                {restLines.length > 0 && (
+                  <p
+                    className="text-sm sm:text-base leading-relaxed text-foreground/85 whitespace-pre-line"
+                    style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                  >
+                    {restLines.join('\n')}
+                  </p>
+                )}
+              </motion.div>
             )}
           </div>
 
-          {identityMode && !loading && (
-            <div className="space-y-2">
-              {identity.oldPatterns.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {identity.oldPatterns.map((p, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPatternInput(p)}
-                      className="text-[11px] px-2 py-1 rounded border border-muted-foreground/30 text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <Label htmlFor="pattern" className="text-xs text-muted-foreground">
-                Qual padrão apareceu? <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="pattern"
-                value={patternInput}
-                onChange={e => setPatternInput(e.target.value)}
-                placeholder="Nomeie o padrão antigo que decidiu por você."
-                className="min-h-[80px] resize-y"
-                maxLength={300}
-              />
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className="mt-2 flex flex-col sm:flex-row gap-2">
+          {/* Botão único — bloqueado por READ_LOCK_MS */}
           <Button
             variant="destructive"
-            className="w-full font-display h-12 text-base"
-            onClick={handleConfirm}
-            disabled={submitDisabled}
+            onClick={onClose}
+            disabled={!canConfirm}
+            className="w-full h-14 font-display text-sm sm:text-base tracking-[0.15em] uppercase disabled:opacity-50"
           >
-            {identityMode ? 'Reconheço o padrão' : 'Eu reconheço'}
+            {loading
+              ? 'Aguarde…'
+              : remainingMs > 0
+                ? `Leia. (${Math.ceil(remainingMs / 1000)}s)`
+                : 'Eu reconheço. Eu escolhi isso.'}
           </Button>
-        </DialogFooter>
+
+          {angle && !loading && (
+            <p className="text-center text-[10px] font-display text-muted-foreground/50 tracking-wider uppercase">
+              Espelho · {angle.replace(/_/g, ' ')}
+            </p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

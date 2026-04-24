@@ -173,6 +173,17 @@ export default function MissionsPanel() {
     }
 
     const hours = (endDate.getTime() - startDate.getTime()) / 3600000;
+
+    // Guarda anti bug do jejum: rejeitar valores inválidos ou suspeitos
+    if (!isFinite(hours) || hours <= 0) {
+      toast.error('Horário inválido. Verifique o início e o fim.');
+      return;
+    }
+    if (hours > 18) {
+      const ok = window.confirm(`Você está registrando ${hours.toFixed(1)}h. Tem certeza? (valores muito altos costumam ser erro de fuso/horário)`);
+      if (!ok) return;
+    }
+
     const mission = state.missions.find(m => m.id === finishDialog);
     if (mission) {
       const xp = Math.floor(hours * XP_PER_HOUR[mission.difficulty]);
@@ -750,7 +761,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
         </div>
 
         {!isDone && !isFailed && (
-          <div className="flex gap-1 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0">
             {mission.missionType === 'Tempo' && !isRunning && (
               <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onStart} title="Iniciar">
                 <Play className="w-4 h-4" />
@@ -771,9 +782,32 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                 <Plus className="w-4 h-4" />
               </Button>
             )}
-            <Button size="icon" variant="ghost" className="h-8 w-8 text-warning hover:text-destructive" onClick={() => setShowFailConfirm(true)} title="Marcar como falhada">
-              <XCircle className="w-4 h-4" />
-            </Button>
+            {/* Botão "Falhar" só aparece quando faz sentido falhar:
+                - Diária: só se ainda NÃO foi feita hoje
+                - Contagem: só se ainda NÃO completou
+                - Tempo NÃO repetível: sempre que ativa
+                - Tempo repetível: SOMENTE se o timer estiver rodando (caso contrário não há nada para falhar) */}
+            {((mission.missionType === 'Diária' && !isDailyDone)
+              || (mission.missionType === 'Contagem' && (mission.currentCount || 0) < (mission.targetCount || 0))
+              || (mission.missionType === 'Tempo' && !mission.repeatable)
+              || (mission.missionType === 'Tempo' && mission.repeatable && isRunning)
+            ) && (() => {
+              // Cooldown: não permitir falhar nos primeiros 5s após settle (anti misclick pós-conclusão)
+              const settledMs = mission.lastSettledAt ? Date.now() - new Date(mission.lastSettledAt).getTime() : Infinity;
+              const inCooldown = settledMs < 5000;
+              return (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9 sm:h-8 sm:w-8 text-warning hover:text-destructive disabled:opacity-30"
+                  onClick={() => setShowFailConfirm(true)}
+                  disabled={inCooldown}
+                  title={inCooldown ? 'Aguarde — missão acabou de mudar de estado' : 'Marcar como falhada'}
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              );
+            })()}
             <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit} title="Editar">
               <Pencil className="w-3.5 h-3.5" />
             </Button>

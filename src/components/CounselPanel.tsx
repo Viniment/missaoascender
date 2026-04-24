@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@/lib/GameContext';
 import { computeMonsterHp, type CounselTone } from '@/lib/gameStore';
 import { supabase } from '@/integrations/supabase/client';
+import { buildAiContext } from '@/lib/aiContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -125,7 +126,7 @@ function buildContext(state: ReturnType<typeof useGame>['state'], includeJournal
 }
 
 export default function CounselPanel() {
-  const { state, addCounsel, deleteCounsel } = useGame();
+  const { state, addCounsel, deleteCounsel, appendAiAngle } = useGame();
   const { toast } = useToast();
   const [question, setQuestion] = useState('');
   const [tone, setTone] = useState<CounselTone>('direto');
@@ -148,8 +149,9 @@ export default function CounselPanel() {
 
     try {
       const context = buildContext(state, includeJournal);
+      const aiCtx = buildAiContext(state);
       const { data, error } = await supabase.functions.invoke('counsel', {
-        body: { question: q, tone, context, aiSettings: state.aiSettings },
+        body: { question: q, tone, context, aiSettings: state.aiSettings, aiContext: aiCtx },
       });
 
       if (error) throw error;
@@ -158,6 +160,7 @@ export default function CounselPanel() {
       const advice = data?.advice as string;
       if (!advice) throw new Error('Resposta vazia');
 
+      if (data?.angle) appendAiAngle(data.angle);
       setCurrentAdvice(advice);
       addCounsel({ question: q, tone, advice, includedJournal: includeJournal });
       setQuestion('');
