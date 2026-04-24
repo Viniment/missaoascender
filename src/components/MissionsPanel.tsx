@@ -56,6 +56,8 @@ export default function MissionsPanel() {
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
+  const [finishConfirmed, setFinishConfirmed] = useState(false);
+  const [finishOpenedAt, setFinishOpenedAt] = useState(0);
   const [finishTime, setFinishTime] = useState('');
   const [finishStartedAt, setFinishStartedAt] = useState('');
 
