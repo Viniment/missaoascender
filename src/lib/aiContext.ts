@@ -14,6 +14,7 @@ const daysAgo = (iso: string): number =>
 
 export type ConsistencyTrend = 'melhorando' | 'estavel' | 'piorando';
 export type EmotionalDrift = 'apatia' | 'raiva' | 'esperanca' | 'culpa' | 'tristeza' | 'neutro';
+export type BehavioralEvolution = 'progredindo' | 'estavel' | 'regredindo';
 
 export interface AiContextDerived {
   failureRate7d: number;          // 0..1 (proporção de tentativas falhadas nos últimos 7d)
@@ -28,6 +29,9 @@ export interface AiContextDerived {
   emotionalDrift: EmotionalDrift;
   pendingPunishmentsCount: number;
   expiredPunishmentsCount: number;
+  // NOVO: detecção de evolução cruzando comportamento + diário recente
+  recentJournalSummary: string;    // 1 linha: emoção dominante + mudança vs entradas mais antigas
+  behavioralEvolution: BehavioralEvolution;
 }
 
 export interface AiContext {
