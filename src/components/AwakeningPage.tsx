@@ -26,7 +26,7 @@ const TYPE_EMOJI: Record<AwakeningExerciseType, string> = {
 };
 
 export default function AwakeningPage() {
-  const { state, addReflection, deleteReflection } = useGame();
+  const { state, addReflection, deleteReflection, appendAiAngle } = useGame();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -66,13 +66,13 @@ export default function AwakeningPage() {
 
     setLoadingAI(true);
     try {
+      const ctx = buildAiContext(state);
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
         body: {
-          journal: (state.journal || []).slice(0, 3).map(j => ({
-            title: j.title, text: j.text, emotion: j.emotion, intensity: j.intensity, deepMode: j.deepMode,
-          })),
-          awakening: state.awakening,
-          rank: state.rank,
+          // Compat: mantém campos antigos que a edge ainda lê
+          journal: ctx.recentJournal.slice(0, 3),
+          awakening: ctx.awakening,
+          rank: ctx.rank,
           reflections: (state.reflections || []).slice(0, 5).map(r => ({
             question: r.question, answerHtml: r.answerHtml, date: r.date,
           })),
@@ -80,6 +80,8 @@ export default function AwakeningPage() {
           habits: (state.habits || []).map(h => ({ name: h.name, history: h.history })),
           punishments: (state.failureProtocols || []).map(p => ({ status: p.status, reason: p.reason })),
           aiSettings: state.aiSettings,
+          // NOVO: contexto rico + ângulos
+          context: ctx,
         },
       });
       if (error) throw error;
@@ -88,6 +90,7 @@ export default function AwakeningPage() {
       if (exs.length < 3) throw new Error('Não foi possível gerar exercícios.');
 
       const detectedState = data.detectedState || 'Reflexão profunda';
+      if (data.angle) appendAiAngle(data.angle);
       const html = buildExercisesHtml(detectedState, exs);
 
       setQuestion(`Despertar — ${detectedState}`);
