@@ -652,8 +652,8 @@ export function useGameStore() {
         monster: applyMonsterDelta(prev, -Math.max(3, Math.floor(executedHours * 2)), `Concluiu missão: ${mission.name}`),
         missions: prev.missions.map(m =>
           m.id === id ? (m.repeatable
-            ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null, completionHistory: [...(m.completionHistory || []), { date: new Date().toISOString(), xp, gold, executedHours }] }
-            : { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null, completedAt: new Date().toISOString() }
+            ? { ...m, executedHours: 0, xpEarned: xp, goldEarned: gold, startedAt: null, lastSettledAt: new Date().toISOString(), completionHistory: [...(m.completionHistory || []), { date: new Date().toISOString(), xp, gold, executedHours }] }
+            : { ...m, status: 'Concluída' as const, executedHours, xpEarned: xp, goldEarned: gold, startedAt: null, completedAt: new Date().toISOString(), lastSettledAt: new Date().toISOString() }
           ) : m
         ),
         log: [{ date: new Date().toISOString(), action: `Missão: ${mission.name} (${executedHours.toFixed(1)}h)`, xp, gold }, ...prev.log].slice(0, 100),
