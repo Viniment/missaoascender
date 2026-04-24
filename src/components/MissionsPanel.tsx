@@ -156,6 +156,8 @@ export default function MissionsPanel() {
     const now = new Date();
     setFinishTime(formatTime(now));
     setFinishStartedAt(mission.startedAt || now.toISOString());
+    setFinishConfirmed(false);
+    setFinishOpenedAt(Date.now());
     setFinishDialog(mission.id);
   };
 
