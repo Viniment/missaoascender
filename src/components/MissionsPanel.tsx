@@ -56,6 +56,8 @@ export default function MissionsPanel() {
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
+  const [finishConfirmed, setFinishConfirmed] = useState(false);
+  const [finishCooldown, setFinishCooldown] = useState(false);
   const [finishTime, setFinishTime] = useState('');
   const [finishStartedAt, setFinishStartedAt] = useState('');
 
@@ -154,7 +156,10 @@ export default function MissionsPanel() {
     const now = new Date();
     setFinishTime(formatTime(now));
     setFinishStartedAt(mission.startedAt || now.toISOString());
+    setFinishConfirmed(false);
+    setFinishCooldown(true);
     setFinishDialog(mission.id);
+    setTimeout(() => setFinishCooldown(false), 1200);
   };
 
   const handleFinishTimeMission = () => {
@@ -560,10 +565,20 @@ export default function MissionsPanel() {
               }
               return null;
             })()}
+            <label className="flex items-start gap-2 text-xs text-foreground/80 bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 cursor-pointer">
+              <Checkbox checked={finishConfirmed} onCheckedChange={(v) => setFinishConfirmed(!!v)} className="mt-0.5" />
+              <span>Confirmo que quero <strong>encerrar a missão agora</strong>. Isto vai parar o cronômetro e registrar o tempo acima.</span>
+            </label>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setFinishDialog(null)}>Cancelar</Button>
-            <Button onClick={handleFinishTimeMission}>Confirmar</Button>
+            <Button
+              onClick={handleFinishTimeMission}
+              disabled={!finishConfirmed || finishCooldown}
+              variant="destructive"
+            >
+              Encerrar e registrar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
