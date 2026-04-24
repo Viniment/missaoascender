@@ -32,6 +32,8 @@ export interface Mission {
   completedAt?: string;
   repeatable?: boolean;
   completionHistory?: { date: string; xp: number; gold: number; executedHours?: number; failed?: boolean }[];
+  // Cooldown anti-misclick: timestamp do último settle (complete OU fail)
+  lastSettledAt?: string;
 }
 
 export interface Habit {
