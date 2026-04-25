@@ -360,7 +360,7 @@ serve(async (req) => {
             type: "function",
             function: {
               name: "generate_exercises",
-              description: "Retorna estado detectado, ângulo dominante, modo e 3-5 exercícios.",
+              description: "Retorna estado, ângulo, modo, blocos terapêuticos (TCC) e exercícios.",
               parameters: {
                 type: "object",
                 properties: {
@@ -371,16 +371,40 @@ serve(async (req) => {
                   angle: {
                     type: "string",
                     enum: [...ALL_ANGLES],
-                    description: "Ângulo dominante usado (deve coincidir com o solicitado pelo backend, ou um equivalente do mesmo modo).",
+                    description: "Ângulo dominante usado (deve coincidir com o solicitado pelo backend).",
                   },
                   mode: {
                     type: "string",
                     enum: ["mirror", "evolution", "expansion", "default"],
                   },
+                  situationReading: {
+                    type: "string",
+                    description: "🧠 Leitura da situação — 2-4 frases com evidência real da semana.",
+                  },
+                  patternsAndDistortions: {
+                    type: "string",
+                    description: "🔍 Padrões e distorções cognitivas/linguísticas identificadas, sem jargão.",
+                  },
+                  repositioning: {
+                    type: "string",
+                    description: "⚖️ Reposicionamento — clareza + perspectiva realista.",
+                  },
+                  confrontation: {
+                    type: "string",
+                    description: "⚔️ Confronto curto e proporcional ao modo. Pode ser vazio se desnecessário.",
+                  },
+                  microAction: {
+                    type: "string",
+                    description: "🔥 Micro-ação concreta executável agora (≤15 min).",
+                  },
+                  identityReinforcement: {
+                    type: "string",
+                    description: "🧬 Reforço de identidade ancorado em evidência real.",
+                  },
                   exercises: {
                     type: "array",
                     minItems: 3,
-                    maxItems: 5,
+                    maxItems: 6,
                     items: {
                       type: "object",
                       properties: {
@@ -392,6 +416,11 @@ serve(async (req) => {
                       required: ["title", "prompt", "type", "objective"],
                       additionalProperties: false,
                     },
+                  },
+                },
+                required: ["detectedState", "angle", "mode", "situationReading", "patternsAndDistortions", "repositioning", "confrontation", "microAction", "identityReinforcement", "exercises"],
+                additionalProperties: false,
+              },
                   },
                 },
                 required: ["detectedState", "angle", "mode", "exercises"],
