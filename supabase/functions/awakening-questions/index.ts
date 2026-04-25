@@ -457,6 +457,12 @@ serve(async (req) => {
     let exercises: any[] = [];
     let returnedAngle = angle;
     let returnedMode = mode;
+    let situationReading = '';
+    let patternsAndDistortions = '';
+    let repositioning = '';
+    let confrontation = '';
+    let microAction = '';
+    let identityReinforcement = '';
     if (toolCall?.function?.arguments) {
       try {
         const parsed = JSON.parse(toolCall.function.arguments);
@@ -464,6 +470,12 @@ serve(async (req) => {
         exercises = Array.isArray(parsed.exercises) ? parsed.exercises : [];
         if (parsed.angle && (ALL_ANGLES as readonly string[]).includes(parsed.angle)) returnedAngle = parsed.angle;
         if (parsed.mode) returnedMode = parsed.mode;
+        situationReading = parsed.situationReading || '';
+        patternsAndDistortions = parsed.patternsAndDistortions || '';
+        repositioning = parsed.repositioning || '';
+        confrontation = parsed.confrontation || '';
+        microAction = parsed.microAction || '';
+        identityReinforcement = parsed.identityReinforcement || '';
       } catch (err) {
         console.error("Failed to parse tool args:", err);
       }
@@ -485,6 +497,12 @@ serve(async (req) => {
       mode: returnedMode,
       exercises,
       level: recurrenceLevel,
+      situationReading,
+      patternsAndDistortions,
+      repositioning,
+      confrontation,
+      microAction,
+      identityReinforcement,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
