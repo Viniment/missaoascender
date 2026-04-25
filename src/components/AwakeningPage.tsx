@@ -125,7 +125,14 @@ export default function AwakeningPage() {
 
       const detectedState = data.detectedState || 'Reflexão profunda';
       if (data.angle) appendAiAngle(data.angle);
-      const html = buildExercisesHtml(detectedState, exs);
+      const html = buildExercisesHtml(detectedState, exs, {
+        situationReading: data.situationReading,
+        patternsAndDistortions: data.patternsAndDistortions,
+        repositioning: data.repositioning,
+        confrontation: data.confrontation,
+        microAction: data.microAction,
+        identityReinforcement: data.identityReinforcement,
+      });
 
       setQuestion(`Despertar — ${detectedState}`);
       setAnswer(html);
