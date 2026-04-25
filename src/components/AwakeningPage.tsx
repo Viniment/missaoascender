@@ -34,23 +34,57 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  const buildExercisesHtml = useCallback((detectedState: string, exercises: GeneratedExercise[]) => {
+  const buildExercisesHtml = useCallback((
+    detectedState: string,
+    exercises: GeneratedExercise[],
+    blocks: {
+      situationReading?: string;
+      patternsAndDistortions?: string;
+      repositioning?: string;
+      confrontation?: string;
+      microAction?: string;
+      identityReinforcement?: string;
+    } = {},
+  ) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     const parts: string[] = [
       `<h3>🌅 Despertar — ${detectedState}</h3>`,
       `<p><em>${dateStr}</em></p>`,
       `<hr/>`,
     ];
+
+    const block = (emoji: string, title: string, content?: string) => {
+      if (!content || !content.trim()) return;
+      parts.push(`<h4>${emoji} ${title}</h4>`);
+      parts.push(`<p>${content.replace(/\n/g, '<br/>')}</p>`);
+    };
+
+    block('🧠', 'Leitura da situação', blocks.situationReading);
+    block('🔍', 'Padrões e distorções', blocks.patternsAndDistortions);
+    block('⚖️', 'Reposicionamento', blocks.repositioning);
+    block('⚔️', 'Confronto', blocks.confrontation);
+
+    if (blocks.situationReading || blocks.patternsAndDistortions || blocks.repositioning || blocks.confrontation) {
+      parts.push(`<hr/>`);
+    }
+
+    parts.push(`<h4>✍️ Escrita terapêutica</h4>`);
     exercises.forEach((ex, i) => {
       const emoji = TYPE_EMOJI[ex.type] || '✦';
-      parts.push(`<h4>${i + 1}. ${emoji} ${ex.title}</h4>`);
+      parts.push(`<h5>${i + 1}. ${emoji} ${ex.title}</h5>`);
       if (ex.objective) parts.push(`<p><em>${ex.objective}</em></p>`);
       parts.push(`<blockquote><p>${ex.prompt}</p></blockquote>`);
       parts.push(`<p><strong>Sua resposta:</strong></p>`);
       parts.push(`<p></p>`);
       parts.push(`<p></p>`);
-      parts.push(`<hr/>`);
     });
+
+    if (blocks.microAction || blocks.identityReinforcement) {
+      parts.push(`<hr/>`);
+    }
+    block('🔥', 'Micro-ação imediata', blocks.microAction);
+    block('🧬', 'Reforço de identidade', blocks.identityReinforcement);
+
     return parts.join('');
   }, []);
 
@@ -91,7 +125,14 @@ export default function AwakeningPage() {
 
       const detectedState = data.detectedState || 'Reflexão profunda';
       if (data.angle) appendAiAngle(data.angle);
-      const html = buildExercisesHtml(detectedState, exs);
+      const html = buildExercisesHtml(detectedState, exs, {
+        situationReading: data.situationReading,
+        patternsAndDistortions: data.patternsAndDistortions,
+        repositioning: data.repositioning,
+        confrontation: data.confrontation,
+        microAction: data.microAction,
+        identityReinforcement: data.identityReinforcement,
+      });
 
       setQuestion(`Despertar — ${detectedState}`);
       setAnswer(html);
