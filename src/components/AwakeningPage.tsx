@@ -77,7 +77,7 @@ export default function AwakeningPage() {
 
   // Tony Robbins layer
   const [ritualOpen, setRitualOpen] = useState(false);
-  const [activeSabotage, setActiveSabotage] = useState<typeof state.sabotagePatterns extends (infer U)[] | undefined ? U : never | null>(null as any);
+  const [activeSabotage, setActiveSabotage] = useState<any>(null);
   const today = getTodayBrasilia();
   const ritualDoneToday = state.dailyRitual?.lastCompletedDate === today;
   const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
