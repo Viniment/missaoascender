@@ -385,12 +385,31 @@ export function buildAiContext(state: PlayerState): AiContext {
     dslf,
   );
 
+  // Identity level (lazy import to avoid cycles)
+  let identityLevelOut: { id: string; label: string; stability: number } | undefined;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    const { computeIdentityLevel } = require('./identityLevels');
+    const il = computeIdentityLevel(state);
+    identityLevelOut = { id: il.current.id, label: il.current.label, stability: il.stability };
+  } catch { /* ignore */ }
+
   return {
     rank: state.rank,
     level: state.level,
     streak: state.streak,
     xp: state.xp,
     awakening: state.awakening || { become: '', reject: '', pain: '' },
+    honor: state.honor,
+    identityLevel: identityLevelOut,
+    disciplineStreak: state.disciplineStreak
+      ? { current: state.disciplineStreak.current, best: state.disciplineStreak.best }
+      : undefined,
+    activeSabotagePatterns: (state.sabotagePatterns || [])
+      .filter(p => !p.resolved)
+      .slice(0, 5)
+      .map(p => ({ kind: p.kind, pattern: p.pattern, itemRef: p.itemRef })),
+    dailyRitual: state.dailyRitual,
     recentJournal,
     reflections,
     missions: { active, failedRecent, completedRecent },
