@@ -1551,6 +1551,12 @@ export function useGameStore() {
     addFailureReflection,
     markRitualDone,
     appendAiAngle,
+    addHonor,
+    bumpDisciplineStreak,
+    breakDisciplineStreak,
+    completeDailyRitual,
+    detectAndRegisterSabotage,
+    resolveSabotagePattern,
     newlyUnlocked,
     dismissAchievement,
   };
