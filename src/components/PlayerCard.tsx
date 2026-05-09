@@ -1,6 +1,7 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Flame, Shield, Heart } from 'lucide-react';
+import { Flame, Coins, Trophy } from 'lucide-react';
+import { ACHIEVEMENTS } from '@/lib/achievements';
 import IdentityBadge from './IdentityBadge';
 
 const rankColors: Record<string, string> = {
@@ -16,9 +17,6 @@ const rankColors: Record<string, string> = {
 export default function PlayerCard() {
   const { state } = useGame();
   const xpPercent = Math.min(100, (state.xp / state.xpToNext) * 100);
-  const honor = typeof state.honor === 'number' ? state.honor : 50;
-  const ds = state.disciplineStreak?.current ?? 0;
-  const dsBest = state.disciplineStreak?.best ?? 0;
 
   return (
     <motion.div
@@ -63,26 +61,20 @@ export default function PlayerCard() {
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-4">
-        <Stat icon={<Heart className="w-3.5 h-3.5 text-gold" />} label="Honra" value={honor} />
-        <Stat
-          icon={<Shield className="w-3.5 h-3.5 text-primary" />}
-          label="Disciplina"
-          value={ds}
-          hint={dsBest > 0 ? `recorde: ${dsBest}` : undefined}
-        />
+        <Stat icon={<Coins className="w-3.5 h-3.5 text-gold" />} label="Ouro" value={state.gold} />
         <Stat icon={<Flame className="w-3.5 h-3.5 text-destructive" />} label="Streak" value={state.streak} />
+        <Stat icon={<Trophy className="w-3.5 h-3.5 text-primary" />} label="Conquistas" value={`${(state.achievements || []).length}/${ACHIEVEMENTS.length}`} />
       </div>
     </motion.div>
   );
 }
 
-function Stat({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string | number; hint?: string }) {
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
     <div className="flex flex-col items-center gap-1 py-2 px-1 rounded-md bg-secondary/50 min-w-0">
       {icon}
       <span className="text-xs text-foreground truncate max-w-full">{label}</span>
       <span className="font-display text-sm text-foreground truncate max-w-full">{value}</span>
-      {hint && <span className="text-[9px] text-foreground/40 truncate max-w-full">{hint}</span>}
     </div>
   );
 }
