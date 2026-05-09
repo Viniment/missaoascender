@@ -75,6 +75,13 @@ export default function AwakeningPage() {
   const [lifeArea, setLifeArea] = useState<string>('');
   const [emotionalGoal, setEmotionalGoal] = useState<string>('');
 
+  // Tony Robbins layer
+  const [ritualOpen, setRitualOpen] = useState(false);
+  const [activeSabotage, setActiveSabotage] = useState<typeof state.sabotagePatterns extends (infer U)[] | undefined ? U : never | null>(null as any);
+  const today = getTodayBrasilia();
+  const ritualDoneToday = state.dailyRitual?.lastCompletedDate === today;
+  const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
+
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     const intensityLabel = r.intensity === 'brutal' ? '🔥 BRUTAL' : r.intensity === 'leve' ? '🌱 LEVE' : '⚡ MÉDIO';
