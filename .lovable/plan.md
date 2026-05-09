@@ -1,107 +1,91 @@
-## Despertar adaptativo de verdade — peso nos dados recentes + rotação de ângulo
+## Despertar — Reescrita total para impacto emocional visceral
 
-### Diagnóstico
-A edge `awakening-questions` hoje:
-1. **Ignora o `context` rico** que o cliente já envia (`consistencyTrend`, `daysSinceLastFail`, `relapseAfterEvolution`, `recurringFailedItems`, `contradictionSignals`, `emotionalDrift`, `angleHistory`).
-2. Conta hábitos no **histórico inteiro** (sem janela temporal) — então 1 hábito quebrado há 2 meses ainda dispara MODO ESPELHO.
-3. Pega só os últimos 3 do diário e não diferencia recente vs antigo.
-4. **Trava num único ângulo** (autotraição) — o system prompt inteiro é monotemático, sem rotação nem reconhecimento de evolução.
-5. Não atualiza `aiAngleHistory` no cliente após o Despertar.
-
-Resultado: mesmo usuário que evoluiu apanha do mesmo ângulo "autoabandono" toda vez.
+Substitui o framework TCC/Socrático (7 blocos diagnósticos) por uma experiência cinematográfica, confrontadora e ativadora de ação imediata, com seletores visíveis antes de gerar.
 
 ---
 
-### 1. Edge `supabase/functions/awakening-questions/index.ts` — reescrita do payload + prompt
+### 1. UI — `src/components/AwakeningPage.tsx`
 
-**Aceitar e priorizar `context`:**
-- Ler `context` do body (o `AiContext` montado em `src/lib/aiContext.ts`).
-- Manter compatibilidade com campos antigos como fallback se `context` faltar.
-- Usar `context.derived` como fonte primária de decisão (não recontar do zero).
+**Novos seletores acima do botão "Gerador":**
+- **Tema** (chips): Procrastinação · Disciplina · Academia/Corpo · Dopamina barata · Pornografia · Redes sociais · Vícios · Dinheiro · Produtividade · Foco · Ansiedade · Medo · Autossabotagem · Autoestima · Identidade · Relacionamentos · Futuro · Consistência · Emagrecimento · *Auto (IA decide pelos dados)*
+- **Intensidade** (3 botões): 🌱 Leve · ⚡ Médio · 🔥 Brutal
+- **Área da vida** (chips opcionais): Corpo · Mente · Carreira · Relacionamentos · Espiritual · Financeiro · *(nenhuma)*
+- **Objetivo emocional** (chips opcionais): Urgência · Coragem · Orgulho · Foco · Raiva produtiva · Clareza · *(IA decide)*
 
-**Janelas temporais explícitas no `userPrompt`:**
-```
-═══ JANELA RECENTE (últimos 7 dias) — PESO MÁXIMO ═══
-Falhas 7d: {failureCount7d} | Taxa: {failureRate7d*100}%
-Tendência: {consistencyTrend}  ← melhorando|estável|piorando
-Dias sem falhar: {daysSinceLastFail}
-Maior streak recente: {longestStreak} dias
-Recaída pós-evolução: {relapseAfterEvolution ? 'SIM' : 'não'}
-Drift emocional: {emotionalDrift}
+Estado local: `theme`, `intensity`, `lifeArea`, `emotionalGoal`. Tudo enviado no body. Defaults: `theme='auto'`, `intensity='medio'`.
 
-═══ JANELA MÉDIA (8–30 dias) — peso médio ═══
-Falhas 30d: {failureCount30d}
-Itens recorrentes: {recurringFailedItems}
-Contradições detectadas: {contradictionSignals}
+**Nova estrutura de renderização** (`buildExercisesHtml`) — substitui os 7 blocos por experiência cinematográfica:
+1. 🎬 **Abertura cinematográfica** (`opening`) — 2-4 frases viscerais que prendem a atenção
+2. 💀 **Dor da inação** (`painOfInaction`) — espelho cru do que está sendo destruído silenciosamente
+3. 🔥 **Confronto direto** (`confrontation`) — destrói desculpas, expõe autossabotagem
+4. ✨ **Prazer da ação / Identidade forte** (`pleasureOfAction`) — contraste, quem o usuário se torna se agir
+5. ✍️ **Perguntas de impacto** (`questions[]`, 3–5) — profundas, específicas, do tipo dos exemplos do prompt ("Quantas vezes você prometeu mudar...?")
+6. ⚡ **Ativação imediata** (`microAction`) — uma ação concreta para fazer AGORA (≤10 min)
+7. 🧬 **Âncora de identidade** (`identityAnchor`) — frase curta e poderosa de quem ele é
 
-═══ DIÁRIO — ordem cronológica reversa, foco nos 3 mais recentes ═══
-[hoje] título · emoção · trecho 600c
-[ontem] ...
-[mais antigos resumidos em 1 linha]
-```
+Remove os blocos antigos: `situationReading`, `patternsAndDistortions`, `repositioning`. Mantém renderização Notion-style com campo de resposta abaixo de cada pergunta.
 
-**Lógica de modo (não mais "tem qualquer falha → MODO ESPELHO"):**
-- `evolutionMode` se `consistencyTrend === 'melhorando'` **ou** `daysSinceLastFail >= 5` **e** sem `relapseAfterEvolution`.
-- `mirrorMode` SÓ se `failureCount7d >= 1` **ou** `expiredPunishmentsCount > 0` **ou** `relapseAfterEvolution`.
-- `expansionMode` se `failureCount30d === 0` **e** `longestStreak >= 14`.
-- Se `evolutionMode` e nada novo de queda → reconhecer progresso, foco em **identidade/expansão**, NÃO em autotraição.
+**Toasts por intensidade:** Brutal → "🔥 Sem anestesia." · Médio → "⚡ Encare." · Leve → "🌱 Respira e olha."
 
-**Recurrence level recalibrado** com base em `failureCount7d` (não no total acumulado):
-- 0 falhas 7d + tendência boa → nível 1 (consciência leve, reforço)
-- 1–2 falhas 7d → 2–3
-- 3+ ou recaída pós-evolução → 4–5
+---
 
-**Rotação de ângulo (ANTI-REPETIÇÃO):**
-- Pool de 14 ângulos: `autotraicao, identidade, consequencia_futura, orgulho_honra, disciplina_vs_desejo, carater, vergonha_vs_orgulho, potencial_nao_usado, tempo_desperdicado, distancia_do_ideal, regra_10_90, autorresponsabilidade, comum_vs_normal, momentos_vs_existencia`.
-- Receber `context.angleHistory` (últimos 10 usados).
-- **Filtrar fora** os 5 últimos usados → escolher 1 ângulo dominante novo, alinhado ao modo:
-  - mirror → `autotraicao | autorresponsabilidade | momentos_vs_existencia`
-  - evolution → `identidade | orgulho_honra | carater | potencial_nao_usado`
-  - expansion → `distancia_do_ideal | potencial_nao_usado | comum_vs_normal`
-  - default → qualquer não-usado
-- Tool call retorna `angle: string` junto de `detectedState` e `exercises`.
+### 2. Edge function — `supabase/functions/awakening-questions/index.ts`
 
-**System prompt reescrito (não mais monotemático):**
-- Bloco "MODO" dinâmico: a IA recebe o modo escolhido e o ângulo dominante e calibra o tom.
-- Modo evolução: reconhece o esforço explicitamente, cita evidência ("você cumpriu X dias seguidos"), e empurra para o próximo nível — sem cair em "você está se traindo" se não houve queda.
-- Modo expansão: foco em potencial, não em culpa.
-- Modo espelho: mantém confronto, mas ancorado em evidência **da semana**, não eterna.
-- Princípios CIS implícitos (10/90, autorresponsabilidade, comum vs normal, momentos vs existência, crenças limitantes) — usados naturalmente conforme o ângulo, **sem citar nomes**.
-- Regra dura: "Se `consistencyTrend === melhorando` e `failureCount7d === 0`, é PROIBIDO usar tom de autoabandono. Reconheça e expanda."
+**Reescrita total do `SYSTEM_PROMPT`:**
+- Remove TCC, questionamento socrático, metamodelo da linguagem, distorções cognitivas, escrita terapêutica.
+- Substitui pelo manifesto do prompt do usuário: voz visceral, cinematográfica, confrontadora, humana. Proibido: clichês motivacionais, validação de vitimismo, tom de coach, soar como chatbot.
+- Filosofia central: dor da inação ↔ prazer da ação. Autorresponsabilidade. Identidade forte. Urgência. Ativação emocional.
+- Regras duras: nunca genérico, nunca superficial, nunca aliviar excessivamente, sempre gerar impacto + desejo de agir.
 
-**Tool call atualizada:**
+**Calibração por intensidade:**
+- `leve` → reflexivo, consciente, ainda firme mas sem cortar
+- `medio` → emocional, confrontador, gera desconforto produtivo
+- `brutal` → visceral, sem anestesia, expõe autotraição cruamente, cinematográfico
+
+**Calibração por tema:** o tema escolhido vira o foco do despertar (ex: `pornografia` → ativa vergonha produtiva e identidade forte; `procrastinacao` → tempo perdido e custo composto; `academia` → corpo como espelho da mente). Se `theme='auto'`, IA escolhe com base nos dados recentes.
+
+**Mantém da versão atual:**
+- Leitura de `context` rico (janela 7d, tendência, daysSinceLastFail, recurringFailedItems, emotionalDrift, recentJournalSummary)
+- Rotação de ângulos via `angleHistory` (anti-repetição)
+- Reconhecimento de evolução: se `consistencyTrend='melhorando'` e `failureCount7d=0`, IA não usa narrativa de autoabandono — vira ativação de potencial/expansão (mantém regra)
+- Compatibilidade com payload antigo (fallback)
+
+**Nova tool call `generate_awakening`:**
 ```ts
-parameters: {
-  detectedState: string,        // agora reflete o estado real (ex: "Em evolução constante", "Recaída após 7 dias limpos")
-  angle: string,                // 1 dos 14 ângulos
-  mode: 'mirror'|'evolution'|'expansion'|'default',
-  exercises: [...]              // 3-5
+{
+  detectedState: string,         // "Em fuga", "Recaída pós-evolução", "Pronto para próximo nível"
+  theme: string,                 // tema final usado
+  intensity: 'leve'|'medio'|'brutal',
+  angle: string,                 // 1 dos 14 ângulos (rotação)
+  opening: string,               // 2-4 frases cinematográficas
+  painOfInaction: string,        // espelho cru
+  confrontation: string,         // destrói desculpas
+  pleasureOfAction: string,      // contraste/identidade
+  questions: [                   // 3-5 perguntas de impacto
+    { title: string, prompt: string, objective: string }
+  ],
+  microAction: string,           // ação concreta ≤10 min
+  identityAnchor: string         // frase âncora
 }
 ```
 
-### 2. Cliente `src/components/AwakeningPage.tsx`
-- Continuar enviando `context: ctx` (já faz).
-- Após resposta, chamar `appendAiAngle(data.angle)` (já existe no GameContext) — hoje só é chamado se `data.angle` vier, e a edge nunca retorna. Vai passar a funcionar.
-- Pequeno ajuste de UX: se `mode === 'evolution'`, mostrar toast "✨ Reconhecendo sua evolução" em vez do genérico.
+Remove campos antigos da tool: `patternsAndDistortions`, `repositioning`, `situationReading`, `exercises[].type`.
 
-### 3. `src/lib/aiContext.ts` — pequeno reforço
-- Já calcula tudo necessário. Adicionar 2 sinais derivados:
-  - `recentJournalSummary`: 1 linha resumindo emoção dominante das últimas 3 entradas + mudança vs entradas 4–6 (detecta evolução no diário mesmo sem o usuário escrever "estou melhor").
-  - `behavioralEvolution`: `'progredindo' | 'estavel' | 'regredindo'` — combina `consistencyTrend` + `recentJournalSummary`.
-- Esses dois entram no payload e são lidos pela edge no bloco "JANELA RECENTE".
+---
 
-### 4. `src/lib/gameStore.ts` — nada estrutural
-- `aiAngleHistory` já existe e `appendAiAngle` já trunca em 20. OK.
+### 3. Não muda
+- `src/lib/aiContext.ts` — já entrega tudo necessário (recentJournalSummary, behavioralEvolution, derived).
+- `src/lib/gameStore.ts` — `aiAngleHistory` continua igual.
+- Memory de design e timezone — sem impacto.
 
 ---
 
 ### Arquivos
-- **Editar:** `supabase/functions/awakening-questions/index.ts`, `src/lib/aiContext.ts`, `src/components/AwakeningPage.tsx`
-- **Não tocar:** gameStore (já tem o necessário), Settings, Counsel, FailureConfront
+- **Editar:** `src/components/AwakeningPage.tsx`, `supabase/functions/awakening-questions/index.ts`
+- **Não tocar:** `aiContext.ts`, `gameStore.ts`, demais painéis
 
 ### Resultado esperado
-- Despertar lê primeiro o que aconteceu **esta semana** e o que mudou **no diário recente**.
-- Se o usuário evoluiu (consistência subindo, dias sem falhar, diário mais leve) → IA reconhece e muda de ângulo para identidade/expansão. Não força narrativa de autotraição.
-- Se o usuário recaiu depois de evoluir → IA explora justamente essa quebra de expectativa (ângulo específico, mais cortante).
-- A cada Despertar, o ângulo dominante muda (rotação de 14 opções, evita os 5 últimos) — fim do loop "autotraição infinita".
-- Diário antigo entra como contexto resumido, não compete com o que o usuário escreveu hoje.
+- Antes de gerar, usuário escolhe **tema + intensidade** (e opcionalmente área/emoção). Se quiser, deixa em "Auto" e a IA decide.
+- A resposta vem em formato cinematográfico: abre forte, mostra a dor real, confronta, contrasta com o prazer da ação, faz perguntas que cortam, entrega ação imediata e fecha com âncora de identidade.
+- No modo Brutal, a IA não suaviza. No Leve, mantém firmeza sem cortar. Nunca soa coach genérico.
+- Dados recentes (7d, diário, hábitos quebrados) continuam sendo a matéria-prima — a IA cita evidência concreta da semana, não filosofia abstrata.
