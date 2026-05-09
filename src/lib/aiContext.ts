@@ -3,6 +3,7 @@
 // para que cada edge function receba um payload uniforme e tome decisões adaptativas.
 
 import type { PlayerState, Mission, Habit } from './gameStore';
+import { computeIdentityLevel } from './identityLevels';
 
 const DAY_MS = 86_400_000;
 
@@ -385,14 +386,8 @@ export function buildAiContext(state: PlayerState): AiContext {
     dslf,
   );
 
-  // Identity level (lazy import to avoid cycles)
-  let identityLevelOut: { id: string; label: string; stability: number } | undefined;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-    const { computeIdentityLevel } = require('./identityLevels');
-    const il = computeIdentityLevel(state);
-    identityLevelOut = { id: il.current.id, label: il.current.label, stability: il.stability };
-  } catch { /* ignore */ }
+  const il = computeIdentityLevel(state);
+  const identityLevelOut = { id: il.current.id, label: il.current.label, stability: il.stability };
 
   return {
     rank: state.rank,
