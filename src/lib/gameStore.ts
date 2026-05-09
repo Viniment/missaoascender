@@ -417,6 +417,9 @@ export const defaultState: PlayerState = {
   identity: defaultIdentity,
   awakeningConfig: defaultAwakeningConfig,
   _penaltyCompensated: true,
+  honor: 50,
+  disciplineStreak: { current: 0, best: 0, lastValidDate: '' },
+  sabotagePatterns: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
