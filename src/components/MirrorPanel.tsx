@@ -3,6 +3,7 @@ import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, ShieldOff, Waves, Utensils, Repeat, Hourglass, Snowflake, MoonStar, NotebookPen, Clock, Replace, Info, Zap, Armchair } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { computeIdentityLevel } from '@/lib/identityLevels';
 
 function daysAgo(iso: string) {
   return (Date.now() - new Date(iso).getTime()) / 86400000;
@@ -119,6 +120,9 @@ export default function MirrorPanel() {
       <p className="text-xs text-muted-foreground font-body italic">
         Aqui você se vê sem filtro. Promessas vs ações. Padrões vs evolução. Sem fugir.
       </p>
+
+      <IdentityProgress />
+
 
       {/* Promised vs Doing */}
       {(promised || reject) && (
