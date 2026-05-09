@@ -1286,7 +1286,189 @@ export function useGameStore() {
     }));
   }, []);
 
-  // Achievement checking
+  // ===== Honor =====
+  const addHonor = useCallback((delta: number, reason: string) => {
+    setState(prev => {
+      const cur = typeof prev.honor === 'number' ? prev.honor : 50;
+      const next = Math.max(0, Math.min(1000, cur + delta));
+      return {
+        ...prev,
+        honor: next,
+        log: [{ date: new Date().toISOString(), action: `Honra ${delta >= 0 ? '+' : ''}${delta}: ${reason}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // ===== Discipline streak =====
+  const bumpDisciplineStreak = useCallback(() => {
+    setState(prev => {
+      const today = getTodayBrasilia();
+      const ds = prev.disciplineStreak || { current: 0, best: 0, lastValidDate: '' };
+      if (ds.lastValidDate === today) return prev;
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      const isConsecutive = ds.lastValidDate === yesterday;
+      const current = isConsecutive ? ds.current + 1 : 1;
+      const best = Math.max(ds.best, current);
+      return {
+        ...prev,
+        disciplineStreak: { ...ds, current, best, lastValidDate: today },
+      };
+    });
+  }, []);
+
+  const breakDisciplineStreak = useCallback((reason: string) => {
+    setState(prev => {
+      const ds = prev.disciplineStreak || { current: 0, best: 0, lastValidDate: '' };
+      if (ds.current === 0) return prev;
+      return {
+        ...prev,
+        disciplineStreak: {
+          ...ds,
+          current: 0,
+          lastBreakAt: new Date().toISOString(),
+          lastBreakReason: reason,
+        },
+        log: [{ date: new Date().toISOString(), action: `🩸 Sequência de Disciplina quebrada: ${reason}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // ===== Daily ritual =====
+  const completeDailyRitual = useCallback((payload: { identityChosen: string; commitment: string }) => {
+    setState(prev => {
+      const today = getTodayBrasilia();
+      const cur = prev.dailyRitual;
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      const streak = cur?.lastCompletedDate === yesterday ? cur.streak + 1 : 1;
+      const honorCur = typeof prev.honor === 'number' ? prev.honor : 50;
+      const ds = prev.disciplineStreak || { current: 0, best: 0, lastValidDate: '' };
+      const dsToday = ds.lastValidDate === today
+        ? ds
+        : (() => {
+            const isConsec = ds.lastValidDate === yesterday;
+            const current = isConsec ? ds.current + 1 : 1;
+            return { ...ds, current, best: Math.max(ds.best, current), lastValidDate: today };
+          })();
+
+      const xp = 25;
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+
+      return {
+        ...prev,
+        ...prog,
+        honor: Math.min(1000, honorCur + 5),
+        disciplineStreak: dsToday,
+        dailyRitual: {
+          lastCompletedDate: today,
+          identityChosen: payload.identityChosen,
+          commitment: payload.commitment,
+          streak,
+        },
+        identity: { ...(prev.identity || defaultIdentity), lastRitualAt: new Date().toISOString() },
+        log: [{ date: new Date().toISOString(), action: `🌅 Ritual de Despertar (${payload.identityChosen})`, xp, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // ===== Sabotage detector =====
+  const detectAndRegisterSabotage = useCallback(() => {
+    setState(prev => {
+      const now = new Date();
+      const nowMs = now.getTime();
+      const DAY = 86400000;
+      const within7d = (iso: string) => (nowMs - new Date(iso).getTime()) <= 7 * DAY;
+
+      const existing = prev.sabotagePatterns || [];
+      const stillActive = existing.filter(p => !p.resolved && within7d(p.detectedAt));
+      const additions: SabotagePattern[] = [];
+
+      const isAlreadyActive = (kind: SabotagePatternKind, itemRef: string) =>
+        stillActive.some(p => p.kind === kind && p.itemRef === itemRef);
+
+      // 1. fuga_recorrente: hábito falha 3+ vezes em 7d
+      for (const h of prev.habits || []) {
+        let fails = 0;
+        for (const [d, s] of Object.entries(h.history || {})) {
+          if (s === 'failed') {
+            const ts = new Date(`${d}T12:00:00`).getTime();
+            if (nowMs - ts <= 7 * DAY) fails++;
+          }
+        }
+        if (fails >= 3 && !isAlreadyActive('fuga_recorrente', h.name)) {
+          additions.push({
+            id: crypto.randomUUID(),
+            kind: 'fuga_recorrente',
+            pattern: `Você falhou "${h.name}" ${fails}× nos últimos 7 dias. Isso não é cansaço — é fuga.`,
+            detectedAt: now.toISOString(),
+            itemRef: h.name,
+            resolved: false,
+          });
+        }
+      }
+
+      // 2. evitacao_area: 4+ missões falhadas mesma categoria em 7d
+      const failsByCat: Record<string, number> = {};
+      for (const m of prev.missions || []) {
+        const events: { date: string; failed: boolean }[] = [];
+        if (m.status === 'Falhada' && m.completedAt) events.push({ date: m.completedAt, failed: true });
+        for (const h of m.completionHistory || []) if (h.failed) events.push({ date: h.date, failed: true });
+        for (const e of events) {
+          if (nowMs - new Date(e.date).getTime() <= 7 * DAY) {
+            failsByCat[m.category] = (failsByCat[m.category] || 0) + 1;
+          }
+        }
+      }
+      for (const [cat, n] of Object.entries(failsByCat)) {
+        if (n >= 4 && !isAlreadyActive('evitacao_area', cat)) {
+          additions.push({
+            id: crypto.randomUUID(),
+            kind: 'evitacao_area',
+            pattern: `${n} falhas em "${cat}" esta semana. Você está evitando uma área inteira da vida.`,
+            detectedAt: now.toISOString(),
+            itemRef: cat,
+            resolved: false,
+          });
+        }
+      }
+
+      // 3. sabotagem_pos_pico: discipline streak quebrou após >=7
+      const ds = prev.disciplineStreak;
+      if (ds?.lastBreakAt && ds.lastBreakReason && nowMs - new Date(ds.lastBreakAt).getTime() <= DAY) {
+        const wasHigh = (ds.best ?? 0) >= 7;
+        const tag = `pico:${ds.lastBreakAt}`;
+        if (wasHigh && !existing.some(p => p.itemRef === tag)) {
+          additions.push({
+            id: crypto.randomUUID(),
+            kind: 'sabotagem_pos_pico',
+            pattern: `Você chegou a ${ds.best} dias e destruiu tudo em um. Esse padrão se chama autossabotagem pós-pico.`,
+            detectedAt: now.toISOString(),
+            itemRef: tag,
+            resolved: false,
+          });
+        }
+      }
+
+      if (additions.length === 0) return prev;
+      return { ...prev, sabotagePatterns: [...existing, ...additions].slice(-50) };
+    });
+  }, []);
+
+  const resolveSabotagePattern = useCallback((id: string, resolution: 'agir' | 'refletir') => {
+    setState(prev => {
+      const cur = prev.sabotagePatterns || [];
+      const honorCur = typeof prev.honor === 'number' ? prev.honor : 50;
+      const honorDelta = resolution === 'agir' ? 10 : 3;
+      return {
+        ...prev,
+        honor: Math.min(1000, honorCur + honorDelta),
+        sabotagePatterns: cur.map(p =>
+          p.id === id ? { ...p, resolved: true, resolvedAt: new Date().toISOString(), resolution } : p
+        ),
+      };
+    });
+  }, []);
+
+
   const pendingAchievementRef = useRef<AchievementDef | null>(null);
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
 
