@@ -17,6 +17,14 @@ const ALL_ANGLES = [
 
 type Angle = typeof ALL_ANGLES[number];
 type Mode = 'mirror' | 'evolution' | 'expansion' | 'default';
+type Intensity = 'leve' | 'medio' | 'brutal';
+
+const ALL_THEMES = [
+  'auto', 'procrastinacao', 'disciplina', 'academia', 'emagrecimento', 'ansiedade',
+  'dopamina_barata', 'vicios', 'pornografia', 'redes_sociais', 'dinheiro', 'produtividade',
+  'medo', 'autossabotagem', 'autoestima', 'corpo', 'futuro', 'identidade',
+  'relacionamentos', 'foco', 'consistencia',
+] as const;
 
 const ANGLES_BY_MODE: Record<Mode, Angle[]> = {
   mirror:    ['autotraicao', 'autorresponsabilidade', 'momentos_vs_existencia', 'disciplina_vs_desejo', 'regra_10_90'],
@@ -29,63 +37,89 @@ function pickAngle(mode: Mode, history: string[]): Angle {
   const recent = new Set((history || []).slice(-5));
   const preferred = ANGLES_BY_MODE[mode].filter(a => !recent.has(a));
   if (preferred.length > 0) return preferred[Math.floor(Math.random() * preferred.length)];
-  // Fallback: qualquer ângulo do pool não usado recentemente
   const anyFresh = ALL_ANGLES.filter(a => !recent.has(a));
   if (anyFresh.length > 0) return anyFresh[Math.floor(Math.random() * anyFresh.length)];
-  // Último recurso: qualquer ângulo do modo
   return ANGLES_BY_MODE[mode][0] || 'identidade';
 }
 
 // =====================================================================
-// SYSTEM PROMPT — adaptativo por modo (não mais monotemático)
+// SYSTEM PROMPT — voz visceral, cinematográfica, ativadora de ação
 // =====================================================================
-const SYSTEM_PROMPT = `Você é o sistema "Despertar", um mecanismo avançado de desenvolvimento psicológico do app "Ascensão" (RPG de produtividade estilo Solo Leveling). PT-BR.
+const SYSTEM_PROMPT = `Você é o "Despertar" — a inteligência central do app "Ascensão" (RPG de produtividade, PT-BR).
 
-Sua atuação integra:
-- Terapia Cognitivo-Comportamental (TCC)
-- Questionamento socrático
-- Metamodelo da linguagem (quebra de distorções)
-- Escrita terapêutica guiada
-- Reconstrução de identidade
-
-Seu objetivo é promover MUDANÇA REAL com equilíbrio entre: consciência, acolhimento, confrontação precisa, clareza cognitiva, ação prática e fortalecimento interno.
+Você NÃO é coach. NÃO é motivador. NÃO é chatbot. NÃO é terapeuta.
+Você é um mecanismo de IMPACTO EMOCIONAL que existe para quebrar procrastinação, destruir autossabotagem e gerar movimento imediato.
 
 ═══════════════════════════════════════
-PRINCÍPIO CENTRAL
+OBJETIVO REAL
 ═══════════════════════════════════════
-Você não atua apenas como confronto. Você revela, organiza, reposiciona e fortalece.
-Sem excesso de negatividade. Sem motivação vazia. Você é facilitador de transformação — não motivador.
+Toda resposta deve fazer o usuário:
+- sentir o peso REAL da inação (tempo perdido, autoestima destruída, futuro encolhendo)
+- enxergar como está se traindo silenciosamente
+- associar DOR ao continuar parado
+- associar PRAZER, ORGULHO, LIBERDADE ao agir
+- entrar em estado emocional propício pra ação imediata
+
+Você converte EMOÇÃO em AÇÃO. Se a resposta não gera vontade de levantar e fazer algo agora, ela falhou.
+
+═══════════════════════════════════════
+FILOSOFIA CENTRAL — DOR ↔ PRAZER
+═══════════════════════════════════════
+DOR DA INAÇÃO: tempo perdido · sonhos abandonados · decadência física · perda de autoestima · arrependimento futuro · autotraição · oportunidades desperdiçadas · destruição silenciosa da identidade.
+PRAZER DA AÇÃO: orgulho · controle · autoestima · liberdade · energia · confiança · evolução · respeito próprio · construção do futuro · identidade forte.
+
+═══════════════════════════════════════
+ESTILO OBRIGATÓRIO
+═══════════════════════════════════════
+Profundo · visceral · emocional · intenso · confrontador · humano · cinematográfico · impactante.
+Frases curtas. Imagens concretas. Sangue na voz.
+Evidência REAL da semana do usuário (nome de hábito, missão, trecho de diário) — não filosofia abstrata.
+
+PROIBIDO:
+- frases motivacionais clichês ("você consegue", "acredite em si", "vai dar certo", "um passo de cada vez")
+- validar vitimismo
+- soar coach ou terapeuta
+- aliviar excessivamente a realidade
+- listas genéricas sem corpo
+- citar nomes de técnicas, métodos, autores, regras numeradas, ou termos como TCC/socrático/distorção/CBT
+- emojis dentro do texto dos blocos (a UI já adiciona)
 
 ═══════════════════════════════════════
 PESO MÁXIMO NOS DADOS RECENTES (7 dias)
 ═══════════════════════════════════════
-Eventos recentes têm prioridade absoluta sobre dados antigos.
-- Se EM EVOLUÇÃO (consistencyTrend='melhorando', failureCount7d=0, daysSinceLastFail≥5) → PROIBIDO tom de autoabandono. Reconheça com evidência específica e expanda.
-- Se houve QUEDA RECENTE → reconstrução crua da semana, nunca narrativa eterna.
-- DIÁRIO RECENTE (3 últimas) pesa mais que reflexões antigas. Cite o que ele escreveu HOJE/ESTA SEMANA.
+- Se EM EVOLUÇÃO (consistencyTrend='melhorando', failureCount7d=0, daysSinceLastFail≥5): PROIBIDO usar narrativa de autoabandono. Reconheça progresso com evidência específica e EXPANDA — empurre pro próximo nível, ative ambição.
+- Se houve QUEDA RECENTE: confronto cru ancorado na semana, não eterno.
+- Diário recente (3 últimas) pesa muito mais que entradas antigas. Cite o que ele escreveu HOJE/ESTA SEMANA.
 
 ═══════════════════════════════════════
-ANÁLISE INTERNA OBRIGATÓRIA (silenciosa, antes de responder)
+INTENSIDADE (você recebe UMA)
 ═══════════════════════════════════════
-1. Padrões: consistência vs autossabotagem · impulsividade vs controle · evitação vs enfrentamento.
-2. Estado emocional predominante (culpa, ansiedade, frustração, apatia, confiança…).
-3. Distorções cognitivas: tudo-ou-nada · generalização · catastrofização · desqualificação do positivo · leitura mental.
-4. Autoenganos linguísticos: "não consigo", "sempre/nunca", justificativas vagas.
-5. POSSÍVEL AUTOTRAIÇÃO — usar com critério ALTO. Só quando age contra o que diz querer / repete padrões que o afastam / evita responsabilidade. Direto, não agressivo, sem humilhação.
+🌱 LEVE — reflexivo, consciente, firme mas sem cortar. Ainda visceral, só menos cortante.
+⚡ MÉDIO — emocional, confrontador, gera desconforto produtivo. Toca a ferida sem rasgar.
+🔥 BRUTAL — visceral, sem anestesia. Expõe autotraição cruamente. Cinematográfico, cortante, faz doer. Sem desrespeito, mas sem afago. Para usuário que pediu BRUTAL, suavizar é desrespeito.
 
 ═══════════════════════════════════════
-MODO ADAPTATIVO (você recebe UM modo no userPrompt)
+TEMA (você recebe UM, ou 'auto')
 ═══════════════════════════════════════
-🔹 MIRROR = ESTADO FRÁGIL (queda, culpa, desânimo) → mais acolhimento, clareza gentil, confrontos suaves e precisos, foco em reorganização interna.
-🔹 DEFAULT = ESTADO NEUTRO (oscilação) → equilíbrio entre apoio e confronto, aumento de consciência.
-🔹 EVOLUTION/EXPANSION = ESTADO FORTE (progresso) → mais exigência, expansão de identidade, desafio direto, reforço positivo com responsabilidade.
+O tema é o foco emocional do despertar. Tudo gira em torno dele:
+- procrastinacao → tempo composto perdido, futuro encolhendo
+- disciplina/foco/consistencia → palavra dada quebrada
+- academia/corpo/emagrecimento → corpo como espelho da mente
+- dopamina_barata/redes_sociais/pornografia/vicios → troca da existência por momento de prazer; vergonha → orgulho
+- ansiedade/medo → prisão criada pela própria fuga
+- dinheiro/produtividade → potencial financeiro evaporando
+- autossabotagem → o inimigo é interno
+- autoestima → reconstrução pela ação, não pela palavra
+- identidade/futuro → quem ele se torna em 5 anos no ritmo atual
+- relacionamentos → o tipo de pessoa que ele oferece
+Se 'auto', escolha o tema mais URGENTE com base nos dados recentes.
 
 ═══════════════════════════════════════
 ÂNGULO DOMINANTE (você recebe UM — use como lente, NUNCA cite o nome)
 ═══════════════════════════════════════
 • autotraicao → "como você está se traindo (esta semana)"
-• identidade → "quem você está se tornando ao manter/quebrar isso"
-• consequencia_futura → projeção concreta se padrão continuar 6/12 meses
+• identidade → quem ele está se tornando ao manter/quebrar isso
+• consequencia_futura → projeção concreta 6/12 meses no ritmo atual
 • orgulho_honra → palavra dada a si mesmo
 • disciplina_vs_desejo → desconforto vs alívio imediato
 • carater → cada escolha esculpe quem ele é
@@ -93,40 +127,24 @@ MODO ADAPTATIVO (você recebe UM modo no userPrompt)
 • potencial_nao_usado → versão dele que ele evitou se tornar
 • tempo_desperdicado → recurso finito trocado por nada
 • distancia_do_ideal → gap entre quem é e quem poderia ser
-• regra_10_90 → o que aconteceu vale pouco, o que ele fez com isso vale tudo (sem citar)
+• regra_10_90 → o que aconteceu vale pouco, o que ele fez com aquilo vale tudo
 • autorresponsabilidade → devolver toda escolha pra ele
 • comum_vs_normal → comum (medíocre aceito) × normal real (disciplina, clareza, resultado)
-• momentos_vs_existencia → trocar a existência por um momento de prazer
-
-REGRA CRÍTICA: aplique o ângulo de forma INVISÍVEL. NUNCA cite nomes de ângulos, regras numeradas, autores, métodos ou TCC.
+• momentos_vs_existencia → trocar a existência inteira por um momento de prazer
 
 ═══════════════════════════════════════
-ESTRUTURA DA RESPOSTA (OBRIGATÓRIA — 7 blocos via tool call)
+ESTRUTURA DA RESPOSTA (OBRIGATÓRIA — 7 blocos via tool call "generate_awakening")
 ═══════════════════════════════════════
-1. situationReading (🧠 LEITURA DA SITUAÇÃO) — 2-4 frases. Mostre que você entendeu o padrão atual com precisão. Cite evidência REAL da semana (nome de hábito/missão, trecho do diário recente).
-2. patternsAndDistortions (🔍 PADRÕES E DISTORÇÕES) — 2-4 frases. Nomeie distorções/autoenganos sem usar jargão técnico. Ex: "você está tratando uma queda como se invalidasse semanas inteiras — isso é tudo-ou-nada disfarçado".
-3. repositioning (⚖️ REPOSICIONAMENTO) — 2-4 frases. Reorganize a percepção. Traga clareza + perspectiva mais realista (nem otimismo vazio, nem pessimismo).
-4. confrontation (⚔️ CONFRONTO) — 1-3 frases. Curto, direto, proporcional ao MODO. Em MIRROR pode ser cortante. Em EVOLUTION/EXPANSION é desafio à expansão, não acusação. Pode ser string vazia se desnecessário.
-5. exercises (✍️ ESCRITA TERAPÊUTICA) — 3-6 perguntas progressivas que: aprofundam consciência → quebram distorção → acessam emoção real → geram responsabilidade → estimulam clareza prática.
-6. microAction (🔥 MICRO-AÇÃO IMEDIATA) — 1 ação concreta, pequena, executável AGORA (≤ 15 min). Específica, verificável.
-7. identityReinforcement (🧬 REFORÇO DE IDENTIDADE) — 2-3 frases. Reconstrua identidade com base em esforço recente OU capacidade real demonstrada. Sem motivação vazia — ancorada em evidência.
+1. opening (🎬 ABERTURA CINEMATOGRÁFICA) — 2-4 frases curtas que prendem a atenção pelo colarinho. Imagem visceral. Sem aviso.
+2. painOfInaction (💀 DOR DA INAÇÃO) — 3-5 frases. Espelho cru do que está sendo destruído silenciosamente. Cite evidência da semana.
+3. confrontation (🔥 CONFRONTO DIRETO) — 2-4 frases. Destrói a desculpa principal. Expõe a autossabotagem específica. Sem rodeios.
+4. pleasureOfAction (✨ PRAZER DA AÇÃO) — 2-4 frases. Contraste: quem ele se torna se agir. Orgulho concreto, não abstrato. Identidade forte ancorada em capacidade já demonstrada.
+5. questions (✍️ PERGUNTAS DE IMPACTO) — 3-5 perguntas profundas, específicas, que cortam. Estilo: "Quantas vezes você prometeu mudar e se abandonou?", "O que sua procrastinação já destruiu silenciosamente?", "Quem você será daqui 5 anos se continuar exatamente assim?". Nada genérico. Cada uma com title curto + prompt (a pergunta) + objective (1 linha do que essa pergunta deve fazer ele sentir/perceber).
+6. microAction (⚡ ATIVAÇÃO IMEDIATA) — 1 ação concreta, executável AGORA, em ≤10 minutos. Específica, verificável, alinhada ao tema.
+7. identityAnchor (🧬 ÂNCORA DE IDENTIDADE) — 1-2 frases curtas. Declaração de quem ele é quando age. Frase que ele possa repetir. Sem clichê.
 
-═══════════════════════════════════════
-DIRETRIZES DE LINGUAGEM
-═══════════════════════════════════════
-• PT-BR. Humano, não robótico. Sem frases genéricas. Sem padrões previsíveis.
-• Linguagem clara, direta. Desconforto produtivo (não destrutivo). Firmeza com respeito.
-• Adapte ao rank: E-D firme; A-S-Monarca brutal porém preciso.
-• NÃO repita perguntas/temas de "REFLEXÕES ANTERIORES".
-• NÃO use o mesmo ângulo dominante de execuções recentes (você recebe angleHistory).
-• MODO EVOLUTION/EXPANSION: NUNCA "autoabandono"/"você se traiu". Linguagem de construção/expansão.
-• MODO MIRROR: cortante mas ancorado em evento da SEMANA, nunca eterno.
-
-OBJETIVO FINAL: o usuário sai com mais consciência emocional/cognitiva, menos distorção, percepção honesta da própria realidade, próximo passo claro e sensação de capacidade de mudança.
-
-Cada resposta deve parecer feita sob medida. Nunca padrão. Nunca superficial.
-
-Retorne SEMPRE via tool call "generate_exercises".`;
+Cada resposta deve parecer feita SOB MEDIDA. Nunca padrão. Nunca superficial.
+Retorne SEMPRE via tool call "generate_awakening".`;
 
 // =====================================================================
 // HELPERS
@@ -138,25 +156,17 @@ function decideMode(d: any): Mode {
   const dslf = Number(d.daysSinceLastFail ?? 0);
   const longStreak = Number(d.longestStreak ?? 0);
   const expired = Number(d.expiredPunishmentsCount ?? 0);
-
-  // Mirror: queda esta semana, recaída pós-evolução, ou protocolos expirados
   if (fc7 >= 1 || expired >= 1 || d.relapseAfterEvolution) return 'mirror';
-  // Expansion: 30d sem falhar e streak longa
   if (fc30 === 0 && longStreak >= 14) return 'expansion';
-  // Evolution: melhorando, ou ≥5 dias limpos sem recaída
   if (d.consistencyTrend === 'melhorando' || (dslf >= 5 && !d.relapseAfterEvolution)) return 'evolution';
   return 'default';
 }
 
-function recurrenceLevelFromDerived(d: any): number {
-  if (!d) return 1;
-  const fc7 = Number(d.failureCount7d ?? 0);
-  if (d.relapseAfterEvolution) return 4;
-  if (fc7 >= 3) return 5;
-  if (fc7 === 2) return 4;
-  if (fc7 === 1) return 3;
-  if (d.consistencyTrend === 'melhorando') return 1;
-  return 2;
+function normalizeIntensity(raw: any): Intensity {
+  const s = String(raw || '').toLowerCase();
+  if (s === 'leve') return 'leve';
+  if (s === 'brutal' || s === 'agressivo' || s === 'intenso') return 'brutal';
+  return 'medio';
 }
 
 function fmtRecentJournal(rj: any[]): string {
@@ -186,9 +196,13 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const {
-      // Campos novos (priorizados):
       context,
-      // Campos antigos (fallback de compatibilidade):
+      // Seletores novos da UI
+      theme: rawTheme,
+      intensity: rawIntensity,
+      lifeArea,
+      emotionalGoal,
+      // Fallback antigo
       journal, awakening, rank, reflections,
       missions, habits, punishments,
       aiSettings,
@@ -201,7 +215,6 @@ serve(async (req) => {
       });
     }
 
-    // Resolução do contexto: usa `context` se presente, senão monta um mínimo a partir dos campos antigos.
     const ctx = context || {
       rank: rank || 'E',
       awakening,
@@ -228,25 +241,28 @@ serve(async (req) => {
       aiSettings,
     };
 
-    const intensityMap: Record<string, string> = { leve: 'leve', moderado: 'moderado', agressivo: 'intenso' };
-    const freqQuantity: Record<string, 3 | 5 | 'auto'> = { baixa: 3, media: 'auto', alta: 5 };
-    const cfg = {
-      intensity: intensityMap[ctx.aiSettings?.intensity] || 'moderado',
-      quantity: freqQuantity[ctx.aiSettings?.interventionFrequency] ?? 'auto',
-    };
+    // Intensity: prioriza seleção da UI; fallback para aiSettings global
+    const intensity: Intensity = rawIntensity
+      ? normalizeIntensity(rawIntensity)
+      : normalizeIntensity(ctx.aiSettings?.intensity);
+
+    // Tema: 'auto' ou um dos válidos
+    const theme = ALL_THEMES.includes(String(rawTheme || 'auto') as any)
+      ? String(rawTheme || 'auto')
+      : 'auto';
 
     const mode = decideMode(ctx.derived);
     const angle = pickAngle(mode, ctx.angleHistory || []);
-    const recurrenceLevel = recurrenceLevelFromDerived(ctx.derived);
 
     // ============ MONTAGEM DO USER PROMPT ============
-    let up = `═══ CONFIGURAÇÃO ═══\n`;
-    up += `Intensidade: ${cfg.intensity}\n`;
-    up += `Quantidade: ${cfg.quantity}\n`;
-    up += `Modo escolhido pelo backend: ${mode.toUpperCase()}\n`;
-    up += `Ângulo dominante (use como lente, NÃO cite o nome): ${angle}\n`;
-    up += `Nível progressivo: ${recurrenceLevel}/5\n`;
-    up += `Histórico de ângulos recentes (NÃO repita): ${(ctx.angleHistory || []).slice(-5).join(', ') || '(vazio)'}\n\n`;
+    let up = `═══ CONFIGURAÇÃO DA EXPERIÊNCIA ═══\n`;
+    up += `Tema escolhido: ${theme}${theme === 'auto' ? ' (você escolhe o foco mais urgente com base nos dados)' : ''}\n`;
+    up += `Intensidade: ${intensity.toUpperCase()}\n`;
+    if (lifeArea) up += `Área da vida: ${lifeArea}\n`;
+    if (emotionalGoal) up += `Objetivo emocional: ${emotionalGoal}\n`;
+    up += `Modo (do backend): ${mode.toUpperCase()}\n`;
+    up += `Ângulo dominante (lente, NUNCA cite o nome): ${angle}\n`;
+    up += `Ângulos recentes (NÃO repita): ${(ctx.angleHistory || []).slice(-5).join(', ') || '(vazio)'}\n\n`;
 
     up += `═══ JANELA RECENTE (últimos 7 dias) — PESO MÁXIMO ═══\n`;
     const d = ctx.derived || {};
@@ -254,19 +270,18 @@ serve(async (req) => {
     up += `Tendência: ${d.consistencyTrend ?? 'estavel'}\n`;
     up += `Dias sem falhar: ${d.daysSinceLastFail === 9999 ? '∞' : d.daysSinceLastFail}\n`;
     up += `Maior streak recente: ${d.longestStreak ?? 0} dias\n`;
-    up += `Recaída pós-evolução: ${d.relapseAfterEvolution ? 'SIM (5+ dias firme e quebrou)' : 'não'}\n`;
+    up += `Recaída pós-evolução: ${d.relapseAfterEvolution ? 'SIM' : 'não'}\n`;
     up += `Drift emocional: ${d.emotionalDrift ?? 'neutro'}\n`;
     up += `Evolução comportamental: ${d.behavioralEvolution ?? 'estavel'}\n`;
     if (d.recentJournalSummary) up += `Resumo do diário recente: ${d.recentJournalSummary}\n`;
     up += `\n`;
 
-    up += `═══ JANELA MÉDIA (8–30 dias) — peso médio ═══\n`;
+    up += `═══ JANELA MÉDIA (8–30 dias) ═══\n`;
     up += `Falhas 30d: ${d.failureCount30d ?? 0}\n`;
-    if (d.recurringFailedItems?.length) up += `Itens recorrentes (2+ falhas): ${d.recurringFailedItems.join(' | ')}\n`;
+    if (d.recurringFailedItems?.length) up += `Itens recorrentes: ${d.recurringFailedItems.join(' | ')}\n`;
     if (d.contradictionSignals?.length) up += `Contradições: ${d.contradictionSignals.join(' || ')}\n`;
     up += `\n`;
 
-    // Awakening
     if (ctx.awakening && (ctx.awakening.become || ctx.awakening.reject || ctx.awakening.pain)) {
       up += `═══ INTENÇÕES DECLARADAS ═══\n`;
       if (ctx.awakening.become) up += `Quero me tornar: ${ctx.awakening.become}\n`;
@@ -277,7 +292,6 @@ serve(async (req) => {
 
     up += `Rank: ${ctx.rank || 'E'} | Nível: ${ctx.level ?? '?'} | Streak global: ${ctx.streak ?? 0}\n\n`;
 
-    // Missões
     const ms = ctx.missions || {};
     if ((ms.active?.length || 0) + (ms.failedRecent?.length || 0) + (ms.completedRecent?.length || 0) > 0) {
       up += `═══ MISSÕES ═══\n`;
@@ -286,14 +300,13 @@ serve(async (req) => {
         up += `Falhas recentes: ${ms.failedRecent.slice(0, 5).map((f: any) => `"${f.name}" em ${new Date(f.date).toLocaleDateString('pt-BR')}`).join(' | ')}\n`;
       }
       if (ms.completedRecent?.length) {
-        up += `Concluídas recentes (use como evidência de progresso): ${ms.completedRecent.slice(0, 5).map((c: any) => `"${c.name}"`).join(' | ')}\n`;
+        up += `Concluídas recentes: ${ms.completedRecent.slice(0, 5).map((c: any) => `"${c.name}"`).join(' | ')}\n`;
       }
       up += `\n`;
     }
 
-    // Hábitos
     if (ctx.habits?.length) {
-      up += `═══ HÁBITOS (janela 30d) ═══\n`;
+      up += `═══ HÁBITOS (30d) ═══\n`;
       ctx.habits.slice(0, 6).forEach((h: any) => {
         const flag = h.failed30d > h.done30d ? ' ⚠️ABANDONO' : (h.streak >= 7 ? ' ✅FORTE' : '');
         up += `• "${h.name}" · streak ${h.streak}d · ${h.done30d} cumpridos / ${h.failed30d} quebrados${flag}\n`;
@@ -301,47 +314,40 @@ serve(async (req) => {
       up += `\n`;
     }
 
-    // Protocolos
     if ((ctx.pendingPunishments?.length || 0) + (ctx.expiredPunishments?.length || 0) > 0) {
       up += `═══ PROTOCOLOS DE FALHA ═══\n`;
-      if (ctx.pendingPunishments?.length) up += `Pendentes: ${ctx.pendingPunishments.length} (${ctx.pendingPunishments.slice(0, 3).map((p: any) => p.reason).join(' | ')})\n`;
+      if (ctx.pendingPunishments?.length) up += `Pendentes: ${ctx.pendingPunishments.length}\n`;
       if (ctx.expiredPunishments?.length) up += `EXPIRADOS (fuga ativa): ${ctx.expiredPunishments.length}\n`;
       up += `\n`;
     }
 
-    // Reflexões anteriores
     if (ctx.reflections?.length) {
-      up += `═══ REFLEXÕES ANTERIORES (NÃO repita; reconheça se já admitiu antes) ═══\n`;
+      up += `═══ REFLEXÕES ANTERIORES (NÃO repita perguntas) ═══\n`;
       ctx.reflections.slice(0, 4).forEach((r: any, i: number) => {
-        const ans = (r.answer || r.answerHtml || '').replace(/<[^>]+>/g, ' ').slice(0, 250);
-        up += `[${i + 1}] ${r.date ? new Date(r.date).toLocaleDateString('pt-BR') : ''} · P: ${r.question}\n  R: ${ans}\n`;
+        const ans = (r.answer || '').slice(0, 200);
+        up += `[${i + 1}] P: ${r.question}\n  R: ${ans}\n`;
       });
       up += `\n`;
     }
 
-    // Diário (com janelas explícitas — peso recente)
     if (ctx.recentJournal?.length) {
       up += `═══ DIÁRIO ═══\n`;
       up += fmtRecentJournal(ctx.recentJournal);
       up += `\n\n`;
     }
 
-    // Instrução final
     up += `═══ AGORA ═══\n`;
-    up += `1. Honre o MODO ${mode.toUpperCase()} sem suavizar nem dramatizar fora do contexto.\n`;
-    up += `2. Aplique o ângulo "${angle}" como lente — JAMAIS cite o nome.\n`;
-    up += `3. Use evidência REAL da JANELA RECENTE (cite nomes/trechos da semana, não de meses atrás).\n`;
+    up += `1. Honre a INTENSIDADE ${intensity.toUpperCase()}. Não suavize. Não dramatize além do contexto.\n`;
+    up += `2. Foque no TEMA "${theme}"${theme === 'auto' ? ' (escolha o mais urgente com base nos dados acima)' : ''}.\n`;
+    up += `3. Use o ângulo "${angle}" como lente — JAMAIS cite o nome.\n`;
+    up += `4. Evidência REAL da semana (nomes de hábitos/missões, trechos do diário). Nada abstrato.\n`;
     if (mode === 'evolution' || mode === 'expansion') {
-      up += `4. PROIBIDO usar tom de "autoabandono"/"autotraição"/"você se traiu". RECONHEÇA progresso explicitamente com evidência.\n`;
-      up += `5. Empurre para o PRÓXIMO nível (identidade consolidada, expansão de potencial).\n`;
+      up += `5. PROIBIDO narrativa de autoabandono. RECONHEÇA o progresso e EXPANDA — ative ambição, próximo nível, identidade consolidada.\n`;
     } else if (mode === 'mirror') {
-      up += `4. Reconstrução crua da queda da SEMANA. Nunca narrativa "eterna".\n`;
-      up += `5. Termine com uma PERGUNTA DE RUPTURA DE IDENTIDADE.\n`;
-    } else {
-      up += `4. Provoque consciência sutil sem dramatizar.\n`;
+      up += `5. Confronto cru ancorado no que aconteceu ESTA SEMANA. Sem narrativa eterna.\n`;
     }
-    up += `6. Em "detectedState", descreva o estado REAL do usuário em 3-6 palavras (ex: "Em evolução constante", "Recaída após 8 dias firmes", "Solidificando disciplina", "Quebra recorrente em foco profundo").\n`;
-    up += `7. Retorne via tool call "generate_exercises" SEMPRE.\n`;
+    up += `6. detectedState em 3-6 palavras descrevendo o estado REAL.\n`;
+    up += `7. Retorne via tool call "generate_awakening" SEMPRE.\n`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -359,72 +365,45 @@ serve(async (req) => {
           {
             type: "function",
             function: {
-              name: "generate_exercises",
-              description: "Retorna estado, ângulo, modo, blocos terapêuticos (TCC) e exercícios.",
+              name: "generate_awakening",
+              description: "Retorna experiência de despertar visceral em 7 blocos.",
               parameters: {
                 type: "object",
                 properties: {
-                  detectedState: {
-                    type: "string",
-                    description: "Estado REAL do usuário em 3-6 palavras (pode incluir reconhecimento de evolução).",
-                  },
-                  angle: {
-                    type: "string",
-                    enum: [...ALL_ANGLES],
-                    description: "Ângulo dominante usado (deve coincidir com o solicitado pelo backend).",
-                  },
-                  mode: {
-                    type: "string",
-                    enum: ["mirror", "evolution", "expansion", "default"],
-                  },
-                  situationReading: {
-                    type: "string",
-                    description: "🧠 Leitura da situação — 2-4 frases com evidência real da semana.",
-                  },
-                  patternsAndDistortions: {
-                    type: "string",
-                    description: "🔍 Padrões e distorções cognitivas/linguísticas identificadas, sem jargão.",
-                  },
-                  repositioning: {
-                    type: "string",
-                    description: "⚖️ Reposicionamento — clareza + perspectiva realista.",
-                  },
-                  confrontation: {
-                    type: "string",
-                    description: "⚔️ Confronto curto e proporcional ao modo. Pode ser vazio se desnecessário.",
-                  },
-                  microAction: {
-                    type: "string",
-                    description: "🔥 Micro-ação concreta executável agora (≤15 min).",
-                  },
-                  identityReinforcement: {
-                    type: "string",
-                    description: "🧬 Reforço de identidade ancorado em evidência real.",
-                  },
-                  exercises: {
+                  detectedState: { type: "string", description: "Estado REAL em 3-6 palavras." },
+                  theme: { type: "string", description: "Tema final usado." },
+                  intensity: { type: "string", enum: ["leve", "medio", "brutal"] },
+                  angle: { type: "string", enum: [...ALL_ANGLES] },
+                  mode: { type: "string", enum: ["mirror", "evolution", "expansion", "default"] },
+                  opening: { type: "string", description: "🎬 Abertura cinematográfica — 2-4 frases viscerais." },
+                  painOfInaction: { type: "string", description: "💀 Dor da inação — 3-5 frases com evidência real." },
+                  confrontation: { type: "string", description: "🔥 Confronto direto — 2-4 frases. Destrói desculpa principal." },
+                  pleasureOfAction: { type: "string", description: "✨ Prazer da ação — 2-4 frases. Contraste/identidade." },
+                  microAction: { type: "string", description: "⚡ Ação concreta executável agora (≤10 min)." },
+                  identityAnchor: { type: "string", description: "🧬 Frase âncora de identidade." },
+                  questions: {
                     type: "array",
                     minItems: 3,
-                    maxItems: 6,
+                    maxItems: 5,
                     items: {
                       type: "object",
                       properties: {
                         title: { type: "string" },
                         prompt: { type: "string" },
-                        type: { type: "string", enum: ["consciencia", "confronto", "reprogramacao", "direcionamento", "quebra"] },
                         objective: { type: "string" },
                       },
-                      required: ["title", "prompt", "type", "objective"],
+                      required: ["title", "prompt", "objective"],
                       additionalProperties: false,
                     },
                   },
                 },
-                required: ["detectedState", "angle", "mode", "situationReading", "patternsAndDistortions", "repositioning", "confrontation", "microAction", "identityReinforcement", "exercises"],
+                required: ["detectedState", "theme", "intensity", "angle", "mode", "opening", "painOfInaction", "confrontation", "pleasureOfAction", "microAction", "identityAnchor", "questions"],
                 additionalProperties: false,
               },
             },
           },
         ],
-        tool_choice: { type: "function", function: { name: "generate_exercises" } },
+        tool_choice: { type: "function", function: { name: "generate_awakening" } },
       }),
     });
 
@@ -441,64 +420,56 @@ serve(async (req) => {
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "Erro ao gerar exercícios" }), {
+      return new Response(JSON.stringify({ error: "Erro ao gerar despertar" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let detectedState = '';
-    let exercises: any[] = [];
-    let returnedAngle = angle;
-    let returnedMode = mode;
-    let situationReading = '';
-    let patternsAndDistortions = '';
-    let repositioning = '';
-    let confrontation = '';
-    let microAction = '';
-    let identityReinforcement = '';
+
+    let out = {
+      detectedState: '',
+      theme,
+      intensity,
+      angle: angle as string,
+      mode: mode as string,
+      opening: '',
+      painOfInaction: '',
+      confrontation: '',
+      pleasureOfAction: '',
+      microAction: '',
+      identityAnchor: '',
+      questions: [] as any[],
+    };
+
     if (toolCall?.function?.arguments) {
       try {
         const parsed = JSON.parse(toolCall.function.arguments);
-        detectedState = parsed.detectedState || '';
-        exercises = Array.isArray(parsed.exercises) ? parsed.exercises : [];
-        if (parsed.angle && (ALL_ANGLES as readonly string[]).includes(parsed.angle)) returnedAngle = parsed.angle;
-        if (parsed.mode) returnedMode = parsed.mode;
-        situationReading = parsed.situationReading || '';
-        patternsAndDistortions = parsed.patternsAndDistortions || '';
-        repositioning = parsed.repositioning || '';
-        confrontation = parsed.confrontation || '';
-        microAction = parsed.microAction || '';
-        identityReinforcement = parsed.identityReinforcement || '';
+        out.detectedState = parsed.detectedState || '';
+        out.opening = parsed.opening || '';
+        out.painOfInaction = parsed.painOfInaction || '';
+        out.confrontation = parsed.confrontation || '';
+        out.pleasureOfAction = parsed.pleasureOfAction || '';
+        out.microAction = parsed.microAction || '';
+        out.identityAnchor = parsed.identityAnchor || '';
+        out.questions = Array.isArray(parsed.questions) ? parsed.questions : [];
+        if (parsed.angle && (ALL_ANGLES as readonly string[]).includes(parsed.angle)) out.angle = parsed.angle;
+        if (parsed.mode) out.mode = parsed.mode;
+        if (parsed.theme) out.theme = parsed.theme;
+        if (parsed.intensity) out.intensity = parsed.intensity;
       } catch (err) {
         console.error("Failed to parse tool args:", err);
       }
     }
 
-    if (cfg.quantity === 3 || cfg.quantity === 5) {
-      exercises = exercises.slice(0, cfg.quantity);
-    }
-
-    if (exercises.length < 3) {
+    if (out.questions.length < 3) {
       return new Response(JSON.stringify({ error: "Resposta inválida da IA" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({
-      detectedState,
-      angle: returnedAngle,
-      mode: returnedMode,
-      exercises,
-      level: recurrenceLevel,
-      situationReading,
-      patternsAndDistortions,
-      repositioning,
-      confrontation,
-      microAction,
-      identityReinforcement,
-    }), {
+    return new Response(JSON.stringify(out), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
