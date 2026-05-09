@@ -42,6 +42,13 @@ export interface AiContext {
   xp: number;
   awakening: { become?: string; reject?: string; pain?: string };
 
+  // Tony Robbins layer
+  honor?: number;
+  identityLevel?: { id: string; label: string; stability: number };
+  disciplineStreak?: { current: number; best: number };
+  activeSabotagePatterns?: Array<{ kind: string; pattern: string; itemRef: string }>;
+  dailyRitual?: { lastCompletedDate: string; identityChosen: string; commitment: string; streak: number };
+
   // Histórico denso
   recentJournal: Array<{
     date: string;
