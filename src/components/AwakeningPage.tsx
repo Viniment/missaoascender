@@ -1,13 +1,16 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { buildAiContext } from '@/lib/aiContext';
 import RichEditor from './RichEditor';
+import DailyRitualDialog from './DailyRitualDialog';
+import SabotageConfrontDialog from './SabotageConfrontDialog';
+import { getTodayBrasilia } from '@/lib/utils';
 
 interface AwakeningQuestion {
   title: string;
@@ -71,6 +74,13 @@ export default function AwakeningPage() {
   const [intensity, setIntensity] = useState<'leve' | 'medio' | 'brutal'>('medio');
   const [lifeArea, setLifeArea] = useState<string>('');
   const [emotionalGoal, setEmotionalGoal] = useState<string>('');
+
+  // Tony Robbins layer
+  const [ritualOpen, setRitualOpen] = useState(false);
+  const [activeSabotage, setActiveSabotage] = useState<any>(null);
+  const today = getTodayBrasilia();
+  const ritualDoneToday = state.dailyRitual?.lastCompletedDate === today;
+  const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
 
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -216,6 +226,48 @@ export default function AwakeningPage() {
         <h2 className="font-display text-xl text-primary glow-text-purple">DESPERTAR</h2>
         <p className="text-xs text-foreground/60">Quebre a procrastinação. Destrua a autossabotagem. Mova-se agora.</p>
       </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`rpg-panel ${ritualDoneToday ? 'border-success/30 bg-success/5' : 'border-primary/40 bg-primary/5'}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] uppercase tracking-wider text-primary/80 font-display">🌅 Ritual de Hoje</p>
+            {ritualDoneToday ? (
+              <>
+                <p className="text-sm text-foreground/90 mt-1">✅ Cumprido. Identidade: <strong className="text-primary">{state.dailyRitual?.identityChosen}</strong></p>
+                <p className="text-[11px] text-foreground/60 italic mt-1">"{state.dailyRitual?.commitment}"</p>
+              </>
+            ) : (
+              <p className="text-sm text-foreground/80 mt-1">4 passos. 3 minutos. Ativa quem você quer ser hoje.</p>
+            )}
+          </div>
+          <Button size="sm" variant={ritualDoneToday ? 'outline' : 'default'} onClick={() => setRitualOpen(true)}>
+            <Flame className="w-3.5 h-3.5 mr-1" />{ritualDoneToday ? 'Refazer' : 'Iniciar'}
+          </Button>
+        </div>
+        {(state.dailyRitual?.streak ?? 0) > 0 && (
+          <p className="text-[10px] text-foreground/50 mt-2">🔥 {state.dailyRitual!.streak} dias consecutivos</p>
+        )}
+      </motion.div>
+
+      {activePatterns.length > 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rpg-panel border-destructive/40 bg-destructive/5">
+          <p className="text-[10px] uppercase tracking-wider text-destructive font-display flex items-center gap-1.5">
+            <AlertTriangle className="w-3 h-3" /> 🩸 {activePatterns.length} padrão{activePatterns.length > 1 ? 'ões' : ''} de fuga detectado{activePatterns.length > 1 ? 's' : ''}
+          </p>
+          <ul className="space-y-1.5 mt-2">
+            {activePatterns.slice(0, 3).map(p => (
+              <li key={p.id}>
+                <button type="button" onClick={() => setActiveSabotage(p)} className="w-full text-left text-xs text-foreground/85 hover:text-foreground p-2 rounded bg-background/40 border border-border/40 hover:border-destructive/40 transition">
+                  {p.pattern}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      )}
+
+      <DailyRitualDialog open={ritualOpen} onClose={() => setRitualOpen(false)} />
+      <SabotageConfrontDialog pattern={activeSabotage} onClose={() => setActiveSabotage(null)} />
 
       {/* Seletores */}
       <div className="rpg-panel space-y-4">

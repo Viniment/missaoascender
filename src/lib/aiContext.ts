@@ -3,6 +3,7 @@
 // para que cada edge function receba um payload uniforme e tome decisões adaptativas.
 
 import type { PlayerState, Mission, Habit } from './gameStore';
+import { computeIdentityLevel } from './identityLevels';
 
 const DAY_MS = 86_400_000;
 
@@ -41,6 +42,13 @@ export interface AiContext {
   streak: number;
   xp: number;
   awakening: { become?: string; reject?: string; pain?: string };
+
+  // Tony Robbins layer
+  honor?: number;
+  identityLevel?: { id: string; label: string; stability: number };
+  disciplineStreak?: { current: number; best: number };
+  activeSabotagePatterns?: Array<{ kind: string; pattern: string; itemRef: string }>;
+  dailyRitual?: { lastCompletedDate: string; identityChosen: string; commitment: string; streak: number };
 
   // Histórico denso
   recentJournal: Array<{
@@ -378,12 +386,25 @@ export function buildAiContext(state: PlayerState): AiContext {
     dslf,
   );
 
+  const il = computeIdentityLevel(state);
+  const identityLevelOut = { id: il.current.id, label: il.current.label, stability: il.stability };
+
   return {
     rank: state.rank,
     level: state.level,
     streak: state.streak,
     xp: state.xp,
     awakening: state.awakening || { become: '', reject: '', pain: '' },
+    honor: state.honor,
+    identityLevel: identityLevelOut,
+    disciplineStreak: state.disciplineStreak
+      ? { current: state.disciplineStreak.current, best: state.disciplineStreak.best }
+      : undefined,
+    activeSabotagePatterns: (state.sabotagePatterns || [])
+      .filter(p => !p.resolved)
+      .slice(0, 5)
+      .map(p => ({ kind: p.kind, pattern: p.pattern, itemRef: p.itemRef })),
+    dailyRitual: state.dailyRitual,
     recentJournal,
     reflections,
     missions: { active, failedRecent, completedRecent },

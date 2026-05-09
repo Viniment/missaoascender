@@ -3,6 +3,7 @@ import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Eye, TrendingUp, AlertTriangle, CheckCircle2, XCircle, ShieldOff, Waves, Utensils, Repeat, Hourglass, Snowflake, MoonStar, NotebookPen, Clock, Replace, Info, Zap, Armchair } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { computeIdentityLevel } from '@/lib/identityLevels';
 
 function daysAgo(iso: string) {
   return (Date.now() - new Date(iso).getTime()) / 86400000;
@@ -119,6 +120,9 @@ export default function MirrorPanel() {
       <p className="text-xs text-muted-foreground font-body italic">
         Aqui você se vê sem filtro. Promessas vs ações. Padrões vs evolução. Sem fugir.
       </p>
+
+      <IdentityProgress />
+
 
       {/* Promised vs Doing */}
       {(promised || reject) && (
@@ -427,4 +431,25 @@ function buildExercises(d: ExerciseInput): Exercise[] {
   });
 
   return out.sort((a, b) => b.priority - a.priority).slice(0, 6);
+}
+
+function IdentityProgress() {
+  const { state } = useGame();
+  const il = computeIdentityLevel(state);
+  const pct = Math.round(il.progressInLevel * 100);
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`rpg-panel ${il.current.bg}`}>
+      <h3 className={`font-display text-xs tracking-widest uppercase mb-1 flex items-center gap-2 ${il.current.color}`}>
+        🧬 Identidade Atual: {il.current.label}
+      </h3>
+      <p className="text-[11px] text-foreground/70 mb-3">{il.current.description}</p>
+      <div className="relative h-2 bg-secondary rounded-full overflow-hidden mb-1">
+        <div className={`absolute inset-y-0 left-0 rounded-full ${il.current.color.replace('text-', 'bg-')}`} style={{ width: `${pct}%` }} />
+      </div>
+      <div className="flex justify-between text-[10px] text-foreground/50">
+        <span>Estabilidade {il.stability}/100</span>
+        {il.next ? <span>{il.toNext} pts → {il.next.label}</span> : <span>Forma final</span>}
+      </div>
+    </motion.div>
+  );
 }
