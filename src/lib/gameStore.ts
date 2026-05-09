@@ -165,6 +165,34 @@ export interface IdentityFailureReflection {
   response?: string;
 }
 
+export interface DailyRitualState {
+  lastCompletedDate: string;     // YYYY-MM-DD (Brasília)
+  identityChosen: string;
+  commitment: string;
+  streak: number;                // dias consecutivos com ritual feito
+}
+
+export interface DisciplineStreakState {
+  current: number;
+  best: number;
+  lastValidDate: string;         // último dia que contou (YYYY-MM-DD)
+  lastBreakAt?: string;          // ISO da última quebra
+  lastBreakReason?: string;
+}
+
+export type SabotagePatternKind = 'fuga_recorrente' | 'evitacao_area' | 'sabotagem_pos_pico';
+
+export interface SabotagePattern {
+  id: string;
+  kind: SabotagePatternKind;
+  pattern: string;               // descrição humana
+  detectedAt: string;
+  itemRef: string;               // nome do hábito/missão/categoria
+  resolved: boolean;
+  resolvedAt?: string;
+  resolution?: 'agir' | 'refletir';
+}
+
 export interface IdentityState {
   enabled: boolean;
   newIdentity: string;
@@ -222,6 +250,11 @@ export interface PlayerState {
   identity?: IdentityState;
   awakeningConfig?: AwakeningConfig;
   tabsCleanupV2?: boolean;
+  // Tony Robbins layer
+  dailyRitual?: DailyRitualState;
+  disciplineStreak?: DisciplineStreakState;
+  sabotagePatterns?: SabotagePattern[];
+  honor?: number; // 0..1000
   // Histórico (rolling window) dos últimos ângulos psicológicos usados pela IA — evita repetição
   aiAngleHistory?: string[];
   _penaltyCompensated?: boolean;
