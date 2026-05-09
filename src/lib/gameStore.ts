@@ -1468,8 +1468,24 @@ export function useGameStore() {
     });
   }, []);
 
+  // Sabotage detector + discipline-streak break: roda quando hábitos/missões mudam
+  useEffect(() => {
+    detectAndRegisterSabotage();
+    // Quebra streak de disciplina se houve falha hoje (hábito ou missão)
+    const today = getTodayBrasilia();
+    let failedToday = false;
+    for (const h of state.habits || []) if (h.history?.[today] === 'failed') failedToday = true;
+    for (const m of state.missions || []) {
+      if (m.completedAt && m.status === 'Falhada' && m.completedAt.slice(0, 10) === today) failedToday = true;
+      for (const ch of m.completionHistory || []) if (ch.failed && ch.date.slice(0, 10) === today) failedToday = true;
+    }
+    if (failedToday && (state.disciplineStreak?.current ?? 0) > 0 && state.disciplineStreak?.lastValidDate !== today) {
+      breakDisciplineStreak('Falha registrada hoje');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.habits, state.missions]);
 
-  const pendingAchievementRef = useRef<AchievementDef | null>(null);
+
   const [newlyUnlocked, setNewlyUnlocked] = useState<AchievementDef | null>(null);
 
   useEffect(() => {
