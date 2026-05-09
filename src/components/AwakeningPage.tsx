@@ -1,29 +1,61 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2 } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { buildAiContext } from '@/lib/aiContext';
 import RichEditor from './RichEditor';
-type AwakeningExerciseType = 'consciencia' | 'confronto' | 'reprogramacao' | 'direcionamento' | 'quebra';
 
-interface GeneratedExercise {
+interface AwakeningQuestion {
   title: string;
   prompt: string;
-  type: AwakeningExerciseType;
   objective: string;
 }
 
-const TYPE_EMOJI: Record<AwakeningExerciseType, string> = {
-  consciencia: '🔎',
-  confronto: '⚔️',
-  reprogramacao: '🧬',
-  direcionamento: '🧭',
-  quebra: '🔥',
-};
+interface AwakeningResponse {
+  detectedState?: string;
+  theme?: string;
+  intensity?: 'leve' | 'medio' | 'brutal';
+  angle?: string;
+  mode?: string;
+  opening?: string;
+  painOfInaction?: string;
+  confrontation?: string;
+  pleasureOfAction?: string;
+  microAction?: string;
+  identityAnchor?: string;
+  questions?: AwakeningQuestion[];
+}
+
+const THEMES: Array<{ id: string; label: string }> = [
+  { id: 'auto', label: '✨ Auto (IA decide)' },
+  { id: 'procrastinacao', label: 'Procrastinação' },
+  { id: 'disciplina', label: 'Disciplina' },
+  { id: 'foco', label: 'Foco' },
+  { id: 'consistencia', label: 'Consistência' },
+  { id: 'academia', label: 'Academia' },
+  { id: 'corpo', label: 'Corpo' },
+  { id: 'emagrecimento', label: 'Emagrecimento' },
+  { id: 'autossabotagem', label: 'Autossabotagem' },
+  { id: 'autoestima', label: 'Autoestima' },
+  { id: 'identidade', label: 'Identidade' },
+  { id: 'futuro', label: 'Futuro' },
+  { id: 'ansiedade', label: 'Ansiedade' },
+  { id: 'medo', label: 'Medo' },
+  { id: 'dopamina_barata', label: 'Dopamina barata' },
+  { id: 'redes_sociais', label: 'Redes sociais' },
+  { id: 'pornografia', label: 'Pornografia' },
+  { id: 'vicios', label: 'Vícios' },
+  { id: 'dinheiro', label: 'Dinheiro' },
+  { id: 'produtividade', label: 'Produtividade' },
+  { id: 'relacionamentos', label: 'Relacionamentos' },
+];
+
+const LIFE_AREAS = ['Corpo', 'Mente', 'Carreira', 'Relacionamentos', 'Espiritual', 'Financeiro'];
+const EMOTIONAL_GOALS = ['Urgência', 'Coragem', 'Orgulho', 'Foco', 'Raiva produtiva', 'Clareza'];
 
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection, appendAiAngle } = useGame();
@@ -34,22 +66,18 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  const buildExercisesHtml = useCallback((
-    detectedState: string,
-    exercises: GeneratedExercise[],
-    blocks: {
-      situationReading?: string;
-      patternsAndDistortions?: string;
-      repositioning?: string;
-      confrontation?: string;
-      microAction?: string;
-      identityReinforcement?: string;
-    } = {},
-  ) => {
+  // Seletores
+  const [theme, setTheme] = useState<string>('auto');
+  const [intensity, setIntensity] = useState<'leve' | 'medio' | 'brutal'>('medio');
+  const [lifeArea, setLifeArea] = useState<string>('');
+  const [emotionalGoal, setEmotionalGoal] = useState<string>('');
+
+  const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const intensityLabel = r.intensity === 'brutal' ? '🔥 BRUTAL' : r.intensity === 'leve' ? '🌱 LEVE' : '⚡ MÉDIO';
     const parts: string[] = [
-      `<h3>🌅 Despertar — ${detectedState}</h3>`,
-      `<p><em>${dateStr}</em></p>`,
+      `<h3>🌅 Despertar — ${r.detectedState || 'Reflexão profunda'}</h3>`,
+      `<p><em>${dateStr} · ${intensityLabel}${r.theme && r.theme !== 'auto' ? ` · ${r.theme}` : ''}</em></p>`,
       `<hr/>`,
     ];
 
@@ -59,31 +87,27 @@ export default function AwakeningPage() {
       parts.push(`<p>${content.replace(/\n/g, '<br/>')}</p>`);
     };
 
-    block('🧠', 'Leitura da situação', blocks.situationReading);
-    block('🔍', 'Padrões e distorções', blocks.patternsAndDistortions);
-    block('⚖️', 'Reposicionamento', blocks.repositioning);
-    block('⚔️', 'Confronto', blocks.confrontation);
+    block('🎬', 'Abertura', r.opening);
+    block('💀', 'Dor da inação', r.painOfInaction);
+    block('🔥', 'Confronto', r.confrontation);
+    block('✨', 'Prazer da ação', r.pleasureOfAction);
 
-    if (blocks.situationReading || blocks.patternsAndDistortions || blocks.repositioning || blocks.confrontation) {
+    if (r.questions && r.questions.length > 0) {
       parts.push(`<hr/>`);
+      parts.push(`<h4>✍️ Perguntas de impacto</h4>`);
+      r.questions.forEach((q, i) => {
+        parts.push(`<h5>${i + 1}. ${q.title}</h5>`);
+        if (q.objective) parts.push(`<p><em>${q.objective}</em></p>`);
+        parts.push(`<blockquote><p>${q.prompt}</p></blockquote>`);
+        parts.push(`<p><strong>Sua resposta:</strong></p>`);
+        parts.push(`<p></p>`);
+        parts.push(`<p></p>`);
+      });
     }
 
-    parts.push(`<h4>✍️ Escrita terapêutica</h4>`);
-    exercises.forEach((ex, i) => {
-      const emoji = TYPE_EMOJI[ex.type] || '✦';
-      parts.push(`<h5>${i + 1}. ${emoji} ${ex.title}</h5>`);
-      if (ex.objective) parts.push(`<p><em>${ex.objective}</em></p>`);
-      parts.push(`<blockquote><p>${ex.prompt}</p></blockquote>`);
-      parts.push(`<p><strong>Sua resposta:</strong></p>`);
-      parts.push(`<p></p>`);
-      parts.push(`<p></p>`);
-    });
-
-    if (blocks.microAction || blocks.identityReinforcement) {
-      parts.push(`<hr/>`);
-    }
-    block('🔥', 'Micro-ação imediata', blocks.microAction);
-    block('🧬', 'Reforço de identidade', blocks.identityReinforcement);
+    if (r.microAction || r.identityAnchor) parts.push(`<hr/>`);
+    block('⚡', 'Ativação imediata', r.microAction);
+    block('🧬', 'Âncora de identidade', r.identityAnchor);
 
     return parts.join('');
   }, []);
@@ -91,10 +115,9 @@ export default function AwakeningPage() {
   const handleGenerate = useCallback(async () => {
     if (loadingAI) return;
 
-    // Confirm overwrite if editor has meaningful content
     const hasContent = answer && answer.replace(/<[^>]+>/g, '').trim().length > 0;
     if (hasContent) {
-      const ok = window.confirm('O campo já tem conteúdo. Substituir pelas perguntas geradas?');
+      const ok = window.confirm('O campo já tem conteúdo. Substituir pelo despertar gerado?');
       if (!ok) return;
     }
 
@@ -103,7 +126,10 @@ export default function AwakeningPage() {
       const ctx = buildAiContext(state);
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
         body: {
-          // Compat: mantém campos antigos que a edge ainda lê
+          theme,
+          intensity,
+          lifeArea: lifeArea || undefined,
+          emotionalGoal: emotionalGoal || undefined,
           journal: ctx.recentJournal.slice(0, 3),
           awakening: ctx.awakening,
           rank: ctx.rank,
@@ -114,44 +140,31 @@ export default function AwakeningPage() {
           habits: (state.habits || []).map(h => ({ name: h.name, history: h.history })),
           punishments: (state.failureProtocols || []).map(p => ({ status: p.status, reason: p.reason })),
           aiSettings: state.aiSettings,
-          // NOVO: contexto rico + ângulos
           context: ctx,
         },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const exs: GeneratedExercise[] = data?.exercises || [];
-      if (exs.length < 3) throw new Error('Não foi possível gerar exercícios.');
+      const res = data as AwakeningResponse;
+      if (!res.questions || res.questions.length < 3) throw new Error('Não foi possível gerar o despertar.');
 
-      const detectedState = data.detectedState || 'Reflexão profunda';
-      if (data.angle) appendAiAngle(data.angle);
-      const html = buildExercisesHtml(detectedState, exs, {
-        situationReading: data.situationReading,
-        patternsAndDistortions: data.patternsAndDistortions,
-        repositioning: data.repositioning,
-        confrontation: data.confrontation,
-        microAction: data.microAction,
-        identityReinforcement: data.identityReinforcement,
-      });
+      if (res.angle) appendAiAngle(res.angle);
+      const html = buildExperienceHtml(res);
 
-      setQuestion(`Despertar — ${detectedState}`);
+      setQuestion(`Despertar — ${res.detectedState || 'Reflexão'}`);
       setAnswer(html);
 
-      // Toast diferenciado por modo (reconhece evolução em vez do genérico)
-      const mode = data.mode as string | undefined;
-      if (mode === 'evolution') toast.success('✨ Reconhecendo sua evolução. Responda os exercícios abaixo.');
-      else if (mode === 'expansion') toast.success('🚀 Modo expansão ativado. Próximo nível.');
-      else if (mode === 'mirror') toast.success('🪞 Modo espelho — confronte o que aconteceu esta semana.');
-      else toast.success('Perguntas inseridas. Responda abaixo de cada uma.');
+      if (res.intensity === 'brutal') toast.success('🔥 Sem anestesia.');
+      else if (res.intensity === 'leve') toast.success('🌱 Respira e olha.');
+      else toast.success('⚡ Encare.');
 
-      // Scroll to editor
       setTimeout(() => {
         const el = document.querySelector('.ProseMirror') as HTMLElement | null;
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 200);
     } catch (err: any) {
       console.error(err);
-      const msg = err?.message || 'Erro ao gerar exercícios.';
+      const msg = err?.message || 'Erro ao gerar despertar.';
       if (msg.includes('429') || msg.toLowerCase().includes('limite')) {
         toast.error('Limite de requisições. Tente em alguns segundos.');
       } else if (msg.includes('402') || msg.toLowerCase().includes('crédito')) {
@@ -162,7 +175,7 @@ export default function AwakeningPage() {
     } finally {
       setLoadingAI(false);
     }
-  }, [loadingAI, state, answer, buildExercisesHtml]);
+  }, [loadingAI, state, answer, theme, intensity, lifeArea, emotionalGoal, buildExperienceHtml, appendAiAngle]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
@@ -182,16 +195,104 @@ export default function AwakeningPage() {
     }
   }, [question, answer, addReflection]);
 
+  const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-2.5 py-1 rounded-full text-[11px] font-display uppercase tracking-wider transition-all ${
+        active
+          ? 'bg-primary text-primary-foreground border border-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]'
+          : 'bg-secondary/50 text-foreground/70 border border-border hover:border-primary/40 hover:text-foreground'
+      }`}
+    >
+      {children}
+    </button>
+  );
+
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-2">
         <Eye className="w-8 h-8 text-primary mx-auto animate-pulse-glow" />
         <h2 className="font-display text-xl text-primary glow-text-purple">DESPERTAR</h2>
-        <p className="text-xs text-foreground/60">Seu espaço. Suas perguntas. Suas respostas.</p>
+        <p className="text-xs text-foreground/60">Quebre a procrastinação. Destrua a autossabotagem. Mova-se agora.</p>
       </motion.div>
 
-      {/* New reflection block */}
+      {/* Seletores */}
       <div className="rpg-panel space-y-4">
+        {/* Intensidade */}
+        <div>
+          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Intensidade</p>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setIntensity('leve')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-display uppercase tracking-wider transition-all ${
+                intensity === 'leve'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                  : 'bg-secondary/50 text-foreground/60 border border-border hover:border-emerald-500/30'
+              }`}
+            >
+              <Sprout className="w-3.5 h-3.5" /> Leve
+            </button>
+            <button
+              type="button"
+              onClick={() => setIntensity('medio')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-display uppercase tracking-wider transition-all ${
+                intensity === 'medio'
+                  ? 'bg-primary/20 text-primary border border-primary/60 shadow-[0_0_12px_hsl(var(--primary)/0.4)]'
+                  : 'bg-secondary/50 text-foreground/60 border border-border hover:border-primary/30'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" /> Médio
+            </button>
+            <button
+              type="button"
+              onClick={() => setIntensity('brutal')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-display uppercase tracking-wider transition-all ${
+                intensity === 'brutal'
+                  ? 'bg-red-500/20 text-red-300 border border-red-500/60 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
+                  : 'bg-secondary/50 text-foreground/60 border border-border hover:border-red-500/30'
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5" /> Brutal
+            </button>
+          </div>
+        </div>
+
+        {/* Tema */}
+        <div>
+          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Tema</p>
+          <div className="flex flex-wrap gap-1.5">
+            {THEMES.map(t => (
+              <Chip key={t.id} active={theme === t.id} onClick={() => setTheme(t.id)}>
+                {t.label}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
+        {/* Área da vida (opcional) */}
+        <div>
+          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Área da vida (opcional)</p>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip active={lifeArea === ''} onClick={() => setLifeArea('')}>Qualquer</Chip>
+            {LIFE_AREAS.map(a => (
+              <Chip key={a} active={lifeArea === a} onClick={() => setLifeArea(a)}>{a}</Chip>
+            ))}
+          </div>
+        </div>
+
+        {/* Objetivo emocional (opcional) */}
+        <div>
+          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Objetivo emocional (opcional)</p>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip active={emotionalGoal === ''} onClick={() => setEmotionalGoal('')}>IA decide</Chip>
+            {EMOTIONAL_GOALS.map(g => (
+              <Chip key={g} active={emotionalGoal === g} onClick={() => setEmotionalGoal(g)}>{g}</Chip>
+            ))}
+          </div>
+        </div>
+
         <Button
           variant="outline"
           className="w-full border-primary/40 hover:bg-primary/10 text-[11px] sm:text-sm font-display uppercase tracking-wider px-2 sm:px-4"
@@ -199,18 +300,18 @@ export default function AwakeningPage() {
           disabled={loadingAI}
         >
           {loadingAI ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" /> <span className="truncate">Analisando...</span></>
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" /> <span className="truncate">Despertando...</span></>
           ) : (
             <>
               <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" />
-              <span className="truncate">Gerador de Exercícios</span>
+              <span className="truncate">Gerar Despertar</span>
             </>
           )}
         </Button>
-        <p className="text-[10px] text-foreground/40 text-center -mt-2">
-          Tom e quantidade controlados em <span className="text-primary">Configurações → IA Comportamental</span>.
-        </p>
+      </div>
 
+      {/* Editor */}
+      <div className="rpg-panel space-y-4">
         <Input
           placeholder="Sua pergunta..."
           value={question}
@@ -229,7 +330,7 @@ export default function AwakeningPage() {
         </Button>
       </div>
 
-      {/* History */}
+      {/* Histórico */}
       {state.reflections && state.reflections.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-xs text-foreground/50 uppercase tracking-wider font-display">
