@@ -53,6 +53,7 @@ export default function MissionsPanel() {
   const [repeatable, setRepeatable] = useState(false);
   const [startTimeDialog, setStartTimeDialog] = useState<string | null>(null);
   const [startTimeInput, setStartTimeInput] = useState(getNowTimeString());
+  const [startDateInput, setStartDateInput] = useState(getTodayBrasilia());
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
