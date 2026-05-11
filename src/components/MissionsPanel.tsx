@@ -53,6 +53,7 @@ export default function MissionsPanel() {
   const [repeatable, setRepeatable] = useState(false);
   const [startTimeDialog, setStartTimeDialog] = useState<string | null>(null);
   const [startTimeInput, setStartTimeInput] = useState(getNowTimeString());
+  const [startDateInput, setStartDateInput] = useState(getTodayBrasilia());
 
   // Finish time mission dialog
   const [finishDialog, setFinishDialog] = useState<string | null>(null);
@@ -365,6 +366,16 @@ export default function MissionsPanel() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
+              <label className="text-sm text-muted-foreground">Dia que iniciei a tarefa</label>
+              <Input
+                type="date"
+                value={startDateInput}
+                onChange={e => setStartDateInput(e.target.value)}
+                className="bg-secondary border-border"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Padrão: hoje. Ajuste se começou em outro dia.</p>
+            </div>
+            <div>
               <label className="text-sm text-muted-foreground">Hora que iniciei a tarefa</label>
               <Input
                 type="time"
@@ -379,10 +390,14 @@ export default function MissionsPanel() {
             <Button variant="secondary" onClick={() => setStartTimeDialog(null)}>Cancelar</Button>
             <Button onClick={() => {
               if (!startTimeDialog) return;
-              const [h, m] = startTimeInput.split(':').map(Number);
-              const now = new Date();
-              now.setHours(h, m, 0, 0);
-              startTimeMission(startTimeDialog, now.toISOString());
+              const [y, mo, d] = startDateInput.split('-').map(Number);
+              const [h, mi] = startTimeInput.split(':').map(Number);
+              const dt = new Date(y, mo - 1, d, h, mi, 0, 0);
+              if (dt.getTime() > Date.now()) {
+                toast.error('Data/hora de início não pode ser no futuro.');
+                return;
+              }
+              startTimeMission(startTimeDialog, dt.toISOString());
               setStartTimeDialog(null);
               toast.success('Missão iniciada!');
             }}>Iniciar</Button>
@@ -396,7 +411,7 @@ export default function MissionsPanel() {
             key={m.id}
             mission={m}
             today={today}
-            onStart={() => { setStartTimeInput(getNowTimeString()); setStartTimeDialog(m.id); }}
+            onStart={() => { setStartTimeInput(getNowTimeString()); setStartDateInput(getTodayBrasilia()); setStartTimeDialog(m.id); }}
             onFinish={() => handleOpenFinishDialog(m)}
             onCompleteDaily={() => handleCompleteDaily(m.id)}
             onIncrementCount={() => handleIncrementCount(m.id)}
