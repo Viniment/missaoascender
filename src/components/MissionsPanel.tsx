@@ -411,7 +411,7 @@ export default function MissionsPanel() {
             key={m.id}
             mission={m}
             today={today}
-            onStart={() => { setStartTimeInput(getNowTimeString()); setStartTimeDialog(m.id); }}
+            onStart={() => { setStartTimeInput(getNowTimeString()); setStartDateInput(getTodayBrasilia()); setStartTimeDialog(m.id); }}
             onFinish={() => handleOpenFinishDialog(m)}
             onCompleteDaily={() => handleCompleteDaily(m.id)}
             onIncrementCount={() => handleIncrementCount(m.id)}
