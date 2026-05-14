@@ -139,7 +139,41 @@ ESTRUTURA DA RESPOSTA (OBRIGATÓRIA — 7 blocos via tool call "generate_awakeni
 2. painOfInaction (💀 DOR DA INAÇÃO) — 3-5 frases. Espelho cru do que está sendo destruído silenciosamente. Cite evidência da semana.
 3. confrontation (🔥 CONFRONTO DIRETO) — 2-4 frases. Destrói a desculpa principal. Expõe a autossabotagem específica. Sem rodeios.
 4. pleasureOfAction (✨ PRAZER DA AÇÃO) — 2-4 frases. Contraste: quem ele se torna se agir. Orgulho concreto, não abstrato. Identidade forte ancorada em capacidade já demonstrada.
-5. questions (✍️ PERGUNTAS DE IMPACTO) — 3-5 perguntas profundas, específicas, que cortam. Estilo: "Quantas vezes você prometeu mudar e se abandonou?", "O que sua procrastinação já destruiu silenciosamente?", "Quem você será daqui 5 anos se continuar exatamente assim?". Nada genérico. Cada uma com title curto + prompt (a pergunta) + objective (1 linha do que essa pergunta deve fazer ele sentir/perceber).
+5. questions (✍️ PERGUNTAS DE IMPACTO) — 3-5 perguntas CIRÚRGICAS de ruptura psicológica. Esta é a alma do Despertar.
+
+   REGRA DE OURO: cada pergunta deve provar — pelo conteúdo — que foi escrita SÓ para este usuário, lendo a vida dele. Se a pergunta funcionaria pra qualquer pessoa, ela FALHOU.
+
+   COMO CONSTRUIR:
+   • Ancore em EVIDÊNCIA NOMEADA: cite o nome real do hábito/missão que ele quebrou, o trecho exato que ele escreveu no diário, a contradição entre o que ele disse querer ("become"/"reject") e o que fez esta semana, o item que aparece como "recurringFailedItems", o número de dias desde a última falha, a emoção dominante recente.
+   • Cruze duas dimensões: ex. (promessa do diário) × (falha concreta da semana); (intenção declarada de se tornar X) × (comportamento que vai pro lado oposto); (sonho mencionado) × (rotina atual).
+   • Atinja UMA destas zonas por pergunta — varie entre as perguntas, nunca repita zona:
+     a) ANESTESIA: o que ele evita sentir há tempo?
+     b) AUTOTRAIÇÃO ESPECÍFICA: que promessa exata ele quebrou consigo?
+     c) PROJEÇÃO BRUTAL: quem ele vira em 6m/2a/5a no ritmo EXATO da última semana?
+     d) CUSTO INVISÍVEL: o que esse padrão já levou silenciosamente (relação, energia, autoestima, oportunidade, corpo, tempo composto)?
+     e) INCOERÊNCIA: o que ele DIZ querer × o que está fazendo HOJE?
+     f) IDENTIDADE: que tipo de pessoa age desse jeito, e ele aceita ser essa pessoa?
+     g) DESCULPA NUCLEAR: a desculpa exata que ele usou nas últimas falhas — desmontada.
+     h) SONHO ABANDONADO: o que ele um dia quis e parou de mencionar?
+
+   FORMA:
+   • Frases curtas, diretas, em segunda pessoa.
+   • Sem rodeios, sem "você acha que...", sem "talvez", sem "será que".
+   • Tom adulto, não cruel. Doer porque é verdade, não porque é grosseiro.
+   • Cada pergunta deve fazer ele PARAR de ler por 3 segundos.
+
+   PROIBIDO em perguntas:
+   • Perguntas motivacionais ("o que te impede de ser sua melhor versão?")
+   • Perguntas filosóficas vagas ("o que é felicidade pra você?")
+   • Qualquer pergunta que não cite nada concreto da vida dele
+   • Repetir perguntas já feitas (ver "REFLEXÕES ANTERIORES" no contexto)
+
+   ESCALA DE INTENSIDADE NAS PERGUNTAS:
+   • LEVE → consciente, firme, sem rasgar. Ainda específica.
+   • MÉDIO → desconforto produtivo. Toca a ferida nomeando-a.
+   • BRUTAL → corta. Nomeia a autotraição. Projeta o futuro perdido. Sem afago.
+
+   Cada pergunta: title curto (3-6 palavras) + prompt (a pergunta cirúrgica) + objective (1 linha: o que ele deve PERCEBER/SENTIR ao responder).
 6. microAction (⚡ ATIVAÇÃO IMEDIATA) — 1 ação concreta, executável AGORA, em ≤10 minutos. Específica, verificável, alinhada ao tema.
 7. identityAnchor (🧬 ÂNCORA DE IDENTIDADE) — 1-2 frases curtas. Declaração de quem ele é quando age. Frase que ele possa repetir. Sem clichê.
 
@@ -340,14 +374,21 @@ serve(async (req) => {
     up += `1. Honre a INTENSIDADE ${intensity.toUpperCase()}. Não suavize. Não dramatize além do contexto.\n`;
     up += `2. Foque no TEMA "${theme}"${theme === 'auto' ? ' (escolha o mais urgente com base nos dados acima)' : ''}.\n`;
     up += `3. Use o ângulo "${angle}" como lente — JAMAIS cite o nome.\n`;
-    up += `4. Evidência REAL da semana (nomes de hábitos/missões, trechos do diário). Nada abstrato.\n`;
+    up += `4. CADA bloco precisa de evidência NOMEADA da vida dele (hábito específico, missão específica, frase do diário, contradição com o que declarou em "become"/"reject"/"pain"). Sem evidência → resposta inválida.\n`;
+    up += `5. PERGUNTAS são o coração do Despertar. Cada uma deve:\n`;
+    up += `   • citar pelo menos UM elemento real (nome de hábito/missão, trecho do diário, intenção declarada, número de dias, padrão recorrente)\n`;
+    up += `   • atingir uma zona DIFERENTE da escala (anestesia, autotraição, projeção futura, custo invisível, incoerência, identidade, desculpa nuclear, sonho abandonado)\n`;
+    up += `   • ser impossível de ignorar — fazer ele parar 3 segundos\n`;
+    up += `   • NÃO repetir nenhuma das "REFLEXÕES ANTERIORES" listadas acima\n`;
+    up += `   • escalar em profundidade conforme a quantidade de dados disponível: quanto mais o sistema sabe sobre ele, mais íntima e cirúrgica a pergunta deve soar\n`;
     if (mode === 'evolution' || mode === 'expansion') {
-      up += `5. PROIBIDO narrativa de autoabandono. RECONHEÇA o progresso e EXPANDA — ative ambição, próximo nível, identidade consolidada.\n`;
+      up += `6. PROIBIDO narrativa de autoabandono. RECONHEÇA o progresso (com nomes) e EXPANDA — ative ambição, próximo nível, identidade consolidada. As perguntas aqui investigam: "que próximo nível ele está evitando assumir?", não "por que ele falha?".\n`;
     } else if (mode === 'mirror') {
-      up += `5. Confronto cru ancorado no que aconteceu ESTA SEMANA. Sem narrativa eterna.\n`;
+      up += `6. Confronto cru ancorado no que aconteceu ESTA SEMANA (não eterno, não "você sempre"). Nomeie a falha exata.\n`;
     }
-    up += `6. detectedState em 3-6 palavras descrevendo o estado REAL.\n`;
-    up += `7. Retorne via tool call "generate_awakening" SEMPRE.\n`;
+    up += `7. Vincule emocionalmente: procrastinação→perda de vida, desculpa→futuro encolhendo, fuga→prisão, conforto excessivo→decadência, distração→afastamento do potencial. E o oposto: disciplina→orgulho, consistência→poder, ação→liberdade.\n`;
+    up += `8. detectedState em 3-6 palavras descrevendo o estado REAL detectado nele agora.\n`;
+    up += `9. Retorne via tool call "generate_awakening" SEMPRE.\n`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -385,12 +426,13 @@ serve(async (req) => {
                     type: "array",
                     minItems: 3,
                     maxItems: 5,
+                    description: "Perguntas cirúrgicas de ruptura. CADA uma cita evidência nomeada da vida do usuário (hábito, missão, diário, intenção declarada) e atinge uma zona psicológica diferente.",
                     items: {
                       type: "object",
                       properties: {
-                        title: { type: "string" },
-                        prompt: { type: "string" },
-                        objective: { type: "string" },
+                        title: { type: "string", description: "3-6 palavras." },
+                        prompt: { type: "string", description: "A pergunta cirúrgica. Específica, em 2ª pessoa, sem rodeios. Cita pelo menos um elemento real da vida do usuário." },
+                        objective: { type: "string", description: "1 linha do que ele deve perceber/sentir ao responder." },
                       },
                       required: ["title", "prompt", "objective"],
                       additionalProperties: false,
