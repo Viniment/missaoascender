@@ -320,12 +320,21 @@ serve(async (req) => {
     const angle = pickAngle(mode, ctx.angleHistory || []);
 
     // ============ MONTAGEM DO USER PROMPT ============
-    let up = `═══ CONFIGURAÇÃO DA EXPERIÊNCIA ═══\n`;
+    let up = `═══ DECISÃO ESTRATÉGICA (responda mentalmente ANTES de escrever) ═══\n`;
+    up += `1. Qual é o principal bloqueio dele AGORA?\n`;
+    up += `2. Ele precisa de acolhimento ou de confronto neste momento?\n`;
+    up += `3. Está mais emocional ou racional? Em evolução, queda, colapso ou fuga?\n`;
+    up += `4. Precisa de clareza (nomear o padrão) ou execução (quebrar inércia)?\n`;
+    up += `5. Qual pergunta gera MAIS consciência específica para ele agora?\n`;
+    up += `6. Qual micro-ação mínima quebra a inércia HOJE?\n`;
+    up += `→ Use as respostas para escolher TOM e EIXO antes de gerar os blocos.\n\n`;
+
+    up += `═══ CONFIGURAÇÃO DA EXPERIÊNCIA ═══\n`;
     up += `Tema escolhido: ${theme}${theme === 'auto' ? ' (você escolhe o foco mais urgente com base nos dados)' : ''}\n`;
     up += `Intensidade: ${intensity.toUpperCase()}\n`;
     if (lifeArea) up += `Área da vida: ${lifeArea}\n`;
     if (emotionalGoal) up += `Objetivo emocional: ${emotionalGoal}\n`;
-    up += `Modo (do backend): ${mode.toUpperCase()}\n`;
+    up += `Modo (insumo do backend, use como lente): ${mode.toUpperCase()}\n`;
     up += `Ângulo dominante (lente, NUNCA cite o nome): ${angle}\n`;
     up += `Ângulos recentes (NÃO repita): ${(ctx.angleHistory || []).slice(-5).join(', ') || '(vazio)'}\n\n`;
 
