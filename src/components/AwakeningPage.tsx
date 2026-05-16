@@ -61,10 +61,13 @@ const LIFE_AREAS = ['Corpo', 'Mente', 'Carreira', 'Relacionamentos', 'Espiritual
 const EMOTIONAL_GOALS = ['Urgência', 'Coragem', 'Orgulho', 'Foco', 'Raiva produtiva', 'Clareza'];
 
 export default function AwakeningPage() {
-  const { state, addReflection, deleteReflection, appendAiAngle } = useGame();
+  const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editQuestion, setEditQuestion] = useState('');
+  const [editAnswer, setEditAnswer] = useState('');
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
