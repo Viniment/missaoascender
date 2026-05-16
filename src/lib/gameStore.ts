@@ -1132,6 +1132,13 @@ export function useGameStore() {
     }));
   }, []);
 
+  const updateReflection = useCallback((id: string, patch: Partial<Pick<Reflection, 'question' | 'answerHtml'>>) => {
+    setState(prev => ({
+      ...prev,
+      reflections: prev.reflections.map(r => r.id === id ? { ...r, ...patch } : r),
+    }));
+  }, []);
+
   const setAwakeningConfig = useCallback((partial: Partial<AwakeningConfig>) => {
     setState(prev => ({
       ...prev,
