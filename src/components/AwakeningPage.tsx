@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout, AlertTriangle } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout, AlertTriangle, Pencil, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
