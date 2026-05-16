@@ -394,6 +394,7 @@ export default function AwakeningPage() {
 
           {state.reflections.map(entry => {
             const isExpanded = expandedId === entry.id;
+            const isEditing = editingId === entry.id;
             return (
               <motion.div
                 key={entry.id}
@@ -403,7 +404,7 @@ export default function AwakeningPage() {
               >
                 <div
                   className="flex items-start justify-between cursor-pointer"
-                  onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                  onClick={() => { if (!isEditing) setExpandedId(isExpanded ? null : entry.id); }}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground">{entry.question}</p>
@@ -412,6 +413,22 @@ export default function AwakeningPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
+                    {!isEditing && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-foreground/50 hover:text-primary"
+                        onClick={e => {
+                          e.stopPropagation();
+                          setEditingId(entry.id);
+                          setEditQuestion(entry.question);
+                          setEditAnswer(entry.answerHtml);
+                          setExpandedId(entry.id);
+                        }}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                     <Button
                       size="icon"
                       variant="ghost"
@@ -432,10 +449,50 @@ export default function AwakeningPage() {
                       exit={{ opacity: 0, height: 0 }}
                       className="mt-3 pt-3 border-t border-border"
                     >
-                      <div
-                        className="prose prose-invert prose-sm max-w-none text-foreground"
-                        dangerouslySetInnerHTML={{ __html: entry.answerHtml }}
-                      />
+                      {isEditing ? (
+                        <div className="space-y-3">
+                          <Input
+                            value={editQuestion}
+                            onChange={e => setEditQuestion(e.target.value)}
+                            className="bg-secondary/50 border-border font-display text-base"
+                            placeholder="Pergunta..."
+                          />
+                          <RichEditor
+                            content={editAnswer}
+                            onChange={setEditAnswer}
+                            placeholder="Edite sua reflexão..."
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                if (!editQuestion.trim() || !editAnswer.trim() || editAnswer === '<p></p>') {
+                                  toast.error('Preencha pergunta e resposta.');
+                                  return;
+                                }
+                                updateReflection(entry.id, { question: editQuestion, answerHtml: editAnswer });
+                                setEditingId(null);
+                                toast.success('Reflexão atualizada.');
+                              }}
+                            >
+                              <Save className="w-3.5 h-3.5 mr-1.5" /> Salvar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingId(null)}
+                            >
+                              <X className="w-3.5 h-3.5 mr-1.5" /> Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="prose prose-invert prose-sm max-w-none text-foreground"
+                          dangerouslySetInnerHTML={{ __html: entry.answerHtml }}
+                        />
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
