@@ -1,12 +1,15 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Moon, Send, Pencil, Trash2, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { BookOpen, Moon, Send, Pencil, Trash2, ChevronDown, ChevronUp, X, Sparkles, Loader2, RefreshCw, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import RichEditor from '@/components/RichEditor';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
+import { buildAiContext } from '@/lib/aiContext';
+import { getTodayBrasilia } from '@/lib/utils';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -20,6 +23,10 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const EMOTIONS = ['😊', '😢', '😡', '😰', '😌', '🔥', '💀', '🤔', '😤', '🥱'];
+
+interface JournalPrompt { title: string; prompt: string; objective: string; }
+interface JournalPromptsResult { mode: 'orgulho' | 'reconexao' | 'neutro'; detectedSignal: string; questions: JournalPrompt[]; }
+interface JournalExercise { title: string; description: string; steps: string[]; purpose: string; }
 
 export default function JournalPanel() {
   const { state, addJournalEntry, updateJournalEntry, deleteJournalEntry } = useGame();
