@@ -51,6 +51,77 @@ export default function JournalPanel() {
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // IA — perguntas + exercício do dia
+  const today = getTodayBrasilia();
+  const promptsKey = `journal-prompts-${today}`;
+  const exerciseKey = `journal-exercise-${today}`;
+  const [prompts, setPrompts] = useState<JournalPromptsResult | null>(() => {
+    try { const raw = localStorage.getItem(promptsKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+  const [exercise, setExercise] = useState<JournalExercise | null>(() => {
+    try { const raw = localStorage.getItem(exerciseKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
+  });
+  const [loadingPrompts, setLoadingPrompts] = useState(false);
+  const [loadingExercise, setLoadingExercise] = useState(false);
+
+  useEffect(() => {
+    if (prompts) try { localStorage.setItem(promptsKey, JSON.stringify(prompts)); } catch {}
+  }, [prompts, promptsKey]);
+  useEffect(() => {
+    if (exercise) try { localStorage.setItem(exerciseKey, JSON.stringify(exercise)); } catch {}
+  }, [exercise, exerciseKey]);
+
+  const fetchPrompts = async () => {
+    if (loadingPrompts) return;
+    setLoadingPrompts(true);
+    try {
+      const ctx = buildAiContext(state);
+      const { data, error } = await supabase.functions.invoke('journal-prompts', { body: { context: ctx } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPrompts(data as JournalPromptsResult);
+    } catch (err: any) {
+      const msg = err?.message || 'Erro ao gerar perguntas.';
+      if (msg.includes('429')) toast.error('Limite de requisições. Aguarde alguns segundos.');
+      else if (msg.includes('402')) toast.error('Créditos insuficientes na IA.');
+      else toast.error(msg);
+    } finally { setLoadingPrompts(false); }
+  };
+
+  const fetchExercise = async () => {
+    if (loadingExercise) return;
+    setLoadingExercise(true);
+    try {
+      const ctx = buildAiContext(state);
+      const { data, error } = await supabase.functions.invoke('journal-exercise', { body: { context: ctx } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setExercise(data as JournalExercise);
+    } catch (err: any) {
+      const msg = err?.message || 'Erro ao gerar exercício.';
+      if (msg.includes('429')) toast.error('Limite de requisições. Aguarde alguns segundos.');
+      else if (msg.includes('402')) toast.error('Créditos insuficientes na IA.');
+      else toast.error(msg);
+    } finally { setLoadingExercise(false); }
+  };
+
+  const usePromptInEditor = (p: JournalPrompt) => {
+    setTitle(p.title);
+    const blockquote = `<blockquote><p><em>${p.prompt}</em></p></blockquote><p></p>`;
+    setText(prev => (prev && prev !== '<p></p>') ? `${blockquote}${prev}` : blockquote);
+    toast.success('Pergunta adicionada ao diário.');
+    setTimeout(() => document.querySelector('.ProseMirror')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+  };
+
+  const useExerciseInEditor = (e: JournalExercise) => {
+    setTitle(e.title);
+    const steps = e.steps.map((s, i) => `<li>${s}</li>`).join('');
+    const html = `<p><strong>${e.description}</strong></p><ol>${steps}</ol><p><em>${e.purpose}</em></p><p></p>`;
+    setText(prev => (prev && prev !== '<p></p>') ? `${html}${prev}` : html);
+    toast.success('Exercício adicionado ao diário.');
+    setTimeout(() => document.querySelector('.ProseMirror')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+  };
+
   const handleSave = () => {
     if (submittingRef.current) return;
     if (!title.trim() || !text.trim()) return;
