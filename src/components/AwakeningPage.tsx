@@ -101,11 +101,8 @@ export default function AwakeningPage() {
       const ctx = buildAiContext(state);
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
         body: {
-          theme,
-          intensity,
-          lifeArea: lifeArea || undefined,
-          emotionalGoal: emotionalGoal || undefined,
           journal: ctx.recentJournal.slice(0, 3),
+
           awakening: ctx.awakening,
           rank: ctx.rank,
           reflections: (state.reflections || []).slice(0, 5).map(r => ({
