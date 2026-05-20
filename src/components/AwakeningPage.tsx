@@ -233,66 +233,6 @@ export default function AwakeningPage() {
         <p className="text-xs text-foreground/60 italic">Hoje você se escolhe novamente?</p>
       </motion.div>
 
-      {/* Ritual emocional — 3 passos suaves antes do gerador */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.15 }}
-        className="rpg-panel border-primary/30 bg-gradient-to-br from-primary/5 to-transparent space-y-5"
-      >
-        {/* 1. Ritual de abertura */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">🪞 Ritual de abertura</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setRitualChoice('choose')}
-              className={`py-3 px-3 rounded-md text-xs font-body transition-all duration-500 ${
-                ritualChoice === 'choose'
-                  ? 'bg-primary/20 text-primary border border-primary/60 shadow-[0_0_14px_hsl(var(--primary)/0.4)]'
-                  : 'bg-secondary/40 text-foreground/70 border border-border hover:border-primary/40'
-              }`}
-            >
-              ❤️ Sim, eu me escolho
-            </button>
-            <button
-              type="button"
-              onClick={() => setRitualChoice('need_support')}
-              className={`py-3 px-3 rounded-md text-xs font-body transition-all duration-500 ${
-                ritualChoice === 'need_support'
-                  ? 'bg-primary/20 text-primary border border-primary/60 shadow-[0_0_14px_hsl(var(--primary)/0.4)]'
-                  : 'bg-secondary/40 text-foreground/70 border border-border hover:border-primary/40'
-              }`}
-            >
-              🌧️ Hoje preciso de apoio
-            </button>
-          </div>
-        </div>
-
-        {/* 2. Estado emocional */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">💧 Como você chega aqui hoje?</p>
-          <div className="flex flex-wrap gap-1.5">
-            {EMOTIONAL_STATES.map(e => (
-              <Chip key={e.id!} active={emotionalState === e.id} onClick={() => setEmotionalState(emotionalState === e.id ? null : e.id)}>
-                {e.emoji} {e.label}
-              </Chip>
-            ))}
-          </div>
-        </div>
-
-        {/* 3. Espelho interno */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">🤍 Como alguém que se ama agiria hoje?</p>
-          <div className="flex flex-wrap gap-1.5">
-            {SELF_LOVE_INTENTS.map(s => (
-              <Chip key={s.id!} active={selfLoveIntent === s.id} onClick={() => setSelfLoveIntent(selfLoveIntent === s.id ? null : s.id)}>
-                {s.emoji} {s.label}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      </motion.div>
 
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`rpg-panel ${ritualDoneToday ? 'border-success/30 bg-success/5' : 'border-primary/40 bg-primary/5'}`}>
