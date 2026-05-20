@@ -1,8 +1,10 @@
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Flame, Coins, Trophy } from 'lucide-react';
+import { Coins, Trophy, Heart } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 import IdentityBadge from './IdentityBadge';
+import { formatEmotionalStreak, getRandomAffirmation } from '@/lib/affirmations';
+import { useMemo } from 'react';
 
 const rankColors: Record<string, string> = {
   E: 'text-muted-foreground',
@@ -17,6 +19,9 @@ const rankColors: Record<string, string> = {
 export default function PlayerCard() {
   const { state } = useGame();
   const xpPercent = Math.min(100, (state.xp / state.xpToNext) * 100);
+  const streakInfo = formatEmotionalStreak(state.streak);
+  // Affirmation rotaciona por dia para sensação cinematográfica sem mudar a cada render.
+  const affirmation = useMemo(() => getRandomAffirmation(new Date().toDateString()), []);
 
   return (
     <motion.div
@@ -44,7 +49,8 @@ export default function PlayerCard() {
             </span>
             <IdentityBadge compact />
           </div>
-          <p className="text-xs text-muted-foreground italic mb-2 sm:mb-3 break-words">"{state.title}"</p>
+          <p className="text-xs text-muted-foreground italic mb-1 break-words">"{state.title}"</p>
+          <p className="text-[10px] text-primary/70 italic mb-2 sm:mb-3 break-words leading-snug">{affirmation}</p>
 
           <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
             <motion.div
@@ -62,7 +68,11 @@ export default function PlayerCard() {
 
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-4">
         <Stat icon={<Coins className="w-3.5 h-3.5 text-gold" />} label="Ouro" value={state.gold} />
-        <Stat icon={<Flame className="w-3.5 h-3.5 text-destructive" />} label="Streak" value={state.streak} />
+        <Stat
+          icon={<Heart className="w-3.5 h-3.5 text-primary fill-primary/40" />}
+          label={`${streakInfo.emoji} ${streakInfo.label}`}
+          value={`${state.streak}d`}
+        />
         <Stat icon={<Trophy className="w-3.5 h-3.5 text-primary" />} label="Conquistas" value={`${(state.achievements || []).length}/${ACHIEVEMENTS.length}`} />
       </div>
     </motion.div>
