@@ -1,16 +1,14 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout, AlertTriangle, Pencil, Save, X } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, AlertTriangle, Pencil, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { buildAiContext } from '@/lib/aiContext';
 import RichEditor from './RichEditor';
-import DailyRitualDialog from './DailyRitualDialog';
 import SabotageConfrontDialog from './SabotageConfrontDialog';
-import { getTodayBrasilia } from '@/lib/utils';
 
 interface AwakeningQuestion {
   title: string;
@@ -33,34 +31,6 @@ interface AwakeningResponse {
   questions?: AwakeningQuestion[];
 }
 
-const THEMES: Array<{ id: string; label: string }> = [
-  { id: 'auto', label: '✨ Auto (IA decide)' },
-  { id: 'procrastinacao', label: 'Procrastinação' },
-  { id: 'disciplina', label: 'Disciplina' },
-  { id: 'foco', label: 'Foco' },
-  { id: 'consistencia', label: 'Consistência' },
-  { id: 'academia', label: 'Academia' },
-  { id: 'corpo', label: 'Corpo' },
-  { id: 'emagrecimento', label: 'Emagrecimento' },
-  { id: 'autossabotagem', label: 'Autossabotagem' },
-  { id: 'autoestima', label: 'Autoestima' },
-  { id: 'identidade', label: 'Identidade' },
-  { id: 'futuro', label: 'Futuro' },
-  { id: 'ansiedade', label: 'Ansiedade' },
-  { id: 'medo', label: 'Medo' },
-  { id: 'dopamina_barata', label: 'Dopamina barata' },
-  { id: 'redes_sociais', label: 'Redes sociais' },
-  { id: 'pornografia', label: 'Pornografia' },
-  { id: 'vicios', label: 'Vícios' },
-  { id: 'dinheiro', label: 'Dinheiro' },
-  { id: 'produtividade', label: 'Produtividade' },
-  { id: 'relacionamentos', label: 'Relacionamentos' },
-];
-
-const LIFE_AREAS = ['Corpo', 'Mente', 'Carreira', 'Relacionamentos', 'Espiritual', 'Financeiro'];
-const EMOTIONAL_GOALS = ['Urgência', 'Coragem', 'Orgulho', 'Foco', 'Raiva produtiva', 'Clareza'];
-
-
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
   const [question, setQuestion] = useState('');
@@ -73,19 +43,8 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // Seletores
-  const [theme, setTheme] = useState<string>('auto');
-  const [intensity, setIntensity] = useState<'leve' | 'medio' | 'brutal'>('medio');
-  const [lifeArea, setLifeArea] = useState<string>('');
-  const [emotionalGoal, setEmotionalGoal] = useState<string>('');
-
-  // Ritual emocional removido — IA decide tudo a partir do contexto dos últimos 7 dias
-
-  // Tony Robbins layer
-  const [ritualOpen, setRitualOpen] = useState(false);
+  // IA decide tudo a partir do contexto dos últimos 7 dias
   const [activeSabotage, setActiveSabotage] = useState<any>(null);
-  const today = getTodayBrasilia();
-  const ritualDoneToday = state.dailyRitual?.lastCompletedDate === today;
   const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
 
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
@@ -142,11 +101,8 @@ export default function AwakeningPage() {
       const ctx = buildAiContext(state);
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
         body: {
-          theme,
-          intensity,
-          lifeArea: lifeArea || undefined,
-          emotionalGoal: emotionalGoal || undefined,
           journal: ctx.recentJournal.slice(0, 3),
+
           awakening: ctx.awakening,
           rank: ctx.rank,
           reflections: (state.reflections || []).slice(0, 5).map(r => ({
@@ -191,7 +147,7 @@ export default function AwakeningPage() {
     } finally {
       setLoadingAI(false);
     }
-  }, [loadingAI, state, answer, theme, intensity, lifeArea, emotionalGoal, buildExperienceHtml, appendAiAngle]);
+  }, [loadingAI, state, answer, buildExperienceHtml, appendAiAngle]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
@@ -234,29 +190,6 @@ export default function AwakeningPage() {
       </motion.div>
 
 
-
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`rpg-panel ${ritualDoneToday ? 'border-success/30 bg-success/5' : 'border-primary/40 bg-primary/5'}`}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] uppercase tracking-wider text-primary/80 font-display">🌅 Ritual de Hoje</p>
-            {ritualDoneToday ? (
-              <>
-                <p className="text-sm text-foreground/90 mt-1">✅ Cumprido. Identidade: <strong className="text-primary">{state.dailyRitual?.identityChosen}</strong></p>
-                <p className="text-[11px] text-foreground/60 italic mt-1">"{state.dailyRitual?.commitment}"</p>
-              </>
-            ) : (
-              <p className="text-sm text-foreground/80 mt-1">4 passos. 3 minutos. Ativa quem você quer ser hoje.</p>
-            )}
-          </div>
-          <Button size="sm" variant={ritualDoneToday ? 'outline' : 'default'} onClick={() => setRitualOpen(true)}>
-            <Flame className="w-3.5 h-3.5 mr-1" />{ritualDoneToday ? 'Refazer' : 'Iniciar'}
-          </Button>
-        </div>
-        {(state.dailyRitual?.streak ?? 0) > 0 && (
-          <p className="text-[10px] text-foreground/50 mt-2">🔥 {state.dailyRitual!.streak} dias consecutivos</p>
-        )}
-      </motion.div>
-
       {activePatterns.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rpg-panel border-destructive/40 bg-destructive/5">
           <p className="text-[10px] uppercase tracking-wider text-destructive font-display flex items-center gap-1.5">
@@ -274,85 +207,13 @@ export default function AwakeningPage() {
         </motion.div>
       )}
 
-      <DailyRitualDialog open={ritualOpen} onClose={() => setRitualOpen(false)} />
       <SabotageConfrontDialog pattern={activeSabotage} onClose={() => setActiveSabotage(null)} />
 
-      {/* Seletores */}
-      <div className="rpg-panel space-y-4">
-        {/* Intensidade */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Intensidade</p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => setIntensity('leve')}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-display uppercase tracking-wider transition-all ${
-                intensity === 'leve'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                  : 'bg-secondary/50 text-foreground/60 border border-border hover:border-emerald-500/30'
-              }`}
-            >
-              <Sprout className="w-3.5 h-3.5" /> Leve
-            </button>
-            <button
-              type="button"
-              onClick={() => setIntensity('medio')}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-display uppercase tracking-wider transition-all ${
-                intensity === 'medio'
-                  ? 'bg-primary/20 text-primary border border-primary/60 shadow-[0_0_12px_hsl(var(--primary)/0.4)]'
-                  : 'bg-secondary/50 text-foreground/60 border border-border hover:border-primary/30'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" /> Médio
-            </button>
-            <button
-              type="button"
-              onClick={() => setIntensity('brutal')}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-md text-[11px] font-display uppercase tracking-wider transition-all ${
-                intensity === 'brutal'
-                  ? 'bg-red-500/20 text-red-300 border border-red-500/60 shadow-[0_0_12px_rgba(239,68,68,0.4)]'
-                  : 'bg-secondary/50 text-foreground/60 border border-border hover:border-red-500/30'
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5" /> Brutal
-            </button>
-          </div>
-        </div>
-
-        {/* Tema */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Tema</p>
-          <div className="flex flex-wrap gap-1.5">
-            {THEMES.map(t => (
-              <Chip key={t.id} active={theme === t.id} onClick={() => setTheme(t.id)}>
-                {t.label}
-              </Chip>
-            ))}
-          </div>
-        </div>
-
-        {/* Área da vida (opcional) */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Área da vida (opcional)</p>
-          <div className="flex flex-wrap gap-1.5">
-            <Chip active={lifeArea === ''} onClick={() => setLifeArea('')}>Qualquer</Chip>
-            {LIFE_AREAS.map(a => (
-              <Chip key={a} active={lifeArea === a} onClick={() => setLifeArea(a)}>{a}</Chip>
-            ))}
-          </div>
-        </div>
-
-        {/* Objetivo emocional (opcional) */}
-        <div>
-          <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-display mb-2">Objetivo emocional (opcional)</p>
-          <div className="flex flex-wrap gap-1.5">
-            <Chip active={emotionalGoal === ''} onClick={() => setEmotionalGoal('')}>IA decide</Chip>
-            {EMOTIONAL_GOALS.map(g => (
-              <Chip key={g} active={emotionalGoal === g} onClick={() => setEmotionalGoal(g)}>{g}</Chip>
-            ))}
-          </div>
-        </div>
-
+      {/* Gerador automático — IA lê seus últimos 7 dias */}
+      <div className="rpg-panel space-y-3 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+        <p className="text-xs text-foreground/70 italic text-center">
+          A IA lê seus últimos 7 dias e cria seu despertar de hoje — sem você escolher nada.
+        </p>
         <Button
           variant="outline"
           className="w-full border-primary/40 hover:bg-primary/10 text-[11px] sm:text-sm font-display uppercase tracking-wider px-2 sm:px-4"
@@ -369,6 +230,7 @@ export default function AwakeningPage() {
           )}
         </Button>
       </div>
+
 
       {/* Editor */}
       <div className="rpg-panel space-y-4">
