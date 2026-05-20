@@ -625,12 +625,13 @@ export function useGameStore() {
         streak = 1;
       }
 
+      // Consciência de autotraição — sem punição destruidora.
+      // O custo emocional é nomeado, mas o XP perdido é suave: "uma queda não te apaga".
       let xpPenalty = 0;
-      if (missedDays === 1) xpPenalty = -20;
-      else if (missedDays >= 2) xpPenalty = -50;
+      if (missedDays === 1) xpPenalty = -10;
+      else if (missedDays >= 2) xpPenalty = -25;
 
       const xpGain = 10;
-      // One-time compensation for old harsh penalty
       let compensation = 0;
       if (!prev._penaltyCompensated) {
         compensation = 30;
@@ -647,7 +648,7 @@ export function useGameStore() {
         missedDays,
         ...prog,
         log: [
-          { date: new Date().toISOString(), action: `Check-in diário${xpPenalty < 0 ? ` (penalidade: ${xpPenalty} XP)` : ''}${compensation > 0 ? ` (+${compensation} XP compensação)` : ''}`, xp: totalXp, gold: 0 },
+          { date: new Date().toISOString(), action: `Hoje eu me escolhi${xpPenalty < 0 ? ` (${missedDays} dia(s) de distância de mim · ${xpPenalty} XP)` : ''}${compensation > 0 ? ` (+${compensation} XP)` : ''}`, xp: totalXp, gold: 0 },
           ...prev.log
         ].slice(0, 100),
       };
