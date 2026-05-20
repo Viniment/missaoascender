@@ -147,7 +147,7 @@ export default function AwakeningPage() {
     } finally {
       setLoadingAI(false);
     }
-  }, [loadingAI, state, answer, theme, intensity, lifeArea, emotionalGoal, buildExperienceHtml, appendAiAngle]);
+  }, [loadingAI, state, answer, buildExperienceHtml, appendAiAngle]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
