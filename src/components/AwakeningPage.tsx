@@ -79,10 +79,7 @@ export default function AwakeningPage() {
   const [lifeArea, setLifeArea] = useState<string>('');
   const [emotionalGoal, setEmotionalGoal] = useState<string>('');
 
-  // Ritual emocional (passos 1-3)
-  const [ritualChoice, setRitualChoice] = useState<RitualChoice>(null);
-  const [emotionalState, setEmotionalState] = useState<EmotionalState>(null);
-  const [selfLoveIntent, setSelfLoveIntent] = useState<SelfLoveIntent>(null);
+  // Ritual emocional removido — IA decide tudo a partir do contexto dos últimos 7 dias
 
   // Tony Robbins layer
   const [ritualOpen, setRitualOpen] = useState(false);
