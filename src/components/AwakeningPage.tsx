@@ -191,7 +191,7 @@ export default function AwakeningPage() {
     } finally {
       setLoadingAI(false);
     }
-  }, [loadingAI, state, answer, theme, intensity, lifeArea, emotionalGoal, ritualChoice, emotionalState, selfLoveIntent, buildExperienceHtml, appendAiAngle]);
+  }, [loadingAI, state, answer, theme, intensity, lifeArea, emotionalGoal, buildExperienceHtml, appendAiAngle]);
 
   const handleSave = useCallback(() => {
     if (submittingRef.current) return;
