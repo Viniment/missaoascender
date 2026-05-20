@@ -60,29 +60,6 @@ const THEMES: Array<{ id: string; label: string }> = [
 const LIFE_AREAS = ['Corpo', 'Mente', 'Carreira', 'Relacionamentos', 'Espiritual', 'Financeiro'];
 const EMOTIONAL_GOALS = ['Urgência', 'Coragem', 'Orgulho', 'Foco', 'Raiva produtiva', 'Clareza'];
 
-type RitualChoice = 'choose' | 'need_support' | null;
-type EmotionalState = 'ansioso' | 'vazio' | 'impulsivo' | 'desmotivado' | 'cansado' | 'em_paz' | 'focado' | 'orgulhoso' | null;
-type SelfLoveIntent = 'disciplina' | 'calma' | 'respeito' | 'presenca' | 'coragem' | 'autocontrole' | null;
-
-const EMOTIONAL_STATES: Array<{ id: EmotionalState; emoji: string; label: string }> = [
-  { id: 'ansioso',     emoji: '🌊', label: 'ansioso' },
-  { id: 'vazio',       emoji: '🌑', label: 'vazio' },
-  { id: 'impulsivo',   emoji: '⚡', label: 'impulsivo' },
-  { id: 'desmotivado', emoji: '🍂', label: 'desmotivado' },
-  { id: 'cansado',     emoji: '💤', label: 'cansado' },
-  { id: 'em_paz',      emoji: '🕊️', label: 'em paz' },
-  { id: 'focado',      emoji: '🎯', label: 'focado' },
-  { id: 'orgulhoso',   emoji: '👑', label: 'orgulhoso' },
-];
-
-const SELF_LOVE_INTENTS: Array<{ id: SelfLoveIntent; emoji: string; label: string }> = [
-  { id: 'disciplina',   emoji: '🛡️', label: 'com disciplina' },
-  { id: 'calma',        emoji: '🌿', label: 'com calma' },
-  { id: 'respeito',     emoji: '🤍', label: 'com respeito' },
-  { id: 'presenca',     emoji: '🕯️', label: 'com presença' },
-  { id: 'coragem',      emoji: '🔥', label: 'com coragem' },
-  { id: 'autocontrole', emoji: '⚖️', label: 'com autocontrole' },
-];
 
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
