@@ -247,10 +247,6 @@ serve(async (req) => {
       intensity: rawIntensity,
       lifeArea,
       emotionalGoal,
-      // Novos inputs do ritual emocional (passos 1-3 da guia Despertar)
-      ritualChoice,         // 'choose' | 'need_support' | undefined
-      emotionalState,       // 'ansioso' | 'vazio' | ... | undefined
-      selfLoveIntent,       // 'disciplina' | 'calma' | ... | undefined
       // Fallback antigo
       journal, awakening, rank, reflections,
       missions, habits, punishments,
