@@ -392,6 +392,8 @@ serve(async (req) => {
     }
 
     up += `═══ AGORA ═══\n`;
+    up += `0. SE OS DADOS ACIMA FOREM POUCOS OU INSUFICIENTES (usuário novo, sem hábitos/missões/diário): foco TOTALMENTE POSITIVO — fazer a pessoa se CONHECER e se VALORIZAR. Sem culpa, sem confronto. Perguntas devem provocar autoconhecimento gentil sobre quem ela é, o que quer, do que se orgulha.\n`;
+
     up += `1. Honre a INTENSIDADE ${intensity.toUpperCase()}. Não suavize. Não dramatize além do contexto.\n`;
     up += `2. Foque no TEMA "${theme}"${theme === 'auto' ? ' (escolha o mais urgente com base nos dados acima)' : ''}.\n`;
     up += `3. Use o ângulo "${angle}" como lente — JAMAIS cite o nome.\n`;
