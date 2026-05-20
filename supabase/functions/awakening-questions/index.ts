@@ -247,10 +247,6 @@ serve(async (req) => {
       intensity: rawIntensity,
       lifeArea,
       emotionalGoal,
-      // Novos inputs do ritual emocional (passos 1-3 da guia Despertar)
-      ritualChoice,         // 'choose' | 'need_support' | undefined
-      emotionalState,       // 'ansioso' | 'vazio' | ... | undefined
-      selfLoveIntent,       // 'disciplina' | 'calma' | ... | undefined
       // Fallback antigo
       journal, awakening, rank, reflections,
       missions, habits, punishments,
@@ -318,9 +314,7 @@ serve(async (req) => {
     up += `Intensidade: ${intensity.toUpperCase()}\n`;
     if (lifeArea) up += `Área da vida: ${lifeArea}\n`;
     if (emotionalGoal) up += `Objetivo emocional: ${emotionalGoal}\n`;
-    if (ritualChoice) up += `Como ele abriu o ritual hoje: ${ritualChoice === 'choose' ? '❤️ "Sim, eu me escolho"' : '🌧️ "Hoje preciso de apoio"'}\n`;
-    if (emotionalState) up += `Estado emocional declarado AGORA: ${emotionalState}\n`;
-    if (selfLoveIntent) up += `Intenção de amor-próprio para hoje (como alguém que se ama agiria): ${selfLoveIntent}\n`;
+    up += `IMPORTANTE: Não há entrada manual de estado emocional. DETECTE você mesmo o estado dele a partir do diário recente, padrão de falhas/conclusões dos últimos 7d, drift emocional e contradições. Classifique-o no eixo AMOR-PRÓPRIO ↔ AUTOTRAIÇÃO e ajuste o tom: orgulho/reforço quando fiel a si, reconexão suave quando em autotraição.\n`;
     up += `Modo (insumo do backend, use como lente): ${mode.toUpperCase()}\n`;
     up += `Ângulo dominante (lente, NUNCA cite o nome): ${angle}\n`;
     up += `Ângulos recentes (NÃO repita): ${(ctx.angleHistory || []).slice(-5).join(', ') || '(vazio)'}\n\n`;
