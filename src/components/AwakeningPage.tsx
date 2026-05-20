@@ -31,34 +31,6 @@ interface AwakeningResponse {
   questions?: AwakeningQuestion[];
 }
 
-const THEMES: Array<{ id: string; label: string }> = [
-  { id: 'auto', label: '✨ Auto (IA decide)' },
-  { id: 'procrastinacao', label: 'Procrastinação' },
-  { id: 'disciplina', label: 'Disciplina' },
-  { id: 'foco', label: 'Foco' },
-  { id: 'consistencia', label: 'Consistência' },
-  { id: 'academia', label: 'Academia' },
-  { id: 'corpo', label: 'Corpo' },
-  { id: 'emagrecimento', label: 'Emagrecimento' },
-  { id: 'autossabotagem', label: 'Autossabotagem' },
-  { id: 'autoestima', label: 'Autoestima' },
-  { id: 'identidade', label: 'Identidade' },
-  { id: 'futuro', label: 'Futuro' },
-  { id: 'ansiedade', label: 'Ansiedade' },
-  { id: 'medo', label: 'Medo' },
-  { id: 'dopamina_barata', label: 'Dopamina barata' },
-  { id: 'redes_sociais', label: 'Redes sociais' },
-  { id: 'pornografia', label: 'Pornografia' },
-  { id: 'vicios', label: 'Vícios' },
-  { id: 'dinheiro', label: 'Dinheiro' },
-  { id: 'produtividade', label: 'Produtividade' },
-  { id: 'relacionamentos', label: 'Relacionamentos' },
-];
-
-const LIFE_AREAS = ['Corpo', 'Mente', 'Carreira', 'Relacionamentos', 'Espiritual', 'Financeiro'];
-const EMOTIONAL_GOALS = ['Urgência', 'Coragem', 'Orgulho', 'Foco', 'Raiva produtiva', 'Clareza'];
-
-
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
   const [question, setQuestion] = useState('');
@@ -71,19 +43,8 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // Seletores
-  const [theme, setTheme] = useState<string>('auto');
-  const [intensity, setIntensity] = useState<'leve' | 'medio' | 'brutal'>('medio');
-  const [lifeArea, setLifeArea] = useState<string>('');
-  const [emotionalGoal, setEmotionalGoal] = useState<string>('');
-
-  // Ritual emocional removido — IA decide tudo a partir do contexto dos últimos 7 dias
-
-  // Tony Robbins layer
-  const [ritualOpen, setRitualOpen] = useState(false);
+  // IA decide tudo a partir do contexto dos últimos 7 dias
   const [activeSabotage, setActiveSabotage] = useState<any>(null);
-  const today = getTodayBrasilia();
-  const ritualDoneToday = state.dailyRitual?.lastCompletedDate === today;
   const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
 
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
