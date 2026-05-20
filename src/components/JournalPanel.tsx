@@ -207,6 +207,64 @@ export default function JournalPanel() {
         <BookOpen className="w-5 h-5" /> DIÁRIO
       </h2>
 
+      {/* IA — perguntas e exercício do dia */}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel border-primary/30 bg-gradient-to-br from-primary/5 to-transparent space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] uppercase tracking-wider text-primary/80 font-display flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" /> ✨ Hoje a IA propõe
+          </p>
+          {(prompts || exercise) && (
+            <span className="text-[10px] text-foreground/50">guarda do dia · {today}</span>
+          )}
+        </div>
+
+        {!prompts && !exercise && (
+          <p className="text-xs text-foreground/60 italic">
+            A IA lê seus últimos 7 dias e propõe perguntas e um exercício curto feitos só para hoje.
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button variant="outline" size="sm" className="border-primary/40 hover:bg-primary/10 text-xs" onClick={fetchPrompts} disabled={loadingPrompts}>
+            {loadingPrompts ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : (prompts ? <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-primary" /> : <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />)}
+            {prompts ? 'Atualizar perguntas' : 'Gerar perguntas do dia'}
+          </Button>
+          <Button variant="outline" size="sm" className="border-primary/40 hover:bg-primary/10 text-xs" onClick={fetchExercise} disabled={loadingExercise}>
+            {loadingExercise ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Heart className="w-3.5 h-3.5 mr-1.5 text-primary" />}
+            {exercise ? 'Novo exercício' : 'Exercício de reconexão'}
+          </Button>
+        </div>
+
+        {prompts && (
+          <div className="space-y-2 pt-1">
+            <p className="text-[10px] text-foreground/50 uppercase tracking-wider">
+              {prompts.mode === 'orgulho' ? '👑 modo orgulho' : prompts.mode === 'reconexao' ? '🤍 modo reconexão' : '🌿 modo neutro'} · <span className="italic normal-case">{prompts.detectedSignal}</span>
+            </p>
+            {prompts.questions.map((p, i) => (
+              <button key={i} type="button" onClick={() => usePromptInEditor(p)} className="w-full text-left p-3 rounded-md bg-background/40 border border-border/40 hover:border-primary/40 transition group">
+                <p className="text-xs font-semibold text-foreground group-hover:text-primary">{p.title}</p>
+                <p className="text-sm text-foreground/85 mt-1">{p.prompt}</p>
+                <p className="text-[10px] text-foreground/50 italic mt-1">{p.objective}</p>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {exercise && (
+          <div className="p-3 rounded-md bg-background/40 border border-border/40 space-y-2">
+            <p className="text-xs font-semibold text-primary">🌱 {exercise.title}</p>
+            <p className="text-sm text-foreground/85">{exercise.description}</p>
+            <ol className="list-decimal list-inside space-y-1 text-xs text-foreground/80">
+              {exercise.steps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+            <p className="text-[10px] text-foreground/50 italic">{exercise.purpose}</p>
+            <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => useExerciseInEditor(exercise)}>
+              <Send className="w-3 h-3 mr-1.5" /> Usar no diário
+            </Button>
+          </div>
+        )}
+      </motion.div>
+
       {/* New entry form */}
       <div className={`rpg-panel space-y-3 transition-all duration-500 ${deepMode ? 'bg-background border-primary/50 glow-purple-strong' : ''}`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
