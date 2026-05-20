@@ -1,16 +1,14 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Flame, Zap, Sprout, AlertTriangle, Pencil, Save, X } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, AlertTriangle, Pencil, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { buildAiContext } from '@/lib/aiContext';
 import RichEditor from './RichEditor';
-import DailyRitualDialog from './DailyRitualDialog';
 import SabotageConfrontDialog from './SabotageConfrontDialog';
-import { getTodayBrasilia } from '@/lib/utils';
 
 interface AwakeningQuestion {
   title: string;
