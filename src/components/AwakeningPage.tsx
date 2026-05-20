@@ -60,6 +60,30 @@ const THEMES: Array<{ id: string; label: string }> = [
 const LIFE_AREAS = ['Corpo', 'Mente', 'Carreira', 'Relacionamentos', 'Espiritual', 'Financeiro'];
 const EMOTIONAL_GOALS = ['Urgência', 'Coragem', 'Orgulho', 'Foco', 'Raiva produtiva', 'Clareza'];
 
+type RitualChoice = 'choose' | 'need_support' | null;
+type EmotionalState = 'ansioso' | 'vazio' | 'impulsivo' | 'desmotivado' | 'cansado' | 'em_paz' | 'focado' | 'orgulhoso' | null;
+type SelfLoveIntent = 'disciplina' | 'calma' | 'respeito' | 'presenca' | 'coragem' | 'autocontrole' | null;
+
+const EMOTIONAL_STATES: Array<{ id: EmotionalState; emoji: string; label: string }> = [
+  { id: 'ansioso',     emoji: '🌊', label: 'ansioso' },
+  { id: 'vazio',       emoji: '🌑', label: 'vazio' },
+  { id: 'impulsivo',   emoji: '⚡', label: 'impulsivo' },
+  { id: 'desmotivado', emoji: '🍂', label: 'desmotivado' },
+  { id: 'cansado',     emoji: '💤', label: 'cansado' },
+  { id: 'em_paz',      emoji: '🕊️', label: 'em paz' },
+  { id: 'focado',      emoji: '🎯', label: 'focado' },
+  { id: 'orgulhoso',   emoji: '👑', label: 'orgulhoso' },
+];
+
+const SELF_LOVE_INTENTS: Array<{ id: SelfLoveIntent; emoji: string; label: string }> = [
+  { id: 'disciplina',   emoji: '🛡️', label: 'com disciplina' },
+  { id: 'calma',        emoji: '🌿', label: 'com calma' },
+  { id: 'respeito',     emoji: '🤍', label: 'com respeito' },
+  { id: 'presenca',     emoji: '🕯️', label: 'com presença' },
+  { id: 'coragem',      emoji: '🔥', label: 'com coragem' },
+  { id: 'autocontrole', emoji: '⚖️', label: 'com autocontrole' },
+];
+
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
   const [question, setQuestion] = useState('');
@@ -78,6 +102,11 @@ export default function AwakeningPage() {
   const [lifeArea, setLifeArea] = useState<string>('');
   const [emotionalGoal, setEmotionalGoal] = useState<string>('');
 
+  // Ritual emocional (passos 1-3)
+  const [ritualChoice, setRitualChoice] = useState<RitualChoice>(null);
+  const [emotionalState, setEmotionalState] = useState<EmotionalState>(null);
+  const [selfLoveIntent, setSelfLoveIntent] = useState<SelfLoveIntent>(null);
+
   // Tony Robbins layer
   const [ritualOpen, setRitualOpen] = useState(false);
   const [activeSabotage, setActiveSabotage] = useState<any>(null);
@@ -87,9 +116,9 @@ export default function AwakeningPage() {
 
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const intensityLabel = r.intensity === 'brutal' ? '🔥 BRUTAL' : r.intensity === 'leve' ? '🌱 LEVE' : '⚡ MÉDIO';
+    const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE NUA' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO';
     const parts: string[] = [
-      `<h3>🌅 Despertar — ${r.detectedState || 'Reflexão profunda'}</h3>`,
+      `<h3>🌅 Despertar — ${r.detectedState || 'Voltando para mim'}</h3>`,
       `<p><em>${dateStr} · ${intensityLabel}${r.theme && r.theme !== 'auto' ? ` · ${r.theme}` : ''}</em></p>`,
       `<hr/>`,
     ];
@@ -100,14 +129,14 @@ export default function AwakeningPage() {
       parts.push(`<p>${content.replace(/\n/g, '<br/>')}</p>`);
     };
 
-    block('🎬', 'Abertura', r.opening);
-    block('💀', 'Dor da inação', r.painOfInaction);
-    block('🔥', 'Confronto', r.confrontation);
-    block('✨', 'Prazer da ação', r.pleasureOfAction);
+    block('🪞', 'Onde você está', r.opening);
+    block('💧', 'O que tem sido perdido em silêncio', r.painOfInaction);
+    block('🤍', 'A verdade dita com amor', r.confrontation);
+    block('✨', 'Quem você se torna ao voltar pra si', r.pleasureOfAction);
 
     if (r.questions && r.questions.length > 0) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>✍️ Perguntas de impacto</h4>`);
+      parts.push(`<h4>✍️ Perguntas para se reencontrar</h4>`);
       r.questions.forEach((q, i) => {
         parts.push(`<h5>${i + 1}. ${q.title}</h5>`);
         if (q.objective) parts.push(`<p><em>${q.objective}</em></p>`);
@@ -119,8 +148,8 @@ export default function AwakeningPage() {
     }
 
     if (r.microAction || r.identityAnchor) parts.push(`<hr/>`);
-    block('⚡', 'Ativação imediata', r.microAction);
-    block('🧬', 'Âncora de identidade', r.identityAnchor);
+    block('🌱', 'Pequeno ato de amor-próprio hoje', r.microAction);
+    block('🧬', 'Quem eu sou quando me escolho', r.identityAnchor);
 
     return parts.join('');
   }, []);
