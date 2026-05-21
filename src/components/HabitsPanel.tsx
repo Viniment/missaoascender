@@ -111,10 +111,11 @@ export default function HabitsPanel() {
       const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
       todayDate.setDate(todayDate.getDate() + 30);
       const endDate = todayDate.toISOString().split('T')[0];
-      addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
+      addHabit({ name, description: hasDescription && description.trim() ? description : undefined, intention: intention.trim() || undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
       setName('');
       setDescription('');
       setHasDescription(false);
+      setIntention('');
       setVideoUrl('');
       setShowForm(false);
       toast.success('Hábito criado!');
