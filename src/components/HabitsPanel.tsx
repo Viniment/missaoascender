@@ -282,6 +282,16 @@ export default function HabitsPanel() {
               )}
             </div>
             <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1.5"><Heart className="w-3 h-3 text-primary" /> Por que isso é um ato de amor por mim?</label>
+              <Input
+                placeholder="Ex: estou cuidando do meu corpo porque ele merece cuidado."
+                value={editIntention}
+                onChange={e => setEditIntention(e.target.value)}
+                className="bg-secondary border-border mt-1"
+                maxLength={120}
+              />
+            </div>
+            <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
               <div className="flex gap-1 flex-wrap mt-1">
                 {ICONS.map(i => (
