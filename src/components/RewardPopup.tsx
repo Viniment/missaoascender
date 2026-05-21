@@ -7,9 +7,11 @@ interface RewardPopupProps {
   xp: number;
   gold: number;
   title?: string;
+  /** Frase emocional opcional (ex: "Você acabou de cuidar de si."). */
+  subtitle?: string;
 }
 
-export default function RewardPopup({ open, onClose, xp, gold, title }: RewardPopupProps) {
+export default function RewardPopup({ open, onClose, xp, gold, title, subtitle }: RewardPopupProps) {
   useEffect(() => {
     if (open) {
       const t = setTimeout(onClose, 2500);
@@ -63,6 +65,16 @@ export default function RewardPopup({ open, onClose, xp, gold, title }: RewardPo
                 className="text-xs text-destructive/80 mt-3 font-display"
               >
                 PROTOCOLO DE FALHA ATIVADO
+              </motion.p>
+            )}
+            {!isLoss && subtitle && (
+              <motion.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-xs text-primary/85 italic mt-3 leading-snug"
+              >
+                {subtitle}
               </motion.p>
             )}
           </div>

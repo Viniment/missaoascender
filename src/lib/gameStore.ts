@@ -40,6 +40,8 @@ export interface Habit {
   id: string;
   name: string;
   description?: string;
+  /** Intenção emocional — por que esse hábito é um ato de amor-próprio. */
+  intention?: string;
   icon: string;
   color: string;
   endDate: string;

@@ -14,6 +14,8 @@ import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog
 import RichEditor from '@/components/RichEditor';
 import RewardPopup from '@/components/RewardPopup';
 import FailureConfrontDialog from '@/components/FailureConfrontDialog';
+import { getRandomLoveActMessage } from '@/lib/affirmations';
+import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
@@ -40,6 +42,7 @@ export default function HabitsPanel() {
   const [name, setName] = useState('');
   const [hasDescription, setHasDescription] = useState(false);
   const [description, setDescription] = useState('');
+  const [intention, setIntention] = useState('');
   const [icon, setIcon] = useState('💪');
   const [color, setColor] = useState(COLORS[0]);
   const [difficulty, setDifficulty] = useState<MissionDifficulty>('Normal');
@@ -57,7 +60,7 @@ export default function HabitsPanel() {
   const viewLabel = dayOptions.find(d => d.date === viewDate)?.label ?? 'Hoje';
 
   // Reward popup
-  const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+  const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string; subtitle?: string }>({ open: false, xp: 0, gold: 0, title: '' });
   // Confront dialog (failure)
   const [confront, setConfront] = useState<{ open: boolean; itemName: string; xpLost: number }>({ open: false, itemName: '', xpLost: 0 });
   // Edit habit dialog
@@ -65,6 +68,7 @@ export default function HabitsPanel() {
   const [editName, setEditName] = useState('');
   const [editHasDescription, setEditHasDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
+  const [editIntention, setEditIntention] = useState('');
   const [editIcon, setEditIcon] = useState('💪');
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
@@ -77,6 +81,7 @@ export default function HabitsPanel() {
     setEditName(h.name);
     setEditHasDescription(!!h.description);
     setEditDescription(h.description || '');
+    setEditIntention(h.intention || '');
     setEditIcon(h.icon);
     setEditColor(h.color);
     setEditDifficulty(h.difficulty);
@@ -89,7 +94,7 @@ export default function HabitsPanel() {
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+      editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, intention: editIntention.trim() || undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
       setEditDialog(null);
       toast.success('Hábito editado!');
     } finally {
@@ -106,10 +111,11 @@ export default function HabitsPanel() {
       const todayDate = new Date(getTodayBrasilia() + 'T12:00:00');
       todayDate.setDate(todayDate.getDate() + 30);
       const endDate = todayDate.toISOString().split('T')[0];
-      addHabit({ name, description: hasDescription && description.trim() ? description : undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
+      addHabit({ name, description: hasDescription && description.trim() ? description : undefined, intention: intention.trim() || undefined, icon, color, endDate, difficulty, videoUrl: videoUrl.trim() || undefined });
       setName('');
       setDescription('');
       setHasDescription(false);
+      setIntention('');
       setVideoUrl('');
       setShowForm(false);
       toast.success('Hábito criado!');
@@ -131,7 +137,7 @@ export default function HabitsPanel() {
       return;
     }
     if (status === 'done') {
-      setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '✨ HÁBITO CONCLUÍDO' });
+      setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '❤️ ATO DE AMOR-PRÓPRIO', subtitle: getRandomLoveActMessage() });
     } else {
       setConfront({ open: true, itemName: habitName, xpLost: -(baseXp * 2) });
     }
@@ -160,6 +166,16 @@ export default function HabitsPanel() {
               {hasDescription && (
                 <RichEditor content={description} onChange={setDescription} placeholder="Descreva o hábito..." />
               )}
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1.5"><Heart className="w-3 h-3 text-primary" /> Por que isso é um ato de amor por mim?</label>
+              <Input
+                placeholder="Ex: estou cuidando do meu corpo porque ele merece cuidado."
+                value={intention}
+                onChange={e => setIntention(e.target.value)}
+                className="bg-secondary border-border mt-1"
+                maxLength={120}
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
@@ -264,6 +280,16 @@ export default function HabitsPanel() {
               {editHasDescription && (
                 <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva o hábito..." />
               )}
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1.5"><Heart className="w-3 h-3 text-primary" /> Por que isso é um ato de amor por mim?</label>
+              <Input
+                placeholder="Ex: estou cuidando do meu corpo porque ele merece cuidado."
+                value={editIntention}
+                onChange={e => setEditIntention(e.target.value)}
+                className="bg-secondary border-border mt-1"
+                maxLength={120}
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground">Ícone</label>
@@ -396,6 +422,14 @@ function HabitCard({ habit: h, viewDate, onMark, onEdit }: { habit: ReturnType<t
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </div>
+
+      {h.intention && (
+        <p className="text-[11px] text-primary/80 italic leading-snug border-l-2 border-primary/40 pl-2">
+          ❤️ {h.intention}
+        </p>
+      )}
+
+
 
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
