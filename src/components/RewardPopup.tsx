@@ -67,6 +67,16 @@ export default function RewardPopup({ open, onClose, xp, gold, title, subtitle }
                 PROTOCOLO DE FALHA ATIVADO
               </motion.p>
             )}
+            {!isLoss && subtitle && (
+              <motion.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-xs text-primary/85 italic mt-3 leading-snug"
+              >
+                {subtitle}
+              </motion.p>
+            )}
           </div>
         </motion.div>
       )}
