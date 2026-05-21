@@ -137,7 +137,7 @@ export default function HabitsPanel() {
       return;
     }
     if (status === 'done') {
-      setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '✨ HÁBITO CONCLUÍDO' });
+      setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '❤️ ATO DE AMOR-PRÓPRIO', subtitle: getRandomLoveActMessage() });
     } else {
       setConfront({ open: true, itemName: habitName, xpLost: -(baseXp * 2) });
     }
