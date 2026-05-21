@@ -31,3 +31,19 @@ export function formatEmotionalStreak(days: number): { emoji: string; label: str
   if (days <= 29) return { emoji: '🛡️', label: 'me protegendo' };
   return { emoji: '👑', label: 'honrando meu futuro' };
 }
+
+/** Micro-frases para quando o usuário conclui um hábito — pequeno ato de amor-próprio. */
+export const LOVE_ACT_MESSAGES = [
+  'Você acabou de cuidar de si.',
+  'Uma pequena prova de amor-próprio.',
+  'Você se escolheu agora.',
+  'Sua palavra com você valeu hoje.',
+  'Mais uma promessa cumprida pra você.',
+  'Você não se abandonou agora.',
+  'Pequeno ato, grande reconexão.',
+  'Seu eu de amanhã agradece esse gesto.',
+] as const;
+
+export function getRandomLoveActMessage(): string {
+  return LOVE_ACT_MESSAGES[Math.floor(Math.random() * LOVE_ACT_MESSAGES.length)];
+}
