@@ -423,6 +423,14 @@ function HabitCard({ habit: h, viewDate, onMark, onEdit }: { habit: ReturnType<t
         </Button>
       </div>
 
+      {h.intention && (
+        <p className="text-[11px] text-primary/80 italic leading-snug border-l-2 border-primary/40 pl-2">
+          ❤️ {h.intention}
+        </p>
+      )}
+
+
+
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-1.5 py-0.5 rounded font-display text-[10px]">⚡ +{xp} XP</span>
         <span className="inline-flex items-center gap-1 bg-warning/15 text-warning px-1.5 py-0.5 rounded font-display text-[10px]">💰 +{gold} {gold === 1 ? 'Moeda' : 'Moedas'}</span>
