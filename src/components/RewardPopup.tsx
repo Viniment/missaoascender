@@ -7,9 +7,11 @@ interface RewardPopupProps {
   xp: number;
   gold: number;
   title?: string;
+  /** Frase emocional opcional (ex: "Você acabou de cuidar de si."). */
+  subtitle?: string;
 }
 
-export default function RewardPopup({ open, onClose, xp, gold, title }: RewardPopupProps) {
+export default function RewardPopup({ open, onClose, xp, gold, title, subtitle }: RewardPopupProps) {
   useEffect(() => {
     if (open) {
       const t = setTimeout(onClose, 2500);
