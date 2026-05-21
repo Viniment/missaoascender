@@ -60,7 +60,7 @@ export default function HabitsPanel() {
   const viewLabel = dayOptions.find(d => d.date === viewDate)?.label ?? 'Hoje';
 
   // Reward popup
-  const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string }>({ open: false, xp: 0, gold: 0, title: '' });
+  const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string; subtitle?: string }>({ open: false, xp: 0, gold: 0, title: '' });
   // Confront dialog (failure)
   const [confront, setConfront] = useState<{ open: boolean; itemName: string; xpLost: number }>({ open: false, itemName: '', xpLost: 0 });
   // Edit habit dialog
@@ -68,6 +68,7 @@ export default function HabitsPanel() {
   const [editName, setEditName] = useState('');
   const [editHasDescription, setEditHasDescription] = useState(false);
   const [editDescription, setEditDescription] = useState('');
+  const [editIntention, setEditIntention] = useState('');
   const [editIcon, setEditIcon] = useState('💪');
   const [editColor, setEditColor] = useState(COLORS[0]);
   const [editDifficulty, setEditDifficulty] = useState<MissionDifficulty>('Normal');
