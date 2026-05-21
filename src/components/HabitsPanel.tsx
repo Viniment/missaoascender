@@ -14,6 +14,8 @@ import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog
 import RichEditor from '@/components/RichEditor';
 import RewardPopup from '@/components/RewardPopup';
 import FailureConfrontDialog from '@/components/FailureConfrontDialog';
+import { getRandomLoveActMessage } from '@/lib/affirmations';
+import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🎯', '🧠', '✍️', '🌅', '💤'];
