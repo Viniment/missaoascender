@@ -81,6 +81,7 @@ export default function HabitsPanel() {
     setEditName(h.name);
     setEditHasDescription(!!h.description);
     setEditDescription(h.description || '');
+    setEditIntention(h.intention || '');
     setEditIcon(h.icon);
     setEditColor(h.color);
     setEditDifficulty(h.difficulty);
@@ -93,7 +94,7 @@ export default function HabitsPanel() {
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
+      editHabit(editDialog.id, { name: editName, description: editHasDescription && editDescription.trim() ? editDescription : undefined, intention: editIntention.trim() || undefined, icon: editIcon, color: editColor, difficulty: editDifficulty, videoUrl: editVideoUrl.trim() || undefined });
       setEditDialog(null);
       toast.success('Hábito editado!');
     } finally {
