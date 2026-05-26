@@ -14,7 +14,7 @@ import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog
 import RichEditor from '@/components/RichEditor';
 import RewardPopup from '@/components/RewardPopup';
 import FailureConfrontDialog from '@/components/FailureConfrontDialog';
-import { getRandomLoveActMessage } from '@/lib/affirmations';
+import VictoryDialog from '@/components/VictoryDialog';
 import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -61,6 +61,8 @@ export default function HabitsPanel() {
 
   // Reward popup
   const [rewardPopup, setRewardPopup] = useState<{ open: boolean; xp: number; gold: number; title: string; subtitle?: string }>({ open: false, xp: 0, gold: 0, title: '' });
+  // Victory dialog (success)
+  const [victory, setVictory] = useState<{ open: boolean; itemName: string; xp: number; gold: number }>({ open: false, itemName: '', xp: 0, gold: 0 });
   // Confront dialog (failure)
   const [confront, setConfront] = useState<{ open: boolean; itemName: string; xpLost: number }>({ open: false, itemName: '', xpLost: 0 });
   // Edit habit dialog
@@ -137,7 +139,7 @@ export default function HabitsPanel() {
       return;
     }
     if (status === 'done') {
-      setRewardPopup({ open: true, xp: baseXp, gold: baseGold, title: '❤️ ATO DE AMOR-PRÓPRIO', subtitle: getRandomLoveActMessage() });
+      setVictory({ open: true, itemName: habitName, xp: baseXp, gold: baseGold });
     } else {
       setConfront({ open: true, itemName: habitName, xpLost: -(baseXp * 2) });
     }
@@ -341,6 +343,14 @@ export default function HabitsPanel() {
         trigger="habit"
         itemName={confront.itemName}
         xpLost={confront.xpLost}
+      />
+      <VictoryDialog
+        open={victory.open}
+        onClose={() => setVictory(p => ({ ...p, open: false }))}
+        trigger="habit"
+        itemName={victory.itemName}
+        xp={victory.xp}
+        gold={victory.gold}
       />
     </div>
   );
