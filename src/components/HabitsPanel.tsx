@@ -344,6 +344,14 @@ export default function HabitsPanel() {
         itemName={confront.itemName}
         xpLost={confront.xpLost}
       />
+      <VictoryDialog
+        open={victory.open}
+        onClose={() => setVictory(p => ({ ...p, open: false }))}
+        trigger="habit"
+        itemName={victory.itemName}
+        xp={victory.xp}
+        gold={victory.gold}
+      />
     </div>
   );
 }
