@@ -611,12 +611,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
         'Cair e voltar não é fraqueza — é a forma mais alta de amor-próprio.', 1,
         s => protocolsDone(s), ['Concluir 1 Protocolo de Falha']),
       {
-        id: 'self-love-identity', type: 'self-love', label: 'Aprendi a me amar', value: 1, rank: 'S', icon: '💖',
+        id: 'self-love-identity', type: 'self-love' as const, label: 'Aprendi a me amar', value: 1, rank: 'S', icon: '💖',
         description: 'Não é mais esforço. É quem você é. Você se ama e isso aparece em cada dia.',
         requirements: ['Streak ≥ 60 dias', 'Concluir hábitos 30+ vezes'],
-        check: s => s.streak >= 60 && totalHabitsDone(s) >= 30,
-        progress: s => ({ current: Math.min(1, s.streak >= 60 && totalHabitsDone(s) >= 30 ? 1 : 0), target: 1 }),
-      },
+        check: (s: PlayerState) => s.streak >= 60 && totalHabitsDone(s) >= 30,
+        progress: (s: PlayerState) => ({ current: Math.min(1, s.streak >= 60 && totalHabitsDone(s) >= 30 ? 1 : 0), target: 1 }),
+      } as AchievementDef,
     ];
   })(),
 ];
