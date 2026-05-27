@@ -19,7 +19,6 @@ export default function PlayerCard() {
   const { state } = useGame();
   const xpPercent = Math.min(100, (state.xp / state.xpToNext) * 100);
   const streakInfo = formatEmotionalStreak(state.streak);
-  const identity = computeIdentityLevel(state);
   // Affirmation rotaciona por dia para sensação cinematográfica sem mudar a cada render.
   const affirmation = useMemo(() => getRandomAffirmation(new Date().toDateString()), []);
 
