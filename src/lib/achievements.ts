@@ -1,6 +1,6 @@
 import type { PlayerState } from './gameStore';
 
-export type AchievementType = 'streak' | 'habit' | 'mission' | 'level' | 'discipline' | 'special' | 'stoic' | 'self-love';
+export type AchievementType = 'streak' | 'habit' | 'mission' | 'level' | 'discipline' | 'special' | 'self-love';
 
 export interface AchievementDef {
   id: string;
