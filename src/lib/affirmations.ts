@@ -23,13 +23,9 @@ export function getRandomAffirmation(seed?: string): string {
   return AFFIRMATIONS[h % AFFIRMATIONS.length];
 }
 
-/** Emotional streak label. Substitui contagem crua por linguagem de autocuidado. */
-export function formatEmotionalStreak(days: number): { emoji: string; label: string } {
-  if (days <= 0) return { emoji: '🌑', label: 'reconectando' };
-  if (days <= 3) return { emoji: '🌱', label: 'reconstruindo' };
-  if (days <= 9) return { emoji: '❤️', label: 'me escolhendo' };
-  if (days <= 29) return { emoji: '🛡️', label: 'me protegendo' };
-  return { emoji: '👑', label: 'honrando meu futuro' };
+/** Streak simples — sem rótulos emocionais extras no PlayerCard. */
+export function formatEmotionalStreak(_days: number): { emoji: string; label: string } {
+  return { emoji: '🔥', label: 'Streak' };
 }
 
 /** Micro-frases para quando o usuário conclui um hábito — pequeno ato de amor-próprio. */
