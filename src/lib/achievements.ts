@@ -306,12 +306,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: s => s.rewards.filter(r => r.redeemed).length >= 5, progress: s => ({ current: Math.min(s.rewards.filter(r => r.redeemed).length, 5), target: 5 }) },
 
   // ========== NEW: HABITS ==========
-  { id: 'habits-10', type: 'habit', label: '10 Hábitos Ativos', value: 10, rank: 'B', icon: '🧠',
-    description: 'Dez hábitos simultâneos. Disciplina em camadas.',
+  { id: 'habits-10', type: 'habit', label: '10 formas de cuidar de mim', value: 10, rank: 'B', icon: '💐',
+    description: 'Dez cuidados ativos ao mesmo tempo. Sua vida virou um jardim que você rega.',
     requirements: ['Ter 10 hábitos criados simultaneamente'],
     check: s => s.habits.length >= 10, progress: s => ({ current: Math.min(s.habits.length, 10), target: 10 }) },
-  { id: 'habit-perfect-week', type: 'habit', label: 'Semana Perfeita', value: 7, rank: 'C', icon: '🧠',
-    description: '7 dias seguidos com TODOS os hábitos do dia concluídos.',
+  { id: 'habit-perfect-week', type: 'habit', label: 'Uma semana inteira sem me abandonar', value: 7, rank: 'C', icon: '🤍',
+    description: 'Sete dias seguidos honrando cada cuidado seu. Você não se largou nenhum dia.',
     requirements: ['Concluir 100% dos hábitos por 7 dias seguidos'],
     check: s => {
       if (s.habits.length === 0) return false;
@@ -335,8 +335,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       }
       return { current: Math.min(streak, 7), target: 7 };
     } },
-  { id: 'habit-perfect-month', type: 'habit', label: 'Mês Impecável', value: 30, rank: 'A', icon: '🧠',
-    description: '30 dias seguidos com TODOS os hábitos do dia concluídos.',
+  { id: 'habit-perfect-month', type: 'habit', label: 'Um mês inteiro sem me abandonar', value: 30, rank: 'A', icon: '💖',
+    description: 'Trinta dias sem virar as costas pra você em nenhum cuidado. Isso é amor diário.',
     requirements: ['Concluir 100% dos hábitos por 30 dias seguidos'],
     check: s => {
       if (s.habits.length === 0) return false;
