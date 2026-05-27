@@ -523,50 +523,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: s => s.streak >= 7 && s.missedDays >= 3,
     progress: s => ({ current: s.missedDays >= 3 ? Math.min(s.streak, 7) : 0, target: 7 }) },
 
-  // ========== NEW: STOIC ==========
-  { id: 'stoic-1', type: 'stoic', label: 'Primeira Reflexão Estoica', value: 1, rank: 'E', icon: '🏛️',
-    description: 'Respondeu sua primeira reflexão estoica. A jornada filosófica começa.',
-    requirements: ['Salvar 1 reflexão estoica'],
-    check: s => ((s as any).stoicEntries?.length || 0) >= 1,
-    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 1), target: 1 }) },
-  { id: 'stoic-7', type: 'stoic', label: '7 Reflexões Estoicas', value: 7, rank: 'D', icon: '🏛️',
-    description: 'Sete reflexões. Marco Aurélio aprovaria.',
-    requirements: ['Salvar 7 reflexões estoicas'],
-    check: s => ((s as any).stoicEntries?.length || 0) >= 7,
-    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 7), target: 7 }) },
-  { id: 'stoic-30', type: 'stoic', label: '30 Reflexões Estoicas', value: 30, rank: 'B', icon: '🏛️',
-    description: 'Trinta reflexões. A virtude se enraíza.',
-    requirements: ['Salvar 30 reflexões estoicas'],
-    check: s => ((s as any).stoicEntries?.length || 0) >= 30,
-    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 30), target: 30 }) },
-  { id: 'stoic-100', type: 'stoic', label: '100 Reflexões — Filósofo Estoico', value: 100, rank: 'S', icon: '🏛️',
-    description: 'Cem reflexões. Filósofo estoico de fato.',
-    requirements: ['Salvar 100 reflexões estoicas'],
-    check: s => ((s as any).stoicEntries?.length || 0) >= 100,
-    progress: s => ({ current: Math.min((s as any).stoicEntries?.length || 0, 100), target: 100 }) },
-  { id: 'stoic-streak-7', type: 'stoic', label: 'Diário Estoico 7 Dias', value: 7, rank: 'C', icon: '🏛️',
-    description: 'Sete dias seguidos respondendo o diário estoico.',
-    requirements: ['Salvar reflexão estoica em 7 dias seguidos'],
-    check: s => {
-      const dates = new Set(((s as any).stoicEntries || []).map((e: any) => e.date));
-      let streak = 0;
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(); d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        if (dates.has(key)) { streak++; if (streak >= 7) return true; } else break;
-      }
-      return false;
-    },
-    progress: s => {
-      const dates = new Set(((s as any).stoicEntries || []).map((e: any) => e.date));
-      let streak = 0;
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(); d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        if (dates.has(key)) streak++; else break;
-      }
-      return { current: Math.min(streak, 7), target: 7 };
-    } },
   // ========== AMOR-PRÓPRIO / ORGULHO ==========
   ...(() => {
     const totalHabitsDone = (s: PlayerState) =>
