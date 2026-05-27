@@ -362,12 +362,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     } },
 
   // ========== NEW: MISSIONS ==========
-  { id: 'mission-200', type: 'mission', label: '200 Missões — Soberano', value: 200, rank: 'Monarca', icon: '⚔️',
-    description: 'Duzentas missões. Você é soberano da execução.',
+  { id: 'mission-200', type: 'mission', label: '200 vezes que apareci pra mim', value: 200, rank: 'Monarca', icon: '💖',
+    description: 'Duzentas escolhas a favor de você. Você reescreveu sua relação consigo.',
     requirements: ['Concluir 200 missões no total'],
     check: s => completedMissions(s) >= 200, progress: s => ({ current: Math.min(completedMissions(s), 200), target: 200 }) },
-  { id: 'mission-day-5', type: 'mission', label: '5 Missões em 1 Dia', value: 5, rank: 'C', icon: '⚔️',
-    description: 'Cinco missões concluídas no mesmo dia. Surto produtivo.',
+  { id: 'mission-day-5', type: 'mission', label: 'Um dia inteiro me priorizando', value: 5, rank: 'C', icon: '🌷',
+    description: 'Cinco escolhas por você num mesmo dia. Esse dia foi seu.',
     requirements: ['Concluir 5 missões em um único dia'],
     check: s => {
       const counts: Record<string, number> = {};
@@ -393,8 +393,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       });
       return { current: Math.min(Math.max(0, ...Object.values(counts)), 5), target: 5 };
     } },
-  { id: 'mission-day-10', type: 'mission', label: '10 Missões em 1 Dia', value: 10, rank: 'B', icon: '⚔️',
-    description: 'Dez missões em um dia. Modo monstro ativado.',
+  { id: 'mission-day-10', type: 'mission', label: 'Um dia 100% por mim', value: 10, rank: 'B', icon: '💗',
+    description: 'Dez escolhas por você no mesmo dia. Esse dia foi inteiramente seu.',
     requirements: ['Concluir 10 missões em um único dia'],
     check: s => {
       const counts: Record<string, number> = {};
@@ -412,8 +412,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       });
       return { current: Math.min(Math.max(0, ...Object.values(counts)), 10), target: 10 };
     } },
-  { id: 'mission-category-master', type: 'mission', label: 'Mestre das 10 Categorias', value: 10, rank: 'A', icon: '⚔️',
-    description: 'Concluiu pelo menos 1 missão em todas as 10 categorias.',
+  { id: 'mission-category-master', type: 'mission', label: 'Cuidei de mim em todas as áreas', value: 10, rank: 'A', icon: '💞',
+    description: 'Você não negligenciou nenhuma parte da sua vida. Amor-próprio inteiro.',
     requirements: ['Concluir missão em Estudo, Trabalho, Treino, Leitura, Espiritual, Social, Saúde, Mental, Financeiro, Criatividade'],
     check: s => {
       const cats = new Set(s.missions.filter(m => m.status === 'Concluída' || (m.completionHistory && m.completionHistory.some(h => !h.failed))).map(m => m.category));
@@ -425,13 +425,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     } },
 
   // ========== NEW: JOURNAL ==========
-  { id: 'journal-deep-10', type: 'special', label: '10 Reflexões Profundas', value: 10, rank: 'C', icon: '📝',
-    description: 'Dez entradas em modo profundo. Mergulho real.',
+  { id: 'journal-deep-10', type: 'special', label: '10 mergulhos honestos em mim', value: 10, rank: 'C', icon: '🪞',
+    description: 'Dez vezes que você foi até o fundo sem fugir. Isso constrói intimidade consigo.',
     requirements: ['Criar 10 entradas no diário em modo profundo'],
     check: s => s.journal.filter(j => j.deepMode).length >= 10,
     progress: s => ({ current: Math.min(s.journal.filter(j => j.deepMode).length, 10), target: 10 }) },
-  { id: 'journal-week-streak', type: 'special', label: 'Diário 7 Dias Seguidos', value: 7, rank: 'D', icon: '📝',
-    description: 'Escreveu no diário por 7 dias consecutivos.',
+  { id: 'journal-week-streak', type: 'special', label: '7 dias me escutando', value: 7, rank: 'D', icon: '💜',
+    description: 'Uma semana inteira sentando com você todo dia. Você merecia essa escuta.',
     requirements: ['Escrever no diário 7 dias seguidos'],
     check: s => {
       const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
@@ -453,8 +453,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       }
       return { current: Math.min(streak, 7), target: 7 };
     } },
-  { id: 'journal-month-streak', type: 'special', label: 'Diário 30 Dias Seguidos', value: 30, rank: 'A', icon: '📝',
-    description: 'Escreveu no diário por 30 dias consecutivos.',
+  { id: 'journal-month-streak', type: 'special', label: '30 dias me escutando', value: 30, rank: 'A', icon: '💜',
+    description: 'Um mês inteiro sentando com você. Você virou um lugar seguro pra você mesmo.',
     requirements: ['Escrever no diário 30 dias seguidos'],
     check: s => {
       const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
@@ -478,47 +478,47 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     } },
 
   // ========== NEW: REFLECTIONS (Despertar) ==========
-  { id: 'reflections-10', type: 'special', label: '10 Reflexões do Despertar', value: 10, rank: 'D', icon: '🌅',
-    description: 'Dez reflexões respondidas no Despertar.',
+  { id: 'reflections-10', type: 'special', label: '10 vezes que parei pra me ver', value: 10, rank: 'D', icon: '🌷',
+    description: 'Dez pausas pra olhar pra dentro. Quem faz isso muda.',
     requirements: ['Responder 10 reflexões no Despertar'],
     check: s => (s.reflections?.length || 0) >= 10,
     progress: s => ({ current: Math.min(s.reflections?.length || 0, 10), target: 10 }) },
-  { id: 'reflections-50', type: 'special', label: '50 Reflexões do Despertar', value: 50, rank: 'A', icon: '🌅',
-    description: 'Cinquenta reflexões. Visão clara do propósito.',
+  { id: 'reflections-50', type: 'special', label: '50 vezes que me olhei com honestidade', value: 50, rank: 'A', icon: '💐',
+    description: 'Cinquenta encontros com você. A pessoa que se conhece é a que mais se ama.',
     requirements: ['Responder 50 reflexões no Despertar'],
     check: s => (s.reflections?.length || 0) >= 50,
     progress: s => ({ current: Math.min(s.reflections?.length || 0, 50), target: 50 }) },
 
   // ========== NEW: GOLD / REWARDS ==========
-  { id: 'gold-10000', type: 'special', label: '10000 Gold — Magnata', value: 10000, rank: 'Monarca', icon: '💰',
-    description: 'Dez mil moedas. Magnata da disciplina.',
+  { id: 'gold-10000', type: 'special', label: 'Acervo do meu próprio cuidado', value: 10000, rank: 'Monarca', icon: '🎁',
+    description: 'Dez mil moedas vindas de cuidar de você. Isso é riqueza interna de verdade.',
     requirements: ['Acumular 10000 Gold'],
     check: s => s.gold >= 10000, progress: s => ({ current: Math.min(s.gold, 10000), target: 10000 }) },
-  { id: 'reward-20', type: 'special', label: '20 Recompensas Resgatadas', value: 20, rank: 'B', icon: '🎁',
-    description: 'Vinte recompensas. Você sabe se recompensar.',
+  { id: 'reward-20', type: 'special', label: '20 vezes que me dei carinho', value: 20, rank: 'B', icon: '🎁',
+    description: 'Vinte presentes pra você. Aprender a receber também é amor-próprio.',
     requirements: ['Resgatar 20 recompensas na loja'],
     check: s => s.rewards.filter(r => r.redeemed).length >= 20,
     progress: s => ({ current: Math.min(s.rewards.filter(r => r.redeemed).length, 20), target: 20 }) },
 
   // ========== NEW: CHALLENGES ==========
-  { id: 'challenge-complete-1', type: 'special', label: 'Primeiro Desafio Completo', value: 1, rank: 'D', icon: '🎯',
-    description: 'Completou todos os passos de um desafio.',
+  { id: 'challenge-complete-1', type: 'special', label: 'Mantive uma promessa grande comigo', value: 1, rank: 'D', icon: '🤍',
+    description: 'Você cumpriu, do começo ao fim, algo que prometeu pra você. Isso fica.',
     requirements: ['Concluir 100% dos passos de 1 desafio'],
     check: s => s.challenges.some(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed),
     progress: s => ({ current: s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length > 0 ? 1 : 0, target: 1 }) },
-  { id: 'challenge-complete-5', type: 'special', label: '5 Desafios Completos', value: 5, rank: 'A', icon: '🎯',
-    description: 'Cinco desafios completos. Foco implacável.',
+  { id: 'challenge-complete-5', type: 'special', label: '5 promessas grandes cumpridas comigo', value: 5, rank: 'A', icon: '💖',
+    description: 'Cinco vezes que você foi até o fim por você. Sua palavra com você vale ouro.',
     requirements: ['Concluir 100% dos passos de 5 desafios'],
     check: s => s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length >= 5,
     progress: s => ({ current: Math.min(s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length, 5), target: 5 }) },
 
   // ========== NEW: DISCIPLINE ==========
-  { id: 'protocol-30', type: 'discipline', label: '30 Protocolos — Inquebrável', value: 30, rank: 'S', icon: '💀',
-    description: 'Trinta protocolos. Você é inquebrável.',
+  { id: 'protocol-30', type: 'discipline', label: '30 vezes que voltei pra mim', value: 30, rank: 'S', icon: '🕊️',
+    description: 'Trinta retornos. Você se tornou alguém que sempre encontra o caminho de volta pra si.',
     requirements: ['Concluir 30 Protocolos de Falha'],
     check: s => protocolsDone(s) >= 30, progress: s => ({ current: Math.min(protocolsDone(s), 30), target: 30 }) },
-  { id: 'comeback', type: 'discipline', label: 'Renascido', value: 7, rank: 'C', icon: '💀',
-    description: 'Recuperou um streak de 7+ dias após ter perdido 3+ dias. Renasceu.',
+  { id: 'comeback', type: 'discipline', label: 'Voltei pra mim depois de me perder', value: 7, rank: 'C', icon: '🕊️',
+    description: 'Você sumiu de você por dias — e voltou. Isso é amor que não desiste.',
     requirements: ['Após perder 3 ou mais dias, alcançar streak ≥ 7 novamente'],
     check: s => s.streak >= 7 && s.missedDays >= 3,
     progress: s => ({ current: s.missedDays >= 3 ? Math.min(s.streak, 7) : 0, target: 7 }) },
