@@ -2,8 +2,6 @@ import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Coins, Trophy, Heart } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
-import IdentityBadge from './IdentityBadge';
-import { computeIdentityLevel } from '@/lib/identityLevels';
 import { formatEmotionalStreak, getRandomAffirmation } from '@/lib/affirmations';
 import { useMemo } from 'react';
 
