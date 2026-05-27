@@ -573,6 +573,70 @@ export const ACHIEVEMENTS: AchievementDef[] = [
         check: (s: PlayerState) => s.streak >= 60 && totalHabitsDone(s) >= 30,
         progress: (s: PlayerState) => ({ current: Math.min(1, s.streak >= 60 && totalHabitsDone(s) >= 30 ? 1 : 0), target: 1 }),
       } as AchievementDef,
+
+      // Novas conquistas de amor-próprio
+      mk('self-promise-300', '300 promessas cumpridas comigo', 'A', '💞',
+        'Trezentas vezes que sua palavra contigo valeu. Você é confiável pra você mesmo agora.', 300,
+        s => totalHabitsDone(s), ['Concluir hábitos 300 vezes no total']),
+      mk('self-promise-1000', 'Mil atos de amor-próprio', 'Monarca', '💖',
+        'Mil. Mil pequenos gestos de cuidado. Uma vida sendo construída por dentro, dia após dia.', 1000,
+        s => totalHabitsDone(s), ['Concluir hábitos 1000 vezes no total']),
+      mk('self-deep-reflection', 'Mergulhei fundo em mim', 'D', '🪞',
+        'A primeira vez que você foi até o fundo sem se proteger. Coragem rara.', 1,
+        s => (s.journal || []).filter(j => j.deepMode).length, ['Criar 1 entrada no diário em modo profundo']),
+      mk('self-deep-30', '30 mergulhos honestos em mim', 'A', '🪞',
+        'Trinta vezes encarando o que mora dentro. Você se conhece como pouca gente se conhece.', 30,
+        s => (s.journal || []).filter(j => j.deepMode).length, ['Criar 30 entradas no diário em modo profundo']),
+      mk('self-pride-3months', 'Três meses me honrando', 'S', '👑',
+        'Noventa dias seguidos sendo gentil consigo. Isso reescreve quem você é.', 90,
+        s => s.streak, ['Manter streak de 90 dias']),
+      mk('self-pride-year', 'Um ano me amando', 'Monarca', '💖',
+        'Um ano inteiro do seu lado, sem te abandonar nenhum dia. Isso muda uma alma.', 365,
+        s => s.streak, ['Manter streak de 365 dias']),
+      {
+        id: 'self-rebirth', type: 'self-love' as const, label: 'Renasci dentro de mim', value: 1, rank: 'B', icon: '🕊️',
+        description: 'Você sumiu de você por uma semana inteira — e voltou. Isso é amor que insiste.',
+        requirements: ['Voltar a um streak de 7+ dias após perder 7 ou mais dias'],
+        check: (s: PlayerState) => s.streak >= 7 && s.missedDays >= 7,
+        progress: (s: PlayerState) => ({ current: s.missedDays >= 7 ? Math.min(s.streak, 7) : 0, target: 7 }),
+      } as AchievementDef,
+      {
+        id: 'self-gentle-care', type: 'self-love' as const, label: 'Aprendi a me tratar com carinho', value: 1, rank: 'C', icon: '🤍',
+        description: 'Cuidar de si virou rotina, escutar-se virou hábito. Que jeito bonito de viver.',
+        requirements: ['Streak ≥ 14 dias', 'Escrever 14 entradas no diário'],
+        check: (s: PlayerState) => s.streak >= 14 && journalCount(s) >= 14,
+        progress: (s: PlayerState) => ({ current: Math.min(2, (s.streak >= 14 ? 1 : 0) + (journalCount(s) >= 14 ? 1 : 0)), target: 2 }),
+      } as AchievementDef,
+      {
+        id: 'self-soft-power', type: 'self-love' as const, label: 'Força que vem de me amar', value: 1, rank: 'A', icon: '💪',
+        description: 'Você descobriu uma força nova — a que nasce de se cuidar, não de se cobrar.',
+        requirements: ['Streak ≥ 30 dias', 'Concluir hábitos 50+ vezes', 'Escrever 10+ entradas'],
+        check: (s: PlayerState) => s.streak >= 30 && totalHabitsDone(s) >= 50 && journalCount(s) >= 10,
+        progress: (s: PlayerState) => ({
+          current: Math.min(3, (s.streak >= 30 ? 1 : 0) + (totalHabitsDone(s) >= 50 ? 1 : 0) + (journalCount(s) >= 10 ? 1 : 0)),
+          target: 3,
+        }),
+      } as AchievementDef,
+      {
+        id: 'self-mirror-day', type: 'self-love' as const, label: 'Um dia inteiro me amando', value: 1, rank: 'E', icon: '🌷',
+        description: 'Um dia em que você se cuidou e se ouviu. Esse dia foi um presente seu pra você.',
+        requirements: ['Concluir 1 hábito e escrever no diário no mesmo dia'],
+        check: (s: PlayerState) => s.habits.some(h => Object.values(h.history).some(v => v === 'done')) && journalCount(s) >= 1,
+        progress: (s: PlayerState) => {
+          const did = s.habits.some(h => Object.values(h.history).some(v => v === 'done')) && journalCount(s) >= 1;
+          return { current: did ? 1 : 0, target: 1 };
+        },
+      } as AchievementDef,
+      {
+        id: 'self-home', type: 'self-love' as const, label: 'Virei um lar pra mim', value: 1, rank: 'Monarca', icon: '🏠',
+        description: 'Streak grande, cuidados profundos, escuta diária. Você se tornou o lugar mais seguro pra você.',
+        requirements: ['Streak ≥ 100 dias', 'Concluir hábitos 100+ vezes', 'Escrever 30+ entradas'],
+        check: (s: PlayerState) => s.streak >= 100 && totalHabitsDone(s) >= 100 && journalCount(s) >= 30,
+        progress: (s: PlayerState) => ({
+          current: Math.min(3, (s.streak >= 100 ? 1 : 0) + (totalHabitsDone(s) >= 100 ? 1 : 0) + (journalCount(s) >= 30 ? 1 : 0)),
+          target: 3,
+        }),
+      } as AchievementDef,
     ];
   })(),
 ];
