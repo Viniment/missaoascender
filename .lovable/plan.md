@@ -1,54 +1,71 @@
-## Mudanças no PlayerCard e novo eixo de conquistas
+## Reescrita das conquistas com foco em amor-próprio
 
-### 1. PlayerCard — remover ruído de "identidade"
+Tudo acontece em `src/lib/achievements.ts`. Nenhuma outra UI muda — o painel de conquistas lê deste array.
 
-Arquivo: `src/components/PlayerCard.tsx`
+### 1. Remover trilha estoica
+- Remover o bloco "NEW: STOIC" inteiro (5 conquistas: `stoic-1`, `stoic-7`, `stoic-30`, `stoic-100`, `stoic-streak-7`).
+- Remover `'stoic'` do union `AchievementType`.
 
-- Remover o bloco inteiro "Estou me tornando..." (o painel com `identity.current.label`, barra de progresso e "Caminhando para...").
-- Remover a `<IdentityBadge compact />` ao lado do nome/rank/nível.
-- Remover imports não usados: `IdentityBadge`, `computeIdentityLevel`.
-- Manter o resto do card (avatar, nome, rank, nível, XP, ouro, streak, conquistas, afirmação rotativa).
+### 2. Renomear conquistas existentes para a linguagem do app
+Manter `id`, `check`, `progress` e `rank` (para não invalidar conquistas já desbloqueadas dos usuários). Trocar **label**, **description** e **requirements** para linguagem de amor-próprio, autoestima, lealdade consigo, orgulho silencioso. Sem militarismo, sem "guerreiro", "máquina", "monstro", "soberano da execução", "ricaço", "magnata".
 
-### 2. Reescrever o texto da streak no PlayerCard
+Exemplos do tom novo:
+- `streak-3` → "3 dias me escolhendo" — *"Três dias seguidos honrando você. O começo da reconciliação."*
+- `streak-7` → "Uma semana inteira por mim"
+- `streak-30` → "Um mês me tratando bem"
+- `streak-100` → "100 dias de lealdade comigo"
+- `streak-365` → "Um ano inteiro do meu lado"
+- `mission-first` → "Primeira escolha por mim"
+- `mission-100` → "100 vezes que apareci pra mim"
+- `mission-hard-10` → "10 vezes que escolhi o difícil por mim"
+- `habit-first` → "Comecei a cuidar de mim"
+- `habit-done-100` → "100 dias seguidos de um cuidado"
+- `habit-done-200` → "O cuidado virou quem eu sou"
+- `habit-perfect-week` → "Uma semana inteira sem me abandonar"
+- `habit-perfect-month` → "Um mês sem me abandonar"
+- `rank-*` → manter os ranks mas redescrever ("Você está virando alguém diferente por dentro", etc.) sem "domínio", "presença dominante"
+- `protocol-*` → reescrever sem "indestrutível/inquebrável" → "Voltei pra mim", "Me reencontrei depois da queda"
+- `no-fail-*` → "X dias sem me trair"
+- `gold-*` → "Recompensas que mereci", "Tesouro do meu próprio cuidado", sem "ricaço/magnata"
+- `reward-*` → "Soube me presentear"
+- `journal-*` (special) → "X conversas honestas comigo", "Aprendi a me escutar"
+- `journal-deep-10` → "10 mergulhos em mim"
+- `journal-week-streak` / `month-streak` → "X dias me escutando"
+- `reflections-*` → "X vezes que parei pra me ver"
+- `mission-day-5/10` → "Um dia inteiro me priorizando" / "Um dia 100% por mim"
+- `mission-category-master` → "Cuidei de mim em todas as áreas"
+- `challenge-*` → "Mantive uma promessa grande comigo"
+- `comeback` → "Voltei pra mim depois de me perder"
+- `awakening` → manter — já é amor-próprio
+- `habit-3/5/10` → "X cuidados diários ativos"
 
-Arquivo: `src/lib/affirmations.ts` — função `formatEmotionalStreak(days)`  
-Trocar os rótulos atuais ("🌱 reconstruindo", "❤️ me escolhendo", "🛡️ me protegendo", "👑 honrando meu futuro") por "Streak"
+Vou reescrever todos os `label`, `description` e `requirements` na mesma passada para terem voz consistente.
 
-Nada mais precisa mudar: `PlayerCard` já consome via `formatEmotionalStreak`.
+### 3. Adicionar novas conquistas de amor-próprio
+Mais ~12 conquistas, sem nova lógica de estado (só usando o que já existe em `PlayerState`):
 
-### 3. Novas conquistas baseadas em amor-próprio
+| id | label | gatilho |
+|---|---|---|
+| `self-mirror-day` | "Um dia inteiro me amando" | dia com hábito feito + diário escrito (E, 🌷) |
+| `self-mirror-week` | "Uma semana toda comigo" | 7 dias em que (no mesmo dia) houve hábito feito + diário (C, 💐) |
+| `self-promise-300` | "300 promessas cumpridas comigo" | 300 hábitos done totais (A, 💞) |
+| `self-promise-1000` | "Mil atos de amor-próprio" | 1000 hábitos done totais (Monarca, 💖) |
+| `self-deep-reflection` | "Mergulhei fundo em mim" | 1ª entrada em modo profundo (D, 🪞) |
+| `self-deep-30` | "30 mergulhos honestos em mim" | 30 entradas em modo profundo (A, 🪞) |
+| `self-pride-3months` | "Três meses me honrando" | streak ≥ 90 (S, 👑) |
+| `self-pride-year` | "Um ano me amando" | streak ≥ 365 (Monarca, 💖) |
+| `self-rebirth` | "Renasci dentro de mim" | streak ≥ 7 após missedDays ≥ 7 (B, 🕊️) |
+| `self-gentle-care` | "Aprendi a me tratar com carinho" | 14 entradas + streak ≥ 14 (C, 🤍) |
+| `self-soft-power` | "Força que vem de me amar" | streak ≥ 30 + 50 hábitos done + 10 entradas (A, 💪🤍) |
+| `self-home` | "Virei um lar pra mim" | streak ≥ 100 + 100 hábitos done + 30 entradas (Monarca, 🏠💜) |
 
-Arquivo: `src/lib/achievements.ts`
-
-- Adicionar novo `AchievementType`: `'self-love'`.
-- Adicionar um bloco "AMOR-PRÓPRIO / ORGULHO" no array `ACHIEVEMENTS`, totalmente derivado de dados que já existem em `PlayerState` (sem nova lógica de negócio):
-
-
-| id                    | label                                 | gatilho (rank/icon)                          |
-| --------------------- | ------------------------------------- | -------------------------------------------- |
-| `self-first-act`      | "Primeiro ato de amor por mim"        | 1º hábito concluído (E, ❤️)                  |
-| `self-promise-7`      | "Cumpri minha palavra comigo 7 vezes" | 7 hábitos concluídos no total (D, 🤍)        |
-| `self-promise-30`     | "30 promessas cumpridas comigo"       | 30 hábitos concluídos (C, 💗)                |
-| `self-promise-100`    | "100 vezes que escolhi a mim"         | 100 hábitos concluídos (B, 💖)               |
-| `self-pride-week`     | "Uma semana de orgulho silencioso"    | streak ≥ 7 (D, ✨)                            |
-| `self-pride-month`    | "Um mês me honrando"                  | streak ≥ 30 (B, 👑)                          |
-| `self-journal-first`  | "Primeira escuta de mim"              | 1ª entrada de diário (E, 📓)                 |
-| `self-journal-10`     | "10 conversas honestas comigo"        | 10 entradas de diário (C, 🪞)                |
-| `self-journal-30`     | "30 dias me escutando"                | 30 entradas de diário (B, 💜)                |
-| `self-back-from-fail` | "Voltei pra mim depois da queda"      | ≥1 protocolo de falha concluído (C, 🕊️)     |
-| `self-love-identity`  | "Aprendi a me amar"                   | streak ≥ 60 + ≥30 hábitos concluídos (S, 💖) |
-
-
-- Para "hábitos concluídos no total" usar um helper inline somando `Object.values(h.history).filter(v => v === 'done').length` em `s.habits`.
-- Para "entradas de diário" usar `s.journal.length` (campo já existente).
-- Mantém o mesmo formato dos outros itens (`check`, `progress`, `requirements`, `description`).
+Todas com `type: 'self-love'` (já existente).
 
 ### 4. O que NÃO muda
+- IDs preservados → conquistas já desbloqueadas continuam válidas no localStorage do usuário.
+- Funções `check`/`progress` existentes ficam iguais; só edição de texto onde aplicável.
+- Painel `AchievementsPanel`, filtros e UI ficam como estão.
+- Sem mudança em edge functions, gameStore, banco ou tabs.
 
-- `identityLevels.ts`, `IdentityBadge.tsx` e o `IdentityState` interno continuam existindo (são usados por outras telas/lógicas) — apenas deixam de aparecer no PlayerCard.
-- Nenhuma mudança em edge functions, banco, hábitos, diário, missões ou despertar.
-- `AchievementsPanel` lê de `ACHIEVEMENTS` automaticamente — as novas conquistas aparecem sem mudança de UI.
-
-### Resultado visual
-
-PlayerCard fica mais limpo: avatar + nome + rank/nível + frase do dia + XP + (Ouro / Streak com novo rótulo de amor-próprio / Conquistas). Sem tag "me ouvindo", sem painel "Estou me tornando". Aba de conquistas ganha uma nova trilha emocional de amor-próprio.
+### Resultado
+Lista de conquistas inteira fala a mesma língua do app: cuidado consigo, lealdade, escuta interna, orgulho silencioso, se apaixonar pela própria vida. Trilha estoica some. ~12 conquistas novas dão mais marcos emocionais de amor-próprio para o usuário perseguir.
