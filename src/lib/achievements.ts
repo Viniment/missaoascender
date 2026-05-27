@@ -574,7 +574,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     const journalCount = (s: PlayerState) => (s.journal || []).length;
 
     const mk = (id: string, label: string, rank: string, icon: string, description: string, target: number, getCurrent: (s: PlayerState) => number, requirements: string[]): AchievementDef => ({
-      id, type: 'self-love', label, value: target, rank, icon, description, requirements,
+      id, type: 'self-love' as const, label, value: target, rank, icon, description, requirements,
       check: s => getCurrent(s) >= target,
       progress: s => ({ current: Math.min(getCurrent(s), target), target }),
     });
