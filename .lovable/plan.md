@@ -1,63 +1,54 @@
+## Mudanças no PlayerCard e novo eixo de conquistas
 
-# Reformulação: Despertar adaptativo + Diário inteligente
+### 1. PlayerCard — remover ruído de "identidade"
 
-## 1. Guia "Despertar" — remover ritual fixo
+Arquivo: `src/components/PlayerCard.tsx`
 
-**Em `src/components/AwakeningPage.tsx`:**
+- Remover o bloco inteiro "Estou me tornando..." (o painel com `identity.current.label`, barra de progresso e "Caminhando para...").
+- Remover a `<IdentityBadge compact />` ao lado do nome/rank/nível.
+- Remover imports não usados: `IdentityBadge`, `computeIdentityLevel`.
+- Manter o resto do card (avatar, nome, rank, nível, XP, ouro, streak, conquistas, afirmação rotativa).
 
-- Remover completamente o bloco "Ritual emocional — 3 passos" (🪞 Ritual de abertura, 💧 Como você chega aqui hoje, 🤍 Como alguém que se ama agiria).
-- Remover state e tipos: `ritualChoice`, `emotionalState`, `selfLoveIntent`, `RitualChoice`, `EmotionalState`, `SelfLoveIntent`, `EMOTIONAL_STATES`, `SELF_LOVE_INTENTS`.
-- Remover envio desses campos no `supabase.functions.invoke('awakening-questions', ...)`.
-- Manter: histórico de reflexões, edição inline, gerador IA, seletor de intensidade/tema (continuam como ajustes opcionais — o usuário pediu fim do "fluxo fixo manual de abertura", não dos controles de personalização). Se preferir mais simplicidade, posso deixar tudo em "Auto" por padrão e ocultar seletores num "Ajustes avançados" expansível.
-- O botão "Gerar despertar" passa a ser o único ponto de entrada — IA decide tudo a partir do contexto.
+### 2. Reescrever o texto da streak no PlayerCard
 
-**Em `supabase/functions/awakening-questions/index.ts`:**
+Arquivo: `src/lib/affirmations.ts` — função `formatEmotionalStreak(days)`  
+Trocar os rótulos atuais ("🌱 reconstruindo", "❤️ me escolhendo", "🛡️ me protegendo", "👑 honrando meu futuro") por "Streak"
 
-- Remover do body e do prompt: `ritualChoice`, `emotionalState`, `selfLoveIntent`.
-- Reforçar no SYSTEM_PROMPT que a IA deve **detectar automaticamente** estado emocional, padrão dominante e tom a partir de `context.derived` + `recentJournal` + hábitos/missões/recaídas dos últimos 7d. O `detectedState` agora é 100% inferido.
-- Adicionar análise de "amor-próprio vs autotraição" como eixo principal: a IA classifica o usuário em (fidelidade a si / desconexão leve / autotraição ativa) e ajusta tom — orgulho/reforço quando fiel, reconexão/consciência suave quando em autotraição. Nunca humilhar.
+Nada mais precisa mudar: `PlayerCard` já consome via `formatEmotionalStreak`.
 
-## 2. Diário inteligente — perguntas geradas pela IA
+### 3. Novas conquistas baseadas em amor-próprio
 
-**Nova edge function `supabase/functions/journal-prompts/index.ts`:**
+Arquivo: `src/lib/achievements.ts`
 
-- Recebe `context` (mesmo `buildAiContext`) e retorna 3 perguntas personalizadas baseadas nos últimos 7 dias.
-- System prompt define dois modos: **modo orgulho** (quando `behavioralEvolution === 'progredindo'` ou streak crescendo) e **modo reconexão** (quando há recaídas/autotraição). Exemplos do prompt do usuário viram few-shots.
-- Retorna `{ mode: 'orgulho' | 'reconexao' | 'neutro', detectedSignal: string, questions: [{title, prompt, objective}] }` via tool call.
-- Mesmo padrão de CORS / `LOVABLE_API_KEY` das outras functions.
+- Adicionar novo `AchievementType`: `'self-love'`.
+- Adicionar um bloco "AMOR-PRÓPRIO / ORGULHO" no array `ACHIEVEMENTS`, totalmente derivado de dados que já existem em `PlayerState` (sem nova lógica de negócio):
 
-**Nova edge function `supabase/functions/journal-exercise/index.ts`:**
 
-- Gera **1 exercício curto** personalizado (≤5 min): promessa para si, lista de atitudes de autorrespeito, visualização do eu-futuro, mini desafio de lealdade, etc.
-- Retorna `{ title, description, steps: string[], purpose: string }`.
+| id                    | label                                 | gatilho (rank/icon)                          |
+| --------------------- | ------------------------------------- | -------------------------------------------- |
+| `self-first-act`      | "Primeiro ato de amor por mim"        | 1º hábito concluído (E, ❤️)                  |
+| `self-promise-7`      | "Cumpri minha palavra comigo 7 vezes" | 7 hábitos concluídos no total (D, 🤍)        |
+| `self-promise-30`     | "30 promessas cumpridas comigo"       | 30 hábitos concluídos (C, 💗)                |
+| `self-promise-100`    | "100 vezes que escolhi a mim"         | 100 hábitos concluídos (B, 💖)               |
+| `self-pride-week`     | "Uma semana de orgulho silencioso"    | streak ≥ 7 (D, ✨)                            |
+| `self-pride-month`    | "Um mês me honrando"                  | streak ≥ 30 (B, 👑)                          |
+| `self-journal-first`  | "Primeira escuta de mim"              | 1ª entrada de diário (E, 📓)                 |
+| `self-journal-10`     | "10 conversas honestas comigo"        | 10 entradas de diário (C, 🪞)                |
+| `self-journal-30`     | "30 dias me escutando"                | 30 entradas de diário (B, 💜)                |
+| `self-back-from-fail` | "Voltei pra mim depois da queda"      | ≥1 protocolo de falha concluído (C, 🕊️)     |
+| `self-love-identity`  | "Aprendi a me amar"                   | streak ≥ 60 + ≥30 hábitos concluídos (S, 💖) |
 
-**Em `src/components/JournalPanel.tsx`:**
 
-- Acima do formulário de nova entrada, adicionar painel **"✨ Hoje a IA propõe"** com:
-  - Botão "Gerar perguntas do dia" → chama `journal-prompts`, mostra 3 perguntas com objetivo curto. Clicar numa pergunta preenche o `title` + insere a pergunta como blockquote inicial no editor.
-  - Botão "Exercício de reconexão" → chama `journal-exercise`, mostra card com passos. Botão "Usar este exercício no diário" copia para o editor.
-  - Cache leve por dia: armazenar última geração no `localStorage` (chave `journal-prompts-YYYY-MM-DD`) para não regenerar a cada visita, com botão "Atualizar".
-- Manter formulário, emoções, intensidade, modo profundo e lista de entradas existentes intactos.
+- Para "hábitos concluídos no total" usar um helper inline somando `Object.values(h.history).filter(v => v === 'done').length` em `s.habits`.
+- Para "entradas de diário" usar `s.journal.length` (campo já existente).
+- Mantém o mesmo formato dos outros itens (`check`, `progress`, `requirements`, `description`).
 
-## 3. Contexto IA (sem mudanças estruturais)
+### 4. O que NÃO muda
 
-`src/lib/aiContext.ts` já entrega os 7 dias com `failureCount7d`, `consistencyTrend`, `emotionalDrift`, `behavioralEvolution`, `recurringFailedItems` e diário recente — suficiente para ambas as functions. Só passar `buildAiContext(state)` no body.
+- `identityLevels.ts`, `IdentityBadge.tsx` e o `IdentityState` interno continuam existindo (são usados por outras telas/lógicas) — apenas deixam de aparecer no PlayerCard.
+- Nenhuma mudança em edge functions, banco, hábitos, diário, missões ou despertar.
+- `AchievementsPanel` lê de `ACHIEVEMENTS` automaticamente — as novas conquistas aparecem sem mudança de UI.
 
-## Detalhes técnicos
+### Resultado visual
 
-- Edge functions: copiar template das existentes (CORS, `LOVABLE_API_KEY`, modelo padrão `google/gemini-2.5-flash`, tool calling para JSON estruturado).
-- Tom dos prompts segue `mem://design/emotional-philosophy`: cinematográfico, acolhedor, anti-tóxico, sem humilhação.
-- Cache no front: `useState` + `localStorage`, invalidação por data Brasília (`getTodayBrasilia`).
-- Sem mudanças de schema, sem mudanças no `gameStore`, sem mudanças de auth.
-
-## Validação
-
-- Build/typecheck limpos.
-- Despertar abre direto no gerador (sem ritual visível).
-- Diário mostra painel IA, botão "Gerar perguntas" devolve 3 perguntas coerentes com últimos 7 dias, clicar preenche o editor.
-- Exercício aparece como card com passos numerados.
-- Tom respeita as regras: nada de "você consegue", nada de humilhação.
-
-## Fora de escopo
-
-DB, auth, XP, missões, hábitos, recompensas, design system — nada disso muda.
+PlayerCard fica mais limpo: avatar + nome + rank/nível + frase do dia + XP + (Ouro / Streak com novo rótulo de amor-próprio / Conquistas). Sem tag "me ouvindo", sem painel "Estou me tornando". Aba de conquistas ganha uma nova trilha emocional de amor-próprio.
