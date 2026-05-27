@@ -1,6 +1,6 @@
 import type { PlayerState } from './gameStore';
 
-export type AchievementType = 'streak' | 'habit' | 'mission' | 'level' | 'discipline' | 'special' | 'stoic';
+export type AchievementType = 'streak' | 'habit' | 'mission' | 'level' | 'discipline' | 'special' | 'stoic' | 'self-love';
 
 export interface AchievementDef {
   id: string;
@@ -567,6 +567,58 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       }
       return { current: Math.min(streak, 7), target: 7 };
     } },
+  // ========== AMOR-PRÓPRIO / ORGULHO ==========
+  ...(() => {
+    const totalHabitsDone = (s: PlayerState) =>
+      s.habits.reduce((acc, h) => acc + Object.values(h.history).filter(v => v === 'done').length, 0);
+    const journalCount = (s: PlayerState) => (s.journal || []).length;
+
+    const mk = (id: string, label: string, rank: string, icon: string, description: string, target: number, getCurrent: (s: PlayerState) => number, requirements: string[]): AchievementDef => ({
+      id, type: 'self-love', label, value: target, rank, icon, description, requirements,
+      check: s => getCurrent(s) >= target,
+      progress: s => ({ current: Math.min(getCurrent(s), target), target }),
+    });
+
+    return [
+      mk('self-first-act', 'Primeiro ato de amor por mim', 'E', '❤️',
+        'O primeiro gesto de cuidado consigo. Pequeno por fora, enorme por dentro.', 1,
+        s => totalHabitsDone(s), ['Concluir 1 hábito']),
+      mk('self-promise-7', 'Cumpri minha palavra comigo 7 vezes', 'D', '🤍',
+        'Sete promessas pequenas honradas. Você está virando alguém em quem você confia.', 7,
+        s => totalHabitsDone(s), ['Concluir hábitos 7 vezes no total']),
+      mk('self-promise-30', '30 promessas cumpridas comigo', 'C', '💗',
+        'Trinta atos de lealdade a si. Não é disciplina — é amor em forma de hábito.', 30,
+        s => totalHabitsDone(s), ['Concluir hábitos 30 vezes no total']),
+      mk('self-promise-100', '100 vezes que escolhi a mim', 'B', '💖',
+        'Cem escolhas a favor de você. Isso é uma vida sendo reconstruída por dentro.', 100,
+        s => totalHabitsDone(s), ['Concluir hábitos 100 vezes no total']),
+      mk('self-pride-week', 'Uma semana de orgulho silencioso', 'D', '✨',
+        'Sete dias seguidos cuidando de si. Sem precisar contar pra ninguém.', 7,
+        s => s.streak, ['Manter streak de 7 dias']),
+      mk('self-pride-month', 'Um mês me honrando', 'B', '👑',
+        'Trinta dias se tratando como alguém que importa. Porque importa.', 30,
+        s => s.streak, ['Manter streak de 30 dias']),
+      mk('self-journal-first', 'Primeira escuta de mim', 'E', '📓',
+        'Você sentou consigo e ouviu. Esse já é um ato de amor raro.', 1,
+        s => journalCount(s), ['Escrever 1 entrada no diário']),
+      mk('self-journal-10', '10 conversas honestas comigo', 'C', '🪞',
+        'Dez vezes que você não fugiu de si mesmo. Isso muda uma pessoa.', 10,
+        s => journalCount(s), ['Escrever 10 entradas no diário']),
+      mk('self-journal-30', '30 dias me escutando', 'B', '💜',
+        'Trinta entradas. Você virou um lugar seguro pra você mesmo.', 30,
+        s => journalCount(s), ['Escrever 30 entradas no diário']),
+      mk('self-back-from-fail', 'Voltei pra mim depois da queda', 'C', '🕊️',
+        'Cair e voltar não é fraqueza — é a forma mais alta de amor-próprio.', 1,
+        s => protocolsDone(s), ['Concluir 1 Protocolo de Falha']),
+      {
+        id: 'self-love-identity', type: 'self-love', label: 'Aprendi a me amar', value: 1, rank: 'S', icon: '💖',
+        description: 'Não é mais esforço. É quem você é. Você se ama e isso aparece em cada dia.',
+        requirements: ['Streak ≥ 60 dias', 'Concluir hábitos 30+ vezes'],
+        check: s => s.streak >= 60 && totalHabitsDone(s) >= 30,
+        progress: s => ({ current: Math.min(1, s.streak >= 60 && totalHabitsDone(s) >= 30 ? 1 : 0), target: 1 }),
+      },
+    ];
+  })(),
 ];
 
 export function checkNewAchievements(state: PlayerState, unlocked: UnlockedAchievement[]): AchievementDef[] {
