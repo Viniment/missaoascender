@@ -1,17 +1,19 @@
-// Frases-chave do app — reconexão emocional e amor-próprio.
-// Aparecem em pontos estratégicos: PlayerCard, fim do ritual, toasts de recaída.
+// Frases-chave do app — voz do Pai Interior, amor-próprio e diálogo interno saudável.
+// Aparecem em pontos estratégicos: PlayerCard, fim do ritual, toasts.
 
 export const AFFIRMATIONS = [
-  'Disciplina é uma forma de amor.',
-  'Você não precisa continuar se abandonando.',
-  'Seu futuro merece proteção.',
-  'Autocontrole é autocuidado.',
-  'Seu valor não desaparece nas recaídas.',
-  'Toda pequena escolha reconstrói confiança interna.',
-  'Você está aprendendo a se escolher.',
-  'A verdadeira transformação começa quando você para de se trair.',
-  'Seu futuro precisa sentir que pode confiar em você.',
-  'Você merece orgulho ao olhar para si.',
+  'Você merece o cuidado que oferece aos outros.',
+  'Pequenos passos de coragem constroem grandes identidades.',
+  'Confiança em si nasce de promessas cumpridas com você.',
+  'Disciplina é uma forma de amor — não de punição.',
+  'Você falaria assim com alguém que ama?',
+  'Seu jardim interior responde ao que você planta hoje.',
+  'A zona de conforto cobra um preço silencioso.',
+  'Você está aprendendo a ser quem você admira.',
+  'Coragem não vem antes da ação. Vem depois dela.',
+  'Cada gesto de cuidado consigo é um voto pelo seu futuro.',
+  'Você não precisa ser perfeito. Só precisa estar em movimento.',
+  'Você merece paciência. Inclusive a sua.',
 ] as const;
 
 export function getRandomAffirmation(seed?: string): string {
@@ -28,16 +30,16 @@ export function formatEmotionalStreak(_days: number): { emoji: string; label: st
   return { emoji: '🔥', label: 'Streak' };
 }
 
-/** Micro-frases para quando o usuário conclui um hábito — pequeno ato de amor-próprio. */
+/** Micro-frases para quando o usuário conclui um hábito — pequeno gesto de coragem e cuidado. */
 export const LOVE_ACT_MESSAGES = [
-  'Você acabou de cuidar de si.',
-  'Uma pequena prova de amor-próprio.',
-  'Você se escolheu agora.',
-  'Sua palavra com você valeu hoje.',
-  'Mais uma promessa cumprida pra você.',
-  'Você não se abandonou agora.',
-  'Pequeno ato, grande reconexão.',
-  'Seu eu de amanhã agradece esse gesto.',
+  'Você cuidou de você agora.',
+  'Mais uma promessa cumprida com você mesmo.',
+  'Pequeno gesto. Grande reconciliação.',
+  'Você apareceu pra você hoje.',
+  'É assim que confiança em si se constrói.',
+  'Coragem em forma de gesto pequeno.',
+  'Seu eu de amanhã sente esse cuidado.',
+  'Você se honrou agora.',
 ] as const;
 
 export function getRandomLoveActMessage(): string {
