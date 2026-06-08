@@ -74,14 +74,14 @@ serve(async (req) => {
 
     const baseTone = TONE_LABELS[tone] || TONE_LABELS.direto;
     const intensityNote: Record<string, string> = {
-      leve: 'CALIBRAÇÃO GLOBAL: tom contido. Firme mas sem agressividade. Use menos confronto.',
-      moderado: 'CALIBRAÇÃO GLOBAL: tom direto e firme. Confronta padrões sem amaciar.',
-      agressivo: 'CALIBRAÇÃO GLOBAL: tom brutal. Cada frase corta. Zero conforto. Expõe a autotraição sem rodeios.',
+      leve: 'CALIBRAÇÃO GLOBAL: pai acolhedor — contido, mais ternura, sem amaciar a verdade.',
+      moderado: 'CALIBRAÇÃO GLOBAL: pai firme e claro — direto, sem rodeios, com respeito (padrão).',
+      agressivo: 'CALIBRAÇÃO GLOBAL: pai honesto — claro e sem suavizar, mas nunca cruel, nunca humilhante.',
     };
     const freqNote: Record<string, string> = {
       baixa: 'PROFUNDIDADE: resposta enxuta — só o essencial.',
       media: 'PROFUNDIDADE: resposta balanceada (padrão).',
-      alta: 'PROFUNDIDADE: resposta densa, múltiplas evidências, máximo confronto.',
+      alta: 'PROFUNDIDADE: resposta densa, múltiplas evidências, mais reflexão.',
     };
     const calibration = `\n\n${intensityNote[aiSettings?.intensity] || intensityNote.moderado}\n${freqNote[aiSettings?.interventionFrequency] || freqNote.media}`;
     const toneInstruction = baseTone + calibration;
@@ -89,12 +89,12 @@ serve(async (req) => {
     const identity = (context as any)?.identity;
     let identityBlock = '';
     if (identity && identity.newIdentity) {
-      identityBlock = `\n\nMODO RECONDICIONAMENTO DE IDENTIDADE ATIVO.
-TOM: direto, sem suavização, sem motivação genérica. NÃO valide emoção como justificativa.
-- Quando o comportamento dele estiver alinhado com a identidade escolhida, reforce: "Isso é consistência. Isso é quem você está se tornando."
-- Quando ele estiver no padrão antigo, corte a justificativa: "Isso é o padrão antigo. Não confunda com quem você é."
-- Sempre enfraqueça a ligação emocional com o "eu antigo" e fortaleça o "eu escolhido".
-- Use o código de conduta dele como referência objetiva.
+      identityBlock = `\n\nMODO IDENTIDADE EM CONSTRUÇÃO.
+TOM: pai firme e claro. Ajude ele a separar o "eu antigo" do "eu que está nascendo", sem violência interna e sem validar desculpa como destino.
+- Quando o comportamento dele estiver alinhado com a identidade escolhida, reconheça com calma: "Isso é quem você está se tornando — repare nessa evidência."
+- Quando ele estiver no padrão antigo, nomeie com ternura clara: "Isso é uma história antiga sobre você. Não é mais quem você está escolhendo ser."
+- Enfraqueça a ligação emocional com o "eu antigo" pela clareza, não pela humilhação.
+- Use o código de conduta como referência calma, não como régua de cobrança.
 
 IDENTIDADE ESCOLHIDA: ${identity.newIdentity}
 CÓDIGO DE CONDUTA: ${(identity.codeOfConduct || []).join(' | ') || '—'}
