@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Skull, Loader2 } from 'lucide-react';
+import { HeartCrack, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,9 +18,9 @@ interface Props {
 }
 
 const triggerLabel: Record<Trigger, string> = {
-  mission: 'MISSÃO QUEBRADA',
-  habit: 'ACORDO ROMPIDO',
-  protocol_expired: 'PROTOCOLO ABANDONADO',
+  mission: 'UMA DIFICULDADE HOJE',
+  habit: 'UMA PROMESSA ADIADA',
+  protocol_expired: 'UM CICLO INTERROMPIDO',
 };
 
 const READ_LOCK_MS = 4000; // anti-skip reflexo
@@ -55,7 +55,7 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
     })
       .then(({ data, error }) => {
         if (cancelled) return;
-        const msg: string = (data && (data.message as string)) || `Você quebrou "${itemName}". Não foi tempo. Foi escolha.`;
+        const msg: string = (data && (data.message as string)) || `"${itemName}" ficou esperando você hoje. Não é o fim de nada — só um dia difícil.`;
         const ang: string = (data && (data.angle as string)) || 'autotraicao';
         if (error) console.warn('[failure-confrontation] error', error);
         setMessage(msg);
@@ -74,7 +74,7 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
       .catch((err) => {
         if (cancelled) return;
         console.error('[failure-confrontation] exception', err);
-        setMessage(`Você quebrou "${itemName}". Não foi tempo. Foi escolha.`);
+        setMessage(`"${itemName}" ficou esperando você hoje. Não é o fim de nada — só um dia difícil.`);
         setUnlockedAt(Date.now() + READ_LOCK_MS);
       })
       .finally(() => {
@@ -97,7 +97,7 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
   return (
     <Dialog open={open} onOpenChange={() => { /* travado: só fecha pelo botão */ }}>
       <DialogContent
-        className="bg-card border-destructive shadow-[0_0_60px_-4px_hsl(var(--destructive)/0.9)] w-[95vw] max-w-lg p-0 max-h-[92vh] overflow-y-auto rounded-xl gap-0 [&>button]:hidden"
+        className="bg-card border-primary/60 shadow-[0_0_60px_-4px_hsl(var(--primary)/0.7)] w-[95vw] max-w-lg p-0 max-h-[92vh] overflow-y-auto rounded-xl gap-0 [&>button]:hidden"
       >
         {/* Pulso vermelho de fundo */}
         <motion.div
@@ -107,7 +107,7 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
           animate={{ opacity: [0.25, 0.5, 0.25] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            background: 'radial-gradient(ellipse at center, hsl(var(--destructive) / 0.18) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.12) 0%, transparent 70%)',
           }}
         />
 
@@ -119,27 +119,27 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
               transition={{ duration: 0.4 }}
               className="flex justify-center"
             >
-              <div className="w-14 h-14 rounded-full bg-destructive/15 border border-destructive flex items-center justify-center shadow-[0_0_28px_hsl(var(--destructive)/0.7)]">
-                <Skull className="w-8 h-8 text-destructive animate-pulse" />
+              <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/60 flex items-center justify-center shadow-[0_0_28px_hsl(var(--primary)/0.5)]">
+                <HeartCrack className="w-7 h-7 text-primary" />
               </div>
             </motion.div>
-            <DialogTitle className="text-center font-display text-destructive text-xs tracking-[0.3em] uppercase">
+            <DialogTitle className="text-center font-display text-primary text-xs tracking-[0.3em] uppercase">
               {triggerLabel[trigger]}
             </DialogTitle>
             <div className="text-center">
               <span className="text-base sm:text-lg font-display text-foreground break-words">{itemName}</span>
               {typeof xpLost === 'number' && xpLost !== 0 && (
-                <span className="block mt-1 text-[11px] font-display text-destructive/80">⚡ {xpLost} XP perdidos</span>
+                <span className="block mt-1 text-[11px] font-display text-muted-foreground">⚡ {xpLost} XP</span>
               )}
             </div>
           </DialogHeader>
 
           {/* Mensagem */}
-          <div className="rpg-panel border-destructive/60 p-4 sm:p-5 bg-background/60 backdrop-blur-sm">
+          <div className="rpg-panel border-primary/40 p-4 sm:p-5 bg-background/60 backdrop-blur-sm">
             {loading ? (
               <div className="flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground">
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span className="text-xs font-display tracking-wider uppercase">Reconstruindo o que você fez…</span>
+                <span className="text-xs font-display tracking-wider uppercase">Olhando pra isso com você…</span>
               </div>
             ) : (
               <motion.div
@@ -168,16 +168,15 @@ export default function FailureConfrontDialog({ open, onClose, trigger, itemName
 
           {/* Botão único — bloqueado por READ_LOCK_MS */}
           <Button
-            variant="destructive"
             onClick={onClose}
             disabled={!canConfirm}
-            className="w-full h-14 font-display text-sm sm:text-base tracking-[0.15em] uppercase disabled:opacity-50"
+            className="w-full h-14 font-display text-sm sm:text-base tracking-[0.15em] uppercase disabled:opacity-50 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {loading
               ? 'Aguarde…'
               : remainingMs > 0
                 ? `Leia. (${Math.ceil(remainingMs / 1000)}s)`
-                : 'Eu reconheço. Eu escolhi isso.'}
+                : 'Eu vejo. E volto pra mim.'}
           </Button>
 
           {angle && !loading && (

@@ -1,71 +1,72 @@
-## Reescrita das conquistas com foco em amor-próprio
+# Reorientação do núcleo emocional: do confronto brutal ao Pai Interior
 
-Tudo acontece em `src/lib/achievements.ts`. Nenhuma outra UI muda — o painel de conquistas lê deste array.
+Hoje o app tem duas vozes coexistindo: a **brutal/autotraição** (failure-confrontation, FailureConfrontDialog, SabotageConfrontDialog, emotional-philosophy.md) e a **amor-próprio** (conquistas, affirmations, victory-message). O usuário quer que **toda** a voz do app passe a refletir o "Pai Interior" — corrigir sem humilhar, acolher sem consolar em excesso, responsabilizar sem cobrar.
 
-### 1. Remover trilha estoica
-- Remover o bloco "NEW: STOIC" inteiro (5 conquistas: `stoic-1`, `stoic-7`, `stoic-30`, `stoic-100`, `stoic-streak-7`).
-- Remover `'stoic'` do union `AchievementType`.
+Este plano reescreve os prompts e textos para essa única voz. Não muda lógica de jogo, XP, banco, nem UI estrutural.
 
-### 2. Renomear conquistas existentes para a linguagem do app
-Manter `id`, `check`, `progress` e `rank` (para não invalidar conquistas já desbloqueadas dos usuários). Trocar **label**, **description** e **requirements** para linguagem de amor-próprio, autoestima, lealdade consigo, orgulho silencioso. Sem militarismo, sem "guerreiro", "máquina", "monstro", "soberano da execução", "ricaço", "magnata".
+## 1. Memória de filosofia (fonte da verdade)
 
-Exemplos do tom novo:
-- `streak-3` → "3 dias me escolhendo" — *"Três dias seguidos honrando você. O começo da reconciliação."*
-- `streak-7` → "Uma semana inteira por mim"
-- `streak-30` → "Um mês me tratando bem"
-- `streak-100` → "100 dias de lealdade comigo"
-- `streak-365` → "Um ano inteiro do meu lado"
-- `mission-first` → "Primeira escolha por mim"
-- `mission-100` → "100 vezes que apareci pra mim"
-- `mission-hard-10` → "10 vezes que escolhi o difícil por mim"
-- `habit-first` → "Comecei a cuidar de mim"
-- `habit-done-100` → "100 dias seguidos de um cuidado"
-- `habit-done-200` → "O cuidado virou quem eu sou"
-- `habit-perfect-week` → "Uma semana inteira sem me abandonar"
-- `habit-perfect-month` → "Um mês sem me abandonar"
-- `rank-*` → manter os ranks mas redescrever ("Você está virando alguém diferente por dentro", etc.) sem "domínio", "presença dominante"
-- `protocol-*` → reescrever sem "indestrutível/inquebrável" → "Voltei pra mim", "Me reencontrei depois da queda"
-- `no-fail-*` → "X dias sem me trair"
-- `gold-*` → "Recompensas que mereci", "Tesouro do meu próprio cuidado", sem "ricaço/magnata"
-- `reward-*` → "Soube me presentear"
-- `journal-*` (special) → "X conversas honestas comigo", "Aprendi a me escutar"
-- `journal-deep-10` → "10 mergulhos em mim"
-- `journal-week-streak` / `month-streak` → "X dias me escutando"
-- `reflections-*` → "X vezes que parei pra me ver"
-- `mission-day-5/10` → "Um dia inteiro me priorizando" / "Um dia 100% por mim"
-- `mission-category-master` → "Cuidei de mim em todas as áreas"
-- `challenge-*` → "Mantive uma promessa grande comigo"
-- `comeback` → "Voltei pra mim depois de me perder"
-- `awakening` → manter — já é amor-próprio
-- `habit-3/5/10` → "X cuidados diários ativos"
+Reescrever `.lovable/memory/design/emotional-philosophy.md` com o novo núcleo:
+- Identidade: guia de desenvolvimento pessoal, voz do Pai Interior.
+- Missão: amor-próprio, autoestima, autoconfiança, diálogo interno, coragem, responsabilidade pessoal.
+- Conceitos-chave: Pai Interior, Zona de Conforto (cobra preço silencioso), Jardim Interior (pensamentos = sementes), Diálogo Interno ("você falaria isso a alguém que ama?").
+- Falha → "teve uma dificuldade hoje, o que aprendemos?" — nunca "você falhou".
+- Autocrítica → reformular, não reforçar.
+- Tom: caloroso, humano, profundo, sábio, gentil, encorajador. Sem sarcasmo, humilhação, positividade tóxica, militarização, ou "autotraição brutal".
+- Frase guia: *"Estou aqui para ajudá-lo a construir uma relação tão saudável consigo mesmo que você se torne uma das pessoas que mais admira."*
 
-Vou reescrever todos os `label`, `description` e `requirements` na mesma passada para terem voz consistente.
+Atualizar também `.lovable/memory/index.md` Core para refletir o novo tom (remover "autotraição como despertar suave" duro, trocar por "Pai Interior, jardim interior, coragem em pequenos passos").
 
-### 3. Adicionar novas conquistas de amor-próprio
-Mais ~12 conquistas, sem nova lógica de estado (só usando o que já existe em `PlayerState`):
+## 2. Edge functions — reescrever prompts
 
-| id | label | gatilho |
-|---|---|---|
-| `self-mirror-day` | "Um dia inteiro me amando" | dia com hábito feito + diário escrito (E, 🌷) |
-| `self-mirror-week` | "Uma semana toda comigo" | 7 dias em que (no mesmo dia) houve hábito feito + diário (C, 💐) |
-| `self-promise-300` | "300 promessas cumpridas comigo" | 300 hábitos done totais (A, 💞) |
-| `self-promise-1000` | "Mil atos de amor-próprio" | 1000 hábitos done totais (Monarca, 💖) |
-| `self-deep-reflection` | "Mergulhei fundo em mim" | 1ª entrada em modo profundo (D, 🪞) |
-| `self-deep-30` | "30 mergulhos honestos em mim" | 30 entradas em modo profundo (A, 🪞) |
-| `self-pride-3months` | "Três meses me honrando" | streak ≥ 90 (S, 👑) |
-| `self-pride-year` | "Um ano me amando" | streak ≥ 365 (Monarca, 💖) |
-| `self-rebirth` | "Renasci dentro de mim" | streak ≥ 7 após missedDays ≥ 7 (B, 🕊️) |
-| `self-gentle-care` | "Aprendi a me tratar com carinho" | 14 entradas + streak ≥ 14 (C, 🤍) |
-| `self-soft-power` | "Força que vem de me amar" | streak ≥ 30 + 50 hábitos done + 10 entradas (A, 💪🤍) |
-| `self-home` | "Virei um lar pra mim" | streak ≥ 100 + 100 hábitos done + 30 entradas (Monarca, 🏠💜) |
+Sem mudar inputs/outputs, só o SYSTEM_PROMPT e as instruções de tom:
 
-Todas com `type: 'self-love'` (já existente).
+### `supabase/functions/failure-confrontation/index.ts`
+- Atual: 14 ângulos de "autotraição brutal", "última linha que dói", cinematográfico sombrio.
+- Novo: voz do Pai Interior. Reconhece a dificuldade, nomeia o que foi adiado **sem humilhar**, conecta ao sonho/become com ternura firme, termina com um convite a um próximo gesto pequeno de coragem. Mantém os ângulos como *lentes* (zona de conforto, jardim, diálogo interno, sonho adiado, identidade, etc.) — mas todos falados como pai sábio. Anti-repetição preservada.
+- Removidas: palavras "autotraição", "traição", "morrendo", "destruição", frases que doem por doer.
 
-### 4. O que NÃO muda
-- IDs preservados → conquistas já desbloqueadas continuam válidas no localStorage do usuário.
-- Funções `check`/`progress` existentes ficam iguais; só edição de texto onde aplicável.
-- Painel `AchievementsPanel`, filtros e UI ficam como estão.
-- Sem mudança em edge functions, gameStore, banco ou tabs.
+### `supabase/functions/victory-message/index.ts`
+- Manter celebração íntima, mas explicitar: orgulho construído por ação repetida, autoestima nascendo de cumprir promessa consigo, evidência de quem ele está se tornando.
 
-### Resultado
-Lista de conquistas inteira fala a mesma língua do app: cuidado consigo, lealdade, escuta interna, orgulho silencioso, se apaixonar pela própria vida. Trilha estoica some. ~12 conquistas novas dão mais marcos emocionais de amor-próprio para o usuário perseguir.
+### `supabase/functions/counsel/index.ts`
+- Reescrever SYSTEM_PROMPT e os modos de intensidade (`leve/moderado/agressivo`):
+  - `leve` → pai acolhedor.
+  - `moderado` → pai firme e claro (padrão).
+  - `agressivo` → pai honesto, sem rodeios, **nunca** cruel ou humilhante.
+- Trocar "MODO RECONDICIONAMENTO DE IDENTIDADE" — manter objetivo (separar eu antigo / eu escolhido) mas sem "corte a justificativa", trocar por linguagem de responsabilidade e identidade.
+- Estrutura markdown mantida (O que vejo / Por que / Reflexão / Pequeno gesto de hoje).
+
+### `supabase/functions/awakening-questions/index.ts` e `journal-prompts/index.ts` e `journal-exercise/index.ts`
+- Pequena revisão de tom: garantir voz consistente (Pai Interior, jardim, diálogo interno, coragem em pequenos passos). Sem mudar estrutura nem número de blocos.
+
+## 3. Frases estáticas (frontend)
+
+### `src/lib/affirmations.ts`
+- Revisar lista de afirmações curtas para refletir: confiar em si, cumprir promessas consigo, coragem pequena, jardim interior, diálogo interno gentil. Manter API (`getRandomAffirmation`, `formatEmotionalStreak`) intacta.
+
+### `src/components/FailureConfrontDialog.tsx`
+- Trocar labels: `MISSÃO QUEBRADA / ACORDO ROMPIDO / PROTOCOLO ABANDONADO` → algo como `UMA DIFICULDADE HOJE / UMA PROMESSA ADIADA / UM CICLO INTERROMPIDO`.
+- Botão "Eu reconheço. Eu escolhi isso." → "Eu vejo. E volto pra mim."
+- Header: trocar Skull (caveira) por ícone mais sóbrio (`HeartCrack` ou `Sunrise` da lucide). Pulso vermelho → âmbar/roxo suave (usar `--primary` ou tom morno) — mantém peso emocional sem agressão visual.
+- Texto "Reconstruindo o que você fez…" → "Olhando pra isso com você…"
+- Mantém o read-lock de 4s (responsabilidade pessoal).
+
+### `src/components/SabotageConfrontDialog.tsx`
+- Mesmo passe de tom (sem ler arquivo agora; revisar na build).
+
+### `src/components/VictoryDialog.tsx`
+- Garantir copy alinhado.
+
+### Conquistas (`src/lib/achievements.ts`)
+- Já foram reescritas em amor-próprio na passada anterior. Apenas pequena revisão para garantir que nenhuma description ainda tenha resíduo de "guerreiro / dominação / autotraição".
+
+## 4. O que NÃO muda
+
+- Nenhuma alteração em banco, RLS, edge function inputs/outputs, gameStore, XP, ouro, ranks, hábitos, missões, diário, recompensas, conquistas (IDs/lógica).
+- Nenhuma alteração de roteamento, autenticação ou estrutura de UI.
+- Read-lock e dialogs travados permanecem (responsabilidade pessoal).
+
+## Resultado
+
+Todo texto que o app gera ou exibe — falhas, vitórias, conselhos, despertar, diário, frases curtas — passa a falar com **uma única voz**: o Pai Interior sábio, caloroso, firme, gentil. A força emocional do confronto vira **clareza com ternura**, não dor por dor. O app continua exigindo verdade do usuário, mas pelo caminho do amor-próprio.
