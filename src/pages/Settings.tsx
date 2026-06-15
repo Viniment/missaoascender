@@ -268,6 +268,8 @@ export default function Settings() {
           </div>
         );
       }
+
+      case 'appearance':
         return (
           <div className="space-y-6">
             <SectionHeader title="Aparência" description="Personalize o visual do sistema." />
