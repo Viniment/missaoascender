@@ -309,6 +309,9 @@ export interface PlayerState {
   // Histórico (rolling window) dos últimos ângulos psicológicos usados pela IA — evita repetição
   aiAngleHistory?: string[];
   _penaltyCompensated?: boolean;
+  // === EVOLUX — Fase 1 ===
+  alterEgo?: AlterEgo;
+  innerEnemy?: InnerEnemy;
 }
 
 export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
