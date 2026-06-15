@@ -1569,6 +1569,29 @@ export function useGameStore() {
 
   const dismissAchievement = useCallback(() => setNewlyUnlocked(null), []);
 
+  // === EVOLUX — Fase 1: setters ===
+  const updateAlterEgo = useCallback((patch: Partial<AlterEgo>) => {
+    setState(prev => ({
+      ...prev,
+      alterEgo: { ...defaultAlterEgo, ...(prev.alterEgo || {}), ...patch },
+    }));
+  }, []);
+
+  const updateInnerEnemy = useCallback((patch: Partial<InnerEnemy>) => {
+    setState(prev => ({
+      ...prev,
+      innerEnemy: { ...defaultInnerEnemy, ...(prev.innerEnemy || {}), ...patch },
+    }));
+  }, []);
+
+  const completeIdentityOnboarding = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      alterEgo: { ...defaultAlterEgo, ...(prev.alterEgo || {}), completed: true },
+      innerEnemy: { ...defaultInnerEnemy, ...(prev.innerEnemy || {}), completed: true },
+    }));
+  }, []);
+
   return {
     state,
     setState,
