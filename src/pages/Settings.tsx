@@ -34,7 +34,7 @@ type SectionId = (typeof sections)[number]['id'] | null;
 
 export default function Settings() {
   const { user, signOut } = useAuth();
-  const { state, updateProfile, resetProgress, deleteAccount, setState } = useGame();
+  const { state, updateProfile, resetProgress, deleteAccount, setState, updateAlterEgo, updateInnerEnemy } = useGame();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
