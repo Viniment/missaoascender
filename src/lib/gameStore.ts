@@ -209,6 +209,55 @@ export interface IdentityState {
   failureReflections: IdentityFailureReflection[];
 }
 
+// === EVOLUX — Fase 1: Identidade ===
+export interface AlterEgo {
+  name: string;
+  idealAge?: number | null;
+  appearance?: string;
+  values: string[];
+  lifeMission: string;
+  identityPhrase: string;     // "Sou alguém que..."
+  habits: string[];
+  goals: string[];
+  favoritePhrases: string[];
+  lifestyle?: string;
+  idealRoutine?: string;
+  completed: boolean;
+}
+
+export interface InnerEnemy {
+  name: string;
+  traits: string[];
+  sabotagePhrases: string[];
+  completed: boolean;
+}
+
+export const defaultAlterEgo: AlterEgo = {
+  name: 'Evolux',
+  idealAge: null,
+  appearance: '',
+  values: [],
+  lifeMission: '',
+  identityPhrase: 'Sou alguém que honra a própria palavra.',
+  habits: [],
+  goals: [],
+  favoritePhrases: [],
+  lifestyle: '',
+  idealRoutine: '',
+  completed: false,
+};
+
+export const defaultInnerEnemy: InnerEnemy = {
+  name: 'EndMan',
+  traits: ['Manipulador', 'Sedutor', 'Mentiroso'],
+  sabotagePhrases: [
+    'Você merece descansar.',
+    'Começa amanhã.',
+    'Uma vez não faz diferença.',
+  ],
+  completed: false,
+};
+
 export interface PlayerState {
   name: string;
   title: string;
