@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain } from 'lucide-react';
+import { User, Trash2, RotateCcw, Upload, LogOut, ArrowLeft, Layout, Palette, Shield, AlertTriangle, ChevronDown, Settings2, Camera, CheckCircle2, Loader2, Brain, Skull } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import FailureProtocolSettings from '@/components/FailureProtocolSettings';
@@ -20,11 +21,12 @@ import { TAB_GROUPS, ALL_TABS } from '@/lib/tabs';
 
 const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
+  { id: 'identity', label: 'Identidade', description: 'Alter Ego e Inimigo Interno', icon: Shield },
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
   { id: 'ai', label: 'IA Comportamental', description: 'Tom e frequência de TODA IA do app', icon: Brain },
   { id: 'advanced', label: 'Avançado', description: 'Dificuldade e progressão', icon: Settings2 },
-  { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Shield },
+  { id: 'failure', label: 'Protocolo de Falha', description: 'Punições e penalidades', icon: Skull },
   { id: 'danger', label: 'Zona de Perigo', description: 'Ações irreversíveis', icon: AlertTriangle },
 ] as const;
 
@@ -32,7 +34,7 @@ type SectionId = (typeof sections)[number]['id'] | null;
 
 export default function Settings() {
   const { user, signOut } = useAuth();
-  const { state, updateProfile, resetProgress, deleteAccount, setState } = useGame();
+  const { state, updateProfile, resetProgress, deleteAccount, setState, updateAlterEgo, updateInnerEnemy } = useGame();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -164,6 +166,108 @@ export default function Settings() {
             </div>
           </div>
         );
+
+      case 'identity': {
+        const ae = state.alterEgo;
+        const ie = state.innerEnemy;
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Identidade" description="Sua dupla identidade — Alter Ego (sua melhor versão) e Inimigo Interno (a voz da sabotagem)." />
+
+            <div className="rpg-panel border-primary/30 space-y-4">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-primary" />
+                <h3 className="font-display text-xs tracking-widest text-primary uppercase">Alter Ego</h3>
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Nome</label>
+                <Input
+                  value={ae?.name || ''}
+                  onChange={e => updateAlterEgo({ name: e.target.value })}
+                  className="bg-secondary border-border"
+                  maxLength={30}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Frase de identidade</label>
+                <Textarea
+                  value={ae?.identityPhrase || ''}
+                  onChange={e => updateAlterEgo({ identityPhrase: e.target.value })}
+                  placeholder="Sou alguém que..."
+                  className="bg-secondary border-border min-h-[60px]"
+                  maxLength={140}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Missão de vida</label>
+                <Textarea
+                  value={ae?.lifeMission || ''}
+                  onChange={e => updateAlterEgo({ lifeMission: e.target.value })}
+                  className="bg-secondary border-border min-h-[60px]"
+                  maxLength={300}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Valores (separados por vírgula)</label>
+                <Input
+                  value={(ae?.values || []).join(', ')}
+                  onChange={e => updateAlterEgo({ values: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Rotina ideal</label>
+                <Textarea
+                  value={ae?.idealRoutine || ''}
+                  onChange={e => updateAlterEgo({ idealRoutine: e.target.value })}
+                  className="bg-secondary border-border min-h-[60px]"
+                  maxLength={400}
+                />
+              </div>
+            </div>
+
+            <div className="rpg-panel border-destructive/30 space-y-4">
+              <div className="flex items-center gap-2">
+                <Skull className="w-4 h-4 text-destructive" />
+                <h3 className="font-display text-xs tracking-widest text-destructive uppercase">Inimigo Interno</h3>
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Nome</label>
+                <Input
+                  value={ie?.name || ''}
+                  onChange={e => updateInnerEnemy({ name: e.target.value })}
+                  className="bg-secondary border-border"
+                  maxLength={30}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Características (separadas por vírgula)</label>
+                <Input
+                  value={(ie?.traits || []).join(', ')}
+                  onChange={e => updateInnerEnemy({ traits: e.target.value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) })}
+                  className="bg-secondary border-border"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Frases de sabotagem (uma por linha)</label>
+                <Textarea
+                  value={(ie?.sabotagePhrases || []).join('\n')}
+                  onChange={e => updateInnerEnemy({ sabotagePhrases: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border min-h-[100px]"
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       case 'appearance':
         return (

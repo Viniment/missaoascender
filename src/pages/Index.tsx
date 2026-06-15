@@ -15,6 +15,7 @@ import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import AppSidebar from '@/components/AppSidebar';
+import IdentityOnboarding from '@/components/IdentityOnboarding';
 import { useGame } from '@/lib/GameContext';
 import { Menu, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -28,6 +29,7 @@ export default function Index() {
   const hasBgPomodoro = !!(state.pomodoroStartedAt && state.pomodoroDuration && state.pomodoroMode);
   const [activeTab, setActiveTab] = useState<TabId>(hasBgPomodoro ? 'timer' : 'missions');
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
   const navigate = useNavigate();
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));
   const isVisible = (id: TabId) => !disabledTabs.includes(id);
@@ -185,6 +187,9 @@ export default function Index() {
 
         {/* Achievement unlock overlay */}
         <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
+
+        {/* EVOLUX — Identity onboarding (first run) */}
+        <IdentityOnboarding open={identityOpen} onClose={() => setIdentityOpen(false)} />
       </div>
     </SidebarProvider>
   );

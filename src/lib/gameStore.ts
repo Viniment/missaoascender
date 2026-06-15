@@ -209,6 +209,55 @@ export interface IdentityState {
   failureReflections: IdentityFailureReflection[];
 }
 
+// === EVOLUX — Fase 1: Identidade ===
+export interface AlterEgo {
+  name: string;
+  idealAge?: number | null;
+  appearance?: string;
+  values: string[];
+  lifeMission: string;
+  identityPhrase: string;     // "Sou alguém que..."
+  habits: string[];
+  goals: string[];
+  favoritePhrases: string[];
+  lifestyle?: string;
+  idealRoutine?: string;
+  completed: boolean;
+}
+
+export interface InnerEnemy {
+  name: string;
+  traits: string[];
+  sabotagePhrases: string[];
+  completed: boolean;
+}
+
+export const defaultAlterEgo: AlterEgo = {
+  name: 'Evolux',
+  idealAge: null,
+  appearance: '',
+  values: [],
+  lifeMission: '',
+  identityPhrase: 'Sou alguém que honra a própria palavra.',
+  habits: [],
+  goals: [],
+  favoritePhrases: [],
+  lifestyle: '',
+  idealRoutine: '',
+  completed: false,
+};
+
+export const defaultInnerEnemy: InnerEnemy = {
+  name: 'EndMan',
+  traits: ['Manipulador', 'Sedutor', 'Mentiroso'],
+  sabotagePhrases: [
+    'Você merece descansar.',
+    'Começa amanhã.',
+    'Uma vez não faz diferença.',
+  ],
+  completed: false,
+};
+
 export interface PlayerState {
   name: string;
   title: string;
@@ -260,6 +309,9 @@ export interface PlayerState {
   // Histórico (rolling window) dos últimos ângulos psicológicos usados pela IA — evita repetição
   aiAngleHistory?: string[];
   _penaltyCompensated?: boolean;
+  // === EVOLUX — Fase 1 ===
+  alterEgo?: AlterEgo;
+  innerEnemy?: InnerEnemy;
 }
 
 export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
@@ -422,6 +474,8 @@ export const defaultState: PlayerState = {
   honor: 50,
   disciplineStreak: { current: 0, best: 0, lastValidDate: '' },
   sabotagePatterns: [],
+  alterEgo: defaultAlterEgo,
+  innerEnemy: defaultInnerEnemy,
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
@@ -1515,6 +1569,29 @@ export function useGameStore() {
 
   const dismissAchievement = useCallback(() => setNewlyUnlocked(null), []);
 
+  // === EVOLUX — Fase 1: setters ===
+  const updateAlterEgo = useCallback((patch: Partial<AlterEgo>) => {
+    setState(prev => ({
+      ...prev,
+      alterEgo: { ...defaultAlterEgo, ...(prev.alterEgo || {}), ...patch },
+    }));
+  }, []);
+
+  const updateInnerEnemy = useCallback((patch: Partial<InnerEnemy>) => {
+    setState(prev => ({
+      ...prev,
+      innerEnemy: { ...defaultInnerEnemy, ...(prev.innerEnemy || {}), ...patch },
+    }));
+  }, []);
+
+  const completeIdentityOnboarding = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      alterEgo: { ...defaultAlterEgo, ...(prev.alterEgo || {}), completed: true },
+      innerEnemy: { ...defaultInnerEnemy, ...(prev.innerEnemy || {}), completed: true },
+    }));
+  }, []);
+
   return {
     state,
     setState,
@@ -1570,5 +1647,8 @@ export function useGameStore() {
     resolveSabotagePattern,
     newlyUnlocked,
     dismissAchievement,
+    updateAlterEgo,
+    updateInnerEnemy,
+    completeIdentityOnboarding,
   };
 }
