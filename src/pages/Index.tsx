@@ -29,6 +29,7 @@ export default function Index() {
   const hasBgPomodoro = !!(state.pomodoroStartedAt && state.pomodoroDuration && state.pomodoroMode);
   const [activeTab, setActiveTab] = useState<TabId>(hasBgPomodoro ? 'timer' : 'missions');
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
   const navigate = useNavigate();
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));
   const isVisible = (id: TabId) => !disabledTabs.includes(id);
