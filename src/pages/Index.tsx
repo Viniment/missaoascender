@@ -187,6 +187,9 @@ export default function Index() {
 
         {/* Achievement unlock overlay */}
         <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
+
+        {/* EVOLUX — Identity onboarding (first run) */}
+        <IdentityOnboarding open={identityOpen} onClose={() => setIdentityOpen(false)} />
       </div>
     </SidebarProvider>
   );
