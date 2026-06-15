@@ -474,6 +474,8 @@ export const defaultState: PlayerState = {
   honor: 50,
   disciplineStreak: { current: 0, best: 0, lastValidDate: '' },
   sabotagePatterns: [],
+  alterEgo: defaultAlterEgo,
+  innerEnemy: defaultInnerEnemy,
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
