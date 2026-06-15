@@ -1647,5 +1647,8 @@ export function useGameStore() {
     resolveSabotagePattern,
     newlyUnlocked,
     dismissAchievement,
+    updateAlterEgo,
+    updateInnerEnemy,
+    completeIdentityOnboarding,
   };
 }
