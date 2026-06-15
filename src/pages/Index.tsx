@@ -15,6 +15,7 @@ import MonsterIndicator from '@/components/MonsterIndicator';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import AppSidebar from '@/components/AppSidebar';
+import IdentityOnboarding from '@/components/IdentityOnboarding';
 import { useGame } from '@/lib/GameContext';
 import { Menu, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
