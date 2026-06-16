@@ -2,7 +2,7 @@
 // Centraliza dados brutos + sinais derivados (consistencyTrend, recurringFailedItems, etc.)
 // para que cada edge function receba um payload uniforme e tome decisões adaptativas.
 
-import type { PlayerState, Mission, Habit } from './gameStore';
+import type { PlayerState, Mission, Habit, AlterEgo, InnerEnemy } from './gameStore';
 import { computeIdentityLevel } from './identityLevels';
 
 const DAY_MS = 86_400_000;
@@ -42,6 +42,11 @@ export interface AiContext {
   streak: number;
   xp: number;
   awakening: { become?: string; reject?: string; pain?: string };
+
+  // EVOLUX — Identidade dupla
+  alterEgo?: AlterEgo;
+  innerEnemy?: InnerEnemy;
+
 
   // Tony Robbins layer
   honor?: number;
@@ -395,6 +400,8 @@ export function buildAiContext(state: PlayerState): AiContext {
     streak: state.streak,
     xp: state.xp,
     awakening: state.awakening || { become: '', reject: '', pain: '' },
+    alterEgo: state.alterEgo,
+    innerEnemy: state.innerEnemy,
     honor: state.honor,
     identityLevel: identityLevelOut,
     disciplineStreak: state.disciplineStreak
