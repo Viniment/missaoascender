@@ -11,7 +11,7 @@ import RichEditor from './RichEditor';
 import SabotageConfrontDialog from './SabotageConfrontDialog';
 
 interface AwakeningQuestion {
-  zone?: 'consciencia' | 'alter_ego' | 'inimigo' | 'amor_proprio' | 'compromisso';
+  zone?: 'identidade' | 'futuro' | 'dissociacao';
   title: string;
   prompt: string;
   objective: string;
@@ -19,40 +19,28 @@ interface AwakeningQuestion {
 
 interface AwakeningResponse {
   detectedState?: string;
-  theme?: string;
-  priorityTheme?: string;
   intensity?: 'leve' | 'medio' | 'brutal';
-  angle?: string;
-  mode?: string;
-  opening?: string;
-  painOfInaction?: string;
-  confrontation?: string;
-  pleasureOfAction?: string;
-  microAction?: string;
-  identityAnchor?: string;
+  alterEgoEmergence?: string;
+  futureGlimpse?: string;
+  enemyCost?: string;
+  alterEgoTruth?: string;
   questions?: AwakeningQuestion[];
+  internalDialogue?: { enemySays?: string; alterEgoReplies?: string };
+  identityProof?: string;
+  identityProofSuggestions?: string[];
+  identityAnchor?: string;
   alterEgoName?: string;
   innerEnemyName?: string;
 }
 
-const THEME_LABELS: Record<string, string> = {
-  autotraicao: 'Autotraição',
-  amor_proprio: 'Amor-próprio',
-  valorizacao_pessoal: 'Valorização pessoal',
-  fortalecimento_alter: 'Fortalecimento do Alter Ego',
-  dissociacao_inimigo: 'Dissociação do Inimigo',
-};
-
 const ZONE_META: Record<string, { emoji: string; label: string }> = {
-  consciencia: { emoji: '👁️', label: 'Consciência' },
-  alter_ego: { emoji: '⚡', label: 'Identidade' },
-  inimigo: { emoji: '🗡️', label: 'Dissociação' },
-  amor_proprio: { emoji: '🤍', label: 'Amor-próprio' },
-  compromisso: { emoji: '🔥', label: 'Compromisso' },
+  identidade: { emoji: '⚡', label: 'Identidade' },
+  futuro: { emoji: '🌅', label: 'Futuro' },
+  dissociacao: { emoji: '🗡️', label: 'Dissociação' },
 };
 
 export default function AwakeningPage() {
-  const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
+  const { state, addReflection, deleteReflection, updateReflection } = useGame();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -69,11 +57,11 @@ export default function AwakeningPage() {
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE NUA' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO';
-    const themeKey = r.priorityTheme || r.theme || '';
-    const themeLabel = THEME_LABELS[themeKey] || '';
+    const ae = r.alterEgoName || 'seu Alter Ego';
+    const ie = r.innerEnemyName || 'seu Inimigo';
     const parts: string[] = [
-      `<h3>🌅 Despertar — ${r.detectedState || 'Voltando para mim'}</h3>`,
-      `<p><em>${dateStr} · ${intensityLabel}${themeLabel ? ` · Foco: ${themeLabel}` : ''}</em></p>`,
+      `<h3>🌅 Despertar — ${r.detectedState || ae}</h3>`,
+      `<p><em>${dateStr} · ${intensityLabel} · ${ae} no comando</em></p>`,
       `<hr/>`,
     ];
 
@@ -83,14 +71,25 @@ export default function AwakeningPage() {
       parts.push(`<p>${content.replace(/\n/g, '<br/>')}</p>`);
     };
 
-    block('🪞', 'Onde você está', r.opening);
-    block('💧', 'O custo silencioso desta semana', r.painOfInaction);
-    block('🤍', 'A verdade dita com amor', r.confrontation);
-    block('✨', `Quem você se torna ao escolher ${r.alterEgoName || 'sua identidade'}`, r.pleasureOfAction);
+    block('⚡', `Onde o ${ae} já está emergindo`, r.alterEgoEmergence);
+    block('🌅', `Vislumbre do futuro com o ${ae}`, r.futureGlimpse);
+    block('🗡️', `O custo de ouvir o ${ie}`, r.enemyCost);
+    block('🤍', `A verdade do ${ae}`, r.alterEgoTruth);
+
+    if (r.internalDialogue && (r.internalDialogue.enemySays || r.internalDialogue.alterEgoReplies)) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>💬 Diálogo interno</h4>`);
+      if (r.internalDialogue.enemySays) {
+        parts.push(`<p><strong>${ie}:</strong> <em>"${r.internalDialogue.enemySays}"</em></p>`);
+      }
+      if (r.internalDialogue.alterEgoReplies) {
+        parts.push(`<p><strong>${ae}:</strong> <em>"${r.internalDialogue.alterEgoReplies}"</em></p>`);
+      }
+    }
 
     if (r.questions && r.questions.length > 0) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>✍️ Perguntas para te reprogramar hoje</h4>`);
+      parts.push(`<h4>✍️ Perguntas de reprogramação</h4>`);
       r.questions.forEach((q, i) => {
         const zone = q.zone && ZONE_META[q.zone] ? ZONE_META[q.zone] : null;
         const zoneTag = zone ? `<em style="opacity:0.7">${zone.emoji} ${zone.label}</em> · ` : '';
@@ -99,16 +98,29 @@ export default function AwakeningPage() {
         parts.push(`<blockquote><p>${q.prompt}</p></blockquote>`);
         parts.push(`<p><strong>Sua resposta:</strong></p>`);
         parts.push(`<p></p>`);
-        parts.push(`<p></p>`);
       });
     }
 
-    if (r.microAction || r.identityAnchor) parts.push(`<hr/>`);
-    block('🌱', 'Ato mínimo de hoje (prova viva)', r.microAction);
-    block('🧬', `Quem eu sou${r.alterEgoName ? ` (âncora · ${r.alterEgoName})` : ''}`, r.identityAnchor);
+    if (r.identityProof || (r.identityProofSuggestions && r.identityProofSuggestions.length > 0)) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>🧬 Prova de identidade (próximas 24h)</h4>`);
+      if (r.identityProof) parts.push(`<blockquote><p>${r.identityProof}</p></blockquote>`);
+      if (r.identityProofSuggestions && r.identityProofSuggestions.length > 0) {
+        parts.push(`<p><em>Sugestões pequenas e executáveis:</em></p>`);
+        parts.push(`<ul>${r.identityProofSuggestions.map(s => `<li>${s}</li>`).join('')}</ul>`);
+      }
+      parts.push(`<p><strong>Minha prova de hoje:</strong></p>`);
+      parts.push(`<p></p>`);
+    }
+
+    if (r.identityAnchor) {
+      parts.push(`<hr/>`);
+      block('🪞', `Quem eu sou (âncora · ${ae})`, r.identityAnchor);
+    }
 
     return parts.join('');
   }, []);
+
 
   const handleGenerate = useCallback(async () => {
     if (loadingAI) return;
