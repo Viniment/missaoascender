@@ -222,6 +222,8 @@ export interface AlterEgo {
   favoritePhrases: string[];
   lifestyle?: string;
   idealRoutine?: string;
+  /** Texto livre, sem limite — biografia, história, manifestos, qualquer coisa sobre o Alter Ego. */
+  notes?: string;
   completed: boolean;
 }
 
@@ -229,6 +231,8 @@ export interface InnerEnemy {
   name: string;
   traits: string[];
   sabotagePhrases: string[];
+  /** Texto livre, sem limite — táticas, gatilhos, padrões, história do inimigo. */
+  notes?: string;
   completed: boolean;
 }
 
@@ -244,6 +248,7 @@ export const defaultAlterEgo: AlterEgo = {
   favoritePhrases: [],
   lifestyle: '',
   idealRoutine: '',
+  notes: '',
   completed: false,
 };
 
@@ -255,6 +260,7 @@ export const defaultInnerEnemy: InnerEnemy = {
     'Começa amanhã.',
     'Uma vez não faz diferença.',
   ],
+  notes: '',
   completed: false,
 };
 
