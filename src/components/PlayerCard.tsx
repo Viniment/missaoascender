@@ -2,8 +2,7 @@ import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Coins, Trophy, Heart } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
-import { formatEmotionalStreak, getRandomAffirmation } from '@/lib/affirmations';
-import { useMemo } from 'react';
+import { formatEmotionalStreak } from '@/lib/affirmations';
 
 const rankColors: Record<string, string> = {
   E: 'text-muted-foreground',
@@ -19,8 +18,6 @@ export default function PlayerCard() {
   const { state } = useGame();
   const xpPercent = Math.min(100, (state.xp / state.xpToNext) * 100);
   const streakInfo = formatEmotionalStreak(state.streak);
-  // Affirmation rotaciona por dia para sensação cinematográfica sem mudar a cada render.
-  const affirmation = useMemo(() => getRandomAffirmation(new Date().toDateString()), []);
 
   return (
     <motion.div
