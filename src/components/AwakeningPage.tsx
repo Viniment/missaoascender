@@ -11,6 +11,7 @@ import RichEditor from './RichEditor';
 import SabotageConfrontDialog from './SabotageConfrontDialog';
 
 interface AwakeningQuestion {
+  zone?: 'consciencia' | 'alter_ego' | 'inimigo' | 'amor_proprio' | 'compromisso';
   title: string;
   prompt: string;
   objective: string;
@@ -19,6 +20,7 @@ interface AwakeningQuestion {
 interface AwakeningResponse {
   detectedState?: string;
   theme?: string;
+  priorityTheme?: string;
   intensity?: 'leve' | 'medio' | 'brutal';
   angle?: string;
   mode?: string;
@@ -29,7 +31,25 @@ interface AwakeningResponse {
   microAction?: string;
   identityAnchor?: string;
   questions?: AwakeningQuestion[];
+  alterEgoName?: string;
+  innerEnemyName?: string;
 }
+
+const THEME_LABELS: Record<string, string> = {
+  autotraicao: 'Autotraição',
+  amor_proprio: 'Amor-próprio',
+  valorizacao_pessoal: 'Valorização pessoal',
+  fortalecimento_alter: 'Fortalecimento do Alter Ego',
+  dissociacao_inimigo: 'Dissociação do Inimigo',
+};
+
+const ZONE_META: Record<string, { emoji: string; label: string }> = {
+  consciencia: { emoji: '👁️', label: 'Consciência' },
+  alter_ego: { emoji: '⚡', label: 'Identidade' },
+  inimigo: { emoji: '🗡️', label: 'Dissociação' },
+  amor_proprio: { emoji: '🤍', label: 'Amor-próprio' },
+  compromisso: { emoji: '🔥', label: 'Compromisso' },
+};
 
 export default function AwakeningPage() {
   const { state, addReflection, deleteReflection, updateReflection, appendAiAngle } = useGame();
@@ -43,16 +63,17 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // IA decide tudo a partir do contexto dos últimos 7 dias
   const [activeSabotage, setActiveSabotage] = useState<any>(null);
   const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
 
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE NUA' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO';
+    const themeKey = r.priorityTheme || r.theme || '';
+    const themeLabel = THEME_LABELS[themeKey] || '';
     const parts: string[] = [
       `<h3>🌅 Despertar — ${r.detectedState || 'Voltando para mim'}</h3>`,
-      `<p><em>${dateStr} · ${intensityLabel}${r.theme && r.theme !== 'auto' ? ` · ${r.theme}` : ''}</em></p>`,
+      `<p><em>${dateStr} · ${intensityLabel}${themeLabel ? ` · Foco: ${themeLabel}` : ''}</em></p>`,
       `<hr/>`,
     ];
 
@@ -63,16 +84,18 @@ export default function AwakeningPage() {
     };
 
     block('🪞', 'Onde você está', r.opening);
-    block('💧', 'O que tem sido perdido em silêncio', r.painOfInaction);
+    block('💧', 'O custo silencioso desta semana', r.painOfInaction);
     block('🤍', 'A verdade dita com amor', r.confrontation);
-    block('✨', 'Quem você se torna ao voltar pra si', r.pleasureOfAction);
+    block('✨', `Quem você se torna ao escolher ${r.alterEgoName || 'sua identidade'}`, r.pleasureOfAction);
 
     if (r.questions && r.questions.length > 0) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>✍️ Perguntas para se reencontrar</h4>`);
+      parts.push(`<h4>✍️ Perguntas para te reprogramar hoje</h4>`);
       r.questions.forEach((q, i) => {
+        const zone = q.zone && ZONE_META[q.zone] ? ZONE_META[q.zone] : null;
+        const zoneTag = zone ? `<em style="opacity:0.7">${zone.emoji} ${zone.label}</em> · ` : '';
         parts.push(`<h5>${i + 1}. ${q.title}</h5>`);
-        if (q.objective) parts.push(`<p><em>${q.objective}</em></p>`);
+        if (q.objective) parts.push(`<p>${zoneTag}<em>${q.objective}</em></p>`);
         parts.push(`<blockquote><p>${q.prompt}</p></blockquote>`);
         parts.push(`<p><strong>Sua resposta:</strong></p>`);
         parts.push(`<p></p>`);
@@ -81,8 +104,8 @@ export default function AwakeningPage() {
     }
 
     if (r.microAction || r.identityAnchor) parts.push(`<hr/>`);
-    block('🌱', 'Pequeno ato de amor-próprio hoje', r.microAction);
-    block('🧬', 'Quem eu sou quando me escolho', r.identityAnchor);
+    block('🌱', 'Ato mínimo de hoje (prova viva)', r.microAction);
+    block('🧬', `Quem eu sou${r.alterEgoName ? ` (âncora · ${r.alterEgoName})` : ''}`, r.identityAnchor);
 
     return parts.join('');
   }, []);
