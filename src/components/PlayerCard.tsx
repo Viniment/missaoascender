@@ -2,8 +2,7 @@ import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
 import { Coins, Trophy, Heart } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
-import { formatEmotionalStreak, getRandomAffirmation } from '@/lib/affirmations';
-import { useMemo } from 'react';
+import { formatEmotionalStreak } from '@/lib/affirmations';
 
 const rankColors: Record<string, string> = {
   E: 'text-muted-foreground',
@@ -19,8 +18,6 @@ export default function PlayerCard() {
   const { state } = useGame();
   const xpPercent = Math.min(100, (state.xp / state.xpToNext) * 100);
   const streakInfo = formatEmotionalStreak(state.streak);
-  // Affirmation rotaciona por dia para sensação cinematográfica sem mudar a cada render.
-  const affirmation = useMemo(() => getRandomAffirmation(new Date().toDateString()), []);
 
   return (
     <motion.div
@@ -47,15 +44,9 @@ export default function PlayerCard() {
               Nível {state.level}
             </span>
           </div>
-          {state.alterEgo?.completed && state.alterEgo.name && (
-            <p className="text-[10px] font-display tracking-widest text-primary/80 uppercase mb-1">
-              Alter Ego · {state.alterEgo.name}
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground italic mb-1 break-words">
-            "{state.alterEgo?.completed && state.alterEgo.identityPhrase ? state.alterEgo.identityPhrase : state.title}"
+          <p className="text-xs text-muted-foreground italic mb-2 sm:mb-3 break-words">
+            "{state.title}"
           </p>
-          <p className="text-[10px] text-primary/70 italic mb-2 sm:mb-3 break-words leading-snug">{affirmation}</p>
 
           <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
             <motion.div
