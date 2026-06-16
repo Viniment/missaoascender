@@ -12,6 +12,7 @@ import AchievementsPanel from '@/components/AchievementsPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
 import MonsterIndicator from '@/components/MonsterIndicator';
+import IdentityBalance from '@/components/IdentityBalance';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import AppSidebar from '@/components/AppSidebar';
@@ -158,6 +159,7 @@ export default function Index() {
               {/* Left - Player */}
               <div className="xl:col-span-4 2xl:col-span-3 space-y-5 order-1">
                 <PlayerCard />
+                <IdentityBalance />
                 <MonsterIndicator />
                 <FailureProtocolAlert />
                 <div className="hidden xl:block">
