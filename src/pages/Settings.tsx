@@ -172,7 +172,10 @@ export default function Settings() {
         const ie = state.innerEnemy;
         return (
           <div className="space-y-6">
-            <SectionHeader title="Identidade" description="Sua dupla identidade — Alter Ego (sua melhor versão) e Inimigo Interno (a voz da sabotagem)." />
+            <SectionHeader
+              title="Identidade"
+              description="Sua dupla identidade — Alter Ego (sua melhor versão) e Inimigo Interno (a voz da sabotagem). Quanto mais detalhes, mais a IA fala como ELE com você."
+            />
 
             <div className="rpg-panel border-primary/30 space-y-4">
               <div className="flex items-center gap-2">
@@ -186,7 +189,6 @@ export default function Settings() {
                   value={ae?.name || ''}
                   onChange={e => updateAlterEgo({ name: e.target.value })}
                   className="bg-secondary border-border"
-                  maxLength={30}
                 />
               </div>
 
@@ -197,7 +199,6 @@ export default function Settings() {
                   onChange={e => updateAlterEgo({ identityPhrase: e.target.value })}
                   placeholder="Sou alguém que..."
                   className="bg-secondary border-border min-h-[60px]"
-                  maxLength={140}
                 />
               </div>
 
@@ -206,17 +207,73 @@ export default function Settings() {
                 <Textarea
                   value={ae?.lifeMission || ''}
                   onChange={e => updateAlterEgo({ lifeMission: e.target.value })}
-                  className="bg-secondary border-border min-h-[60px]"
-                  maxLength={300}
+                  className="bg-secondary border-border min-h-[80px]"
                 />
               </div>
 
               <div>
                 <label className="text-xs text-foreground/60">Valores (separados por vírgula)</label>
-                <Input
+                <Textarea
                   value={(ae?.values || []).join(', ')}
                   onChange={e => updateAlterEgo({ values: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border min-h-[60px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Idade ideal projetada</label>
+                <Input
+                  type="number"
+                  value={ae?.idealAge ?? ''}
+                  onChange={e => updateAlterEgo({ idealAge: e.target.value ? Number(e.target.value) : null })}
                   className="bg-secondary border-border"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Aparência / postura</label>
+                <Textarea
+                  value={ae?.appearance || ''}
+                  onChange={e => updateAlterEgo({ appearance: e.target.value })}
+                  placeholder="Como ele se apresenta, postura, presença, vestimenta..."
+                  className="bg-secondary border-border min-h-[80px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Hábitos do Alter Ego (separados por vírgula)</label>
+                <Textarea
+                  value={(ae?.habits || []).join(', ')}
+                  onChange={e => updateAlterEgo({ habits: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border min-h-[60px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Metas / objetivos (separados por vírgula)</label>
+                <Textarea
+                  value={(ae?.goals || []).join(', ')}
+                  onChange={e => updateAlterEgo({ goals: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border min-h-[60px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Frases favoritas (uma por linha)</label>
+                <Textarea
+                  value={(ae?.favoritePhrases || []).join('\n')}
+                  onChange={e => updateAlterEgo({ favoritePhrases: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border min-h-[100px]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">Lifestyle</label>
+                <Textarea
+                  value={ae?.lifestyle || ''}
+                  onChange={e => updateAlterEgo({ lifestyle: e.target.value })}
+                  placeholder="Como ele vive, ambiente, ritmo, relações..."
+                  className="bg-secondary border-border min-h-[80px]"
                 />
               </div>
 
@@ -225,9 +282,23 @@ export default function Settings() {
                 <Textarea
                   value={ae?.idealRoutine || ''}
                   onChange={e => updateAlterEgo({ idealRoutine: e.target.value })}
-                  className="bg-secondary border-border min-h-[60px]"
-                  maxLength={400}
+                  className="bg-secondary border-border min-h-[80px]"
                 />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">
+                  Notas livres — sem limite
+                </label>
+                <Textarea
+                  value={ae?.notes || ''}
+                  onChange={e => updateAlterEgo({ notes: e.target.value })}
+                  placeholder="Escreva TUDO sobre seu Alter Ego — história, manifestos, memórias futuras, princípios, qualquer coisa. Quanto mais detalhe, mais a IA fala como ele."
+                  className="bg-secondary border-border min-h-[200px]"
+                />
+                <p className="text-[11px] text-foreground/40 mt-1">
+                  {ae?.notes?.length || 0} caracteres · sem limite
+                </p>
               </div>
             </div>
 
@@ -243,16 +314,15 @@ export default function Settings() {
                   value={ie?.name || ''}
                   onChange={e => updateInnerEnemy({ name: e.target.value })}
                   className="bg-secondary border-border"
-                  maxLength={30}
                 />
               </div>
 
               <div>
                 <label className="text-xs text-foreground/60">Características (separadas por vírgula)</label>
-                <Input
+                <Textarea
                   value={(ie?.traits || []).join(', ')}
-                  onChange={e => updateInnerEnemy({ traits: e.target.value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) })}
-                  className="bg-secondary border-border"
+                  onChange={e => updateInnerEnemy({ traits: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  className="bg-secondary border-border min-h-[60px]"
                 />
               </div>
 
@@ -261,8 +331,23 @@ export default function Settings() {
                 <Textarea
                   value={(ie?.sabotagePhrases || []).join('\n')}
                   onChange={e => updateInnerEnemy({ sabotagePhrases: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
-                  className="bg-secondary border-border min-h-[100px]"
+                  className="bg-secondary border-border min-h-[120px]"
                 />
+              </div>
+
+              <div>
+                <label className="text-xs text-foreground/60">
+                  Notas livres sobre o Inimigo — sem limite
+                </label>
+                <Textarea
+                  value={ie?.notes || ''}
+                  onChange={e => updateInnerEnemy({ notes: e.target.value })}
+                  placeholder="Táticas, gatilhos, padrões de fuga, situações em que ele aparece, mentiras favoritas..."
+                  className="bg-secondary border-border min-h-[200px]"
+                />
+                <p className="text-[11px] text-foreground/40 mt-1">
+                  {ie?.notes?.length || 0} caracteres · sem limite
+                </p>
               </div>
             </div>
           </div>
