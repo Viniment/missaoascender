@@ -47,15 +47,9 @@ export default function PlayerCard() {
               Nível {state.level}
             </span>
           </div>
-          {state.alterEgo?.completed && state.alterEgo.name && (
-            <p className="text-[10px] font-display tracking-widest text-primary/80 uppercase mb-1">
-              Alter Ego · {state.alterEgo.name}
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground italic mb-1 break-words">
-            "{state.alterEgo?.completed && state.alterEgo.identityPhrase ? state.alterEgo.identityPhrase : state.title}"
+          <p className="text-xs text-muted-foreground italic mb-2 sm:mb-3 break-words">
+            "{state.title}"
           </p>
-          <p className="text-[10px] text-primary/70 italic mb-2 sm:mb-3 break-words leading-snug">{affirmation}</p>
 
           <div className="relative h-3 bg-secondary rounded-full overflow-hidden">
             <motion.div
