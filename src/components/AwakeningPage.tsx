@@ -155,8 +155,8 @@ export default function AwakeningPage() {
       const res = data as AwakeningResponse;
       if (!res.questions || res.questions.length < 3) throw new Error('Não foi possível gerar o despertar.');
 
-      if (res.angle) appendAiAngle(res.angle);
       const html = buildExperienceHtml(res);
+
 
       setQuestion(`Despertar — ${res.detectedState || 'Reflexão'}`);
       setAnswer(html);
