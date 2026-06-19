@@ -1,17 +1,16 @@
 import { useState, useCallback, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, AlertTriangle, Pencil, Save, X } from 'lucide-react';
+import { Eye, Send, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, Pencil, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { buildAiContext } from '@/lib/aiContext';
 import RichEditor from './RichEditor';
-import SabotageConfrontDialog from './SabotageConfrontDialog';
 
 interface AwakeningQuestion {
-  zone?: 'identidade' | 'futuro' | 'dissociacao';
+  zone?: 'acolhimento' | 'identidade' | 'futuro' | 'reenquadramento';
   title: string;
   prompt: string;
   objective: string;
@@ -20,23 +19,26 @@ interface AwakeningQuestion {
 interface AwakeningResponse {
   detectedState?: string;
   intensity?: 'leve' | 'medio' | 'brutal';
+  checkIn?: string;
   alterEgoEmergence?: string;
   futureGlimpse?: string;
-  enemyCost?: string;
+  currentSelfPattern?: string;
   alterEgoTruth?: string;
   questions?: AwakeningQuestion[];
-  internalDialogue?: { enemySays?: string; alterEgoReplies?: string };
+  internalDialogue?: { currentSelfSays?: string; alterEgoReplies?: string };
+  reframe?: string;
   identityProof?: string;
   identityProofSuggestions?: string[];
   identityAnchor?: string;
   alterEgoName?: string;
-  innerEnemyName?: string;
+  currentSelfName?: string;
 }
 
 const ZONE_META: Record<string, { emoji: string; label: string }> = {
+  acolhimento: { emoji: '🤍', label: 'Acolhimento' },
   identidade: { emoji: '⚡', label: 'Identidade' },
   futuro: { emoji: '🌅', label: 'Futuro' },
-  dissociacao: { emoji: '🗡️', label: 'Dissociação' },
+  reenquadramento: { emoji: '🪞', label: 'Reenquadramento' },
 };
 
 export default function AwakeningPage() {
@@ -51,17 +53,14 @@ export default function AwakeningPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  const [activeSabotage, setActiveSabotage] = useState<any>(null);
-  const activePatterns = (state.sabotagePatterns || []).filter(p => !p.resolved);
-
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE NUA' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO';
+    const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE COM AMOR' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO GENTIL';
     const ae = r.alterEgoName || 'seu Alter Ego';
-    const ie = r.innerEnemyName || 'seu Inimigo';
+    const cs = r.currentSelfName || 'Eu Atual';
     const parts: string[] = [
       `<h3>🌅 Despertar — ${r.detectedState || ae}</h3>`,
-      `<p><em>${dateStr} · ${intensityLabel} · ${ae} no comando</em></p>`,
+      `<p><em>${dateStr} · ${intensityLabel} · ${ae} guiando</em></p>`,
       `<hr/>`,
     ];
 
@@ -71,25 +70,31 @@ export default function AwakeningPage() {
       parts.push(`<p>${content.replace(/\n/g, '<br/>')}</p>`);
     };
 
-    block('⚡', `Onde o ${ae} já está emergindo`, r.alterEgoEmergence);
-    block('🌅', `Vislumbre do futuro com o ${ae}`, r.futureGlimpse);
-    block('🗡️', `O custo de ouvir o ${ie}`, r.enemyCost);
-    block('🤍', `A verdade do ${ae}`, r.alterEgoTruth);
+    block('🤍', `Como você está hoje`, r.checkIn);
+    block('⚡', `Onde o ${ae} já está vivo`, r.alterEgoEmergence);
+    block('🌅', `Vislumbre do futuro próximo`, r.futureGlimpse);
+    block('🌱', `Um padrão do ${cs} para olhar com carinho`, r.currentSelfPattern);
+    block('💜', `A verdade do ${ae}`, r.alterEgoTruth);
 
-    if (r.internalDialogue && (r.internalDialogue.enemySays || r.internalDialogue.alterEgoReplies)) {
+    if (r.internalDialogue && (r.internalDialogue.currentSelfSays || r.internalDialogue.alterEgoReplies)) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>💬 Diálogo interno</h4>`);
-      if (r.internalDialogue.enemySays) {
-        parts.push(`<p><strong>${ie}:</strong> <em>"${r.internalDialogue.enemySays}"</em></p>`);
+      parts.push(`<h4>💬 Diálogo interno saudável</h4>`);
+      if (r.internalDialogue.currentSelfSays) {
+        parts.push(`<p><strong>${cs}:</strong> <em>"${r.internalDialogue.currentSelfSays}"</em></p>`);
       }
       if (r.internalDialogue.alterEgoReplies) {
         parts.push(`<p><strong>${ae}:</strong> <em>"${r.internalDialogue.alterEgoReplies}"</em></p>`);
       }
     }
 
+    if (r.reframe) {
+      parts.push(`<hr/>`);
+      block('🪞', `Reenquadramento do ${ae}`, r.reframe);
+    }
+
     if (r.questions && r.questions.length > 0) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>✍️ Perguntas de reprogramação</h4>`);
+      parts.push(`<h4>✍️ Perguntas para você</h4>`);
       r.questions.forEach((q, i) => {
         const zone = q.zone && ZONE_META[q.zone] ? ZONE_META[q.zone] : null;
         const zoneTag = zone ? `<em style="opacity:0.7">${zone.emoji} ${zone.label}</em> · ` : '';
@@ -106,16 +111,16 @@ export default function AwakeningPage() {
       parts.push(`<h4>🧬 Prova de identidade (próximas 24h)</h4>`);
       if (r.identityProof) parts.push(`<blockquote><p>${r.identityProof}</p></blockquote>`);
       if (r.identityProofSuggestions && r.identityProofSuggestions.length > 0) {
-        parts.push(`<p><em>Sugestões pequenas e executáveis:</em></p>`);
+        parts.push(`<p><em>Pequenos gestos de cuidado ou coragem:</em></p>`);
         parts.push(`<ul>${r.identityProofSuggestions.map(s => `<li>${s}</li>`).join('')}</ul>`);
       }
-      parts.push(`<p><strong>Minha prova de hoje:</strong></p>`);
+      parts.push(`<p><strong>Meu gesto de hoje:</strong></p>`);
       parts.push(`<p></p>`);
     }
 
     if (r.identityAnchor) {
       parts.push(`<hr/>`);
-      block('🪞', `Quem eu sou (âncora · ${ae})`, r.identityAnchor);
+      block('🪞', `Hoje eu escolho ser (âncora · ${ae})`, r.identityAnchor);
     }
 
     return parts.join('');
@@ -161,7 +166,7 @@ export default function AwakeningPage() {
       setQuestion(`Despertar — ${res.detectedState || 'Reflexão'}`);
       setAnswer(html);
 
-      if (res.intensity === 'brutal') toast.success('🤍 Verdade nua, dita com amor.');
+      if (res.intensity === 'brutal') toast.success('💜 Verdade dita com amor.');
       else if (res.intensity === 'leve') toast.success('🌱 Respira. Você voltou.');
       else toast.success('✨ Olha pra você com carinho.');
 
@@ -221,28 +226,8 @@ export default function AwakeningPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className="text-center space-y-2">
         <Eye className="w-8 h-8 text-primary mx-auto animate-pulse-glow" />
         <h2 className="font-display text-xl text-primary glow-text-purple">DESPERTAR</h2>
-        <p className="text-xs text-foreground/60 italic">Hoje você se escolhe novamente?</p>
+        <p className="text-xs text-foreground/60 italic">Você não precisa lutar contra si mesmo. Lidere-se com amor.</p>
       </motion.div>
-
-
-      {activePatterns.length > 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rpg-panel border-destructive/40 bg-destructive/5">
-          <p className="text-[10px] uppercase tracking-wider text-destructive font-display flex items-center gap-1.5">
-            <AlertTriangle className="w-3 h-3" /> 🩸 {activePatterns.length} padrão{activePatterns.length > 1 ? 'ões' : ''} de fuga detectado{activePatterns.length > 1 ? 's' : ''}
-          </p>
-          <ul className="space-y-1.5 mt-2">
-            {activePatterns.slice(0, 3).map(p => (
-              <li key={p.id}>
-                <button type="button" onClick={() => setActiveSabotage(p)} className="w-full text-left text-xs text-foreground/85 hover:text-foreground p-2 rounded bg-background/40 border border-border/40 hover:border-destructive/40 transition">
-                  {p.pattern}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-      )}
-
-      <SabotageConfrontDialog pattern={activeSabotage} onClose={() => setActiveSabotage(null)} />
 
       {/* Gerador automático — IA lê seus últimos 7 dias */}
       <div className="rpg-panel space-y-3 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">

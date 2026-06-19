@@ -6,9 +6,9 @@ const corsHeaders = {
 };
 
 // =====================================================================
-// ZONAS — nova distribuição 50/25/25 (Alter Ego centric)
+// ZONAS — sessão diária de identidade compassiva
 // =====================================================================
-const ZONES = ['identidade', 'futuro', 'dissociacao'] as const;
+const ZONES = ['acolhimento', 'identidade', 'futuro', 'reenquadramento'] as const;
 type Zone = typeof ZONES[number];
 
 type Intensity = 'leve' | 'medio' | 'brutal';
@@ -21,90 +21,130 @@ function normalizeIntensity(raw: any): Intensity {
 }
 
 // =====================================================================
-// SYSTEM PROMPT — Alter Ego como protagonista (70/30)
+// SYSTEM PROMPT — Liderança compassiva (sem inimigo, sem guerra)
 // =====================================================================
 const SYSTEM_PROMPT = `Você é o "Despertar" — voz interna do app "Ascensão". PT-BR.
 
-Você NÃO é coach, NÃO é chatbot, NÃO é positividade tóxica.
-Você é um SISTEMA DIÁRIO DE CONSTRUÇÃO DE IDENTIDADE focado no ALTER EGO.
+Você é um MENTOR INTERNO COMPASSIVO. Você ajuda a pessoa a desenvolver
+um diálogo interno saudável e a fortalecer a identidade que ela escolheu
+construir (o Alter Ego).
 
 ═══════════════════════════════════════
-REGRA SUPREMA — 70/30
+FILOSOFIA CENTRAL
 ═══════════════════════════════════════
-70% da experiência fortalece o ALTER EGO.
-30% existe para dissociar o INIMIGO INTERNO.
+O app abandonou a metáfora de guerra interna. NÃO existe "inimigo a
+derrotar". Existem dois movimentos dentro da pessoa:
 
-Antes de escrever cada frase, pergunte-se:
-"Isto fortalece mais o Alter Ego ou mais o Inimigo?"
-Se fortalecer mais o Inimigo, REESCREVA.
+• EU ATUAL — os padrões, pensamentos, medos e hábitos de hoje.
+  Trate sempre com COMPREENSÃO, ACOLHIMENTO e HONESTIDADE.
+  Nunca humilhe, nunca culpe, nunca chame de inimigo, sabotador ou monstro.
+  O Eu Atual não é um adversário. É o ponto de partida amoroso.
 
-O Alter Ego é o PROTAGONISTA. O Inimigo é só contraste.
+• ALTER EGO — a identidade que a pessoa está construindo.
+  É o PROTAGONISTA. Representa o potencial REAL que já está
+  emergindo nas escolhas diárias. Não é fantasia, não é meta distante.
+
+REGRA SUPREMA: antes de cada frase, pergunte-se
+"Esta mensagem fortalece a identidade do Alter Ego sem machucar o Eu Atual?"
+Se ferir, reescreva com mais ternura — sem perder a verdade.
+
+Distribuição: ~70% Alter Ego (acolhimento da identidade futura,
+visão, próximos passos), ~30% Eu Atual (consciência amorosa dos
+padrões atuais, sem julgamento).
 
 ═══════════════════════════════════════
-NOVA FILOSOFIA — O ALTER EGO JÁ EXISTE
+NOMES PERSONALIZADOS
 ═══════════════════════════════════════
-NUNCA trate o Alter Ego como meta, sonho ou versão futura distante.
-O Alter Ego é a identidade que o usuário JÁ está construindo através das ações diárias.
-
-Use repetidamente variações como:
-• "Você não está tentando se tornar o {nomeAlterEgo}. Você está provando que ele existe."
-• "Cada decisão consciente é uma prova de que o {nomeAlterEgo} está vivo."
-• "Você não vira o {nomeAlterEgo} no futuro — você o manifesta agora."
-
-═══════════════════════════════════════
-NOMES PERSONALIZADOS — OBRIGATÓRIO
-═══════════════════════════════════════
-Use os NOMES cadastrados do Alter Ego e do Inimigo Interno DIRETAMENTE em todos os blocos e em pelo menos 60% das perguntas.
-NUNCA escreva apenas "Alter Ego" ou "Inimigo Interno" como rótulo genérico.
+Use o NOME cadastrado do Alter Ego em todos os blocos e na maioria
+das perguntas. Para o Eu Atual, use o termo "Eu Atual" ou o nome
+que a pessoa cadastrou — SEMPRE com tom acolhedor, NUNCA como rótulo
+pejorativo.
 
 ═══════════════════════════════════════
 TOM DE VOZ
 ═══════════════════════════════════════
-Forte • Inspirador • Humano • Consciente • Direto.
-PROIBIDO: julgamento, culpa excessiva, humilhação, catastrofização, militarismo, positividade vazia, emojis dentro dos textos dos blocos.
+Sábio • Caloroso • Honesto • Encorajador • Direto sem ser duro.
+PROIBIDO: humilhação, vergonha, insultos, linguagem agressiva,
+militarismo, guerra interna, "derrotar", "combater", "vencer o inimigo",
+"sabotador", "monstro", positividade vazia, emojis dentro dos blocos.
+
+USE: incentivo, reflexão, perguntas inteligentes, reenquadramento,
+apoio emocional equilibrado, responsabilidade sem culpa, autocompaixão,
+temperança, esperança.
 
 ═══════════════════════════════════════
 BLOCOS OBRIGATÓRIOS (na ordem da experiência)
 ═══════════════════════════════════════
-1. detectedState — 3-6 palavras. Estado emocional real detectado.
+1. detectedState — 3-6 palavras. Estado emocional real, dito com gentileza.
 
-2. alterEgoEmergence — 4-6 frases. OBRIGATÓRIO. NÚCLEO do Despertar.
-   Identifique onde o {nomeAlterEgo} JÁ está emergindo: pequenas vitórias, comportamentos alinhados, esforços, tentativas, autocontrole, decisões conscientes.
-   Mesmo em dias ruins, encontre evidência real de que o {nomeAlterEgo} está se manifestando.
-   Cite hábitos/missões/trechos do diário NOMEADOS.
+2. checkIn — 2-3 frases. Acolhimento inicial.
+   Reconheça onde o Eu Atual está hoje, sem julgamento. Valide a
+   experiência humana antes de propor qualquer movimento.
 
-3. futureGlimpse — 4-6 frases. OBRIGATÓRIO.
-   Visualização emocional, específica e personalizada baseada em metas, valores e sonhos cadastrados.
-   Padrão: "Se você continuar escolhendo o {nomeAlterEgo} pelos próximos meses, estará mais próximo de {meta concreta}, sentindo {emoção}, vivendo de forma {alinhada a valor real}."
-   Faça o futuro parecer TANGÍVEL e PRÓXIMO, não distante.
+3. alterEgoEmergence — 4-6 frases. NÚCLEO do Despertar.
+   Identifique onde o {nomeAlterEgo} JÁ está vivo nas escolhas recentes:
+   pequenas vitórias, tentativas, autocontrole, decisões conscientes.
+   Mesmo em dias difíceis, encontre evidência real. Cite hábitos,
+   missões ou trechos do diário NOMEADOS.
 
-4. enemyCost — 2-3 frases CURTAS. (30% do peso — não vire relatório de fracasso.)
-   Lembre o preço de ouvir o {nomeInimigo}. Cite UMA evidência nomeada (ex: hábito quebrado, missão falhada). Sem humilhação.
+4. futureGlimpse — 4-6 frases.
+   Visualização emocional e específica baseada em metas, valores e
+   sonhos cadastrados. Padrão: "Se você continuar honrando o
+   {nomeAlterEgo}, daqui a alguns meses estará mais próximo de
+   {meta concreta}, sentindo {emoção}, vivendo de forma {alinhada a valor}."
+   Faça o futuro parecer tangível e próximo.
 
-5. alterEgoTruth — 3-4 frases. Substitui a antiga "Verdade dita com amor".
-   Escrita como se viesse da versão mais forte, sábia e disciplinada do usuário, falando como o próprio {nomeAlterEgo}.
-   Exemplo de espírito: "O {nomeAlterEgo} não precisa ser perfeito. Precisa continuar aparecendo. Cada decisão consciente enfraquece os padrões antigos."
+5. currentSelfPattern — 2-3 frases CURTAS, COMPASSIVAS.
+   Nomeie com ternura UM padrão do Eu Atual que está custando caro
+   (ex: adiar, evitar, se cobrar demais). Cite UMA evidência real.
+   NUNCA humilhe. Trate como você trataria alguém que ama.
 
-6. questions — 6 a 8 perguntas com a distribuição:
-   • 50% zone:"identidade" (mín 3) — quem estou me tornando, como o {nomeAlterEgo} agiria, que valor pratiquei, que prova criei.
-   • 25% zone:"futuro" (mín 1-2) — sonhos, metas, propósito, futuro ideal aproximado pela decisão de hoje.
-   • 25% zone:"dissociacao" (mín 1-2) — mentiras do {nomeInimigo}, sabotagem, custo da voz antiga.
+6. alterEgoTruth — 3-4 frases. Voz do {nomeAlterEgo} falando ao usuário
+   com sabedoria amorosa. Exemplo de espírito:
+   "O {nomeAlterEgo} não precisa ser perfeito. Precisa continuar
+   aparecendo. Cada decisão consciente é uma prova de que ele existe."
+
+7. internalDialogue — Diálogo saudável entre Eu Atual e Alter Ego.
+   { currentSelfSays: 1 frase do Eu Atual baseada em padrão real
+     (ex: "Estou cansado e quero deixar para amanhã."),
+     alterEgoReplies: 1 resposta COMPASSIVA do {nomeAlterEgo}
+     (ex: "Entendo o cansaço. Vamos dar só um pequeno passo hoje. O
+     importante é continuar avançando.") }
+   A resposta do Alter Ego SEMPRE valida o sentimento antes de redirecionar.
+
+8. reframe — 2-3 frases.
+   Pegue UMA crença/pensamento limitante do Eu Atual e reescreva
+   pela perspectiva do {nomeAlterEgo}. Sem invalidar — apenas
+   abrindo outra possibilidade.
+
+9. questions — 6 a 8 perguntas com a distribuição:
+   • 30% zone:"acolhimento" (mín 1-2) — como o Eu Atual está, do que
+     precisa, do que tem gratidão, o que está sentindo.
+   • 40% zone:"identidade" (mín 3) — como o {nomeAlterEgo} agiria,
+     que pequena ação aproxima da pessoa que está se tornando,
+     que atitude demonstra respeito por si mesmo agora.
+   • 20% zone:"futuro" (mín 1) — sonhos, propósito, valores.
+   • 10% zone:"reenquadramento" (mín 1) — como o {nomeAlterEgo}
+     interpretaria esse mesmo desafio.
    Cada pergunta cita pelo menos UM elemento real do usuário.
+   PROIBIDO perguntas com "inimigo", "sabotador", "fraqueza", "derrotar".
 
-7. internalDialogue — OBRIGATÓRIO.
-   { enemySays: 1 frase curta baseada em padrões de sabotagem reais (ex: "Começa amanhã."),
-     alterEgoReplies: 1 frase de identidade vinda do {nomeAlterEgo} (ex: "Não preciso vencer amanhã. Preciso honrar a próxima decisão.") }
+10. identityProof — Pergunta literal:
+    "Que pequena ação nas próximas 24 horas vai mostrar — para você
+    mesmo — que o {nomeAlterEgo} está vivo?"
+    Acompanhe com 2-4 sugestões pequenas, executáveis e personalizadas
+    (campo identityProofSuggestions). Cada sugestão é um GESTO DE
+    CUIDADO ou CORAGEM, nunca uma cobrança.
 
-8. identityProof — OBRIGATÓRIO. Pergunta literal:
-   "O que você fará nas próximas 24 horas para provar que o {nomeAlterEgo} está vivo?"
-   Acompanhe com 2-4 sugestões de ações pequenas e executáveis personalizadas (ex: jejum até X, arrumar quarto, caminhada de 20min, 1 bloco de estudo, 25min no projeto Y) — campo identityProofSuggestions (array de strings curtas).
-
-9. identityAnchor — 1-2 frases em primeira pessoa: "Eu sou alguém que..." alinhada ao {nomeAlterEgo}.
+11. identityAnchor — 1-2 frases em primeira pessoa: "Hoje eu escolho
+    ser alguém que..." alinhada ao {nomeAlterEgo}.
 
 ═══════════════════════════════════════
 INTENSIDADE
 ═══════════════════════════════════════
-🌱 LEVE — sussurro. ⚡ MÉDIO — espelho firme. 🔥 BRUTAL — verdade nua e amorosa.
+🌱 LEVE — sussurro acolhedor.
+⚡ MÉDIO — espelho firme e gentil.
+🔥 BRUTAL — verdade nua dita com amor (nunca com crueldade).
 
 Retorne SEMPRE via tool call "generate_awakening".`;
 
@@ -137,12 +177,12 @@ function fmtAlterEgo(ae: any, fallbackName = 'seu Alter Ego'): string {
   return s;
 }
 
-function fmtInnerEnemy(ie: any, fallbackName = 'seu Inimigo Interno'): string {
-  if (!ie) return `Nome: ${fallbackName} (sem detalhes)\n`;
-  let s = `Nome: ${ie.name || fallbackName}\n`;
-  if (ie.traits?.length) s += `Traços: ${ie.traits.join(', ')}\n`;
-  if (ie.sabotagePhrases?.length) s += `Frases de sabotagem: ${ie.sabotagePhrases.map((p: string) => `"${p}"`).join(' | ')}\n`;
-  if (ie.notes) s += `Notas: ${String(ie.notes).slice(0, 1200)}\n`;
+function fmtCurrentSelf(cs: any, fallbackName = 'Eu Atual'): string {
+  if (!cs) return `Nome: ${fallbackName} (sem detalhes)\n`;
+  let s = `Nome carinhoso: ${cs.name || fallbackName}\n`;
+  if (cs.traits?.length) s += `Padrões atuais observados: ${cs.traits.join(', ')}\n`;
+  if (cs.sabotagePhrases?.length) s += `Pensamentos recorrentes (acolher, não condenar): ${cs.sabotagePhrases.map((p: string) => `"${p}"`).join(' | ')}\n`;
+  if (cs.notes) s += `Notas: ${String(cs.notes).slice(0, 1200)}\n`;
   return s;
 }
 
@@ -189,30 +229,31 @@ serve(async (req) => {
       : normalizeIntensity(ctx.aiSettings?.intensity);
 
     const alterEgo = ctx.alterEgo || {};
-    const innerEnemy = ctx.innerEnemy || {};
-    const aeName = alterEgo.name || 'Evolux';
-    const ieName = innerEnemy.name || 'EndMan';
+    // O storage ainda chama "innerEnemy", mas tratamos como Eu Atual.
+    const currentSelf = ctx.innerEnemy || ctx.currentSelf || {};
+    const aeName = alterEgo.name || 'Alter Ego';
+    const csName = currentSelf.name || 'Eu Atual';
 
     // ============ USER PROMPT ============
-    let up = `═══ IDENTIDADE DUPLA (USE OS NOMES) ═══\n`;
-    up += `\n— ALTER EGO (protagonista — 70%) —\n`;
+    let up = `═══ IDENTIDADE EM CONSTRUÇÃO ═══\n`;
+    up += `\n— ALTER EGO (protagonista — ~70%) —\n`;
     up += fmtAlterEgo(alterEgo, aeName);
-    up += `\n— INIMIGO INTERNO (contraste — 30%) —\n`;
-    up += fmtInnerEnemy(innerEnemy, ieName);
-    up += `\nUse "${aeName}" e "${ieName}" diretamente. ${aeName} várias vezes mais que ${ieName}.\n\n`;
+    up += `\n— EU ATUAL (ponto de partida — ~30%, tratar com compaixão) —\n`;
+    up += fmtCurrentSelf(currentSelf, csName);
+    up += `\nUse "${aeName}" diretamente em vários blocos. Mencione o Eu Atual com ternura — sem rotular como inimigo.\n\n`;
 
     up += `═══ CONFIGURAÇÃO ═══\nIntensidade: ${intensity.toUpperCase()}\n\n`;
 
     const d = ctx.derived || {};
     up += `═══ JANELA 7 DIAS ═══\n`;
-    up += `Falhas 7d: ${d.failureCount7d ?? 0} | Tendência: ${d.consistencyTrend ?? 'estavel'}\n`;
-    up += `Dias sem falhar: ${d.daysSinceLastFail === 9999 ? '∞' : (d.daysSinceLastFail ?? '?')} | Streak: ${d.longestStreak ?? 0}d\n`;
-    up += `Drift emocional: ${d.emotionalDrift ?? 'neutro'}\n\n`;
+    up += `Dificuldades 7d: ${d.failureCount7d ?? 0} | Tendência: ${d.consistencyTrend ?? 'estavel'}\n`;
+    up += `Dias sem tropeçar: ${d.daysSinceLastFail === 9999 ? '∞' : (d.daysSinceLastFail ?? '?')} | Maior sequência: ${d.longestStreak ?? 0}d\n`;
+    up += `Clima emocional: ${d.emotionalDrift ?? 'neutro'}\n\n`;
 
     if (ctx.awakening && (ctx.awakening.become || ctx.awakening.reject || ctx.awakening.pain)) {
       up += `═══ INTENÇÕES DECLARADAS ═══\n`;
       if (ctx.awakening.become) up += `Quero me tornar: ${ctx.awakening.become}\n`;
-      if (ctx.awakening.reject) up += `Rejeito: ${ctx.awakening.reject}\n`;
+      if (ctx.awakening.reject) up += `Quero deixar para trás: ${ctx.awakening.reject}\n`;
       if (ctx.awakening.pain) up += `Dor que evita: ${ctx.awakening.pain}\n`;
       up += `\n`;
     }
@@ -220,23 +261,23 @@ serve(async (req) => {
     const ms = ctx.missions || {};
     if ((ms.active?.length || 0) + (ms.completedRecent?.length || 0) + (ms.failedRecent?.length || 0) > 0) {
       up += `═══ MISSÕES ═══\n`;
-      if (ms.completedRecent?.length) up += `✅ Concluídas (provas do ${aeName}): ${ms.completedRecent.slice(0, 5).map((c: any) => `"${c.name}"`).join(' | ')}\n`;
+      if (ms.completedRecent?.length) up += `✅ Honradas (provas do ${aeName}): ${ms.completedRecent.slice(0, 5).map((c: any) => `"${c.name}"`).join(' | ')}\n`;
       if (ms.active?.length) up += `Ativas: ${ms.active.slice(0, 5).map((m: any) => `"${m.name}"`).join(' | ')}\n`;
-      if (ms.failedRecent?.length) up += `Falhadas: ${ms.failedRecent.slice(0, 3).map((f: any) => `"${f.name}"`).join(' | ')}\n`;
+      if (ms.failedRecent?.length) up += `Em aberto (sem julgamento): ${ms.failedRecent.slice(0, 3).map((f: any) => `"${f.name}"`).join(' | ')}\n`;
       up += `\n`;
     }
 
     if (ctx.habits?.length) {
       up += `═══ HÁBITOS (30d) ═══\n`;
       ctx.habits.slice(0, 8).forEach((h: any) => {
-        const flag = h.streak >= 3 ? ' ✅ATIVO' : (h.failed30d > h.done30d ? ' ⚠️abandonado' : '');
+        const flag = h.streak >= 3 ? ' ✅ativo' : (h.failed30d > h.done30d ? ' 🌱em retomada' : '');
         up += `• "${h.name}" · streak ${h.streak}d · ${h.done30d}✓/${h.failed30d}✗${flag}\n`;
       });
       up += `\n`;
     }
 
     if ((ctx.activeSabotagePatterns || []).length > 0) {
-      up += `═══ PADRÕES DE SABOTAGEM (vozes do ${ieName}) ═══\n`;
+      up += `═══ PADRÕES DO EU ATUAL (observar com compaixão) ═══\n`;
       ctx.activeSabotagePatterns.slice(0, 5).forEach((p: any) => {
         up += `• ${p.pattern}\n`;
       });
@@ -256,13 +297,13 @@ serve(async (req) => {
     }
 
     up += `═══ INSTRUÇÕES FINAIS ═══\n`;
-    up += `1. 70% do peso emocional vai para ${aeName} (emergência, futuro, verdade, identidade). 30% para ${ieName} (custo + diálogo + dissociação).\n`;
-    up += `2. Encontre onde o ${aeName} JÁ está emergindo — mesmo em dia ruim.\n`;
+    up += `1. ~70% do peso emocional vai para ${aeName} (acolhimento, emergência, futuro, verdade, identidade). ~30% para o Eu Atual (consciência amorosa, sem julgamento).\n`;
+    up += `2. Encontre onde o ${aeName} JÁ está emergindo — mesmo em dia difícil.\n`;
     up += `3. Crie um "futureGlimpse" emocional e específico usando metas/valores reais.\n`;
-    up += `4. 6 a 8 perguntas: 50% identidade, 25% futuro, 25% dissociacao.\n`;
-    up += `5. Sempre gere "internalDialogue" e "identityProof" + sugestões.\n`;
-    up += `6. Use os nomes "${aeName}" e "${ieName}" repetidamente.\n`;
-    up += `7. Honre a intensidade ${intensity.toUpperCase()}.\n`;
+    up += `4. 6 a 8 perguntas: 30% acolhimento, 40% identidade, 20% futuro, 10% reenquadramento.\n`;
+    up += `5. Sempre gere "checkIn", "currentSelfPattern", "internalDialogue", "reframe", "identityProof" + sugestões e "identityAnchor".\n`;
+    up += `6. Trate o Eu Atual como você trataria alguém que ama. NUNCA use "inimigo", "sabotador", "monstro", "derrotar", "combater".\n`;
+    up += `7. Honre a intensidade ${intensity.toUpperCase()} sem perder a compaixão.\n`;
     up += `8. Retorne via tool "generate_awakening".\n`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -282,57 +323,59 @@ serve(async (req) => {
             type: "function",
             function: {
               name: "generate_awakening",
-              description: "Despertar focado em construção de identidade do Alter Ego (70/30).",
+              description: "Despertar diário compassivo focado no Alter Ego, acolhendo o Eu Atual.",
               parameters: {
                 type: "object",
                 properties: {
-                  detectedState: { type: "string", description: "Estado real em 3-6 palavras." },
+                  detectedState: { type: "string", description: "Estado real em 3-6 palavras, dito com gentileza." },
                   intensity: { type: "string", enum: ["leve", "medio", "brutal"] },
+                  checkIn: { type: "string", description: "2-3 frases de acolhimento inicial ao Eu Atual." },
                   alterEgoEmergence: { type: "string", description: "4-6 frases. Onde o Alter Ego JÁ está emergindo. Cite evidência real." },
                   futureGlimpse: { type: "string", description: "4-6 frases. Visualização emocional do futuro próximo baseada em metas/valores." },
-                  enemyCost: { type: "string", description: "2-3 frases curtas. Custo de ouvir o Inimigo. Sem humilhação." },
+                  currentSelfPattern: { type: "string", description: "2-3 frases compassivas. Um padrão atual nomeado com ternura, sem humilhação." },
                   alterEgoTruth: { type: "string", description: "3-4 frases vindas da voz do Alter Ego (sábia, forte, amorosa)." },
+                  internalDialogue: {
+                    type: "object",
+                    description: "Diálogo saudável entre Eu Atual e Alter Ego.",
+                    properties: {
+                      currentSelfSays: { type: "string", description: "1 frase do Eu Atual baseada em padrão real (sem demonização)." },
+                      alterEgoReplies: { type: "string", description: "1 resposta compassiva do Alter Ego — valida o sentimento e redireciona." },
+                    },
+                    required: ["currentSelfSays", "alterEgoReplies"],
+                    additionalProperties: false,
+                  },
+                  reframe: { type: "string", description: "2-3 frases. Reenquadramento amoroso de uma crença limitante pela perspectiva do Alter Ego." },
                   questions: {
                     type: "array",
                     minItems: 6,
                     maxItems: 8,
-                    description: "6 a 8 perguntas. 50% identidade, 25% futuro, 25% dissociacao.",
+                    description: "6 a 8 perguntas. 30% acolhimento, 40% identidade, 20% futuro, 10% reenquadramento.",
                     items: {
                       type: "object",
                       properties: {
                         zone: { type: "string", enum: [...ZONES] },
                         title: { type: "string", description: "3-6 palavras." },
-                        prompt: { type: "string", description: "A pergunta. Cita elemento real e usa os nomes quando a zona pedir." },
+                        prompt: { type: "string", description: "A pergunta. Cita elemento real, usa o nome do Alter Ego quando faz sentido. Sem palavras de guerra." },
                         objective: { type: "string", description: "1 linha do que ele deve perceber." },
                       },
                       required: ["zone", "title", "prompt", "objective"],
                       additionalProperties: false,
                     },
                   },
-                  internalDialogue: {
-                    type: "object",
-                    description: "Diálogo entre Inimigo e Alter Ego.",
-                    properties: {
-                      enemySays: { type: "string", description: "1 frase curta vinda do Inimigo, baseada em sabotagem real." },
-                      alterEgoReplies: { type: "string", description: "1 frase de identidade vinda do Alter Ego." },
-                    },
-                    required: ["enemySays", "alterEgoReplies"],
-                    additionalProperties: false,
-                  },
-                  identityProof: { type: "string", description: 'Pergunta literal: "O que você fará nas próximas 24 horas para provar que o {Alter Ego} está vivo?"' },
+                  identityProof: { type: "string", description: 'Pergunta literal: "Que pequena ação nas próximas 24 horas vai mostrar que o {Alter Ego} está vivo?"' },
                   identityProofSuggestions: {
                     type: "array",
                     minItems: 2,
                     maxItems: 4,
                     items: { type: "string" },
-                    description: "2-4 ações pequenas e executáveis personalizadas.",
+                    description: "2-4 ações pequenas, executáveis e personalizadas — gestos de cuidado ou coragem.",
                   },
-                  identityAnchor: { type: "string", description: "1-2 frases em 1ª pessoa: 'Eu sou alguém que...'" },
+                  identityAnchor: { type: "string", description: "1-2 frases em 1ª pessoa: 'Hoje eu escolho ser alguém que...'" },
                 },
                 required: [
-                  "detectedState", "intensity", "alterEgoEmergence", "futureGlimpse",
-                  "enemyCost", "alterEgoTruth", "questions",
-                  "internalDialogue", "identityProof", "identityProofSuggestions", "identityAnchor",
+                  "detectedState", "intensity", "checkIn", "alterEgoEmergence", "futureGlimpse",
+                  "currentSelfPattern", "alterEgoTruth", "internalDialogue", "reframe",
+                  "questions", "identityProof", "identityProofSuggestions", "identityAnchor",
                 ],
                 additionalProperties: false,
               },
@@ -367,17 +410,19 @@ serve(async (req) => {
     const out: any = {
       detectedState: '',
       intensity,
+      checkIn: '',
       alterEgoEmergence: '',
       futureGlimpse: '',
-      enemyCost: '',
+      currentSelfPattern: '',
       alterEgoTruth: '',
+      internalDialogue: { currentSelfSays: '', alterEgoReplies: '' },
+      reframe: '',
       questions: [] as any[],
-      internalDialogue: { enemySays: '', alterEgoReplies: '' },
       identityProof: '',
       identityProofSuggestions: [] as string[],
       identityAnchor: '',
       alterEgoName: aeName,
-      innerEnemyName: ieName,
+      currentSelfName: csName,
     };
 
     if (toolCall?.function?.arguments) {
@@ -386,7 +431,7 @@ serve(async (req) => {
         Object.assign(out, parsed);
         if (!out.intensity) out.intensity = intensity;
         out.alterEgoName = aeName;
-        out.innerEnemyName = ieName;
+        out.currentSelfName = csName;
       } catch (err) {
         console.error("Failed to parse tool args:", err);
       }
