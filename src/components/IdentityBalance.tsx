@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Skull, ChevronDown } from 'lucide-react';
+import { Shield, Sprout, ChevronDown } from 'lucide-react';
 import { useGame } from '@/lib/GameContext';
 import { cn } from '@/lib/utils';
 
@@ -8,7 +8,8 @@ const DAY_MS = 86_400_000;
 
 /**
  * Balança de identidade — compacta por padrão, expande ao clicar.
- * Mostra quem está vencendo nos últimos 14 dias: Alter Ego vs Inimigo Interno.
+ * Mostra quem está liderando seu diálogo interno nos últimos 14 dias:
+ * Alter Ego (identidade futura) vs Eu Atual (padrões atuais, sem julgamento).
  */
 export default function IdentityBalance() {
   const { state } = useGame();
@@ -17,7 +18,7 @@ export default function IdentityBalance() {
   const ae = state.alterEgo;
   const ie = state.innerEnemy;
 
-  const { aePoints, iePoints, aePct, leader, leadName, intensity, hasData, habitsDone, habitsFailed, missionsDone, missionsFailed, sabotageCount } = useMemo(() => {
+  const { aePoints, csPoints, aePct, leader, leadName, intensity, hasData, habitsDone, habitsFailed, missionsDone, missionsFailed, sabotageCount } = useMemo(() => {
     const now = Date.now();
     const weight = (iso: string) => {
       const age = (now - new Date(iso).getTime()) / DAY_MS;
@@ -26,7 +27,7 @@ export default function IdentityBalance() {
     };
 
     let aeRaw = 0;
-    let ieRaw = 0;
+    let csRaw = 0;
     let hD = 0, hF = 0, mD = 0, mF = 0, sC = 0;
 
     for (const h of state.habits || []) {
@@ -34,7 +35,7 @@ export default function IdentityBalance() {
         const w = weight(`${date}T12:00:00`);
         if (w === 0) continue;
         if (status === 'done') { aeRaw += w; hD++; }
-        else if (status === 'failed') { ieRaw += w; hF++; }
+        else if (status === 'failed') { csRaw += w; hF++; }
       }
     }
 
@@ -43,14 +44,14 @@ export default function IdentityBalance() {
         const w = weight(m.completedAt);
         if (w > 0) {
           if (m.status === 'Concluída') { aeRaw += 2 * w; mD++; }
-          else if (m.status === 'Falhada') { ieRaw += 2 * w; mF++; }
+          else if (m.status === 'Falhada') { csRaw += 2 * w; mF++; }
         }
       }
       if (m.completionHistory) {
         for (const h of m.completionHistory) {
           const w = weight(h.date);
           if (w === 0) continue;
-          if (h.failed) { ieRaw += 2 * w; mF++; }
+          if (h.failed) { csRaw += 2 * w; mF++; }
           else { aeRaw += 2 * w; mD++; }
         }
       }
@@ -59,10 +60,10 @@ export default function IdentityBalance() {
     for (const sp of state.sabotagePatterns || []) {
       if (sp.resolved) continue;
       const w = weight(sp.detectedAt);
-      if (w > 0) { ieRaw += 1.5 * w; sC++; }
+      if (w > 0) { csRaw += 1.5 * w; sC++; }
     }
 
-    const total = aeRaw + ieRaw;
+    const total = aeRaw + csRaw;
     const aePercentage = total > 0 ? (aeRaw / total) * 100 : 50;
     const isAeLeading = aePercentage >= 50;
     const lead = Math.abs(aePercentage - 50);
@@ -74,10 +75,10 @@ export default function IdentityBalance() {
 
     return {
       aePoints: Math.round(aeRaw * 10) / 10,
-      iePoints: Math.round(ieRaw * 10) / 10,
+      csPoints: Math.round(csRaw * 10) / 10,
       aePct: aePercentage,
-      leader: isAeLeading ? ('alter' as const) : ('enemy' as const),
-      leadName: isAeLeading ? (ae?.name || 'Alter Ego') : (ie?.name || 'Inimigo Interno'),
+      leader: isAeLeading ? ('alter' as const) : ('current' as const),
+      leadName: isAeLeading ? (ae?.name || 'Alter Ego') : (ie?.name || 'Eu Atual'),
       intensity: int,
       hasData: total > 0.5,
       habitsDone: hD, habitsFailed: hF,
@@ -86,12 +87,12 @@ export default function IdentityBalance() {
     };
   }, [state.habits, state.missions, state.sabotagePatterns, ae?.name, ie?.name]);
 
-  const leaderColor = leader === 'alter' ? 'text-primary' : 'text-destructive';
+  const leaderColor = leader === 'alter' ? 'text-primary' : 'text-amber-400';
   const intensityLabel: Record<typeof intensity, string> = {
     equilibrado: 'em equilíbrio',
-    leve: 'liderando',
-    forte: 'vencendo',
-    dominante: 'dominando',
+    leve: 'guiando suavemente',
+    forte: 'guiando com firmeza',
+    dominante: 'guiando o caminho',
   };
   const leadPct = Math.round(leader === 'alter' ? aePct : 100 - aePct);
 
@@ -106,7 +107,7 @@ export default function IdentityBalance() {
       >
         {leader === 'alter'
           ? <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
-          : <Skull className="w-3.5 h-3.5 text-destructive shrink-0" />}
+          : <Sprout className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
 
         <div className="flex-1 min-w-0">
           {!hasData ? (
@@ -147,12 +148,12 @@ export default function IdentityBalance() {
             <div className="p-3 space-y-3">
               {!hasData ? (
                 <p className="text-[11px] text-foreground/50 italic text-center py-2">
-                  Sem dados suficientes ainda. Cumpra ou falhe hábitos e missões e a balança começa a inclinar.
+                  Sem dados suficientes ainda. Suas ações vão começar a inclinar a balança aos poucos.
                 </p>
               ) : (
                 <>
                   <p className="text-[10px] font-display tracking-widest text-foreground/50 uppercase text-center">
-                    Quem você está dando mais ouvido (14d)
+                    Quem está liderando seu diálogo (14d)
                   </p>
 
                   {/* Nomes nas pontas */}
@@ -161,9 +162,9 @@ export default function IdentityBalance() {
                       <Shield className="w-3 h-3 shrink-0" />
                       <span className="truncate">{ae?.name || 'Alter Ego'}</span>
                     </span>
-                    <span className="flex items-center gap-1.5 text-destructive min-w-0">
-                      <span className="truncate text-right">{ie?.name || 'Inimigo'}</span>
-                      <Skull className="w-3 h-3 shrink-0" />
+                    <span className="flex items-center gap-1.5 text-amber-400 min-w-0">
+                      <span className="truncate text-right">{ie?.name || 'Eu Atual'}</span>
+                      <Sprout className="w-3 h-3 shrink-0" />
                     </span>
                   </div>
 
@@ -181,28 +182,28 @@ export default function IdentityBalance() {
                   <div className="flex items-center justify-between text-[10px] text-foreground/60 font-mono">
                     <span>+{aePoints}</span>
                     <span>{Math.round(aePct)}% / {Math.round(100 - aePct)}%</span>
-                    <span>-{iePoints}</span>
+                    <span>+{csPoints}</span>
                   </div>
 
                   {/* Detalhes */}
                   <div className="grid grid-cols-2 gap-2 text-[11px]">
                     <div className="rounded-md bg-primary/5 border border-primary/20 p-2 space-y-0.5">
-                      <p className="text-[9px] font-display tracking-widest text-primary/80 uppercase">Pró {ae?.name || 'Alter Ego'}</p>
-                      <p className="text-foreground/70">{habitsDone} hábitos cumpridos</p>
-                      <p className="text-foreground/70">{missionsDone} missões honradas</p>
+                      <p className="text-[9px] font-display tracking-widest text-primary/80 uppercase">Provas do {ae?.name || 'Alter Ego'}</p>
+                      <p className="text-foreground/70">{habitsDone} hábitos honrados</p>
+                      <p className="text-foreground/70">{missionsDone} missões cumpridas</p>
                     </div>
-                    <div className="rounded-md bg-destructive/5 border border-destructive/20 p-2 space-y-0.5">
-                      <p className="text-[9px] font-display tracking-widest text-destructive/80 uppercase">Pró {ie?.name || 'Inimigo'}</p>
-                      <p className="text-foreground/70">{habitsFailed} hábitos falhados</p>
-                      <p className="text-foreground/70">{missionsFailed} missões falhadas</p>
-                      {sabotageCount > 0 && <p className="text-foreground/70">{sabotageCount} padrão(ões) de sabotagem</p>}
+                    <div className="rounded-md bg-amber-500/5 border border-amber-500/20 p-2 space-y-0.5">
+                      <p className="text-[9px] font-display tracking-widest text-amber-400/80 uppercase">Padrões do {ie?.name || 'Eu Atual'}</p>
+                      <p className="text-foreground/70">{habitsFailed} hábitos em aberto</p>
+                      <p className="text-foreground/70">{missionsFailed} missões em aberto</p>
+                      {sabotageCount > 0 && <p className="text-foreground/70">{sabotageCount} padrão(ões) para olhar</p>}
                     </div>
                   </div>
 
-                  <p className={cn('text-[11px] italic text-center leading-relaxed', leader === 'alter' ? 'text-primary/80' : 'text-destructive/80')}>
+                  <p className={cn('text-[11px] italic text-center leading-relaxed', leader === 'alter' ? 'text-primary/80' : 'text-amber-400/80')}>
                     {leader === 'alter'
-                      ? `Suas ações estão construindo ${ae?.name || 'seu Alter Ego'}.`
-                      : `${ie?.name || 'Seu inimigo interno'} está sendo escutado. Hora de inclinar a balança.`}
+                      ? `Suas escolhas estão dando vida a ${ae?.name || 'seu Alter Ego'}.`
+                      : `O ${ie?.name || 'Eu Atual'} pede atenção e cuidado. Um pequeno passo do ${ae?.name || 'Alter Ego'} já basta.`}
                   </p>
                 </>
               )}
