@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Shield, Skull, Sparkles, X } from 'lucide-react';
+import { Shield, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -17,26 +17,11 @@ const VALUE_SUGGESTIONS = [
   'Verdade', 'Presença', 'Foco', 'Calma', 'Gratidão',
 ];
 
-const SABOTAGE_SUGGESTIONS = [
-  'Você merece descansar.',
-  'Começa amanhã.',
-  'Uma vez não faz diferença.',
-  'Você nunca consegue mesmo.',
-  'Come só hoje.',
-  'Não precisa hoje, está cansado.',
-];
-
-const TRAIT_SUGGESTIONS = [
-  'Manipulador', 'Sedutor', 'Mentiroso', 'Covarde',
-  'Especialista em desculpas', 'Sempre urgente', 'Sempre vítima',
-];
-
 export default function IdentityOnboarding({ open, onClose }: Props) {
-  const { state, updateAlterEgo, updateInnerEnemy, completeIdentityOnboarding } = useGame();
-  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
+  const { state, updateAlterEgo, completeIdentityOnboarding } = useGame();
+  const [step, setStep] = useState<0 | 1 | 2>(0);
 
   const ae = state.alterEgo ?? { name: '', values: [], lifeMission: '', identityPhrase: '', habits: [], goals: [], favoritePhrases: [], completed: false };
-  const ie = state.innerEnemy ?? { name: '', traits: [], sabotagePhrases: [], completed: false };
 
   const toggleInArray = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
@@ -57,17 +42,15 @@ export default function IdentityOnboarding({ open, onClose }: Props) {
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-primary/30 max-w-xl max-h-[90vh] overflow-y-auto p-0">
         <div className="p-6 space-y-5">
-          {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-display text-[10px] tracking-[0.3em] text-primary/70 uppercase">
-                Etapa {step + 1} de 4
+                Etapa {step + 1} de 3
               </p>
               <h2 className="font-display text-xl tracking-wider text-primary glow-text-purple mt-1">
-                {step === 0 && 'A BATALHA INTERIOR'}
+                {step === 0 && 'A IDENTIDADE QUE VOCÊ ESTÁ CONSTRUINDO'}
                 {step === 1 && 'SEU ALTER EGO'}
-                {step === 2 && 'SEU INIMIGO INTERNO'}
-                {step === 3 && 'PRONTO'}
+                {step === 2 && 'PRONTO'}
               </h2>
             </div>
             <button onClick={skip} className="text-foreground/40 hover:text-foreground transition-colors p-1">
@@ -75,28 +58,23 @@ export default function IdentityOnboarding({ open, onClose }: Props) {
             </button>
           </div>
 
-          {/* Body */}
           {step === 0 && (
             <div className="space-y-4 text-sm text-foreground/80 leading-relaxed">
               <p>
-                Existem duas versões de você lutando todos os dias.
+                Toda evolução começa com uma decisão: <span className="text-primary">quem você quer se tornar?</span>
               </p>
               <div className="rpg-panel border-primary/30 flex gap-3 items-start">
                 <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-display text-sm text-primary">O Alter Ego</p>
-                  <p className="text-xs text-foreground/70 mt-1">Sua melhor versão. Cumpre promessas. Age mesmo sem motivação. Se ama.</p>
-                </div>
-              </div>
-              <div className="rpg-panel border-destructive/30 flex gap-3 items-start">
-                <Skull className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-display text-sm text-destructive">O Inimigo Interno</p>
-                  <p className="text-xs text-foreground/70 mt-1">Procrastina, cria desculpas, foge do desconforto. Quer te manter pequeno.</p>
+                  <p className="font-display text-sm text-primary">Seu Alter Ego</p>
+                  <p className="text-xs text-foreground/70 mt-1">
+                    A versão de você que já existe em potencial — disciplinada, amorosa, presente, fiel à própria palavra.
+                    Não é fantasia, é o seu eu que está nascendo.
+                  </p>
                 </div>
               </div>
               <p className="text-xs text-foreground/60 italic">
-                Vamos dar nome e rosto a cada um. Isso muda tudo.
+                Vamos dar nome e forma a essa identidade. Cada escolha alinhada é uma prova de que ela é real.
               </p>
             </div>
           )}
@@ -168,71 +146,6 @@ export default function IdentityOnboarding({ open, onClose }: Props) {
           )}
 
           {step === 2 && (
-            <div className="space-y-4">
-              <p className="text-xs text-foreground/60">
-                Dar nome ao inimigo é tirar o poder dele. Quando você o reconhecer, ele perde força.
-              </p>
-
-              <Field label="Nome do Inimigo Interno">
-                <Input
-                  value={ie.name}
-                  onChange={e => updateInnerEnemy({ name: e.target.value })}
-                  placeholder="EndMan"
-                  className="bg-secondary border-border"
-                  maxLength={30}
-                />
-              </Field>
-
-              <Field label="Características (até 5)">
-                <div className="flex flex-wrap gap-1.5">
-                  {TRAIT_SUGGESTIONS.map(t => {
-                    const active = ie.traits.includes(t);
-                    return (
-                      <button
-                        key={t}
-                        onClick={() => {
-                          if (!active && ie.traits.length >= 5) return;
-                          updateInnerEnemy({ traits: toggleInArray(ie.traits, t) });
-                        }}
-                        className={cn(
-                          'text-xs px-2.5 py-1 rounded-full border transition-all',
-                          active
-                            ? 'bg-destructive/20 border-destructive/60 text-destructive'
-                            : 'bg-secondary border-border text-foreground/70 hover:border-destructive/40'
-                        )}
-                      >
-                        {t}
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
-
-              <Field label="Frases típicas de sabotagem (toque para escolher)">
-                <div className="space-y-1.5">
-                  {SABOTAGE_SUGGESTIONS.map(p => {
-                    const active = ie.sabotagePhrases.includes(p);
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => updateInnerEnemy({ sabotagePhrases: toggleInArray(ie.sabotagePhrases, p) })}
-                        className={cn(
-                          'w-full text-left text-xs px-3 py-2 rounded-md border transition-all',
-                          active
-                            ? 'bg-destructive/10 border-destructive/50 text-destructive'
-                            : 'bg-secondary border-border text-foreground/70 hover:border-destructive/30'
-                        )}
-                      >
-                        "{p}"
-                      </button>
-                    );
-                  })}
-                </div>
-              </Field>
-            </div>
-          )}
-
-          {step === 3 && (
             <div className="space-y-4 text-sm text-foreground/80 leading-relaxed">
               <div className="rpg-panel border-primary/40 space-y-2">
                 <div className="flex items-center gap-2">
@@ -241,22 +154,12 @@ export default function IdentityOnboarding({ open, onClose }: Props) {
                 </div>
                 <p className="text-xs italic text-foreground/70">"{ae.identityPhrase}"</p>
               </div>
-              <div className="rpg-panel border-destructive/40 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Skull className="w-4 h-4 text-destructive" />
-                  <p className="font-display text-sm text-destructive">{ie.name || 'EndMan'}</p>
-                </div>
-                {ie.sabotagePhrases[0] && (
-                  <p className="text-xs italic text-foreground/60">"{ie.sabotagePhrases[0]}"</p>
-                )}
-              </div>
               <p className="text-xs text-foreground/60 italic">
-                A cada decisão, uma dessas versões fica mais forte. Qual delas vencerá hoje?
+                Cada hábito cumprido, cada missão honrada, cada escolha amorosa é uma prova de que essa identidade já vive em você.
               </p>
             </div>
           )}
 
-          {/* Footer */}
           <div className="flex items-center justify-between gap-3 pt-2">
             <button
               onClick={skip}
@@ -265,17 +168,17 @@ export default function IdentityOnboarding({ open, onClose }: Props) {
               Pular agora
             </button>
             <div className="flex gap-2">
-              {step > 0 && step < 3 && (
-                <Button variant="outline" size="sm" onClick={() => setStep((step - 1) as 0 | 1 | 2)}>
+              {step > 0 && step < 2 && (
+                <Button variant="outline" size="sm" onClick={() => setStep((step - 1) as 0 | 1)}>
                   Voltar
                 </Button>
               )}
-              {step < 3 && (
-                <Button size="sm" onClick={() => setStep((step + 1) as 1 | 2 | 3)}>
+              {step < 2 && (
+                <Button size="sm" onClick={() => setStep((step + 1) as 1 | 2)}>
                   {step === 0 ? 'Começar' : 'Continuar'}
                 </Button>
               )}
-              {step === 3 && (
+              {step === 2 && (
                 <Button size="sm" onClick={finish}>
                   Iniciar a jornada
                 </Button>
