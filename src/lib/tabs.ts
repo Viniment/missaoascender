@@ -1,9 +1,10 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'mirror' | 'counsel' | 'journal'
   | 'timer' | 'awakening'
+  | 'mentor'
   | 'rewards';
 
 export interface TabDef {
