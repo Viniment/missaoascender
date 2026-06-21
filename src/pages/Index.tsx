@@ -158,8 +158,6 @@ export default function Index() {
               {/* Left - Player */}
               <div className="xl:col-span-4 2xl:col-span-3 space-y-5 order-1">
                 <PlayerCard />
-                <IdentityBalance />
-                <FailureProtocolAlert />
                 <div className="hidden xl:block">
                   <SystemPanel />
                 </div>
