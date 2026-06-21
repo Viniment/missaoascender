@@ -1722,5 +1722,8 @@ export function useGameStore() {
     updateAlterEgo,
     updateInnerEnemy,
     completeIdentityOnboarding,
+    createMentorConversation,
+    appendMentorMessage,
+    deleteMentorConversation,
   };
 }
