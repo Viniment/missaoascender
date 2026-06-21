@@ -11,10 +11,8 @@ import RewardsShop from '@/components/RewardsShop';
 import AchievementsPanel from '@/components/AchievementsPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
-import MonsterIndicator from '@/components/MonsterIndicator';
-import IdentityBalance from '@/components/IdentityBalance';
+import MentorChatPanel from '@/components/MentorChatPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
-import FailureProtocolAlert from '@/components/FailureProtocolAlert';
 import AppSidebar from '@/components/AppSidebar';
 import IdentityOnboarding from '@/components/IdentityOnboarding';
 import { useGame } from '@/lib/GameContext';
@@ -48,6 +46,7 @@ export default function Index() {
       case 'journal': return <JournalPanel />;
       case 'timer': return <PomodoroTimer />;
       case 'awakening': return <AwakeningPage />;
+      case 'mentor': return <MentorChatPanel />;
       case 'rewards': return <RewardsShop />;
     }
   };
@@ -159,8 +158,6 @@ export default function Index() {
               {/* Left - Player */}
               <div className="xl:col-span-4 2xl:col-span-3 space-y-5 order-1">
                 <PlayerCard />
-                <IdentityBalance />
-                <FailureProtocolAlert />
                 <div className="hidden xl:block">
                   <SystemPanel />
                 </div>

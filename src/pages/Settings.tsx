@@ -21,7 +21,7 @@ import { TAB_GROUPS, ALL_TABS } from '@/lib/tabs';
 
 const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
-  { id: 'identity', label: 'Identidade', description: 'Alter Ego e Inimigo Interno', icon: Shield },
+  { id: 'identity', label: 'Identidade', description: 'Seu Alter Ego', icon: Shield },
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
   { id: 'ai', label: 'IA Comportamental', description: 'Tom e frequência de TODA IA do app', icon: Brain },
@@ -169,12 +169,11 @@ export default function Settings() {
 
       case 'identity': {
         const ae = state.alterEgo;
-        const ie = state.innerEnemy;
         return (
           <div className="space-y-6">
             <SectionHeader
               title="Identidade"
-              description="Sua dupla identidade — Alter Ego (sua melhor versão) e Inimigo Interno (a voz da sabotagem). Quanto mais detalhes, mais a IA fala como ELE com você."
+              description="Seu Alter Ego — a versão de você que está sendo construída. Quanto mais detalhes, mais a IA fala como ELE com você."
             />
 
             <div className="rpg-panel border-primary/30 space-y-4">
@@ -302,54 +301,6 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="rpg-panel border-destructive/30 space-y-4">
-              <div className="flex items-center gap-2">
-                <Skull className="w-4 h-4 text-destructive" />
-                <h3 className="font-display text-xs tracking-widest text-destructive uppercase">Inimigo Interno</h3>
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">Nome</label>
-                <Input
-                  value={ie?.name || ''}
-                  onChange={e => updateInnerEnemy({ name: e.target.value })}
-                  className="bg-secondary border-border"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">Características (separadas por vírgula)</label>
-                <Textarea
-                  value={(ie?.traits || []).join(', ')}
-                  onChange={e => updateInnerEnemy({ traits: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                  className="bg-secondary border-border min-h-[60px]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">Frases de sabotagem (uma por linha)</label>
-                <Textarea
-                  value={(ie?.sabotagePhrases || []).join('\n')}
-                  onChange={e => updateInnerEnemy({ sabotagePhrases: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
-                  className="bg-secondary border-border min-h-[120px]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">
-                  Notas livres sobre o Inimigo — sem limite
-                </label>
-                <Textarea
-                  value={ie?.notes || ''}
-                  onChange={e => updateInnerEnemy({ notes: e.target.value })}
-                  placeholder="Táticas, gatilhos, padrões de fuga, situações em que ele aparece, mentiras favoritas..."
-                  className="bg-secondary border-border min-h-[200px]"
-                />
-                <p className="text-[11px] text-foreground/40 mt-1">
-                  {ie?.notes?.length || 0} caracteres · sem limite
-                </p>
-              </div>
-            </div>
           </div>
         );
       }

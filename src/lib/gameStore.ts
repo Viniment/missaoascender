@@ -318,6 +318,23 @@ export interface PlayerState {
   // === EVOLUX — Fase 1 ===
   alterEgo?: AlterEgo;
   innerEnemy?: InnerEnemy;
+  // === Mentor Interno (chat IA) ===
+  mentorConversations?: MentorConversation[];
+}
+
+export interface MentorMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
+export interface MentorConversation {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: MentorMessage[];
 }
 
 export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
@@ -482,6 +499,7 @@ export const defaultState: PlayerState = {
   sabotagePatterns: [],
   alterEgo: defaultAlterEgo,
   innerEnemy: defaultInnerEnemy,
+  mentorConversations: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
@@ -1598,6 +1616,54 @@ export function useGameStore() {
     }));
   }, []);
 
+  // === Mentor Interno: chat conversations ===
+  const createMentorConversation = useCallback((firstMessage?: string): string => {
+    const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+      ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    const now = new Date().toISOString();
+    const title = firstMessage
+      ? firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '…' : '')
+      : 'Nova conversa';
+    const convo: MentorConversation = { id, title, createdAt: now, updatedAt: now, messages: [] };
+    setState(prev => ({
+      ...prev,
+      mentorConversations: [convo, ...(prev.mentorConversations || [])],
+    }));
+    return id;
+  }, []);
+
+  const appendMentorMessage = useCallback((conversationId: string, msg: Omit<MentorMessage, 'id' | 'createdAt'> & { id?: string; createdAt?: string }) => {
+    const now = new Date().toISOString();
+    const fullMsg: MentorMessage = {
+      id: msg.id || ((typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : Math.random().toString(36).slice(2)),
+      createdAt: msg.createdAt || now,
+      role: msg.role,
+      content: msg.content,
+    };
+    setState(prev => ({
+      ...prev,
+      mentorConversations: (prev.mentorConversations || []).map(c => {
+        if (c.id !== conversationId) return c;
+        const messages = [...c.messages, fullMsg];
+        const isFirstUser = c.messages.length === 0 && msg.role === 'user';
+        return {
+          ...c,
+          messages,
+          updatedAt: now,
+          title: isFirstUser ? (msg.content.slice(0, 60) + (msg.content.length > 60 ? '…' : '')) : c.title,
+        };
+      }),
+    }));
+  }, []);
+
+  const deleteMentorConversation = useCallback((conversationId: string) => {
+    setState(prev => ({
+      ...prev,
+      mentorConversations: (prev.mentorConversations || []).filter(c => c.id !== conversationId),
+    }));
+  }, []);
+
+
   return {
     state,
     setState,
@@ -1656,5 +1722,8 @@ export function useGameStore() {
     updateAlterEgo,
     updateInnerEnemy,
     completeIdentityOnboarding,
+    createMentorConversation,
+    appendMentorMessage,
+    deleteMentorConversation,
   };
 }
