@@ -38,6 +38,7 @@ export const TAB_GROUPS: TabGroup[] = [
       { id: 'mirror', label: 'Espelho', icon: Eye, description: 'Veja sua sombra com clareza' },
       { id: 'counsel', label: 'Conselho', icon: Compass, description: 'Coach IA com seus dados reais' },
       { id: 'journal', label: 'Diário', icon: BookOpen, description: 'Registro de pensamentos e emoções' },
+      { id: 'mentor', label: 'Mentor', icon: MessageCircleHeart, description: 'Chat com seu mentor interno', core: true },
       { id: 'awakening', label: 'Despertar', icon: ScrollText, description: 'Exercícios de escrita terapêutica' },
     ],
   },
