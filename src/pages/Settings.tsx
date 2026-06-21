@@ -301,54 +301,6 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="rpg-panel border-destructive/30 space-y-4">
-              <div className="flex items-center gap-2">
-                <Skull className="w-4 h-4 text-destructive" />
-                <h3 className="font-display text-xs tracking-widest text-destructive uppercase">Inimigo Interno</h3>
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">Nome</label>
-                <Input
-                  value={ie?.name || ''}
-                  onChange={e => updateInnerEnemy({ name: e.target.value })}
-                  className="bg-secondary border-border"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">Características (separadas por vírgula)</label>
-                <Textarea
-                  value={(ie?.traits || []).join(', ')}
-                  onChange={e => updateInnerEnemy({ traits: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                  className="bg-secondary border-border min-h-[60px]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">Frases de sabotagem (uma por linha)</label>
-                <Textarea
-                  value={(ie?.sabotagePhrases || []).join('\n')}
-                  onChange={e => updateInnerEnemy({ sabotagePhrases: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
-                  className="bg-secondary border-border min-h-[120px]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-foreground/60">
-                  Notas livres sobre o Inimigo — sem limite
-                </label>
-                <Textarea
-                  value={ie?.notes || ''}
-                  onChange={e => updateInnerEnemy({ notes: e.target.value })}
-                  placeholder="Táticas, gatilhos, padrões de fuga, situações em que ele aparece, mentiras favoritas..."
-                  className="bg-secondary border-border min-h-[200px]"
-                />
-                <p className="text-[11px] text-foreground/40 mt-1">
-                  {ie?.notes?.length || 0} caracteres · sem limite
-                </p>
-              </div>
-            </div>
           </div>
         );
       }
