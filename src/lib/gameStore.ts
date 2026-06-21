@@ -318,6 +318,23 @@ export interface PlayerState {
   // === EVOLUX — Fase 1 ===
   alterEgo?: AlterEgo;
   innerEnemy?: InnerEnemy;
+  // === Mentor Interno (chat IA) ===
+  mentorConversations?: MentorConversation[];
+}
+
+export interface MentorMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
+export interface MentorConversation {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: MentorMessage[];
 }
 
 export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
