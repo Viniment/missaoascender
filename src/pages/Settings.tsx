@@ -21,7 +21,7 @@ import { TAB_GROUPS, ALL_TABS } from '@/lib/tabs';
 
 const sections = [
   { id: 'account', label: 'Conta', description: 'Perfil, senha e sessão', icon: User },
-  { id: 'identity', label: 'Identidade', description: 'Alter Ego e Inimigo Interno', icon: Shield },
+  { id: 'identity', label: 'Identidade', description: 'Seu Alter Ego', icon: Shield },
   { id: 'appearance', label: 'Aparência', description: 'Tema e visual', icon: Palette },
   { id: 'interface', label: 'Interface', description: 'Abas visíveis', icon: Layout },
   { id: 'ai', label: 'IA Comportamental', description: 'Tom e frequência de TODA IA do app', icon: Brain },
