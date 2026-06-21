@@ -169,12 +169,11 @@ export default function Settings() {
 
       case 'identity': {
         const ae = state.alterEgo;
-        const ie = state.innerEnemy;
         return (
           <div className="space-y-6">
             <SectionHeader
               title="Identidade"
-              description="Sua dupla identidade — Alter Ego (sua melhor versão) e Inimigo Interno (a voz da sabotagem). Quanto mais detalhes, mais a IA fala como ELE com você."
+              description="Seu Alter Ego — a versão de você que está sendo construída. Quanto mais detalhes, mais a IA fala como ELE com você."
             />
 
             <div className="rpg-panel border-primary/30 space-y-4">
