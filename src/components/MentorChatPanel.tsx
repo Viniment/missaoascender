@@ -49,7 +49,7 @@ export default function MentorChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const isNearBottomRef = useRef(true);
-  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const active: MentorConversation | undefined = useMemo(
     () => conversations.find(c => c.id === activeId),
@@ -79,14 +79,14 @@ export default function MentorChatPanel() {
     const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
     const near = distance < 120;
     isNearBottomRef.current = near;
-    setShowJumpToBottom(!near);
+    if (near) setUnreadCount(0);
   }, []);
 
   const scrollToBottom = useCallback((smooth = true) => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-    setShowJumpToBottom(false);
+    setUnreadCount(0);
     isNearBottomRef.current = true;
   }, []);
 
@@ -97,19 +97,23 @@ export default function MentorChatPanel() {
     }
   }, [activeId]); // eslint-disable-line
 
-  // Smart auto-scroll on new messages
+  // Smart auto-scroll on new messages (Telegram-style)
   const lastCount = useRef(0);
   useEffect(() => {
     const count = active?.messages.length ?? 0;
     if (count > lastCount.current) {
+      const delta = count - lastCount.current;
       if (isNearBottomRef.current) {
-        requestAnimationFrame(() => scrollToBottom(true));
+        requestAnimationFrame(() => scrollToBottom(false));
       } else {
-        setShowJumpToBottom(true);
+        // Count only assistant messages as unread
+        const newOnes = active?.messages.slice(-delta) ?? [];
+        const assistantNew = newOnes.filter(m => m.role === 'assistant').length;
+        if (assistantNew > 0) setUnreadCount(c => c + assistantNew);
       }
     }
     lastCount.current = count;
-  }, [active?.messages.length, scrollToBottom]);
+  }, [active?.messages.length, scrollToBottom, active?.messages]);
 
   useEffect(() => { taRef.current?.focus(); }, [activeId]);
 
@@ -221,13 +225,13 @@ export default function MentorChatPanel() {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
-      <div className="p-3 border-b border-border">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="p-3 border-b border-border shrink-0">
         <Button onClick={handleNew} size="sm" className="w-full">
           <Plus className="w-4 h-4 mr-2" /> Nova conversa
         </Button>
       </div>
-      <ScrollArea className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-2 space-y-4">
           {grouped.length === 0 && (
             <p className="text-xs text-foreground/40 px-2 py-6 text-center">
@@ -279,13 +283,13 @@ export default function MentorChatPanel() {
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 
   return (
-    <div className="rpg-panel p-0 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
+    <div className="rpg-panel p-0 overflow-hidden flex flex-col h-[calc(100dvh-180px)] min-h-[500px]">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50 shrink-0">
         <button
           className="md:hidden flex items-center gap-1.5 text-foreground/70 hover:text-primary transition-colors"
           onClick={() => setSheetOpen(true)}
@@ -300,24 +304,24 @@ export default function MentorChatPanel() {
 
       {/* Mobile sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="p-0 w-[280px] sm:w-[320px]">
-          <SheetHeader className="px-4 pt-4 pb-2">
+        <SheetContent side="left" className="p-0 w-[280px] sm:w-[320px] flex flex-col">
+          <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
             <SheetTitle className="font-display text-sm tracking-widest text-primary uppercase">
               Conversas
             </SheetTitle>
           </SheetHeader>
-          <div className="h-[calc(100%-60px)]">{sidebarContent}</div>
+          <div className="flex-1 min-h-0">{sidebarContent}</div>
         </SheetContent>
       </Sheet>
 
-      <div className="grid md:grid-cols-[260px_1fr] h-[calc(100vh-220px)] min-h-[500px]">
+      <div className="grid md:grid-cols-[260px_1fr] flex-1 min-h-0">
         {/* Desktop sidebar */}
-        <div className="hidden md:block border-r border-border bg-background/40">
+        <div className="hidden md:block border-r border-border bg-background/40 min-h-0 overflow-hidden">
           {sidebarContent}
         </div>
 
         {/* Chat */}
-        <div className="flex flex-col min-w-0 relative">
+        <div className="flex flex-col min-w-0 min-h-0 relative">
           {!active ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-3">
               <MessageCircleHeart className="w-10 h-10 text-primary/60" />
@@ -336,7 +340,7 @@ export default function MentorChatPanel() {
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth"
+                className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4"
               >
                 {active.messages.length === 0 && (
                   <div className="text-center py-10 px-4">
@@ -364,14 +368,15 @@ export default function MentorChatPanel() {
                 )}
               </div>
 
-              {/* Jump-to-bottom pill */}
-              {showJumpToBottom && (
+              {/* Unread messages badge (Telegram-style) */}
+              {unreadCount > 0 && (
                 <button
                   onClick={() => scrollToBottom(true)}
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs shadow-lg hover:bg-primary/90 transition-all animate-in fade-in slide-in-from-bottom-2"
+                  className="absolute bottom-24 right-4 z-10 flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs shadow-lg hover:bg-primary/90 transition-all animate-in fade-in slide-in-from-bottom-2"
+                  aria-label={`${unreadCount} nova(s) mensagem(ns)`}
                 >
                   <ArrowDown className="w-3.5 h-3.5" />
-                  Nova mensagem
+                  <span className="font-semibold">+{unreadCount}</span>
                 </button>
               )}
 
