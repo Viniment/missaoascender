@@ -1,68 +1,36 @@
-# Atualização do Mentor Interno
+## Objetivo
+Corrigir a aba Mentor Interno para que (1) o painel lateral de histórico fique realmente fixo, (2) o scroll do chat se comporte como o Telegram (não pula para o fim quando o usuário está lendo mensagens antigas) e (3) apareça um indicador lateral de mensagem não lida em vez de empurrar o usuário para baixo.
 
-Mudanças concentradas em `src/components/MentorChatPanel.tsx`, `src/lib/gameStore.ts` e `supabase/functions/mentor-chat/index.ts`. Sem mudanças de banco, tema ou auth.
+## Mudanças
 
-## 1. Botão de histórico sempre visível
+### 1. Layout — painel lateral fixo (`src/components/MentorChatPanel.tsx`)
+- Trocar a altura do container principal de `h-[calc(100vh-220px)]` para uma altura baseada em `100dvh` menos a barra de navegação fixa do app, e transformar a raiz do componente em `flex flex-col` com `min-h-0`, para que:
+  - O cabeçalho "Mentor Interno" não role junto com o chat.
+  - A área `grid md:grid-cols-[260px_1fr]` ocupe a altura restante com `min-h-0` (evita o "transbordamento" que hoje empurra a sidebar para baixo conforme novas mensagens são adicionadas).
+- Na coluna da sidebar desktop:
+  - Aplicar `h-full min-h-0 overflow-hidden` no wrapper e manter o bloco interno como `flex flex-col` com cabeçalho (botão "Nova conversa") fixo no topo (`shrink-0`) e a lista de conversas em `flex-1 min-h-0` dentro do `ScrollArea` — garantindo que o botão **Nova conversa** permaneça sempre visível, sem descer com o conteúdo do chat.
+- Mesma correção na sidebar mobile (Sheet): cabeçalho fixo + lista rolável.
 
-- Mover o botão "Histórico" do header para um botão flutuante fixo no canto superior esquerdo da área do chat (mobile) — sempre clicável, independente do scroll.
-- No desktop a sidebar permanece visível (260px) como hoje.
-- No mobile, abrir a sidebar como um Sheet/drawer lateral em vez de substituir o chat, mantendo o contexto.
+### 2. Scroll inteligente estilo Telegram
+- Manter o `isNearBottomRef`/`handleScroll` que já existe, mas endurecer o comportamento:
+  - Remover qualquer `scrollToBottom` automático quando uma nova mensagem do **assistente** chega e o usuário **não** está no fim. Hoje isso já existe, mas vamos remover também o `scroll-smooth` no container (que pode causar saltos visuais durante streaming) e usar `behavior: 'auto'` somente quando o próprio usuário envia.
+  - Ao trocar de conversa: ir para o fim **uma vez** (sem animação).
+  - Ao enviar mensagem do usuário: forçar `isNearBottomRef = true` e rolar para o fim. (já existe — manter.)
+  - Ao chegar resposta do assistente: rolar somente se `isNearBottomRef.current === true`. Caso contrário, **não mexer no scroll** e incrementar contador de não-lidas.
+- Garantir que o `ScrollArea` interno do chat use sempre `overflow-y-auto` com altura limitada (`flex-1 min-h-0`) para que o scroll funcione mesmo em conversas muito longas.
 
-## 2. Scroll inteligente (estilo Telegram)
+### 3. Indicador lateral de mensagens não lidas
+- Substituir a pílula central "Nova mensagem" por um **badge flutuante no canto inferior direito** do painel de chat (acima do composer):
+  - Mostra `ArrowDown` + contador (`+N`) das mensagens do assistente recebidas enquanto o usuário estava fora do fim.
+  - Clique: rola suavemente até o fim e zera o contador.
+  - O contador zera automaticamente quando o `handleScroll` detectar que o usuário voltou ao fim (`distance < 120`).
+- Estado novo: `const [unreadCount, setUnreadCount] = useState(0)`. Incrementado no `useEffect` que detecta `messages.length` aumentando enquanto `!isNearBottomRef.current`. Zerado em `scrollToBottom` e quando `handleScroll` voltar a ficar perto do fim.
 
-Substituir o `useEffect` atual que sempre força `scrollTop = scrollHeight` por:
-
-- Acompanhar a posição com listener `onScroll`. Considerar "perto do fim" quando `scrollHeight - scrollTop - clientHeight < 120px`.
-- Auto-scroll só acontece quando o usuário está perto do fim, ou quando ele mesmo acabou de enviar uma mensagem.
-- Quando uma nova mensagem da IA chega e o usuário está lendo mensagens antigas:
-  - NÃO move o scroll.
-  - Mostra um pill flutuante "↓ Nova mensagem" acima do composer.
-  - Ao clicar, faz scroll suave até o final e oculta o pill.
-- Trocar de conversa faz scroll instantâneo para o fim (comportamento esperado ao abrir um chat).
-
-## 3. Histórico completo com scroll
-
-O histórico já é renderizado por inteiro; manter assim. Garantir que o container do chat tenha altura estável (`h-[calc(100dvh-...)]` com `min-h`) e `overflow-y-auto` funcionando em telas pequenas (corrigir caso o pai esteja limitando). Sem virtualização (volume típico baixo).
-
-## 4. Exclusão de mensagens
-
-- Adicionar `deleteMentorMessage(conversationId, messageId)` em `gameStore.ts`.
-- Em cada `MessageBubble`, mostrar um botão lixeira ao passar o mouse / tocar (visível sempre em mobile, opacidade reduzida).
-- Confirmação via `AlertDialog` do shadcn ("Excluir esta mensagem? Esta ação não pode ser desfeita.").
-- Remoção atualiza state imediatamente, sem deixar gap (lista re-renderiza).
-- Conversa restante mantém a ordem; se ficar vazia, mostra o estado vazio normal.
-
-## 5. Criação real de hábitos pela IA
-
-Hoje a IA apenas sugere e o usuário "aceita" mas nada acontece. Implementar criação confiável via tool calling:
-
-### Edge function `mentor-chat`
-- Adicionar `tools` na chamada ao gateway com função `create_habit({ name, intention?, difficulty?: "Fácil"|"Médio"|"Difícil", frequency? })`.
-- Atualizar o system prompt: a IA pode chamar `create_habit` **apenas quando o usuário confirmar explicitamente** ("sim, cria", "pode adicionar", etc.). Antes disso, apenas sugere e pergunta.
-- Retornar do endpoint:
-  ```json
-  { "reply": "...", "actions": [{ "type": "create_habit", "habit": { ... } }] }
-  ```
-  Se o modelo chamar a tool, fazer uma segunda rodada para gerar o texto final de confirmação. Se não chamar, `actions: []`.
-
-### Frontend
-- Após `invoke('mentor-chat')`, processar `actions`:
-  - Para cada `create_habit`, chamar `addHabit(...)` do `gameStore` (já existente) com os campos sugeridos preenchendo padrões seguros.
-  - Mostrar `toast.success("Hábito criado: <nome>")`.
-  - Anexar uma nota inline no bubble da IA: badge "✓ Hábito criado" abaixo da resposta.
-- Atualizar prompt para a IA **nunca afirmar** que criou algo a menos que tenha chamado a tool. Se a tool falhar/não estiver disponível, ela apenas sugere.
-
-### Fallback de segurança
-Se `addHabit` der erro, mostrar toast de erro e a IA recebe a mensagem normalmente sem badge — sem alegação falsa de criação.
-
-## Arquivos afetados
-
-- `src/components/MentorChatPanel.tsx` — UI: botão histórico fixo (Sheet no mobile), scroll inteligente + pill de nova mensagem, botão excluir mensagem com AlertDialog, processamento de `actions`.
-- `src/lib/gameStore.ts` — `deleteMentorMessage(convId, msgId)`.
-- `supabase/functions/mentor-chat/index.ts` — tool calling `create_habit`, ajuste do system prompt, retorno com `actions`.
+### 4. Comportamento durante "Pensando…"
+- O indicador "Pensando…" continua aparecendo no fim do stream de mensagens, mas seu surgimento **não** força scroll se o usuário estiver lendo o histórico.
 
 ## Fora de escopo
+- Persistência server-side, edição de mensagens, virtualização, mudanças no edge function `mentor-chat`, qualquer mudança visual de tema/cores.
 
-- Persistência server-side de mensagens (continua no localStorage via `gameStore`).
-- Virtualização de listas.
-- Edição de mensagens (apenas exclusão foi pedida).
+## Arquivos afetados
+- `src/components/MentorChatPanel.tsx` (único)
