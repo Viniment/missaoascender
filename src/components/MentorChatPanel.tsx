@@ -49,7 +49,7 @@ export default function MentorChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const isNearBottomRef = useRef(true);
-  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const active: MentorConversation | undefined = useMemo(
     () => conversations.find(c => c.id === activeId),
