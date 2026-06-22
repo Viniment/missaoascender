@@ -79,14 +79,14 @@ export default function MentorChatPanel() {
     const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
     const near = distance < 120;
     isNearBottomRef.current = near;
-    setShowJumpToBottom(!near);
+    if (near) setUnreadCount(0);
   }, []);
 
   const scrollToBottom = useCallback((smooth = true) => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-    setShowJumpToBottom(false);
+    setUnreadCount(0);
     isNearBottomRef.current = true;
   }, []);
 
@@ -97,19 +97,23 @@ export default function MentorChatPanel() {
     }
   }, [activeId]); // eslint-disable-line
 
-  // Smart auto-scroll on new messages
+  // Smart auto-scroll on new messages (Telegram-style)
   const lastCount = useRef(0);
   useEffect(() => {
     const count = active?.messages.length ?? 0;
     if (count > lastCount.current) {
+      const delta = count - lastCount.current;
       if (isNearBottomRef.current) {
-        requestAnimationFrame(() => scrollToBottom(true));
+        requestAnimationFrame(() => scrollToBottom(false));
       } else {
-        setShowJumpToBottom(true);
+        // Count only assistant messages as unread
+        const newOnes = active?.messages.slice(-delta) ?? [];
+        const assistantNew = newOnes.filter(m => m.role === 'assistant').length;
+        if (assistantNew > 0) setUnreadCount(c => c + assistantNew);
       }
     }
     lastCount.current = count;
-  }, [active?.messages.length, scrollToBottom]);
+  }, [active?.messages.length, scrollToBottom, active?.messages]);
 
   useEffect(() => { taRef.current?.focus(); }, [activeId]);
 
