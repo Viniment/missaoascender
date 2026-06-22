@@ -225,13 +225,13 @@ export default function MentorChatPanel() {
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
-      <div className="p-3 border-b border-border">
+    <div className="flex flex-col h-full min-h-0">
+      <div className="p-3 border-b border-border shrink-0">
         <Button onClick={handleNew} size="sm" className="w-full">
           <Plus className="w-4 h-4 mr-2" /> Nova conversa
         </Button>
       </div>
-      <ScrollArea className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-2 space-y-4">
           {grouped.length === 0 && (
             <p className="text-xs text-foreground/40 px-2 py-6 text-center">
@@ -283,7 +283,7 @@ export default function MentorChatPanel() {
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 
