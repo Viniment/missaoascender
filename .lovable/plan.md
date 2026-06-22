@@ -1,82 +1,68 @@
-## Mudança Conceitual: De "Guerra Interna" para "Liderança Compassiva"
+# Atualização do Mentor Interno
 
-Reposicionar todo o app abandonando a metáfora de combate (Inimigo Interno, monstro, sabotador, confronto, derrota) e adotando uma dualidade compassiva: **Eu Atual** (acolhido, não julgado) ⇄ **Alter Ego** (potencial real a ser manifestado).
+Mudanças concentradas em `src/components/MentorChatPanel.tsx`, `src/lib/gameStore.ts` e `supabase/functions/mentor-chat/index.ts`. Sem mudanças de banco, tema ou auth.
 
----
+## 1. Botão de histórico sempre visível
 
-### 1. Renomeação conceitual no modelo de dados (`src/lib/gameStore.ts`)
+- Mover o botão "Histórico" do header para um botão flutuante fixo no canto superior esquerdo da área do chat (mobile) — sempre clicável, independente do scroll.
+- No desktop a sidebar permanece visível (260px) como hoje.
+- No mobile, abrir a sidebar como um Sheet/drawer lateral em vez de substituir o chat, mantendo o contexto.
 
-- Manter a estrutura `innerEnemy` no storage por compatibilidade, mas expor via tipo/alias **`currentSelf` (Eu Atual)** em toda a UI e prompts.
-- Adicionar migração leve: ao carregar dados antigos, mapear campos do `innerEnemy` (nome, traços) para `currentSelf` sem perder o que o usuário já escreveu. Rótulos antigos como "fraquezas", "gatilhos de sabotagem" passam a ser "padrões atuais", "momentos de dificuldade".
-- `defaultInnerEnemy` reescrito com linguagem neutra/acolhedora (sem "inimigo", "monstro", "sabotador").
+## 2. Scroll inteligente (estilo Telegram)
 
-### 2. Componentes a remover ou reescrever
+Substituir o `useEffect` atual que sempre força `scrollTop = scrollHeight` por:
 
-Remover (metáfora de combate não recuperável):
-- `src/components/MonsterIndicator.tsx`
-- `src/components/SabotageConfrontDialog.tsx`
-- `src/components/FailureConfrontDialog.tsx`
-- `src/components/FailureProtocolAlert.tsx`
-- `src/components/FailureProtocolSettings.tsx`
-- `supabase/functions/failure-confrontation/index.ts`
-- Referências/imports/rotas correspondentes em `Index.tsx`, `Settings.tsx`, `HabitsPanel.tsx`, `MissionsPanel.tsx`, `achievements.ts`, `identityLevels.ts`, `aiContext.ts`.
+- Acompanhar a posição com listener `onScroll`. Considerar "perto do fim" quando `scrollHeight - scrollTop - clientHeight < 120px`.
+- Auto-scroll só acontece quando o usuário está perto do fim, ou quando ele mesmo acabou de enviar uma mensagem.
+- Quando uma nova mensagem da IA chega e o usuário está lendo mensagens antigas:
+  - NÃO move o scroll.
+  - Mostra um pill flutuante "↓ Nova mensagem" acima do composer.
+  - Ao clicar, faz scroll suave até o final e oculta o pill.
+- Trocar de conversa faz scroll instantâneo para o fim (comportamento esperado ao abrir um chat).
 
-Reescrever (mantém a função, troca o enquadramento):
-- `IdentityBalance.tsx` → "Quem está liderando agora?" mostrando equilíbrio entre **Eu Atual** e **Alter Ego** (sem barra de vida de monstro, sem linguagem de batalha).
-- `IdentityOnboarding.tsx` → passos: "Como você está hoje (Eu Atual)" e "Quem você está se tornando (Alter Ego)", com perguntas compassivas.
-- `MirrorPanel.tsx` e `CounselPanel.tsx` → tom de mentor, não de confronto.
-- `AwakeningPage.tsx` → ver seção 4.
+## 3. Histórico completo com scroll
 
-### 3. Edge functions — tom e prompts
+O histórico já é renderizado por inteiro; manter assim. Garantir que o container do chat tenha altura estável (`h-[calc(100dvh-...)]` com `min-h`) e `overflow-y-auto` funcionando em telas pequenas (corrigir caso o pai esteja limitando). Sem virtualização (volume típico baixo).
 
-- `awakening-questions/index.ts`: reescrever o system prompt para mentor compassivo. Banir verbos/substantivos: derrotar, lutar, combater, sabotador, inimigo, fraqueza, falha como identidade. Manter o nome do Alter Ego personalizado. O "Eu Atual" é descrito com empatia. Distribuição: 70% Alter Ego (identidade, próximos passos, visão), 30% Eu Atual (consciência amorosa, padrões observados sem julgamento). Sem "dissociação" — usar "reconhecimento" e "reenquadramento".
-- `victory-message/index.ts`: remover linguagem de "vitória sobre o inimigo"; celebrar prova de identidade.
-- `counsel/index.ts`, `journal-prompts/index.ts`, `journal-exercise/index.ts`: revisão de tom (mentor, autocompaixão, responsabilidade sem culpa).
-- Excluir `failure-confrontation` (função e chamadas).
+## 4. Exclusão de mensagens
 
-### 4. Nova guia Despertar (sessão diária)
+- Adicionar `deleteMentorMessage(conversationId, messageId)` em `gameStore.ts`.
+- Em cada `MessageBubble`, mostrar um botão lixeira ao passar o mouse / tocar (visível sempre em mobile, opacidade reduzida).
+- Confirmação via `AlertDialog` do shadcn ("Excluir esta mensagem? Esta ação não pode ser desfeita.").
+- Remoção atualiza state imediatamente, sem deixar gap (lista re-renderiza).
+- Conversa restante mantém a ordem; se ficar vazia, mostra o estado vazio normal.
 
-Estrutura por sessão, gerada pela IA com base em perfil, valores, sonhos, missão, Alter Ego, hábitos e desafios atuais:
-1. **Check-in acolhedor** — como o Eu Atual está hoje (1–2 perguntas).
-2. **Reflexão guiada** — 3–5 perguntas personalizadas que estimulam autoconhecimento, gratidão e clareza.
-3. **Diálogo interno** — bloco com fala do Eu Atual e resposta compassiva do Alter Ego (usando o nome real do Alter Ego do usuário).
-4. **Reenquadramento** — uma crença/padrão atual transformado em uma perspectiva do Alter Ego.
-5. **Prova de identidade** — uma micro-ação concreta nas próximas 24h alinhada aos valores.
-6. **Âncora final** — frase curta no formato "Hoje eu escolho ser…" derivada do Alter Ego.
+## 5. Criação real de hábitos pela IA
 
-Sem pontuação punitiva, sem "ataque do inimigo". Layout/render atualizados em `AwakeningPage.tsx` para refletir as novas seções.
+Hoje a IA apenas sugere e o usuário "aceita" mas nada acontece. Implementar criação confiável via tool calling:
 
-### 5. Exercício diário de Diálogo Interno (novo)
+### Edge function `mentor-chat`
+- Adicionar `tools` na chamada ao gateway com função `create_habit({ name, intention?, difficulty?: "Fácil"|"Médio"|"Difícil", frequency? })`.
+- Atualizar o system prompt: a IA pode chamar `create_habit` **apenas quando o usuário confirmar explicitamente** ("sim, cria", "pode adicionar", etc.). Antes disso, apenas sugere e pergunta.
+- Retornar do endpoint:
+  ```json
+  { "reply": "...", "actions": [{ "type": "create_habit", "habit": { ... } }] }
+  ```
+  Se o modelo chamar a tool, fazer uma segunda rodada para gerar o texto final de confirmação. Se não chamar, `actions: []`.
 
-Pequeno componente reaproveitando o slot do antigo `FailureProtocolAlert`: apresenta um pensamento do Eu Atual (gerado a partir dos padrões/dificuldades do usuário) e pede que o usuário escreva (ou aceite uma sugestão da IA) a resposta do Alter Ego. Salvo no journal para reforçar repetição.
+### Frontend
+- Após `invoke('mentor-chat')`, processar `actions`:
+  - Para cada `create_habit`, chamar `addHabit(...)` do `gameStore` (já existente) com os campos sugeridos preenchendo padrões seguros.
+  - Mostrar `toast.success("Hábito criado: <nome>")`.
+  - Anexar uma nota inline no bubble da IA: badge "✓ Hábito criado" abaixo da resposta.
+- Atualizar prompt para a IA **nunca afirmar** que criou algo a menos que tenha chamado a tool. Se a tool falhar/não estiver disponível, ela apenas sugere.
 
-### 6. Linguagem global e copy
+### Fallback de segurança
+Se `addHabit` der erro, mostrar toast de erro e a IA recebe a mensagem normalmente sem badge — sem alegação falsa de criação.
 
-- Varredura de strings PT-BR removendo: "inimigo", "monstro", "sabotador", "derrotar", "combate", "batalha", "guerra", "falhou", "fraqueza".
-- Substituir por: "Eu Atual", "padrão atual", "ponto de atenção", "próximo passo", "prova de identidade", "reencontro", "reenquadramento".
-- Mensagem central do app (Help, onboarding, header de Despertar):
-  > "Você não precisa lutar contra si mesmo. Você precisa aprender a liderar a si mesmo com amor, responsabilidade e constância."
+## Arquivos afetados
 
-### 7. Conquistas, níveis e missões
+- `src/components/MentorChatPanel.tsx` — UI: botão histórico fixo (Sheet no mobile), scroll inteligente + pill de nova mensagem, botão excluir mensagem com AlertDialog, processamento de `actions`.
+- `src/lib/gameStore.ts` — `deleteMentorMessage(convId, msgId)`.
+- `supabase/functions/mentor-chat/index.ts` — tool calling `create_habit`, ajuste do system prompt, retorno com `actions`.
 
-- `achievements.ts` e `identityLevels.ts`: renomear conquistas com tema de combate para tema de identidade (ex.: "Derrotou o sabotador 5x" → "5 provas de identidade consecutivas").
-- `MissionsPanel.tsx` e `HabitsPanel.tsx`: ajustar textos auxiliares; lógica intocada.
+## Fora de escopo
 
-### 8. Memória do projeto
-
-Atualizar `mem://index.md` para refletir a nova filosofia (Eu Atual + Alter Ego, sem inimigo) e criar `mem://design/emotional-philosophy.md` com as regras de tom (proibido humilhação/vergonha/guerra; obrigatório acolhimento + responsabilidade).
-
----
-
-### Fora deste plano
-
-- Não alterar tema visual, fontes ou cores.
-- Não tocar em autenticação, RLS ou schema do banco.
-- Manter `IdentityBalance` no lugar atual (substituindo `MonsterIndicator`).
-
-### Detalhes técnicos
-
-- Tipos: adicionar `export type CurrentSelf = InnerEnemy` em `gameStore.ts` e novo helper `updateCurrentSelf` (wrapper de `updateInnerEnemy`) para migração gradual.
-- Remoções acompanhadas de limpeza de imports/rotas; rodar busca por cada nome de arquivo removido.
-- Edge functions reescritas mantêm contrato JSON existente quando possível para evitar quebrar UI durante a transição; campos novos (ex.: `internalDialogue`, `identityProof`, `reframe`) são adicionados.
-- Após edição, validar com `supabase--curl_edge_functions` chamando `awakening-questions` com um payload de teste e inspecionar logs.
+- Persistência server-side de mensagens (continua no localStorage via `gameStore`).
+- Virtualização de listas.
+- Edição de mensagens (apenas exclusão foi pedida).
