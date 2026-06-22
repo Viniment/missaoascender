@@ -368,14 +368,15 @@ export default function MentorChatPanel() {
                 )}
               </div>
 
-              {/* Jump-to-bottom pill */}
-              {showJumpToBottom && (
+              {/* Unread messages badge (Telegram-style) */}
+              {unreadCount > 0 && (
                 <button
                   onClick={() => scrollToBottom(true)}
-                  className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs shadow-lg hover:bg-primary/90 transition-all animate-in fade-in slide-in-from-bottom-2"
+                  className="absolute bottom-24 right-4 z-10 flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs shadow-lg hover:bg-primary/90 transition-all animate-in fade-in slide-in-from-bottom-2"
+                  aria-label={`${unreadCount} nova(s) mensagem(ns)`}
                 >
                   <ArrowDown className="w-3.5 h-3.5" />
-                  Nova mensagem
+                  <span className="font-semibold">+{unreadCount}</span>
                 </button>
               )}
 
