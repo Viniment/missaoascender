@@ -1734,5 +1734,6 @@ export function useGameStore() {
     createMentorConversation,
     appendMentorMessage,
     deleteMentorConversation,
+    deleteMentorMessage,
   };
 }
