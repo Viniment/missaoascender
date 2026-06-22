@@ -30,7 +30,7 @@ function formatDayLabel(iso: string): string {
 
 function dayKey(iso: string): string { return iso.slice(0, 10); }
 
-interface MentorAction { type: string; habit?: { name: string; intention?: string; difficulty: 'Fácil'|'Médio'|'Difícil' } }
+interface MentorAction { type: string; habit?: { name: string; intention?: string; difficulty: 'Fácil'|'Normal'|'Difícil' } }
 
 export default function MentorChatPanel() {
   const {

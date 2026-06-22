@@ -58,7 +58,7 @@ const tools = [
         properties: {
           name: { type: "string", description: "Nome curto e direto do hábito (ex: 'Meditar 5 minutos')" },
           intention: { type: "string", description: "Intenção emocional — por que esse hábito é um ato de amor-próprio" },
-          difficulty: { type: "string", enum: ["Fácil", "Médio", "Difícil"], description: "Dificuldade do hábito" },
+          difficulty: { type: "string", enum: ["Fácil", "Normal", "Difícil"], description: "Dificuldade do hábito" },
         },
         required: ["name", "difficulty"],
         additionalProperties: false,
@@ -165,7 +165,7 @@ serve(async (req) => {
             const habit = {
               name: String(args.name || '').slice(0, 80) || 'Novo hábito',
               intention: args.intention ? String(args.intention).slice(0, 200) : undefined,
-              difficulty: ['Fácil','Médio','Difícil'].includes(args.difficulty) ? args.difficulty : 'Médio',
+              difficulty: ['Fácil','Normal','Difícil'].includes(args.difficulty) ? args.difficulty : 'Normal',
             };
             actions.push({ type: 'create_habit', habit });
             aiMessages.push({
