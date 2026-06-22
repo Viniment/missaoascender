@@ -1,11 +1,16 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
-  MessageCircleHeart, Plus, Trash2, Send, Loader2, Calendar,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  MessageCircleHeart, Plus, Trash2, Send, Loader2, Calendar, History, ArrowDown, CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -23,26 +28,34 @@ function formatDayLabel(iso: string): string {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function dayKey(iso: string): string {
-  return iso.slice(0, 10);
-}
+function dayKey(iso: string): string { return iso.slice(0, 10); }
+
+interface MentorAction { type: string; habit?: { name: string; intention?: string; difficulty: 'Fácil'|'Médio'|'Difícil' } }
 
 export default function MentorChatPanel() {
-  const { state, createMentorConversation, appendMentorMessage, deleteMentorConversation } = useGame();
+  const {
+    state, createMentorConversation, appendMentorMessage,
+    deleteMentorConversation, deleteMentorMessage, addHabit,
+  } = useGame();
   const conversations = state.mentorConversations || [];
   const [activeId, setActiveId] = useState<string | null>(conversations[0]?.id ?? null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [showList, setShowList] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ msgId: string } | null>(null);
+  const [confirmDeleteConvo, setConfirmDeleteConvo] = useState<string | null>(null);
+  const [createdHabitFor, setCreatedHabitFor] = useState<Record<string, string>>({}); // msgId -> habit name
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const isNearBottomRef = useRef(true);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
 
   const active: MentorConversation | undefined = useMemo(
     () => conversations.find(c => c.id === activeId),
     [conversations, activeId],
   );
 
-  // group by day
   const grouped = useMemo(() => {
     const map = new Map<string, MentorConversation[]>();
     for (const c of conversations) {
@@ -59,25 +72,61 @@ export default function MentorChatPanel() {
     if (!activeId && conversations.length > 0) setActiveId(conversations[0].id);
   }, [conversations, activeId]);
 
+  // Scroll handler
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const near = distance < 120;
+    isNearBottomRef.current = near;
+    setShowJumpToBottom(!near);
+  }, []);
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    setShowJumpToBottom(false);
+    isNearBottomRef.current = true;
+  }, []);
+
+  // Snap to bottom on conversation switch
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [active?.messages.length, sending]);
+    if (active) {
+      requestAnimationFrame(() => scrollToBottom(false));
+    }
+  }, [activeId]); // eslint-disable-line
+
+  // Smart auto-scroll on new messages
+  const lastCount = useRef(0);
+  useEffect(() => {
+    const count = active?.messages.length ?? 0;
+    if (count > lastCount.current) {
+      if (isNearBottomRef.current) {
+        requestAnimationFrame(() => scrollToBottom(true));
+      } else {
+        setShowJumpToBottom(true);
+      }
+    }
+    lastCount.current = count;
+  }, [active?.messages.length, scrollToBottom]);
 
   useEffect(() => { taRef.current?.focus(); }, [activeId]);
 
   const handleNew = () => {
     const id = createMentorConversation();
     setActiveId(id);
-    setShowList(false);
+    setSheetOpen(false);
     setTimeout(() => taRef.current?.focus(), 50);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteConvo = (id: string) => {
     deleteMentorConversation(id);
     if (activeId === id) {
       const next = conversations.find(c => c.id !== id);
       setActiveId(next?.id ?? null);
     }
+    setConfirmDeleteConvo(null);
   };
 
   const handleSend = async () => {
@@ -93,6 +142,7 @@ export default function MentorChatPanel() {
     appendMentorMessage(convoId!, { role: 'user', content: text });
     setInput('');
     setSending(true);
+    isNearBottomRef.current = true; // user-initiated, follow
 
     try {
       const baseMessages: { role: 'user' | 'assistant'; content: string }[] =
@@ -123,9 +173,33 @@ export default function MentorChatPanel() {
 
       if (error) throw error;
       const reply = (data as any)?.reply || '';
+      const actions: MentorAction[] = (data as any)?.actions || [];
       if (!reply) throw new Error('Resposta vazia');
 
-      appendMentorMessage(convoId!, { role: 'assistant', content: reply });
+      // Append assistant message first
+      const assistantMsgId = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+      appendMentorMessage(convoId!, { id: assistantMsgId, role: 'assistant', content: reply });
+
+      // Execute actions
+      for (const a of actions) {
+        if (a.type === 'create_habit' && a.habit?.name) {
+          try {
+            addHabit({
+              name: a.habit.name,
+              intention: a.habit.intention,
+              icon: '✨',
+              color: 'hsl(var(--primary))',
+              endDate: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+              difficulty: a.habit.difficulty,
+            });
+            setCreatedHabitFor(prev => ({ ...prev, [assistantMsgId]: a.habit!.name }));
+            toast.success(`Hábito criado: ${a.habit.name}`);
+          } catch (err: any) {
+            toast.error(`Não consegui criar o hábito: ${err?.message || 'erro'}`);
+          }
+        }
+      }
     } catch (e: any) {
       const msg = e?.message || 'Erro ao falar com o mentor';
       toast.error(msg);
@@ -146,7 +220,7 @@ export default function MentorChatPanel() {
     }
   };
 
-  const sidebar = (
+  const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="p-3 border-b border-border">
         <Button onClick={handleNew} size="sm" className="w-full">
@@ -180,7 +254,7 @@ export default function MentorChatPanel() {
                       )}
                     >
                       <button
-                        onClick={() => { setActiveId(c.id); setShowList(false); }}
+                        onClick={() => { setActiveId(c.id); setSheetOpen(false); }}
                         className="flex-1 text-left px-2.5 py-2 min-w-0"
                       >
                         <p className={cn('text-xs truncate', isActive ? 'text-primary' : 'text-foreground/80')}>
@@ -192,8 +266,8 @@ export default function MentorChatPanel() {
                         </p>
                       </button>
                       <button
-                        onClick={() => handleDelete(c.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-foreground/40 hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setConfirmDeleteConvo(c.id); }}
+                        className="opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity p-1.5 text-foreground/40 hover:text-destructive"
                         aria-label="Excluir conversa"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -212,24 +286,38 @@ export default function MentorChatPanel() {
   return (
     <div className="rpg-panel p-0 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
-        <MessageCircleHeart className="w-4 h-4 text-primary" />
-        <h2 className="font-display text-sm tracking-widest text-primary uppercase">Mentor Interno</h2>
         <button
-          className="md:hidden ml-auto text-[11px] text-foreground/60 underline-offset-2 hover:underline"
-          onClick={() => setShowList(s => !s)}
+          className="md:hidden flex items-center gap-1.5 text-foreground/70 hover:text-primary transition-colors"
+          onClick={() => setSheetOpen(true)}
+          aria-label="Abrir histórico"
         >
-          {showList ? 'Voltar ao chat' : 'Histórico'}
+          <History className="w-4 h-4" />
+          <span className="text-[11px] uppercase tracking-wider">Histórico</span>
         </button>
+        <MessageCircleHeart className="w-4 h-4 text-primary md:ml-0 ml-2" />
+        <h2 className="font-display text-sm tracking-widest text-primary uppercase">Mentor Interno</h2>
       </div>
 
+      {/* Mobile sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="left" className="p-0 w-[280px] sm:w-[320px]">
+          <SheetHeader className="px-4 pt-4 pb-2">
+            <SheetTitle className="font-display text-sm tracking-widest text-primary uppercase">
+              Conversas
+            </SheetTitle>
+          </SheetHeader>
+          <div className="h-[calc(100%-60px)]">{sidebarContent}</div>
+        </SheetContent>
+      </Sheet>
+
       <div className="grid md:grid-cols-[260px_1fr] h-[calc(100vh-220px)] min-h-[500px]">
-        {/* Sidebar */}
-        <div className={cn('border-r border-border bg-background/40', showList ? 'block' : 'hidden md:block')}>
-          {sidebar}
+        {/* Desktop sidebar */}
+        <div className="hidden md:block border-r border-border bg-background/40">
+          {sidebarContent}
         </div>
 
         {/* Chat */}
-        <div className={cn('flex flex-col min-w-0', showList ? 'hidden md:flex' : 'flex')}>
+        <div className="flex flex-col min-w-0 relative">
           {!active ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-3">
               <MessageCircleHeart className="w-10 h-10 text-primary/60" />
@@ -238,7 +326,6 @@ export default function MentorChatPanel() {
               </p>
               <p className="text-xs text-foreground/50 max-w-sm">
                 Um espaço seguro para refletir, ressignificar e fortalecer sua identidade.
-                O mentor conhece seu Alter Ego, hábitos e missões.
               </p>
               <Button onClick={handleNew} className="mt-2">
                 <Plus className="w-4 h-4 mr-2" /> Nova conversa
@@ -246,7 +333,11 @@ export default function MentorChatPanel() {
             </div>
           ) : (
             <>
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+              <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth"
+              >
                 {active.messages.length === 0 && (
                   <div className="text-center py-10 px-4">
                     <p className="text-sm text-foreground/60">
@@ -257,7 +348,14 @@ export default function MentorChatPanel() {
                     </p>
                   </div>
                 )}
-                {active.messages.map(m => <MessageBubble key={m.id} msg={m} />)}
+                {active.messages.map(m => (
+                  <MessageBubble
+                    key={m.id}
+                    msg={m}
+                    habitCreated={createdHabitFor[m.id]}
+                    onDelete={() => setConfirmDelete({ msgId: m.id })}
+                  />
+                ))}
                 {sending && (
                   <div className="flex items-center gap-2 text-xs text-foreground/50 px-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -265,6 +363,17 @@ export default function MentorChatPanel() {
                   </div>
                 )}
               </div>
+
+              {/* Jump-to-bottom pill */}
+              {showJumpToBottom && (
+                <button
+                  onClick={() => scrollToBottom(true)}
+                  className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs shadow-lg hover:bg-primary/90 transition-all animate-in fade-in slide-in-from-bottom-2"
+                >
+                  <ArrowDown className="w-3.5 h-3.5" />
+                  Nova mensagem
+                </button>
+              )}
 
               <div className="border-t border-border p-3 bg-card/40">
                 <div className="flex items-end gap-2">
@@ -285,9 +394,7 @@ export default function MentorChatPanel() {
                     className="shrink-0 h-11 w-11"
                     aria-label="Enviar"
                   >
-                    {sending
-                      ? <Loader2 className="w-4 h-4 animate-spin" />
-                      : <Send className="w-4 h-4" />}
+                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
@@ -295,14 +402,70 @@ export default function MentorChatPanel() {
           )}
         </div>
       </div>
+
+      {/* Confirm delete message */}
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir mensagem?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A mensagem será removida da conversa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDelete && activeId) deleteMentorMessage(activeId, confirmDelete.msgId);
+                setConfirmDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm delete conversation */}
+      <AlertDialog open={!!confirmDeleteConvo} onOpenChange={(o) => !o && setConfirmDeleteConvo(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Todas as mensagens desta conversa serão apagadas. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDeleteConvo && handleDeleteConvo(confirmDeleteConvo)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function MessageBubble({ msg }: { msg: MentorMessage }) {
+function MessageBubble({
+  msg, habitCreated, onDelete,
+}: { msg: MentorMessage; habitCreated?: string; onDelete: () => void }) {
   const isUser = msg.role === 'user';
   return (
-    <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
+    <div className={cn('group flex items-start gap-1.5', isUser ? 'justify-end' : 'justify-start')}>
+      {isUser && (
+        <button
+          onClick={onDelete}
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-foreground/30 hover:text-destructive self-center"
+          aria-label="Excluir mensagem"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
       <div
         className={cn(
           'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
@@ -314,11 +477,28 @@ function MessageBubble({ msg }: { msg: MentorMessage }) {
         {isUser ? (
           <p className="whitespace-pre-wrap">{msg.content}</p>
         ) : (
-          <div className="prose prose-sm prose-invert max-w-none prose-p:my-1.5 prose-strong:text-primary">
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
-          </div>
+          <>
+            <div className="prose prose-sm prose-invert max-w-none prose-p:my-1.5 prose-strong:text-primary">
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
+            </div>
+            {habitCreated && (
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary border border-primary/30 bg-primary/10 rounded-md px-2 py-1 w-fit">
+                <CheckCircle2 className="w-3 h-3" />
+                Hábito criado: <span className="font-semibold">{habitCreated}</span>
+              </div>
+            )}
+          </>
         )}
       </div>
+      {!isUser && (
+        <button
+          onClick={onDelete}
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-foreground/30 hover:text-destructive self-center"
+          aria-label="Excluir mensagem"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>
   );
 }
