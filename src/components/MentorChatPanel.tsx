@@ -340,7 +340,7 @@ export default function MentorChatPanel() {
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scroll-smooth"
+                className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4"
               >
                 {active.messages.length === 0 && (
                   <div className="text-center py-10 px-4">
