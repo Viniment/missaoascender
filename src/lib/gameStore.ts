@@ -1663,6 +1663,15 @@ export function useGameStore() {
     }));
   }, []);
 
+  const deleteMentorMessage = useCallback((conversationId: string, messageId: string) => {
+    setState(prev => ({
+      ...prev,
+      mentorConversations: (prev.mentorConversations || []).map(c =>
+        c.id !== conversationId ? c : { ...c, messages: c.messages.filter(m => m.id !== messageId) }
+      ),
+    }));
+  }, []);
+
 
   return {
     state,
@@ -1725,5 +1734,6 @@ export function useGameStore() {
     createMentorConversation,
     appendMentorMessage,
     deleteMentorConversation,
+    deleteMentorMessage,
   };
 }
