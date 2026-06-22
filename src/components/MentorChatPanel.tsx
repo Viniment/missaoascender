@@ -288,8 +288,8 @@ export default function MentorChatPanel() {
   );
 
   return (
-    <div className="rpg-panel p-0 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50">
+    <div className="rpg-panel p-0 overflow-hidden flex flex-col h-[calc(100dvh-180px)] min-h-[500px]">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/50 shrink-0">
         <button
           className="md:hidden flex items-center gap-1.5 text-foreground/70 hover:text-primary transition-colors"
           onClick={() => setSheetOpen(true)}
@@ -304,24 +304,24 @@ export default function MentorChatPanel() {
 
       {/* Mobile sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="p-0 w-[280px] sm:w-[320px]">
-          <SheetHeader className="px-4 pt-4 pb-2">
+        <SheetContent side="left" className="p-0 w-[280px] sm:w-[320px] flex flex-col">
+          <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
             <SheetTitle className="font-display text-sm tracking-widest text-primary uppercase">
               Conversas
             </SheetTitle>
           </SheetHeader>
-          <div className="h-[calc(100%-60px)]">{sidebarContent}</div>
+          <div className="flex-1 min-h-0">{sidebarContent}</div>
         </SheetContent>
       </Sheet>
 
-      <div className="grid md:grid-cols-[260px_1fr] h-[calc(100vh-220px)] min-h-[500px]">
+      <div className="grid md:grid-cols-[260px_1fr] flex-1 min-h-0">
         {/* Desktop sidebar */}
-        <div className="hidden md:block border-r border-border bg-background/40">
+        <div className="hidden md:block border-r border-border bg-background/40 min-h-0 overflow-hidden">
           {sidebarContent}
         </div>
 
         {/* Chat */}
-        <div className="flex flex-col min-w-0 relative">
+        <div className="flex flex-col min-w-0 min-h-0 relative">
           {!active ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-3">
               <MessageCircleHeart className="w-10 h-10 text-primary/60" />
