@@ -1769,5 +1769,7 @@ export function useGameStore() {
     appendMentorMessage,
     deleteMentorConversation,
     deleteMentorMessage,
+    addTratakaSession,
+    deleteTratakaSession,
   };
 }
