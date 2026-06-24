@@ -1,9 +1,9 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'mirror' | 'counsel' | 'journal'
-  | 'timer' | 'awakening'
+  | 'timer' | 'awakening' | 'trataka'
   | 'mentor'
   | 'rewards';
 
@@ -47,6 +47,7 @@ export const TAB_GROUPS: TabGroup[] = [
     label: 'Ferramentas',
     tabs: [
       { id: 'timer', label: 'Timer', icon: Timer, description: 'Pomodoro e sessões focadas' },
+      { id: 'trataka', label: 'Trataka', icon: Focus, description: 'Concentração visual em um único ponto' },
     ],
   },
   {

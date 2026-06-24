@@ -320,6 +320,21 @@ export interface PlayerState {
   innerEnemy?: InnerEnemy;
   // === Mentor Interno (chat IA) ===
   mentorConversations?: MentorConversation[];
+  // === Trataka (concentração visual) ===
+  tratakaSessions?: TratakaSession[];
+}
+
+export type TratakaPoint = 'vela' | 'ponto-branco' | 'ponto-dourado' | 'zen';
+export type TratakaSound = 'silencio' | 'chuva' | 'ruido-branco' | 'floresta' | 'tigela';
+
+export interface TratakaSession {
+  id: string;
+  date: string;          // ISO
+  durationSec: number;   // tempo efetivamente praticado
+  point: TratakaPoint;
+  sound: TratakaSound;
+  focusBefore?: number;  // 1..10
+  focusAfter?: number;   // 1..10
 }
 
 export interface MentorMessage {
@@ -500,6 +515,7 @@ export const defaultState: PlayerState = {
   alterEgo: defaultAlterEgo,
   innerEnemy: defaultInnerEnemy,
   mentorConversations: [],
+  tratakaSessions: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
@@ -1673,6 +1689,24 @@ export function useGameStore() {
   }, []);
 
 
+  const addTratakaSession = useCallback((session: Omit<TratakaSession, 'id'>) => {
+    setState(prev => ({
+      ...prev,
+      tratakaSessions: [
+        { ...session, id: (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : Math.random().toString(36).slice(2) },
+        ...(prev.tratakaSessions || []),
+      ].slice(0, 500),
+    }));
+  }, []);
+
+  const deleteTratakaSession = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      tratakaSessions: (prev.tratakaSessions || []).filter(s => s.id !== id),
+    }));
+  }, []);
+
+
   return {
     state,
     setState,
@@ -1735,5 +1769,7 @@ export function useGameStore() {
     appendMentorMessage,
     deleteMentorConversation,
     deleteMentorMessage,
+    addTratakaSession,
+    deleteTratakaSession,
   };
 }
