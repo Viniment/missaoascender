@@ -47,6 +47,7 @@ export const TAB_GROUPS: TabGroup[] = [
     label: 'Ferramentas',
     tabs: [
       { id: 'timer', label: 'Timer', icon: Timer, description: 'Pomodoro e sessões focadas' },
+      { id: 'trataka', label: 'Trataka', icon: Focus, description: 'Concentração visual em um único ponto' },
     ],
   },
   {
