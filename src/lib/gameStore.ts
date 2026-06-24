@@ -1689,6 +1689,24 @@ export function useGameStore() {
   }, []);
 
 
+  const addTratakaSession = useCallback((session: Omit<TratakaSession, 'id'>) => {
+    setState(prev => ({
+      ...prev,
+      tratakaSessions: [
+        { ...session, id: (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : Math.random().toString(36).slice(2) },
+        ...(prev.tratakaSessions || []),
+      ].slice(0, 500),
+    }));
+  }, []);
+
+  const deleteTratakaSession = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      tratakaSessions: (prev.tratakaSessions || []).filter(s => s.id !== id),
+    }));
+  }, []);
+
+
   return {
     state,
     setState,
