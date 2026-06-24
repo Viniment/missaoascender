@@ -320,6 +320,21 @@ export interface PlayerState {
   innerEnemy?: InnerEnemy;
   // === Mentor Interno (chat IA) ===
   mentorConversations?: MentorConversation[];
+  // === Trataka (concentração visual) ===
+  tratakaSessions?: TratakaSession[];
+}
+
+export type TratakaPoint = 'vela' | 'ponto-branco' | 'ponto-dourado' | 'zen';
+export type TratakaSound = 'silencio' | 'chuva' | 'ruido-branco' | 'floresta' | 'tigela';
+
+export interface TratakaSession {
+  id: string;
+  date: string;          // ISO
+  durationSec: number;   // tempo efetivamente praticado
+  point: TratakaPoint;
+  sound: TratakaSound;
+  focusBefore?: number;  // 1..10
+  focusAfter?: number;   // 1..10
 }
 
 export interface MentorMessage {
