@@ -515,6 +515,7 @@ export const defaultState: PlayerState = {
   alterEgo: defaultAlterEgo,
   innerEnemy: defaultInnerEnemy,
   mentorConversations: [],
+  tratakaSessions: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
