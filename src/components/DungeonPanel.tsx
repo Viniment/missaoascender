@@ -106,6 +106,3 @@ export default function DungeonPanel() {
     </div>
   );
 }
-
-// expose helpers for store to compute today's dungeon when needed
-export { rollDungeon };
