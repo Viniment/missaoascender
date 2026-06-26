@@ -1,36 +1,132 @@
-## Objetivo
-Corrigir a aba Mentor Interno para que (1) o painel lateral de histórico fique realmente fixo, (2) o scroll do chat se comporte como o Telegram (não pula para o fim quando o usuário está lendo mensagens antigas) e (3) apareça um indicador lateral de mensagem não lida em vez de empurrar o usuário para baixo.
+# Plano: Life RPG — Transformação Completa em Jogo
 
-## Mudanças
+Vou expandir o sistema atual de XP/níveis para uma experiência completa de RPG da vida, mantendo a filosofia de liderança compassiva já estabelecida. Tudo será integrado aos hábitos e missões existentes — nada será descartado.
 
-### 1. Layout — painel lateral fixo (`src/components/MentorChatPanel.tsx`)
-- Trocar a altura do container principal de `h-[calc(100vh-220px)]` para uma altura baseada em `100dvh` menos a barra de navegação fixa do app, e transformar a raiz do componente em `flex flex-col` com `min-h-0`, para que:
-  - O cabeçalho "Mentor Interno" não role junto com o chat.
-  - A área `grid md:grid-cols-[260px_1fr]` ocupe a altura restante com `min-h-0` (evita o "transbordamento" que hoje empurra a sidebar para baixo conforme novas mensagens são adicionadas).
-- Na coluna da sidebar desktop:
-  - Aplicar `h-full min-h-0 overflow-hidden` no wrapper e manter o bloco interno como `flex flex-col` com cabeçalho (botão "Nova conversa") fixo no topo (`shrink-0`) e a lista de conversas em `flex-1 min-h-0` dentro do `ScrollArea` — garantindo que o botão **Nova conversa** permaneça sempre visível, sem descer com o conteúdo do chat.
-- Mesma correção na sidebar mobile (Sheet): cabeçalho fixo + lista rolável.
+---
 
-### 2. Scroll inteligente estilo Telegram
-- Manter o `isNearBottomRef`/`handleScroll` que já existe, mas endurecer o comportamento:
-  - Remover qualquer `scrollToBottom` automático quando uma nova mensagem do **assistente** chega e o usuário **não** está no fim. Hoje isso já existe, mas vamos remover também o `scroll-smooth` no container (que pode causar saltos visuais durante streaming) e usar `behavior: 'auto'` somente quando o próprio usuário envia.
-  - Ao trocar de conversa: ir para o fim **uma vez** (sem animação).
-  - Ao enviar mensagem do usuário: forçar `isNearBottomRef = true` e rolar para o fim. (já existe — manter.)
-  - Ao chegar resposta do assistente: rolar somente se `isNearBottomRef.current === true`. Caso contrário, **não mexer no scroll** e incrementar contador de não-lidas.
-- Garantir que o `ScrollArea` interno do chat use sempre `overflow-y-auto` com altura limitada (`flex-1 min-h-0`) para que o scroll funcione mesmo em conversas muito longas.
+## 1. Atributos de Vida (6 stats centrais)
 
-### 3. Indicador lateral de mensagens não lidas
-- Substituir a pílula central "Nova mensagem" por um **badge flutuante no canto inferior direito** do painel de chat (acima do composer):
-  - Mostra `ArrowDown` + contador (`+N`) das mensagens do assistente recebidas enquanto o usuário estava fora do fim.
-  - Clique: rola suavemente até o fim e zera o contador.
-  - O contador zera automaticamente quando o `handleScroll` detectar que o usuário voltou ao fim (`distance < 120`).
-- Estado novo: `const [unreadCount, setUnreadCount] = useState(0)`. Incrementado no `useEffect` que detecta `messages.length` aumentando enquanto `!isNearBottomRef.current`. Zerado em `scrollToBottom` e quando `handleScroll` voltar a ficar perto do fim.
+Cada hábito/missão passa a dar XP em **um atributo** além do XP geral. Os 6 atributos:
 
-### 4. Comportamento durante "Pensando…"
-- O indicador "Pensando…" continua aparecendo no fim do stream de mensagens, mas seu surgimento **não** força scroll se o usuário estiver lendo o histórico.
+| Atributo | Símbolo | Representa |
+|---|---|---|
+| **Força** | ⚔️ | Exercício, esforço físico, ação |
+| **Mente** | 🧠 | Estudo, leitura, foco, aprendizado |
+| **Espírito** | ✨ | Meditação, journaling, Trataka, TCC |
+| **Social** | 🤝 | Conexões, conversas, vínculos |
+| **Disciplina** | 🛡️ | Hábitos mantidos, promessas cumpridas |
+| **Vitalidade** | ❤️‍🔥 | Sono, alimentação, água, autocuidado |
 
-## Fora de escopo
-- Persistência server-side, edição de mensagens, virtualização, mudanças no edge function `mentor-chat`, qualquer mudança visual de tema/cores.
+- Cada atributo tem nível próprio (1-100) com curva de XP.
+- Ao criar/editar hábito ou missão → escolher atributo principal.
+- IA do mentor sugere atributo ao criar hábito via tool-calling.
+- Novo painel **Atributos** mostrando barras radiais e progressão.
 
-## Arquivos afetados
-- `src/components/MentorChatPanel.tsx` (único)
+## 2. Classes e Skill Tree
+
+- Aos **Nível 5** o usuário desbloqueia escolha de classe baseada no atributo dominante:
+  - **Guerreiro** (Força) — bônus em quests físicas
+  - **Sábio** (Mente) — bônus de XP em estudo
+  - **Místico** (Espírito) — bônus em práticas contemplativas
+  - **Diplomata** (Social) — bônus em quests sociais
+  - **Monge** (Disciplina) — bônus em streaks
+  - **Curandeiro** (Vitalidade) — regen passiva
+- Skill tree simples por classe (3 ramos × 3 níveis = 9 perks) desbloqueados por XP do atributo.
+- Perks são **passivos reais**: multiplicadores de XP, slots extras de missão, custos reduzidos na loja, etc.
+
+## 3. Quests Épicas e Boss Battles
+
+- **Quest Épica**: missão de longo prazo (semanas/meses) com fases. Ex: "Reconstruir meu corpo" → 4 fases × várias sub-missões.
+- **Boss Battle**: chefes representam padrões de sabotagem reais (Procrastinação, Comparação, Autocrítica, Cansaço Crônico).
+  - Cada boss tem "HP" reduzido por ações específicas durante 7-14 dias.
+  - Visual de barra de HP do boss + recompensa épica ao derrotar.
+  - IA do mentor pode propor um boss quando detectar padrão recorrente.
+
+## 4. Dungeons Diárias e Eventos
+
+- **Dungeon do Dia**: gerada todo dia pela IA com 3 desafios temáticos (curtos, 5-30min) + timer e loot.
+- **Loot system**: ao completar, drop aleatório (raridade comum/raro/épico/lendário) que vira item visual no inventário e bônus temporário (ex: "Poção de Foco: +20% XP por 2h").
+- **Eventos sazonais**: semana temática (ex: "Semana da Vitalidade") com multiplicadores e quest exclusiva.
+
+## 5. Quest de Redenção (sistema de falha)
+
+- Sem perda dura. Ao quebrar streak ou falhar missão crítica:
+  - IA gera uma **Quest de Redenção** personalizada (1-3 dias) usando contexto do usuário e tom compassivo.
+  - Completar → restaura streak parcialmente + insígnia "Voltei".
+  - Aparece como dialog acolhedor, não punitivo.
+
+## 6. Intensidade visual (nível 3 — moderado)
+
+- Animação de **Level Up** com partículas + som sutil ao subir nível geral, de atributo ou desbloquear perk.
+- Boss com barra de HP pulsante e shake ao receber dano.
+- Loot drop com flip card animado.
+- Sem áudio invasivo — apenas SFX opt-in nas configurações.
+
+---
+
+## Implementação técnica
+
+### Game store (`src/lib/gameStore.ts`)
+Novos campos no `PlayerState`:
+- `attributes: Record<AttributeId, { xp: number; level: number }>`
+- `class: { id: ClassId; chosenAt: string } | null`
+- `perks: PerkId[]`
+- `epicQuests: EpicQuest[]` (fases, progresso)
+- `bosses: BossBattle[]` (ativos + derrotados)
+- `dungeons: { date: string; challenges: DungeonChallenge[]; loot?: LootItem }[]`
+- `inventory: LootItem[]`
+- `activeBuffs: ActiveBuff[]` (expira por tempo)
+- `redemptionQuests: RedemptionQuest[]`
+
+Hábitos e missões ganham campo opcional `attribute: AttributeId`.
+
+### Novos componentes
+- `src/components/AttributesPanel.tsx` — visualização das 6 stats com gráfico radial
+- `src/components/ClassSelectionDialog.tsx` — escolha de classe no nível 5
+- `src/components/SkillTreePanel.tsx` — árvore de perks por classe
+- `src/components/EpicQuestsPanel.tsx` — quests longas com fases
+- `src/components/BossBattlePanel.tsx` — chefes ativos com barra HP
+- `src/components/DungeonOfTheDay.tsx` — desafios diários gerados pela IA
+- `src/components/LootDropOverlay.tsx` — animação de drop
+- `src/components/InventoryPanel.tsx` — itens coletados + buffs ativos
+- `src/components/RedemptionQuestDialog.tsx` — dialog acolhedor pós-falha
+- `src/components/LevelUpOverlay.tsx` — animação de level up
+
+### Edge functions novas
+- `dungeon-generator` — gera os 3 desafios diários personalizados
+- `boss-suggester` — detecta padrões e sugere boss
+- `redemption-quest` — cria quest de redenção pós-falha
+- `epic-quest-planner` — quebra meta grande em fases
+
+### Lógica central
+- Sistema de cálculo de XP de atributo em `src/lib/attributes.ts`
+- Sistema de perks/bônus em `src/lib/perks.ts` (multiplicadores aplicados em todo gain de XP/ouro)
+- Sistema de loot em `src/lib/loot.ts` (tabela de drops por raridade)
+- Hook `useBuffs` para expirar buffs ativos
+
+### Navegação
+Novo grupo na sidebar **"RPG"**:
+- Atributos
+- Classe & Skills
+- Quests Épicas
+- Bosses
+- Dungeon do Dia
+- Inventário
+
+### Integração com sistemas atuais
+- Mentor IA passa a sugerir atributo ao criar hábito.
+- Hábitos completados → XP no atributo + chance de loot.
+- Awakening/TCC → XP em Espírito.
+- Trataka → XP em Espírito + Mente.
+
+---
+
+## Faseamento da entrega
+
+Para entregar bem, vou implementar em **3 ondas** dentro deste mesmo plano (sem pausa para aprovação):
+
+1. **Onda 1 — Fundação**: Atributos, integração em hábitos/missões, painel de atributos, level up overlay, classes + seleção.
+2. **Onda 2 — Conteúdo**: Quests épicas, bosses, dungeon do dia + edge functions, loot, inventário.
+3. **Onda 3 — Polish**: Skill tree, quest de redenção, eventos sazonais, animações finais.
+
+O resultado: o app deixa de ser "produtividade com XP" e vira de fato um **Life RPG** onde cada dia é uma sessão de jogo significativa.
