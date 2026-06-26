@@ -4,6 +4,7 @@ import { getTodayBrasilia } from './utils';
 import { defaultAttributes, applyAttributeXp, attributeForCategory, type AttributesMap, type AttributeId } from './attributes';
 import { classXpMultiplier, type ChosenClass, type ClassId } from './classes';
 import { rollLoot, type LootItem, type ActiveBuff } from './loot';
+import { rollDungeonChallenges } from './dungeon';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
