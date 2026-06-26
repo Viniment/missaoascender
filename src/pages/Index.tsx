@@ -201,6 +201,11 @@ export default function Index() {
         {/* Achievement unlock overlay */}
         <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
 
+        {/* Life RPG overlays */}
+        <LevelUpOverlay />
+        <RedemptionQuestDialog />
+        <ClassSelectionDialog open={!!state.pendingClassChoice && !state.chosenClass} onClose={() => { /* dismiss handled via chooseClass or external setter */ }} />
+
         {/* EVOLUX — Identity onboarding (first run) */}
         <IdentityOnboarding open={identityOpen} onClose={() => setIdentityOpen(false)} />
       </div>
