@@ -135,7 +135,7 @@ export default function CbtImmersionPanel() {
           messages: history,
           currentStage,
           context: {
-            name: state.profile?.displayName,
+            name: ae?.name,
             alterEgo: ae,
             previousSummaries: sessions
               .filter(s => s.id !== sessionId && s.summary)
