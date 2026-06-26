@@ -2192,6 +2192,7 @@ export function useGameStore() {
     // Life RPG
     gainAttributeXp,
     chooseClass,
+    dismissClassChoice,
     addBoss,
     damageBoss,
     defeatBoss,
