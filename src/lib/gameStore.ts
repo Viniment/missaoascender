@@ -1749,6 +1749,46 @@ export function useGameStore() {
     }));
   }, []);
 
+  // === CBT (Despertar TCC) ===
+  const newId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+    ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+
+  const createCbtSession = useCallback((): string => {
+    const id = newId();
+    const now = new Date().toISOString();
+    const session: CbtSession = {
+      id, createdAt: now, updatedAt: now, stage: 'check-in',
+      title: `Sessão ${new Date(now).toLocaleDateString('pt-BR')}`,
+      messages: [],
+    };
+    setState(prev => ({ ...prev, cbtSessions: [session, ...(prev.cbtSessions || [])] }));
+    return id;
+  }, []);
+
+  const appendCbtMessage = useCallback((sessionId: string, msg: Omit<CbtMessage, 'id' | 'createdAt'> & { id?: string; createdAt?: string }) => {
+    const now = new Date().toISOString();
+    const full: CbtMessage = { id: msg.id ?? newId(), createdAt: msg.createdAt ?? now, role: msg.role, content: msg.content, stage: msg.stage };
+    setState(prev => ({
+      ...prev,
+      cbtSessions: (prev.cbtSessions || []).map(s =>
+        s.id !== sessionId ? s : { ...s, updatedAt: now, messages: [...s.messages, full] }
+      ),
+    }));
+  }, []);
+
+  const updateCbtSession = useCallback((sessionId: string, patch: Partial<Pick<CbtSession, 'stage' | 'summary' | 'completedAt' | 'title'>>) => {
+    setState(prev => ({
+      ...prev,
+      cbtSessions: (prev.cbtSessions || []).map(s =>
+        s.id !== sessionId ? s : { ...s, ...patch, updatedAt: new Date().toISOString() }
+      ),
+    }));
+  }, []);
+
+  const deleteCbtSession = useCallback((sessionId: string) => {
+    setState(prev => ({ ...prev, cbtSessions: (prev.cbtSessions || []).filter(s => s.id !== sessionId) }));
+  }, []);
+
 
   return {
     state,
@@ -1814,5 +1854,9 @@ export function useGameStore() {
     deleteMentorMessage,
     addTratakaSession,
     deleteTratakaSession,
+    createCbtSession,
+    appendCbtMessage,
+    updateCbtSession,
+    deleteCbtSession,
   };
 }
