@@ -609,6 +609,14 @@ export const defaultState: PlayerState = {
   mentorConversations: [],
   tratakaSessions: [],
   cbtSessions: [],
+  attributes: defaultAttributes,
+  chosenClass: null,
+  pendingClassChoice: false,
+  bosses: [],
+  dungeons: [],
+  inventory: [],
+  activeBuffs: [],
+  redemptionQuests: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
