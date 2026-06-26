@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { Swords, CheckCircle2, Clock, Sparkles, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RARITY_STYLES } from '@/lib/loot';
 import { ATTRIBUTE_MAP } from '@/lib/attributes';
 import { getTodayBrasilia } from '@/lib/utils';
-import { toast } from 'sonner';
+import { rollDungeonChallenges } from '@/lib/dungeon';
 
 // Templates de desafios — gerados localmente, sem IA
 const TEMPLATE_BANK: { title: string; desc: string; minutes: number; attribute: keyof typeof ATTRIBUTE_MAP; xp: number }[] = [
