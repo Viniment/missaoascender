@@ -209,7 +209,7 @@ export default function Index() {
         {/* Life RPG overlays */}
         <LevelUpOverlay />
         <RedemptionQuestDialog />
-        <ClassSelectionDialog open={!!state.pendingClassChoice && !state.chosenClass} onClose={() => { /* dismiss handled via chooseClass or external setter */ }} />
+        <ClassSelectionDialog open={!!state.pendingClassChoice && !state.chosenClass} onClose={dismissClassChoice} />
 
         {/* EVOLUX — Identity onboarding (first run) */}
         <IdentityOnboarding open={identityOpen} onClose={() => setIdentityOpen(false)} />
