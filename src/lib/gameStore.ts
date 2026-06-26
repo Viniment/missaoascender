@@ -1929,9 +1929,6 @@ export function useGameStore() {
     setState(prev => {
       const dungeons = prev.dungeons || [];
       if (dungeons.some(d => d.date === date)) return prev;
-      // import dynamically to keep cyclic deps clean
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { rollDungeonChallenges } = require('./dungeon');
       const challenges = rollDungeonChallenges(date);
       return { ...prev, dungeons: [...dungeons, { date, challenges }] };
     });
@@ -1939,8 +1936,6 @@ export function useGameStore() {
 
   const regenerateDungeon = useCallback((date: string) => {
     setState(prev => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { rollDungeonChallenges } = require('./dungeon');
       const challenges = rollDungeonChallenges(date + '-' + Math.random());
       return {
         ...prev,
