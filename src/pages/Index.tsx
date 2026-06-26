@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
@@ -33,12 +33,17 @@ import { TAB_GROUPS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
 import { cn } from '@/lib/utils';
 
 export default function Index() {
-  const { newlyUnlocked, dismissAchievement, state } = useGame();
+  const { newlyUnlocked, dismissAchievement, state, dismissClassChoice, ensureTodayDungeon } = useGame();
   const hasBgPomodoro = !!(state.pomodoroStartedAt && state.pomodoroDuration && state.pomodoroMode);
   const [activeTab, setActiveTab] = useState<TabId>(hasBgPomodoro ? 'timer' : 'missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
   const navigate = useNavigate();
+
+  // Ensure today's dungeon exists
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  useEffect(() => { ensureTodayDungeon(today); }, [today, ensureTodayDungeon]);
+
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));
   const isVisible = (id: TabId) => !disabledTabs.includes(id);
   const visibleGroups = TAB_GROUPS
