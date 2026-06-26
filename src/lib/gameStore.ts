@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkNewAchievements, type AchievementDef } from './achievements';
 import { getTodayBrasilia } from './utils';
+import { defaultAttributes, applyAttributeXp, attributeForCategory, type AttributesMap, type AttributeId } from './attributes';
+import { classXpMultiplier, type ChosenClass, type ClassId } from './classes';
+import { rollLoot, type LootItem, type ActiveBuff } from './loot';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
@@ -324,6 +327,53 @@ export interface PlayerState {
   tratakaSessions?: TratakaSession[];
   // === Despertar TCC (imersão diária de Terapia Cognitivo-Comportamental) ===
   cbtSessions?: CbtSession[];
+  // === LIFE RPG — Atributos, Classes, Quests, Bosses, Dungeons, Loot ===
+  attributes?: AttributesMap;
+  chosenClass?: ChosenClass | null;
+  pendingClassChoice?: boolean;
+  bosses?: BossBattle[];
+  dungeons?: DungeonDay[];
+  inventory?: LootItem[];
+  activeBuffs?: ActiveBuff[];
+  redemptionQuests?: RedemptionQuest[];
+}
+
+export interface BossBattle {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  weakness?: string;
+  hp: number;
+  maxHp: number;
+  createdAt: string;
+  defeatedAt?: string;
+}
+
+export interface DungeonChallengeState {
+  id: string;
+  title: string;
+  desc: string;
+  minutes: number;
+  attribute: AttributeId;
+  xp: number;
+  done?: boolean;
+}
+
+export interface DungeonDay {
+  date: string;
+  challenges: DungeonChallengeState[];
+  cleared?: boolean;
+  lootId?: string;
+}
+
+export interface RedemptionQuest {
+  id: string;
+  reason: string;
+  steps: string[];
+  createdAt: string;
+  completedAt?: string;
+  dismissedAt?: string;
 }
 
 export type TratakaPoint = 'vela' | 'ponto-branco' | 'ponto-dourado' | 'zen';
