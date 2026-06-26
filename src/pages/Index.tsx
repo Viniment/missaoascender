@@ -58,6 +58,10 @@ export default function Index() {
       case 'trataka': return <TratakaPanel />;
       case 'mentor': return <MentorChatPanel />;
       case 'cbt': return <CbtImmersionPanel />;
+      case 'attributes': return <AttributesPanel />;
+      case 'dungeon': return <DungeonPanel />;
+      case 'bosses': return <BossPanel />;
+      case 'inventory': return <InventoryPanel />;
       case 'rewards': return <RewardsShop />;
     }
   };
