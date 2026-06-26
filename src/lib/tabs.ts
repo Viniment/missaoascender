@@ -1,10 +1,10 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, Brain, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'mirror' | 'counsel' | 'journal'
   | 'timer' | 'awakening' | 'trataka'
-  | 'mentor'
+  | 'mentor' | 'cbt'
   | 'rewards';
 
 export interface TabDef {
@@ -39,6 +39,7 @@ export const TAB_GROUPS: TabGroup[] = [
       { id: 'counsel', label: 'Conselho', icon: Compass, description: 'Coach IA com seus dados reais' },
       { id: 'journal', label: 'Diário', icon: BookOpen, description: 'Registro de pensamentos e emoções' },
       { id: 'mentor', label: 'Mentor', icon: MessageCircleHeart, description: 'Chat com seu mentor interno', core: true },
+      { id: 'cbt', label: 'Despertar TCC', icon: Brain, description: 'Imersão diária de Terapia Cognitivo-Comportamental' },
       { id: 'awakening', label: 'Despertar', icon: ScrollText, description: 'Exercícios de escrita terapêutica' },
     ],
   },

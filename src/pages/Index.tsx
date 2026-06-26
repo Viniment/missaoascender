@@ -12,6 +12,7 @@ import AchievementsPanel from '@/components/AchievementsPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
+import CbtImmersionPanel from '@/components/CbtImmersionPanel';
 import TratakaPanel from '@/components/TratakaPanel';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import AppSidebar from '@/components/AppSidebar';
@@ -49,6 +50,7 @@ export default function Index() {
       case 'awakening': return <AwakeningPage />;
       case 'trataka': return <TratakaPanel />;
       case 'mentor': return <MentorChatPanel />;
+      case 'cbt': return <CbtImmersionPanel />;
       case 'rewards': return <RewardsShop />;
     }
   };

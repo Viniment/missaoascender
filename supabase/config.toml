@@ -2,3 +2,6 @@ project_id = "wuxcgdallnewizweixxa"
 
 [functions.counsel]
 verify_jwt = false
+
+[functions.cbt-immersion]
+verify_jwt = false
