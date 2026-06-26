@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkNewAchievements, type AchievementDef } from './achievements';
 import { getTodayBrasilia } from './utils';
+import { defaultAttributes, applyAttributeXp, attributeForCategory, type AttributesMap, type AttributeId } from './attributes';
+import { classXpMultiplier, type ChosenClass, type ClassId } from './classes';
+import { rollLoot, type LootItem, type ActiveBuff } from './loot';
+import { rollDungeonChallenges } from './dungeon';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
@@ -324,6 +328,53 @@ export interface PlayerState {
   tratakaSessions?: TratakaSession[];
   // === Despertar TCC (imersão diária de Terapia Cognitivo-Comportamental) ===
   cbtSessions?: CbtSession[];
+  // === LIFE RPG — Atributos, Classes, Quests, Bosses, Dungeons, Loot ===
+  attributes?: AttributesMap;
+  chosenClass?: ChosenClass | null;
+  pendingClassChoice?: boolean;
+  bosses?: BossBattle[];
+  dungeons?: DungeonDay[];
+  inventory?: LootItem[];
+  activeBuffs?: ActiveBuff[];
+  redemptionQuests?: RedemptionQuest[];
+}
+
+export interface BossBattle {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  weakness?: string;
+  hp: number;
+  maxHp: number;
+  createdAt: string;
+  defeatedAt?: string;
+}
+
+export interface DungeonChallengeState {
+  id: string;
+  title: string;
+  desc: string;
+  minutes: number;
+  attribute: AttributeId;
+  xp: number;
+  done?: boolean;
+}
+
+export interface DungeonDay {
+  date: string;
+  challenges: DungeonChallengeState[];
+  cleared?: boolean;
+  lootId?: string;
+}
+
+export interface RedemptionQuest {
+  id: string;
+  reason: string;
+  steps: string[];
+  createdAt: string;
+  completedAt?: string;
+  dismissedAt?: string;
 }
 
 export type TratakaPoint = 'vela' | 'ponto-branco' | 'ponto-dourado' | 'zen';
@@ -559,6 +610,14 @@ export const defaultState: PlayerState = {
   mentorConversations: [],
   tratakaSessions: [],
   cbtSessions: [],
+  attributes: defaultAttributes,
+  chosenClass: null,
+  pendingClassChoice: false,
+  bosses: [],
+  dungeons: [],
+  inventory: [],
+  activeBuffs: [],
+  redemptionQuests: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
@@ -1789,6 +1848,278 @@ export function useGameStore() {
     setState(prev => ({ ...prev, cbtSessions: (prev.cbtSessions || []).filter(s => s.id !== sessionId) }));
   }, []);
 
+  // ===== LIFE RPG: Atributos =====
+  const gainAttributeXp = useCallback((attr: AttributeId, amount: number, reason?: string) => {
+    setState(prev => {
+      const cur = prev.attributes || defaultAttributes;
+      const before = cur[attr] || { xp: 0, level: 1 };
+      const { state: after, leveledUp } = applyAttributeXp(before, amount);
+      return {
+        ...prev,
+        attributes: { ...cur, [attr]: after },
+        log: leveledUp
+          ? [{ date: new Date().toISOString(), action: `🌟 Atributo ${attr.toUpperCase()} subiu para Nv ${after.level}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100)
+          : prev.log,
+      };
+    });
+  }, []);
+
+  // Classe
+  const chooseClass = useCallback((id: ClassId) => {
+    setState(prev => ({
+      ...prev,
+      chosenClass: { id, chosenAt: new Date().toISOString() },
+      pendingClassChoice: false,
+      log: [{ date: new Date().toISOString(), action: `⟐ Tornei-me ${id}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+    }));
+  }, []);
+
+  const dismissClassChoice = useCallback(() => {
+    setState(prev => ({ ...prev, pendingClassChoice: false }));
+  }, []);
+
+  // Trigger pending class choice when reaching level 5+ and no class yet
+  useEffect(() => {
+    if (!state.chosenClass && state.level >= 5 && state.rank !== 'E' && !state.pendingClassChoice) {
+      setState(p => ({ ...p, pendingClassChoice: true }));
+    }
+    // Also at rank D level 1+ (after rank up)
+    if (!state.chosenClass && state.rank !== 'E' && !state.pendingClassChoice) {
+      setState(p => ({ ...p, pendingClassChoice: true }));
+    }
+  }, [state.level, state.rank, state.chosenClass, state.pendingClassChoice]);
+
+  // Bosses
+  const addBoss = useCallback((b: Omit<BossBattle, 'id' | 'createdAt'>) => {
+    setState(prev => ({
+      ...prev,
+      bosses: [...(prev.bosses || []), { ...b, id: crypto.randomUUID(), createdAt: new Date().toISOString() }],
+    }));
+  }, []);
+
+  const damageBoss = useCallback((id: string, dmg: number) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === id ? { ...b, hp: Math.max(0, b.hp - dmg) } : b),
+      log: [{ date: new Date().toISOString(), action: `⚔️ Golpe contra boss (−${dmg} HP)`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+    }));
+  }, []);
+
+  const defeatBoss = useCallback((id: string) => {
+    setState(prev => {
+      const boss = (prev.bosses || []).find(b => b.id === id);
+      if (!boss) return prev;
+      const xp = 200;
+      const gold = 50;
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      const loot = rollLoot(40); // boss = drop quase garantido
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + gold,
+        bosses: (prev.bosses || []).map(b => b.id === id ? { ...b, defeatedAt: new Date().toISOString() } : b),
+        inventory: loot ? [...(prev.inventory || []), loot] : (prev.inventory || []),
+        log: [{ date: new Date().toISOString(), action: `🏆 Boss derrotado: ${boss.name}`, xp, gold }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  const removeBoss = useCallback((id: string) => {
+    setState(prev => ({ ...prev, bosses: (prev.bosses || []).filter(b => b.id !== id) }));
+  }, []);
+
+  // Dungeon
+  const ensureTodayDungeon = useCallback((date: string) => {
+    setState(prev => {
+      const dungeons = prev.dungeons || [];
+      if (dungeons.some(d => d.date === date)) return prev;
+      const challenges = rollDungeonChallenges(date);
+      return { ...prev, dungeons: [...dungeons, { date, challenges }] };
+    });
+  }, []);
+
+  const regenerateDungeon = useCallback((date: string) => {
+    setState(prev => {
+      const challenges = rollDungeonChallenges(date + '-' + Math.random());
+      return {
+        ...prev,
+        dungeons: [...(prev.dungeons || []).filter(d => d.date !== date), { date, challenges }],
+      };
+    });
+  }, []);
+
+  const completeDungeonChallenge = useCallback((date: string, challengeId: string) => {
+    setState(prev => {
+      const dungeons = prev.dungeons || [];
+      const idx = dungeons.findIndex(d => d.date === date);
+      if (idx === -1) return prev;
+      const dungeon = dungeons[idx];
+      const challenge = dungeon.challenges.find(c => c.id === challengeId);
+      if (!challenge || challenge.done) return prev;
+
+      // Apply XP + attribute XP
+      const prog = processLevelUp(prev.xp + challenge.xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      const attrs = prev.attributes || defaultAttributes;
+      const cur = attrs[challenge.attribute] || { xp: 0, level: 1 };
+      const { state: attrAfter } = applyAttributeXp(cur, Math.floor(challenge.xp / 2));
+
+      const updatedChallenges = dungeon.challenges.map(c => c.id === challengeId ? { ...c, done: true } : c);
+      const cleared = updatedChallenges.every(c => c.done);
+      const newInventory = prev.inventory || [];
+      let lootId = dungeon.lootId;
+      if (cleared && !lootId) {
+        const loot = rollLoot(25);
+        if (loot) {
+          newInventory.push(loot);
+          lootId = loot.id;
+        }
+      }
+
+      const newDungeons = [...dungeons];
+      newDungeons[idx] = { ...dungeon, challenges: updatedChallenges, cleared: cleared || dungeon.cleared, lootId };
+
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + Math.floor(challenge.xp / 5),
+        attributes: { ...attrs, [challenge.attribute]: attrAfter },
+        dungeons: newDungeons,
+        inventory: cleared ? newInventory : prev.inventory,
+        log: [{ date: new Date().toISOString(), action: `🗝️ Dungeon: ${challenge.title}`, xp: challenge.xp, gold: Math.floor(challenge.xp / 5) }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // Inventário
+  const removeInventoryItem = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      inventory: (prev.inventory || []).filter(i => i.id !== id),
+    }));
+  }, []);
+
+  const useInventoryItem = useCallback((id: string) => {
+    setState(prev => {
+      const item = (prev.inventory || []).find(i => i.id === id);
+      if (!item || !item.buff) return prev;
+      const now = Date.now();
+      const buff: ActiveBuff = {
+        id: crypto.randomUUID(),
+        itemName: item.name,
+        type: item.buff.type,
+        percent: item.buff.percent,
+        startedAt: new Date(now).toISOString(),
+        expiresAt: new Date(now + item.buff.durationMin * 60000).toISOString(),
+      };
+      return {
+        ...prev,
+        inventory: (prev.inventory || []).filter(i => i.id !== id),
+        activeBuffs: [...(prev.activeBuffs || []), buff],
+        log: [{ date: new Date().toISOString(), action: `✨ Item usado: ${item.name}`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // Quest de redenção — gerada quando streak quebra
+  const createRedemption = useCallback((reason: string, steps: string[]) => {
+    setState(prev => {
+      // Evita duplicação se já existe uma ativa
+      const hasActive = (prev.redemptionQuests || []).some(q => !q.completedAt && !q.dismissedAt);
+      if (hasActive) return prev;
+      const q: RedemptionQuest = {
+        id: crypto.randomUUID(), reason, steps, createdAt: new Date().toISOString(),
+      };
+      return { ...prev, redemptionQuests: [q, ...(prev.redemptionQuests || [])] };
+    });
+  }, []);
+
+  const completeRedemption = useCallback((id: string) => {
+    setState(prev => {
+      const xp = 80;
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      return {
+        ...prev,
+        ...prog,
+        streak: Math.max(prev.streak, 1),
+        redemptionQuests: (prev.redemptionQuests || []).map(q => q.id === id ? { ...q, completedAt: new Date().toISOString() } : q),
+        log: [{ date: new Date().toISOString(), action: '🕊️ Quest de Redenção concluída — você voltou pra si', xp, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  const dismissRedemption = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      redemptionQuests: (prev.redemptionQuests || []).map(q => q.id === id ? { ...q, dismissedAt: new Date().toISOString() } : q),
+    }));
+  }, []);
+
+  // Auto-trigger redemption when streak just broke (discipline streak break)
+  useEffect(() => {
+    const ds = state.disciplineStreak;
+    if (!ds?.lastBreakAt) return;
+    const breakAge = Date.now() - new Date(ds.lastBreakAt).getTime();
+    if (breakAge > 5 * 60_000) return; // só recente
+    const hasActive = (state.redemptionQuests || []).some(q => !q.completedAt && !q.dismissedAt);
+    if (hasActive) return;
+    const hasRecent = (state.redemptionQuests || []).some(q => Date.now() - new Date(q.createdAt).getTime() < 24 * 3600_000);
+    if (hasRecent) return;
+    createRedemption(
+      `Você quebrou ${ds.best >= 7 ? 'uma sequência forte' : 'sua sequência'}. Sem julgamento. Vamos voltar com leveza.`,
+      [
+        'Beba um copo de água e respire fundo 3 vezes',
+        'Escolha 1 hábito pequeno pra fazer hoje (5 min basta)',
+        'Escreva 2 linhas no diário: o que aconteceu, o que aprende com isso',
+      ]
+    );
+  }, [state.disciplineStreak?.lastBreakAt, state.redemptionQuests, createRedemption]);
+
+  // Auto-attribute XP + loot piggyback on log entries (simples)
+  const lastLogActionRef = useRef<string>('');
+  useEffect(() => {
+    const latest = state.log?.[0];
+    if (!latest) return;
+    if (latest.action === lastLogActionRef.current) return;
+    lastLogActionRef.current = latest.action;
+    if (latest.xp <= 0) return;
+    // Try to derive attribute
+    let attr: AttributeId = 'disciplina';
+    const a = latest.action.toLowerCase();
+    if (a.startsWith('hábito')) attr = 'disciplina';
+    else if (a.startsWith('missão') || a.startsWith('diária') || a.startsWith('contagem')) {
+      // try to map by category name in action
+      const cats: { key: string; v: AttributeId }[] = [
+        { key: 'treino', v: 'forca' }, { key: 'saúde', v: 'vitalidade' },
+        { key: 'estudo', v: 'mente' }, { key: 'leitura', v: 'mente' }, { key: 'trabalho', v: 'mente' },
+        { key: 'mental', v: 'mente' }, { key: 'criatividade', v: 'mente' },
+        { key: 'espiritual', v: 'espirito' }, { key: 'social', v: 'social' },
+        { key: 'financeiro', v: 'disciplina' },
+      ];
+      for (const c of cats) if (a.includes(c.key)) { attr = c.v; break; }
+    } else if (a.includes('diário') || a.includes('despertar') || a.includes('trataka') || a.includes('reflexão') || a.includes('ritual')) {
+      attr = 'espirito';
+    } else if (a.includes('dungeon')) {
+      return; // dungeon já dá attr XP direto
+    }
+    // attribute XP = floor(xp * 0.4)
+    const amount = Math.max(1, Math.floor(latest.xp * 0.4));
+    if (amount > 0) {
+      // Apply class multiplier
+      const mult = classXpMultiplier(state.chosenClass?.id, { source: a.includes('hábito') ? 'habit' : a.includes('trataka') ? 'trataka' : 'mission' });
+      gainAttributeXp(attr, Math.floor(amount * mult));
+    }
+    // Random loot roll on positive xp events
+    if (latest.xp >= 10) {
+      const loot = rollLoot();
+      if (loot) {
+        setState(p => ({ ...p, inventory: [...(p.inventory || []), loot] }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.log]);
+
+
+
 
   return {
     state,
@@ -1858,5 +2189,21 @@ export function useGameStore() {
     appendCbtMessage,
     updateCbtSession,
     deleteCbtSession,
+    // Life RPG
+    gainAttributeXp,
+    chooseClass,
+    dismissClassChoice,
+    addBoss,
+    damageBoss,
+    defeatBoss,
+    removeBoss,
+    ensureTodayDungeon,
+    regenerateDungeon,
+    completeDungeonChallenge,
+    removeInventoryItem,
+    useInventoryItem,
+    createRedemption,
+    completeRedemption,
+    dismissRedemption,
   };
 }

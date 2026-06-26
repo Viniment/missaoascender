@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
@@ -14,6 +14,13 @@ import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
 import CbtImmersionPanel from '@/components/CbtImmersionPanel';
 import TratakaPanel from '@/components/TratakaPanel';
+import AttributesPanel from '@/components/AttributesPanel';
+import DungeonPanel from '@/components/DungeonPanel';
+import BossPanel from '@/components/BossPanel';
+import InventoryPanel from '@/components/InventoryPanel';
+import LevelUpOverlay from '@/components/LevelUpOverlay';
+import RedemptionQuestDialog from '@/components/RedemptionQuestDialog';
+import ClassSelectionDialog from '@/components/ClassSelectionDialog';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import AppSidebar from '@/components/AppSidebar';
 import IdentityOnboarding from '@/components/IdentityOnboarding';
@@ -26,12 +33,17 @@ import { TAB_GROUPS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
 import { cn } from '@/lib/utils';
 
 export default function Index() {
-  const { newlyUnlocked, dismissAchievement, state } = useGame();
+  const { newlyUnlocked, dismissAchievement, state, dismissClassChoice, ensureTodayDungeon } = useGame();
   const hasBgPomodoro = !!(state.pomodoroStartedAt && state.pomodoroDuration && state.pomodoroMode);
   const [activeTab, setActiveTab] = useState<TabId>(hasBgPomodoro ? 'timer' : 'missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
   const navigate = useNavigate();
+
+  // Ensure today's dungeon exists
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  useEffect(() => { ensureTodayDungeon(today); }, [today, ensureTodayDungeon]);
+
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));
   const isVisible = (id: TabId) => !disabledTabs.includes(id);
   const visibleGroups = TAB_GROUPS
@@ -51,6 +63,10 @@ export default function Index() {
       case 'trataka': return <TratakaPanel />;
       case 'mentor': return <MentorChatPanel />;
       case 'cbt': return <CbtImmersionPanel />;
+      case 'attributes': return <AttributesPanel />;
+      case 'dungeon': return <DungeonPanel />;
+      case 'bosses': return <BossPanel />;
+      case 'inventory': return <InventoryPanel />;
       case 'rewards': return <RewardsShop />;
     }
   };
@@ -189,6 +205,11 @@ export default function Index() {
 
         {/* Achievement unlock overlay */}
         <AchievementUnlockOverlay achievement={newlyUnlocked} onDismiss={dismissAchievement} />
+
+        {/* Life RPG overlays */}
+        <LevelUpOverlay />
+        <RedemptionQuestDialog />
+        <ClassSelectionDialog open={!!state.pendingClassChoice && !state.chosenClass} onClose={dismissClassChoice} />
 
         {/* EVOLUX — Identity onboarding (first run) */}
         <IdentityOnboarding open={identityOpen} onClose={() => setIdentityOpen(false)} />
