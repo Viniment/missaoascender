@@ -2183,8 +2183,6 @@ export function useGameStore() {
     deleteTratakaSession,
     createCbtSession,
     appendCbtMessage,
-    createCbtSession,
-    appendCbtMessage,
     updateCbtSession,
     deleteCbtSession,
     // Life RPG
