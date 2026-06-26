@@ -1874,6 +1874,10 @@ export function useGameStore() {
     }));
   }, []);
 
+  const dismissClassChoice = useCallback(() => {
+    setState(prev => ({ ...prev, pendingClassChoice: false }));
+  }, []);
+
   // Trigger pending class choice when reaching level 5+ and no class yet
   useEffect(() => {
     if (!state.chosenClass && state.level >= 5 && state.rank !== 'E' && !state.pendingClassChoice) {
