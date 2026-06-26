@@ -322,6 +322,8 @@ export interface PlayerState {
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
   tratakaSessions?: TratakaSession[];
+  // === Despertar TCC (imersão diária de Terapia Cognitivo-Comportamental) ===
+  cbtSessions?: CbtSession[];
 }
 
 export type TratakaPoint = 'vela' | 'ponto-branco' | 'ponto-dourado' | 'zen';
@@ -350,6 +352,46 @@ export interface MentorConversation {
   createdAt: string;
   updatedAt: string;
   messages: MentorMessage[];
+}
+
+export type CbtDistortion =
+  | 'tudo-ou-nada' | 'catastrofizacao' | 'generalizacao' | 'leitura-mental'
+  | 'adivinhacao' | 'raciocinio-emocional' | 'rotulacao' | 'personalizacao'
+  | 'desqualificacao-positivo' | 'deverias';
+
+export type CbtStage =
+  | 'check-in' | 'situacao' | 'pensamentos' | 'crencas' | 'distorcoes'
+  | 'socratico' | 'reframe' | 'experimento' | 'valores' | 'identidade' | 'concluida';
+
+export interface CbtMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  stage?: CbtStage;
+  createdAt: string;
+}
+
+export interface CbtSessionSummary {
+  emotions?: string[];
+  situation?: string;
+  automaticThoughts?: string[];
+  coreBeliefs?: string[];
+  distortions?: CbtDistortion[];
+  reframe?: string;
+  experiment?: string;
+  values?: string[];
+  identityTrained?: string;
+}
+
+export interface CbtSession {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  stage: CbtStage;
+  title: string;
+  messages: CbtMessage[];
+  summary?: CbtSessionSummary;
 }
 
 export type AwakeningIntensity = 'leve' | 'moderado' | 'intenso';
@@ -516,6 +558,7 @@ export const defaultState: PlayerState = {
   innerEnemy: defaultInnerEnemy,
   mentorConversations: [],
   tratakaSessions: [],
+  cbtSessions: [],
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
