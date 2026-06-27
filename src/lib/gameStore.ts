@@ -2699,6 +2699,7 @@ export function useGameStore() {
 
     completeBossTask,
     uncompleteBossTask,
+    failBossTask,
     addBossTask,
     editBossTask,
     removeBossTask,
