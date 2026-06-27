@@ -417,7 +417,7 @@ export interface BossBattle {
   mainColor?: string;
   hpBarColor?: string;
   reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
-  pendingMockery?: { hpRegained: number; missedDays: number; at: string; reason?: 'missed_day' | 'self_betrayal'; taskTitle?: string };
+  pendingMockery?: { hpRegained: number; missedDays: number; at: string; reason?: 'missed_day' | 'self_betrayal'; taskTitle?: string; xpLost?: number; goldLost?: number };
   mockeryHistory?: { date: string; message: string; missedDays: number }[];
 }
 
