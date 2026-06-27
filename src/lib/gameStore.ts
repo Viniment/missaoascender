@@ -827,6 +827,28 @@ const GOLD_PER_HOUR: Record<MissionDifficulty, number> = {
   'Difícil': 3,
 };
 
+// === Recompensa por tarefa de Boss (mesma régua das missões, com Brutal) ===
+const BOSS_XP_BY_DIFF: Record<'Fácil' | 'Normal' | 'Difícil' | 'Brutal', number> = {
+  'Fácil': 3, 'Normal': 5, 'Difícil': 8, 'Brutal': 12,
+};
+const BOSS_GOLD_BY_DIFF: Record<'Fácil' | 'Normal' | 'Difícil' | 'Brutal', number> = {
+  'Fácil': 1, 'Normal': 2, 'Difícil': 3, 'Brutal': 5,
+};
+
+export function computeBossTaskReward(
+  difficulty: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal' | undefined,
+  combo: number,
+  allDoneAfter: boolean,
+) {
+  const diff = difficulty || 'Normal';
+  const dmg = combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+  const baseXp = BOSS_XP_BY_DIFF[diff];
+  const baseGold = BOSS_GOLD_BY_DIFF[diff];
+  const xp = baseXp * dmg + (allDoneAfter ? baseXp * 2 : 0);
+  const gold = baseGold * dmg + (allDoneAfter ? baseGold : 0);
+  return { dmg, xp, gold, baseXp, baseGold };
+}
+
 export function useGameStore() {
   const [state, setState] = useState<PlayerState>(loadState);
 
