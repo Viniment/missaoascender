@@ -396,13 +396,14 @@ function StrikeOverlay({
 
 // ====== Boss Card ======
 function BossCard({
-  boss, today, hitFx, onComplete, onUncomplete, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
+  boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
 }: {
   boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
   today: string;
   hitFx: Record<string, number>;
   onComplete: (taskId: string, combo: number) => void;
   onUncomplete: (taskId: string) => void;
+  onFail: (taskId: string) => void;
   onAddTask: (title: string) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
