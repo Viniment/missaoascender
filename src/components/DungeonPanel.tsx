@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
-import { Swords, CheckCircle2, Clock, Sparkles, RefreshCw } from 'lucide-react';
+import { Swords, CheckCircle2, Clock, Sparkles, RefreshCw, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RARITY_STYLES } from '@/lib/loot';
@@ -9,8 +9,9 @@ import { getTodayBrasilia } from '@/lib/utils';
 import { rollDungeonChallenges } from '@/lib/dungeon';
 
 export default function DungeonPanel() {
-  const { state, completeDungeonChallenge, regenerateDungeon, ensureTodayDungeon } = useGame();
+  const { state, completeDungeonChallenge, regenerateDungeon, regenerateDungeonChallenge, ensureTodayDungeon } = useGame();
   const today = getTodayBrasilia();
+
 
   useEffect(() => {
     ensureTodayDungeon(today);
@@ -34,12 +35,13 @@ export default function DungeonPanel() {
             <Swords className="w-5 h-5 text-primary" />
             <div>
               <h2 className="font-display text-lg tracking-wider text-primary">DUNGEON DO DIA</h2>
-              <p className="text-xs text-foreground/60">3 desafios. Curtos. Reais. Loot ao final.</p>
+              <p className="text-xs text-foreground/60">Mini-hábitos do dia que complementam seus objetivos.</p>
             </div>
-            <Button size="sm" variant="ghost" className="ml-auto text-xs" onClick={() => regenerateDungeon(today)}>
-              <RefreshCw className="w-3 h-3 mr-1" /> Refazer
+            <Button size="sm" variant="ghost" className="ml-auto text-xs" onClick={() => regenerateDungeon(today)} title="Sortear novos desafios">
+              <RefreshCw className="w-3 h-3 mr-1" /> Refazer tudo
             </Button>
           </div>
+
 
           <div className="space-y-2">
             {dungeon.challenges.map((c, i) => {
@@ -74,7 +76,17 @@ export default function DungeonPanel() {
                       <span className={attr.color}>+{c.xp} XP {attr.label}</span>
                     </div>
                   </div>
+                  {!c.done && (
+                    <button
+                      onClick={() => regenerateDungeonChallenge(today, c.id)}
+                      className="self-start text-foreground/40 hover:text-primary transition-colors p-1"
+                      title="Trocar este desafio"
+                    >
+                      <Shuffle className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </motion.div>
+
               );
             })}
           </div>

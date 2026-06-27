@@ -339,6 +339,20 @@ export interface PlayerState {
   redemptionQuests?: RedemptionQuest[];
 }
 
+export interface BossTask {
+  id: string;
+  title: string;
+  doneDates: string[]; // YYYY-MM-DD
+}
+
+export interface DefeatedBossSummary {
+  daysTaken: number;
+  totalTasksDone: number;
+  xp: number;
+  gold: number;
+  bestCombo: number;
+}
+
 export interface BossBattle {
   id: string;
   name: string;
@@ -349,7 +363,16 @@ export interface BossBattle {
   maxHp: number;
   createdAt: string;
   defeatedAt?: string;
+  // === NEW (sistema de batalha) ===
+  days?: number;             // duração planejada
+  tasksPerDay?: number;      // qtd de tarefas/dia
+  tasks?: BossTask[];        // tarefas personalizadas
+  combo?: number;            // combo atual de consistência
+  bestCombo?: number;
+  lastSettledDate?: string;  // último dia processado (regen/combo)
+  defeatStats?: DefeatedBossSummary;
 }
+
 
 export interface DungeonChallengeState {
   id: string;
@@ -1889,35 +1912,194 @@ export function useGameStore() {
     }
   }, [state.level, state.rank, state.chosenClass, state.pendingClassChoice]);
 
-  // Bosses
-  const addBoss = useCallback((b: Omit<BossBattle, 'id' | 'createdAt'>) => {
+  // ===== BOSS BATTLES (sistema completo) =====
+  // Dano por tarefa baseado no combo: 0=1, 5=2, 10=3, 20=4 (cap 4)
+  const damageFromCombo = (combo: number) => {
+    if (combo >= 20) return 4;
+    if (combo >= 10) return 3;
+    if (combo >= 5) return 2;
+    return 1;
+  };
+  // Regen do boss baseado no % de tarefas feitas no dia
+  const regenFromPct = (pct: number) => {
+    if (pct >= 1) return 0;
+    if (pct >= 0.75) return 1;
+    if (pct >= 0.5) return 2;
+    if (pct >= 0.25) return 3;
+    return 4;
+  };
+
+  // Cria boss com tarefas. HP = days * tasks.length
+  const addBoss = useCallback((b: {
+    name: string; emoji: string; description: string; weakness?: string;
+    days: number; tasks: { title: string }[];
+  }) => {
+    setState(prev => {
+      const tasks: BossTask[] = b.tasks
+        .filter(t => t.title.trim())
+        .map(t => ({ id: crypto.randomUUID(), title: t.title.trim(), doneDates: [] }));
+      const maxHp = Math.max(1, b.days * tasks.length);
+      const today = getTodayBrasilia();
+      const boss: BossBattle = {
+        id: crypto.randomUUID(),
+        name: b.name, emoji: b.emoji, description: b.description, weakness: b.weakness,
+        hp: maxHp, maxHp,
+        createdAt: new Date().toISOString(),
+        days: b.days, tasksPerDay: tasks.length, tasks,
+        combo: 0, bestCombo: 0,
+        lastSettledDate: today,
+      };
+      return { ...prev, bosses: [...(prev.bosses || []), boss] };
+    });
+  }, []);
+
+  // Concluir tarefa do dia. Damage = damageFromCombo(combo).
+  // Se todas as tarefas do dia ficarem completas, combo +1.
+  const completeBossTask = useCallback((bossId: string, taskId: string, date?: string) => {
+    setState(prev => {
+      const dateISO = date || getTodayBrasilia();
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (boss.defeatedAt || !boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task || task.doneDates.includes(dateISO)) return prev;
+
+      const combo = boss.combo || 0;
+      const dmg = damageFromCombo(combo);
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? { ...t, doneDates: [...t.doneDates, dateISO] } : t);
+      const allDoneToday = newTasks.every(t => t.doneDates.includes(dateISO));
+      const newCombo = allDoneToday ? combo + 1 : combo;
+      const newHp = Math.max(0, boss.hp - dmg);
+      const updated: BossBattle = {
+        ...boss,
+        tasks: newTasks,
+        hp: newHp,
+        combo: newCombo,
+        bestCombo: Math.max(boss.bestCombo || 0, newCombo),
+      };
+      const newBosses = [...bosses];
+      newBosses[idx] = updated;
+      return {
+        ...prev,
+        bosses: newBosses,
+        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: -${dmg} HP (${task.title})`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // Desfazer marca da tarefa (corrige clique errado) — devolve HP equivalente
+  const uncompleteBossTask = useCallback((bossId: string, taskId: string, date?: string) => {
+    setState(prev => {
+      const dateISO = date || getTodayBrasilia();
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (!boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task || !task.doneDates.includes(dateISO)) return prev;
+      const wasAllDone = boss.tasks.every(t => t.doneDates.includes(dateISO));
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? { ...t, doneDates: t.doneDates.filter(d => d !== dateISO) } : t);
+      const combo = boss.combo || 0;
+      const newCombo = wasAllDone && combo > 0 ? combo - 1 : combo;
+      const refund = damageFromCombo(combo);
+      const newHp = Math.min(boss.maxHp, boss.hp + refund);
+      const newBosses = [...bosses];
+      newBosses[idx] = { ...boss, tasks: newTasks, hp: newHp, combo: newCombo };
+      return { ...prev, bosses: newBosses };
+    });
+  }, []);
+
+  // CRUD tarefas
+  const addBossTask = useCallback((bossId: string, title: string) => {
     setState(prev => ({
       ...prev,
-      bosses: [...(prev.bosses || []), { ...b, id: crypto.randomUUID(), createdAt: new Date().toISOString() }],
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: [...b.tasks, { id: crypto.randomUUID(), title, doneDates: [] }], tasksPerDay: (b.tasks.length + 1) }
+        : b),
+    }));
+  }, []);
+  const editBossTask = useCallback((bossId: string, taskId: string, title: string) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, title } : t) }
+        : b),
+    }));
+  }, []);
+  const removeBossTask = useCallback((bossId: string, taskId: string) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: b.tasks.filter(t => t.id !== taskId), tasksPerDay: Math.max(1, b.tasks.length - 1) }
+        : b),
     }));
   }, []);
 
-  const damageBoss = useCallback((id: string, dmg: number) => {
-    setState(prev => ({
-      ...prev,
-      bosses: (prev.bosses || []).map(b => b.id === id ? { ...b, hp: Math.max(0, b.hp - dmg) } : b),
-      log: [{ date: new Date().toISOString(), action: `⚔️ Golpe contra boss (−${dmg} HP)`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
-    }));
+  // Regen inteligente: roda quando o dia muda. Para cada dia entre lastSettledDate e hoje
+  // (exclusivo de hoje), aplica regen se < 100% e zera combo se < 100%.
+  const settleBossesForToday = useCallback(() => {
+    setState(prev => {
+      const today = getTodayBrasilia();
+      const bosses = prev.bosses || [];
+      let changed = false;
+      const newBosses = bosses.map(b => {
+        if (b.defeatedAt || !b.tasks || !b.lastSettledDate) return b;
+        if (b.lastSettledDate >= today) return b;
+        let hp = b.hp;
+        let combo = b.combo || 0;
+        // varrer dias do lastSettledDate (exclusivo) até ontem (inclusivo)
+        const start = new Date(b.lastSettledDate + 'T00:00:00');
+        const end = new Date(today + 'T00:00:00');
+        const cursor = new Date(start);
+        cursor.setDate(cursor.getDate() + 1);
+        while (cursor < end) {
+          const d = cursor.toISOString().slice(0, 10);
+          const totalTasks = b.tasks.length;
+          const doneCount = b.tasks.filter(t => t.doneDates.includes(d)).length;
+          const pct = totalTasks ? doneCount / totalTasks : 0;
+          if (pct < 1) {
+            hp = Math.min(b.maxHp, hp + regenFromPct(pct));
+            combo = 0;
+          } else {
+            combo += 1;
+          }
+          cursor.setDate(cursor.getDate() + 1);
+        }
+        changed = true;
+        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today };
+      });
+      return changed ? { ...prev, bosses: newBosses } : prev;
+    });
   }, []);
 
   const defeatBoss = useCallback((id: string) => {
     setState(prev => {
       const boss = (prev.bosses || []).find(b => b.id === id);
       if (!boss) return prev;
-      const xp = 200;
-      const gold = 50;
+      const days = boss.days || 0;
+      const totalTasksDone = (boss.tasks || []).reduce((s, t) => s + t.doneDates.length, 0);
+      const xp = Math.max(200, totalTasksDone * 10);
+      const gold = Math.max(50, totalTasksDone * 3);
+      const bestCombo = boss.bestCombo || 0;
+      const daysTaken = boss.createdAt
+        ? Math.max(1, Math.ceil((Date.now() - new Date(boss.createdAt).getTime()) / 86400000))
+        : days;
       const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
-      const loot = rollLoot(40); // boss = drop quase garantido
+      const loot = rollLoot(40);
       return {
         ...prev,
         ...prog,
         gold: prev.gold + gold,
-        bosses: (prev.bosses || []).map(b => b.id === id ? { ...b, defeatedAt: new Date().toISOString() } : b),
+        bosses: (prev.bosses || []).map(b => b.id === id ? {
+          ...b,
+          defeatedAt: new Date().toISOString(),
+          defeatStats: { daysTaken, totalTasksDone, xp, gold, bestCombo },
+        } : b),
         inventory: loot ? [...(prev.inventory || []), loot] : (prev.inventory || []),
         log: [{ date: new Date().toISOString(), action: `🏆 Boss derrotado: ${boss.name}`, xp, gold }, ...prev.log].slice(0, 100),
       };
@@ -1927,6 +2109,16 @@ export function useGameStore() {
   const removeBoss = useCallback((id: string) => {
     setState(prev => ({ ...prev, bosses: (prev.bosses || []).filter(b => b.id !== id) }));
   }, []);
+
+  // Legacy compat — alguns lugares antigos chamam damageBoss(id, dmg)
+  const damageBoss = useCallback((id: string, dmg: number) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === id ? { ...b, hp: Math.max(0, b.hp - dmg) } : b),
+    }));
+  }, []);
+
+
 
   // Dungeon
   const ensureTodayDungeon = useCallback((date: string) => {
@@ -1947,6 +2139,34 @@ export function useGameStore() {
       };
     });
   }, []);
+
+  // Trocar UM desafio específico da dungeon (se o usuário não curtiu)
+  const regenerateDungeonChallenge = useCallback((date: string, challengeId: string) => {
+    setState(prev => {
+      const dungeons = prev.dungeons || [];
+      const idx = dungeons.findIndex(d => d.date === date);
+      if (idx === -1) return prev;
+      const dungeon = dungeons[idx];
+      const target = dungeon.challenges.find(c => c.id === challengeId);
+      if (!target || target.done) return prev;
+      const existingTitles = new Set(dungeon.challenges.map(c => c.title));
+      // gerar pool de candidatos diferente
+      let attempt = 0;
+      let pick = null as null | (typeof dungeon.challenges)[number];
+      while (attempt < 10 && !pick) {
+        const fresh = rollDungeonChallenges(date + '-swap-' + challengeId + '-' + Math.random());
+        const candidate = fresh.find(c => !existingTitles.has(c.title));
+        if (candidate) pick = { ...candidate, id: crypto.randomUUID() } as any;
+        attempt++;
+      }
+      if (!pick) return prev;
+      const newChallenges = dungeon.challenges.map(c => c.id === challengeId ? pick! : c);
+      const newDungeons = [...dungeons];
+      newDungeons[idx] = { ...dungeon, challenges: newChallenges };
+      return { ...prev, dungeons: newDungeons };
+    });
+  }, []);
+
 
   const completeDungeonChallenge = useCallback((date: string, challengeId: string) => {
     setState(prev => {
@@ -2197,9 +2417,17 @@ export function useGameStore() {
     damageBoss,
     defeatBoss,
     removeBoss,
+    completeBossTask,
+    uncompleteBossTask,
+    addBossTask,
+    editBossTask,
+    removeBossTask,
+    settleBossesForToday,
     ensureTodayDungeon,
     regenerateDungeon,
+    regenerateDungeonChallenge,
     completeDungeonChallenge,
+
     removeInventoryItem,
     useInventoryItem,
     createRedemption,

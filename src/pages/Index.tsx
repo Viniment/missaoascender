@@ -17,6 +17,8 @@ import TratakaPanel from '@/components/TratakaPanel';
 import AttributesPanel from '@/components/AttributesPanel';
 import DungeonPanel from '@/components/DungeonPanel';
 import BossPanel from '@/components/BossPanel';
+import CurrentBossCard from '@/components/CurrentBossCard';
+
 import InventoryPanel from '@/components/InventoryPanel';
 import LevelUpOverlay from '@/components/LevelUpOverlay';
 import RedemptionQuestDialog from '@/components/RedemptionQuestDialog';
@@ -178,6 +180,8 @@ export default function Index() {
               {/* Left - Player */}
               <div className="xl:col-span-4 2xl:col-span-3 space-y-5 order-1">
                 <PlayerCard />
+                <CurrentBossCard onOpenBosses={() => setActiveTab('bosses')} />
+
                 <div className="hidden xl:block">
                   <SystemPanel />
                 </div>
