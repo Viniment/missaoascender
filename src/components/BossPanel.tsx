@@ -42,7 +42,7 @@ export default function BossPanel() {
   const {
     state, addBoss, completeBossTask, uncompleteBossTask,
     addBossTask, editBossTask, removeBossTask, settleBossesForToday,
-    defeatBoss, removeBoss,
+    defeatBoss, removeBoss, recordBossReinforcement,
   } = useGame();
   const bosses = state.bosses || [];
   const active = bosses.filter(b => !b.defeatedAt);
@@ -50,17 +50,63 @@ export default function BossPanel() {
   const today = getTodayBrasilia();
   const [open, setOpen] = useState(false);
   const [hitFx, setHitFx] = useState<Record<string, number>>({});
+  const [lastAngle, setLastAngle] = useState<string>('');
 
   useEffect(() => { settleBossesForToday(); }, [settleBossesForToday]);
 
   const damageFor = (combo: number) => combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
 
-  const onComplete = (bossId: string, taskId: string, combo: number) => {
-    completeBossTask(bossId, taskId);
+  const askReinforcement = async (boss: typeof bosses[number], taskTitle: string) => {
+    try {
+      const areas = (state.lifeAreas || []).filter(a => (boss.affectedAreaIds || []).includes(a.id));
+      const totalDone = (boss.tasks || []).reduce((s, t) => s + t.doneDates.length, 0);
+      const ctx = {
+        ultimoAngulo: lastAngle || null,
+        tarefaConcluida: taskTitle,
+        boss: {
+          nome: boss.name, emoji: boss.emoji, hpAtual: boss.hp, hpMax: boss.maxHp,
+          combo: boss.combo, melhorCombo: boss.bestCombo, dias: boss.days,
+          comoAfeta: boss.howItAffectsMe, porQueDerrotar: boss.whyDefeat,
+          areasAfetadas: areas.map(a => `${a.icon} ${a.name} (nível ${a.level})`),
+          frasesPersonalizadas: boss.customPhrases || [],
+        },
+        player: {
+          nivel: state.level, rank: state.rank, streak: state.streak,
+          alterEgo: state.alterEgo ? { nome: state.alterEgo.name, virtudes: state.alterEgo.virtues, notas: state.alterEgo.notes } : null,
+          totalHabitos: (state.habits || []).length,
+          tarefasConcluidasNesteBoss: totalDone + 1,
+        },
+      };
+      const { data, error } = await supabase.functions.invoke('attack-reinforcement', { body: { context: ctx } });
+      if (error || !data?.message) return;
+      const msg: string = data.message;
+      setLastAngle(msg.slice(0, 80));
+      recordBossReinforcement(boss.id, msg, taskTitle);
+      toast.custom(() => (
+        <div className="rpg-panel max-w-sm border-primary/50">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="font-display text-xs tracking-wider text-primary">VOZ DO ALTER EGO</span>
+          </div>
+          <div className="text-sm text-foreground leading-relaxed">
+            <ReactMarkdown>{msg}</ReactMarkdown>
+          </div>
+        </div>
+      ), { duration: 7000 });
+    } catch (e) {
+      console.error('reinforcement error', e);
+    }
+  };
+
+  const onComplete = (boss: typeof bosses[number], taskId: string, combo: number) => {
+    const task = (boss.tasks || []).find(t => t.id === taskId);
+    completeBossTask(boss.id, taskId);
     setHitFx(s => ({ ...s, [taskId]: damageFor(combo) }));
     if ('vibrate' in navigator) navigator.vibrate?.(40);
     setTimeout(() => setHitFx(s => { const n = { ...s }; delete n[taskId]; return n; }), 900);
+    if (task) askReinforcement(boss, task.title);
   };
+
 
   return (
     <div className="space-y-5">
