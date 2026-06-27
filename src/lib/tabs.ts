@@ -29,7 +29,6 @@ export const TAB_GROUPS: TabGroup[] = [
     label: 'RPG',
     tabs: [
       { id: 'areas', label: 'Áreas', icon: Heart, description: 'Áreas de vida + atributos que evoluem ao agir' },
-      { id: 'dungeon', label: 'Dungeon', icon: Swords, description: '3 desafios do dia + loot' },
       { id: 'bosses', label: 'Bosses', icon: Skull, description: 'Padrões reais para derrotar' },
       { id: 'inventory', label: 'Inventário', icon: Backpack, description: 'Itens, buffs ativos' },
 
