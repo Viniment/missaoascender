@@ -241,12 +241,12 @@ export interface InnerEnemy {
 }
 
 export const defaultAlterEgo: AlterEgo = {
-  name: 'Evolux',
+  name: '',
   idealAge: null,
   appearance: '',
   values: [],
   lifeMission: '',
-  identityPhrase: 'Sou alguém que honra a própria palavra.',
+  identityPhrase: '',
   habits: [],
   goals: [],
   favoritePhrases: [],
