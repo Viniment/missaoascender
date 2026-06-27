@@ -688,6 +688,8 @@ export const defaultState: PlayerState = {
   inventory: [],
   activeBuffs: [],
   redemptionQuests: [],
+  lifeAreas: buildDefaultLifeAreas(),
+
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
