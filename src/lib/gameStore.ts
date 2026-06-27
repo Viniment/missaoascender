@@ -2155,6 +2155,24 @@ export function useGameStore() {
         : days;
       const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       const loot = rollLoot(40);
+
+      // === Distribuir XP entre as áreas afetadas ===
+      const areas = prev.lifeAreas || buildDefaultLifeAreas();
+      const affected = (boss.affectedAreaIds || []).filter(aid => areas.some(a => a.id === aid));
+      const areaXpPer = affected.length ? Math.max(40, Math.floor(xp / affected.length / 2)) : 0;
+      const newAreas = areas.map(a => {
+        if (!affected.includes(a.id)) return a;
+        let lvl = a.level;
+        let curXp = a.xp + areaXpPer;
+        let toNext = a.xpToNext;
+        while (curXp >= toNext) {
+          curXp -= toNext;
+          lvl += 1;
+          toNext = Math.floor(toNext * 1.25);
+        }
+        return { ...a, level: lvl, xp: curXp, xpToNext: toNext };
+      });
+
       return {
         ...prev,
         ...prog,
@@ -2165,6 +2183,7 @@ export function useGameStore() {
           defeatStats: { daysTaken, totalTasksDone, xp, gold, bestCombo },
         } : b),
         inventory: loot ? [...(prev.inventory || []), loot] : (prev.inventory || []),
+        lifeAreas: newAreas,
         log: [{ date: new Date().toISOString(), action: `🏆 Boss derrotado: ${boss.name}`, xp, gold }, ...prev.log].slice(0, 100),
       };
     });
@@ -2181,6 +2200,49 @@ export function useGameStore() {
       bosses: (prev.bosses || []).map(b => b.id === id ? { ...b, hp: Math.max(0, b.hp - dmg) } : b),
     }));
   }, []);
+
+  // === Áreas de Vida — CRUD ===
+  const addLifeArea = useCallback((a: { name: string; icon: string; color: string }) => {
+    setState(prev => ({
+      ...prev,
+      lifeAreas: [...(prev.lifeAreas || []), {
+        id: crypto.randomUUID(),
+        name: a.name, icon: a.icon, color: a.color,
+        level: 1, xp: 0, xpToNext: 100,
+      }],
+    }));
+  }, []);
+  const updateLifeArea = useCallback((id: string, patch: Partial<LifeArea>) => {
+    setState(prev => ({
+      ...prev,
+      lifeAreas: (prev.lifeAreas || []).map(a => a.id === id ? { ...a, ...patch } : a),
+    }));
+  }, []);
+  const removeLifeArea = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      lifeAreas: (prev.lifeAreas || []).filter(a => a.id !== id),
+      bosses: (prev.bosses || []).map(b => ({
+        ...b,
+        affectedAreaIds: (b.affectedAreaIds || []).filter(x => x !== id),
+      })),
+    }));
+  }, []);
+
+  // === Reforço pós-ataque ===
+  const recordBossReinforcement = useCallback((bossId: string, message: string, taskTitle?: string) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId ? {
+        ...b,
+        reinforcementHistory: [
+          { date: new Date().toISOString(), message, taskTitle },
+          ...(b.reinforcementHistory || []),
+        ].slice(0, 50),
+      } : b),
+    }));
+  }, []);
+
 
 
 
