@@ -5,3 +5,7 @@ verify_jwt = false
 
 [functions.cbt-immersion]
 verify_jwt = false
+
+[functions.boss-coach]
+verify_jwt = false
+
