@@ -2227,6 +2227,13 @@ export function useGameStore() {
       const newTasks = boss.tasks.map(t => t.id === taskId
         ? { ...t, doneDates: wasDone ? t.doneDates.filter(d => d !== dateISO) : t.doneDates }
         : t);
+      // === Punição: perde XP/Ouro equivalente ao que ganharia ao completar ===
+      const lossReward = computeBossTaskReward(boss.difficulty, combo, false);
+      const xpLost = lossReward.xp;
+      const goldLost = lossReward.gold;
+      const newXp = Math.max(0, prev.xp - xpLost);
+      const newGold = Math.max(0, prev.gold - goldLost);
+      const prog = processLevelUp(newXp, prev.level, prev.rank, prev.difficultyDivisor || 1);
       const updated: BossBattle = {
         ...boss,
         tasks: newTasks,
@@ -2238,14 +2245,18 @@ export function useGameStore() {
           at: new Date().toISOString(),
           reason: 'self_betrayal',
           taskTitle: task.title,
+          xpLost,
+          goldLost,
         },
       };
       const newBosses = [...bosses];
       newBosses[idx] = updated;
       return {
         ...prev,
+        ...prog,
+        gold: newGold,
         bosses: newBosses,
-        log: [{ date: new Date().toISOString(), action: `💀 ${boss.name} ri: "${task.title}" — autotraição`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+        log: [{ date: new Date().toISOString(), action: `💀 ${boss.name} ri: "${task.title}" — autotraição`, xp: -xpLost, gold: -goldLost }, ...prev.log].slice(0, 100),
       };
     });
   }, []);
