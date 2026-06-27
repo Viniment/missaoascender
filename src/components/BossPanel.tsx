@@ -11,6 +11,7 @@ import BossCoachChat from '@/components/BossCoachChat';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import { computeBossTaskReward } from '@/lib/gameStore';
 
 
 
@@ -159,11 +160,9 @@ export default function BossPanel() {
 
   const onComplete = (boss: typeof bosses[number], taskId: string, combo: number) => {
     const task = (boss.tasks || []).find(t => t.id === taskId);
-    const dmg = damageFor(combo);
     const allDoneAfter = (boss.tasks || []).every(t =>
       t.id === taskId ? true : t.doneDates.includes(today));
-    const xp = dmg * 5 + (allDoneAfter ? 10 : 0);
-    const gold = dmg * 2 + (allDoneAfter ? 5 : 0);
+    const { dmg, xp, gold } = computeBossTaskReward(boss.difficulty, combo, allDoneAfter);
     const newHp = Math.max(0, boss.hp - dmg);
     const newCombo = allDoneAfter ? combo + 1 : combo;
     completeBossTask(boss.id, taskId);
