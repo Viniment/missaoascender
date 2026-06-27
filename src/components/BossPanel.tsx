@@ -53,6 +53,10 @@ export default function BossPanel() {
   const [hitFx, setHitFx] = useState<Record<string, number>>({});
   const [lastAngle, setLastAngle] = useState<string>('');
   const [mockeryShown, setMockeryShown] = useState<Record<string, string>>({});
+  const [strike, setStrike] = useState<null | {
+    bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number;
+    combo: number; hp: number; maxHp: number; message: string;
+  }>(null);
 
   useEffect(() => { settleBossesForToday(); }, [settleBossesForToday]);
 
@@ -111,7 +115,11 @@ export default function BossPanel() {
 
   const damageFor = (combo: number) => combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
 
-  const askReinforcement = async (boss: typeof bosses[number], taskTitle: string) => {
+  const askReinforcement = async (
+    boss: typeof bosses[number],
+    taskTitle: string,
+    reward: { dmg: number; xp: number; gold: number; hp: number; combo: number },
+  ) => {
     try {
       const areas = (state.lifeAreas || []).filter(a => (boss.affectedAreaIds || []).includes(a.id));
       const totalDone = (boss.tasks || []).reduce((s, t) => s + t.doneDates.length, 0);
@@ -133,49 +141,17 @@ export default function BossPanel() {
         },
       };
       const { data, error } = await supabase.functions.invoke('attack-reinforcement', { body: { context: ctx } });
-      if (error || !data?.message) return;
-      const msg: string = data.message;
+      const msg: string = (!error && data?.message)
+        ? data.message
+        : `Mais um passo. Você está deixando de ser quem reclamava — e virando quem age.`;
       setLastAngle(msg.slice(0, 80));
       recordBossReinforcement(boss.id, msg, taskTitle);
-      const dmgNow = damageFor(boss.combo || 0);
-      toast.custom(() => (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, y: -12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: -8 }}
-          transition={{ type: 'spring', stiffness: 280, damping: 22 }}
-          className="relative w-[min(92vw,440px)] mx-auto text-center rounded-xl border border-primary/60 bg-gradient-to-br from-primary/15 via-background to-gold/10 px-5 py-4 shadow-[0_0_40px_-10px_hsl(var(--primary))] overflow-hidden"
-        >
-          <motion.div
-            aria-hidden
-            initial={{ opacity: 0.6, scale: 0.4 }}
-            animate={{ opacity: 0, scale: 1.6 }}
-            transition={{ duration: 1.1, ease: 'easeOut' }}
-            className="absolute inset-0 rounded-xl bg-primary/20 blur-2xl pointer-events-none"
-          />
-          <div className="relative">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="font-display text-[11px] tracking-[0.25em] text-primary">VOZ DO ALTER EGO</span>
-              <Sparkles className="w-4 h-4 text-primary" />
-            </div>
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: [0.6, 1.25, 1], opacity: 1 }}
-              transition={{ duration: 0.55 }}
-              className="font-display text-2xl text-gold drop-shadow-[0_0_10px_hsl(var(--gold))] mb-1"
-            >
-              −{dmgNow} HP em {boss.name}
-            </motion.div>
-            <div className="text-[13px] text-foreground/95 leading-relaxed italic">
-              <ReactMarkdown>{msg}</ReactMarkdown>
-            </div>
-            <p className="mt-2 text-[10px] tracking-widest text-primary/70 uppercase">
-              Combo {boss.combo} · Você está se tornando quem decidiu ser
-            </p>
-          </div>
-        </motion.div>
-      ), { duration: 7000, position: 'top-center' });
+      setStrike({
+        bossName: boss.name, bossEmoji: boss.emoji,
+        dmg: reward.dmg, xp: reward.xp, gold: reward.gold,
+        combo: reward.combo, hp: reward.hp, maxHp: boss.maxHp,
+        message: msg,
+      });
     } catch (e) {
       console.error('reinforcement error', e);
     }
@@ -183,11 +159,18 @@ export default function BossPanel() {
 
   const onComplete = (boss: typeof bosses[number], taskId: string, combo: number) => {
     const task = (boss.tasks || []).find(t => t.id === taskId);
+    const dmg = damageFor(combo);
+    const allDoneAfter = (boss.tasks || []).every(t =>
+      t.id === taskId ? true : t.doneDates.includes(today));
+    const xp = dmg * 5 + (allDoneAfter ? 10 : 0);
+    const gold = dmg * 2 + (allDoneAfter ? 5 : 0);
+    const newHp = Math.max(0, boss.hp - dmg);
+    const newCombo = allDoneAfter ? combo + 1 : combo;
     completeBossTask(boss.id, taskId);
-    setHitFx(s => ({ ...s, [taskId]: damageFor(combo) }));
-    if ('vibrate' in navigator) navigator.vibrate?.(40);
+    setHitFx(s => ({ ...s, [taskId]: dmg }));
+    if ('vibrate' in navigator) navigator.vibrate?.([30, 20, 50]);
     setTimeout(() => setHitFx(s => { const n = { ...s }; delete n[taskId]; return n; }), 900);
-    if (task) askReinforcement(boss, task.title);
+    if (task) askReinforcement(boss, task.title, { dmg, xp, gold, hp: newHp, combo: newCombo });
   };
 
 
@@ -286,7 +269,118 @@ export default function BossPanel() {
           setEditingId(null);
         }}
       />
+
+      <StrikeOverlay strike={strike} onClose={() => setStrike(null)} />
     </div>
+  );
+}
+
+// ====== Centered Strike Overlay (centro da tela) ======
+function StrikeOverlay({
+  strike, onClose,
+}: {
+  strike: null | { bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number; combo: number; hp: number; maxHp: number; message: string };
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!strike) return;
+    const t = setTimeout(onClose, 5200);
+    return () => clearTimeout(t);
+  }, [strike, onClose]);
+
+  return (
+    <AnimatePresence>
+      {strike && (
+        <motion.div
+          key="strike"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          onClick={onClose}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/70 backdrop-blur-sm px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-[min(94vw,520px)] text-center rounded-2xl border border-primary/60 bg-gradient-to-br from-primary/15 via-background to-gold/10 px-6 py-6 shadow-[0_0_60px_-10px_hsl(var(--primary))] overflow-hidden"
+          >
+            <motion.div
+              aria-hidden
+              initial={{ opacity: 0.7, scale: 0.4 }}
+              animate={{ opacity: 0, scale: 1.8 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              className="absolute inset-0 rounded-2xl bg-primary/25 blur-3xl pointer-events-none"
+            />
+
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="font-display text-[11px] tracking-[0.3em] text-primary">ATAQUE CERTEIRO</span>
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+
+              <motion.div
+                initial={{ scale: 0.4, rotate: -8, opacity: 0 }}
+                animate={{ scale: [0.4, 1.3, 1], rotate: [-8, 6, 0], opacity: 1 }}
+                transition={{ duration: 0.55 }}
+                className="text-5xl mb-2"
+              >
+                {strike.bossEmoji}
+              </motion.div>
+              <div className="font-display text-base text-red-300 mb-3">
+                em <span className="text-red-200">{strike.bossName}</span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <motion.div
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+                  className="rounded-lg border border-red-500/40 bg-red-500/10 py-2"
+                >
+                  <div className="text-[10px] tracking-widest text-red-300/80">HP</div>
+                  <div className="font-display text-xl text-red-200">−{strike.dmg}</div>
+                </motion.div>
+                <motion.div
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.18 }}
+                  className="rounded-lg border border-primary/40 bg-primary/10 py-2"
+                >
+                  <div className="text-[10px] tracking-widest text-primary/80">XP</div>
+                  <div className="font-display text-xl text-primary">+{strike.xp}</div>
+                </motion.div>
+                <motion.div
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.26 }}
+                  className="rounded-lg border border-gold/40 bg-gold/10 py-2"
+                >
+                  <div className="text-[10px] tracking-widest text-gold/90">OURO</div>
+                  <div className="font-display text-xl text-gold">+{strike.gold}</div>
+                </motion.div>
+              </div>
+
+              <div className="text-[10px] tracking-widest text-foreground/60 mb-1">
+                COMBO {strike.combo} · HP RESTANTE {strike.hp}/{strike.maxHp}
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+                className="mt-3 pt-3 border-t border-primary/20 text-sm text-foreground/95 leading-relaxed italic"
+              >
+                <ReactMarkdown>{strike.message}</ReactMarkdown>
+              </motion.div>
+
+              <button
+                onClick={onClose}
+                className="mt-4 text-[10px] tracking-widest text-foreground/50 hover:text-foreground"
+              >
+                TOCAR PARA CONTINUAR
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
