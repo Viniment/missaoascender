@@ -402,6 +402,7 @@ function MockeryOverlay({
     hpRegained: number; hp: number; maxHp: number;
     reason: 'missed_day' | 'self_betrayal';
     missedDays: number; taskTitle?: string;
+    xpLost?: number; goldLost?: number;
     message: string;
   };
   onClose: () => void;
@@ -480,6 +481,25 @@ function MockeryOverlay({
                   <div className="font-display text-xl text-red-200">{mockery.hp}/{mockery.maxHp}</div>
                 </motion.div>
               </div>
+
+              {(mockery.xpLost || mockery.goldLost) ? (
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <motion.div
+                    initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28 }}
+                    className="rounded-lg border border-red-500/60 bg-red-500/10 py-2"
+                  >
+                    <div className="text-[10px] tracking-widest text-red-300/90">XP PERDIDO</div>
+                    <div className="font-display text-xl text-red-200">-{mockery.xpLost || 0}</div>
+                  </motion.div>
+                  <motion.div
+                    initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.34 }}
+                    className="rounded-lg border border-red-500/60 bg-red-500/10 py-2"
+                  >
+                    <div className="text-[10px] tracking-widest text-red-300/90">OURO PERDIDO</div>
+                    <div className="font-display text-xl text-red-200">-{mockery.goldLost || 0}</div>
+                  </motion.div>
+                </div>
+              ) : null}
 
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
