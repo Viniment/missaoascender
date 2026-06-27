@@ -77,20 +77,23 @@ export default function BossPanel() {
         ) : (
           <div className="space-y-4">
             {active.map(b => (
-              <BossCard
-                key={b.id}
-                boss={b}
-                today={today}
-                hitFx={hitFx}
-                onComplete={(taskId, combo) => onComplete(b.id, taskId, combo)}
-                onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
-                onAddTask={(title) => addBossTask(b.id, title)}
-                onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
-                onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
-                onDefeat={() => defeatBoss(b.id)}
-                onRemove={() => removeBoss(b.id)}
-              />
+              <div key={b.id} className="space-y-3">
+                <BossCard
+                  boss={b}
+                  today={today}
+                  hitFx={hitFx}
+                  onComplete={(taskId, combo) => onComplete(b.id, taskId, combo)}
+                  onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
+                  onAddTask={(title) => addBossTask(b.id, title)}
+                  onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
+                  onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
+                  onDefeat={() => defeatBoss(b.id)}
+                  onRemove={() => removeBoss(b.id)}
+                />
+                <BossCoachChat bossId={b.id} />
+              </div>
             ))}
+
           </div>
         )}
       </div>
