@@ -827,6 +827,28 @@ const GOLD_PER_HOUR: Record<MissionDifficulty, number> = {
   'Difícil': 3,
 };
 
+// === Recompensa por tarefa de Boss (mesma régua das missões, com Brutal) ===
+const BOSS_XP_BY_DIFF: Record<'Fácil' | 'Normal' | 'Difícil' | 'Brutal', number> = {
+  'Fácil': 3, 'Normal': 5, 'Difícil': 8, 'Brutal': 12,
+};
+const BOSS_GOLD_BY_DIFF: Record<'Fácil' | 'Normal' | 'Difícil' | 'Brutal', number> = {
+  'Fácil': 1, 'Normal': 2, 'Difícil': 3, 'Brutal': 5,
+};
+
+export function computeBossTaskReward(
+  difficulty: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal' | undefined,
+  combo: number,
+  allDoneAfter: boolean,
+) {
+  const diff = difficulty || 'Normal';
+  const dmg = combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+  const baseXp = BOSS_XP_BY_DIFF[diff];
+  const baseGold = BOSS_GOLD_BY_DIFF[diff];
+  const xp = baseXp * dmg + (allDoneAfter ? baseXp * 2 : 0);
+  const gold = baseGold * dmg + (allDoneAfter ? baseGold : 0);
+  return { dmg, xp, gold, baseXp, baseGold };
+}
+
 export function useGameStore() {
   const [state, setState] = useState<PlayerState>(loadState);
 
@@ -2033,11 +2055,12 @@ export function useGameStore() {
       if (!task || task.doneDates.includes(dateISO)) return prev;
 
       const combo = boss.combo || 0;
-      const dmg = damageFromCombo(combo);
       const newTasks = boss.tasks.map(t => t.id === taskId
         ? { ...t, doneDates: [...t.doneDates, dateISO] } : t);
       const allDoneToday = newTasks.every(t => t.doneDates.includes(dateISO));
       const newCombo = allDoneToday ? combo + 1 : combo;
+      const reward = computeBossTaskReward(boss.difficulty, combo, allDoneToday);
+      const dmg = reward.dmg;
       const newHp = Math.max(0, boss.hp - dmg);
       const updated: BossBattle = {
         ...boss,
@@ -2048,15 +2071,38 @@ export function useGameStore() {
       };
       const newBosses = [...bosses];
       newBosses[idx] = updated;
-      // Recompensa: cada tarefa de boss também funciona como missão
-      const xpGain = dmg * 5 + (allDoneToday ? 10 : 0);
-      const goldGain = dmg * 2 + (allDoneToday ? 5 : 0);
+      // === Recompensa: tarefa de boss = missão, com base na dificuldade ===
+      const xpGain = reward.xp;
+      const goldGain = reward.gold;
       const prog = processLevelUp(prev.xp + xpGain, prev.level, prev.rank, prev.difficultyDivisor || 1);
+
+      // === Evoluir áreas de vida afetadas (por mini-ação) ===
+      const areas = prev.lifeAreas || buildDefaultLifeAreas();
+      const affected = (boss.affectedAreaIds || []).filter(aid => areas.some(a => a.id === aid));
+      const perAreaXp = affected.length
+        ? Math.max(2, Math.floor(xpGain / Math.max(1, affected.length)))
+        : 0;
+      const newAreas = affected.length
+        ? areas.map(a => {
+            if (!affected.includes(a.id)) return a;
+            let lvl = a.level;
+            let curXp = a.xp + perAreaXp;
+            let toNext = a.xpToNext;
+            while (curXp >= toNext) {
+              curXp -= toNext;
+              lvl += 1;
+              toNext = Math.floor(toNext * 1.25);
+            }
+            return { ...a, level: lvl, xp: curXp, xpToNext: toNext };
+          })
+        : areas;
+
       return {
         ...prev,
         ...prog,
         gold: prev.gold + goldGain,
         bosses: newBosses,
+        lifeAreas: newAreas,
         log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: -${dmg} HP (${task.title})`, xp: xpGain, gold: goldGain }, ...prev.log].slice(0, 100),
       };
     });
