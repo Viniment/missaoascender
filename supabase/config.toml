@@ -9,3 +9,8 @@ verify_jwt = false
 [functions.boss-coach]
 verify_jwt = false
 
+[functions.attack-reinforcement]
+verify_jwt = false
+
+
+
