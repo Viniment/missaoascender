@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap } from 'lucide-react';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { getTodayBrasilia } from '@/lib/utils';
+import BossCoachChat from '@/components/BossCoachChat';
+
 
 const BOSS_TEMPLATES: Array<{
   name: string; emoji: string; desc: string; weakness?: string;
