@@ -2048,10 +2048,16 @@ export function useGameStore() {
       };
       const newBosses = [...bosses];
       newBosses[idx] = updated;
+      // Recompensa: cada tarefa de boss também funciona como missão
+      const xpGain = dmg * 5 + (allDoneToday ? 10 : 0);
+      const goldGain = dmg * 2 + (allDoneToday ? 5 : 0);
+      const prog = processLevelUp(prev.xp + xpGain, prev.level, prev.rank, prev.difficultyDivisor || 1);
       return {
         ...prev,
+        ...prog,
+        gold: prev.gold + goldGain,
         bosses: newBosses,
-        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: -${dmg} HP (${task.title})`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: -${dmg} HP (${task.title})`, xp: xpGain, gold: goldGain }, ...prev.log].slice(0, 100),
       };
     });
   }, []);
