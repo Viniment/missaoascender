@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap } from 'lucide-react';
+import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { getTodayBrasilia } from '@/lib/utils';
 import BossCoachChat from '@/components/BossCoachChat';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+
 
 
 const BOSS_TEMPLATES: Array<{
@@ -38,7 +42,7 @@ export default function BossPanel() {
   const {
     state, addBoss, completeBossTask, uncompleteBossTask,
     addBossTask, editBossTask, removeBossTask, settleBossesForToday,
-    defeatBoss, removeBoss,
+    defeatBoss, removeBoss, recordBossReinforcement,
   } = useGame();
   const bosses = state.bosses || [];
   const active = bosses.filter(b => !b.defeatedAt);
@@ -46,17 +50,63 @@ export default function BossPanel() {
   const today = getTodayBrasilia();
   const [open, setOpen] = useState(false);
   const [hitFx, setHitFx] = useState<Record<string, number>>({});
+  const [lastAngle, setLastAngle] = useState<string>('');
 
   useEffect(() => { settleBossesForToday(); }, [settleBossesForToday]);
 
   const damageFor = (combo: number) => combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
 
-  const onComplete = (bossId: string, taskId: string, combo: number) => {
-    completeBossTask(bossId, taskId);
+  const askReinforcement = async (boss: typeof bosses[number], taskTitle: string) => {
+    try {
+      const areas = (state.lifeAreas || []).filter(a => (boss.affectedAreaIds || []).includes(a.id));
+      const totalDone = (boss.tasks || []).reduce((s, t) => s + t.doneDates.length, 0);
+      const ctx = {
+        ultimoAngulo: lastAngle || null,
+        tarefaConcluida: taskTitle,
+        boss: {
+          nome: boss.name, emoji: boss.emoji, hpAtual: boss.hp, hpMax: boss.maxHp,
+          combo: boss.combo, melhorCombo: boss.bestCombo, dias: boss.days,
+          comoAfeta: boss.howItAffectsMe, porQueDerrotar: boss.whyDefeat,
+          areasAfetadas: areas.map(a => `${a.icon} ${a.name} (nível ${a.level})`),
+          frasesPersonalizadas: boss.customPhrases || [],
+        },
+        player: {
+          nivel: state.level, rank: state.rank, streak: state.streak,
+          alterEgo: state.alterEgo ? { nome: state.alterEgo.name, valores: state.alterEgo.values, frase: state.alterEgo.identityPhrase, notas: state.alterEgo.notes } : null,
+          totalHabitos: (state.habits || []).length,
+          tarefasConcluidasNesteBoss: totalDone + 1,
+        },
+      };
+      const { data, error } = await supabase.functions.invoke('attack-reinforcement', { body: { context: ctx } });
+      if (error || !data?.message) return;
+      const msg: string = data.message;
+      setLastAngle(msg.slice(0, 80));
+      recordBossReinforcement(boss.id, msg, taskTitle);
+      toast.custom(() => (
+        <div className="rpg-panel max-w-sm border-primary/50">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="font-display text-xs tracking-wider text-primary">VOZ DO ALTER EGO</span>
+          </div>
+          <div className="text-sm text-foreground leading-relaxed">
+            <ReactMarkdown>{msg}</ReactMarkdown>
+          </div>
+        </div>
+      ), { duration: 7000 });
+    } catch (e) {
+      console.error('reinforcement error', e);
+    }
+  };
+
+  const onComplete = (boss: typeof bosses[number], taskId: string, combo: number) => {
+    const task = (boss.tasks || []).find(t => t.id === taskId);
+    completeBossTask(boss.id, taskId);
     setHitFx(s => ({ ...s, [taskId]: damageFor(combo) }));
     if ('vibrate' in navigator) navigator.vibrate?.(40);
     setTimeout(() => setHitFx(s => { const n = { ...s }; delete n[taskId]; return n; }), 900);
+    if (task) askReinforcement(boss, task.title);
   };
+
 
   return (
     <div className="space-y-5">
@@ -82,7 +132,7 @@ export default function BossPanel() {
                   boss={b}
                   today={today}
                   hitFx={hitFx}
-                  onComplete={(taskId, combo) => onComplete(b.id, taskId, combo)}
+                  onComplete={(taskId, combo) => onComplete(b, taskId, combo)}
                   onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
@@ -161,31 +211,64 @@ function BossCard({
   return (
     <motion.div
       layout
-      className="p-4 rounded-lg border border-red-500/40 bg-gradient-to-br from-red-950/40 via-background to-background relative overflow-hidden"
+      className="p-4 rounded-lg border bg-gradient-to-br from-red-950/40 via-background to-background relative overflow-hidden"
+      style={{ borderColor: boss.mainColor || 'rgba(239,68,68,0.4)' }}
       animate={Object.keys(hitFx).length ? { x: [0, -3, 3, -2, 2, 0] } : {}}
       transition={{ duration: 0.4 }}
     >
       <div className="flex items-start gap-3 mb-3">
-        <motion.div
-          className="text-4xl"
-          animate={lowHp ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-        >{boss.emoji}</motion.div>
+        {boss.imageUrl ? (
+          <img src={boss.imageUrl} alt={boss.name} className="w-14 h-14 rounded-lg object-cover border border-red-500/40" />
+        ) : (
+          <motion.div
+            className="text-4xl"
+            animate={lowHp ? { scale: [1, 1.05, 1] } : {}}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >{boss.emoji}</motion.div>
+        )}
         <div className="flex-1 min-w-0">
-          <div className="font-display text-base text-red-300">{boss.name}</div>
+          <div className="font-display text-base text-red-300 flex items-center gap-2">
+            {boss.name}
+            {boss.difficulty && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 border border-red-500/40">{boss.difficulty}</span>}
+          </div>
           <p className="text-xs text-foreground/70">{boss.description}</p>
           {boss.weakness && <p className="text-[11px] text-gold mt-1">⚡ Fraqueza: {boss.weakness}</p>}
         </div>
         <button onClick={onRemove} className="text-foreground/40 hover:text-red-400" title="Remover boss"><X className="w-4 h-4" /></button>
       </div>
 
+      {(boss.howItAffectsMe || boss.whyDefeat || (boss.affectedAreaIds?.length)) && (
+        <div className="mb-3 p-2.5 rounded-md border border-border bg-background/40 space-y-1.5 text-[11px]">
+          {boss.affectedAreaIds?.length ? (
+            <div className="flex flex-wrap gap-1">
+              {boss.affectedAreaIds.map(id => (
+                <span key={id} className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border text-foreground/80">
+                  Área afetada
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {boss.howItAffectsMe && (
+            <p className="text-foreground/70"><span className="text-red-300 font-display tracking-wider">COMO ME AFETA:</span> {boss.howItAffectsMe}</p>
+          )}
+          {boss.whyDefeat && (
+            <p className="text-foreground/70"><span className="text-emerald-300 font-display tracking-wider">POR QUE DERROTAR:</span> {boss.whyDefeat}</p>
+          )}
+        </div>
+      )}
+
+
       {/* HP Bar */}
       <div className="relative h-4 bg-background/70 rounded-full overflow-hidden border border-red-500/40">
         <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-red-500 to-red-400"
+          className="absolute inset-y-0 left-0"
+          style={boss.hpBarColor ? { background: boss.hpBarColor } : undefined}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.6 }}
-        />
+        >
+          {!boss.hpBarColor && <div className="h-full bg-gradient-to-r from-red-700 via-red-500 to-red-400" />}
+        </motion.div>
+
         <span className="absolute inset-0 flex items-center justify-center text-[11px] font-display text-white drop-shadow">
           {boss.hp} / {boss.maxHp} HP
         </span>
@@ -289,10 +372,21 @@ function BossCard({
 }
 
 // ====== Create Boss Dialog ======
+type CreatePayload = {
+  name: string; emoji: string; description: string; weakness?: string;
+  days: number; tasks: { title: string }[];
+  imageUrl?: string; story?: string; affectedAreaIds?: string[];
+  howItAffectsMe?: string; whyDefeat?: string; customPhrases?: string[];
+  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+  mainColor?: string; hpBarColor?: string;
+};
+
 function CreateBossDialog({ open, onOpenChange, onCreate }: {
   open: boolean; onOpenChange: (b: boolean) => void;
-  onCreate: (p: { name: string; emoji: string; description: string; weakness?: string; days: number; tasks: { title: string }[] }) => void;
+  onCreate: (p: CreatePayload) => void;
 }) {
+  const { state } = useGame();
+  const lifeAreas = state.lifeAreas || [];
   const [tab, setTab] = useState<'preset' | 'custom'>('preset');
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('👹');
@@ -300,8 +394,24 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
   const [weakness, setWeakness] = useState('');
   const [days, setDays] = useState(21);
   const [tasks, setTasks] = useState<string[]>(['', '', '']);
+  // Personalização emocional
+  const [imageUrl, setImageUrl] = useState('');
+  const [story, setStory] = useState('');
+  const [howItAffectsMe, setHowItAffectsMe] = useState('');
+  const [whyDefeat, setWhyDefeat] = useState('');
+  const [customPhrasesText, setCustomPhrasesText] = useState('');
+  const [areaIds, setAreaIds] = useState<string[]>([]);
+  const [difficulty, setDifficulty] = useState<'Fácil' | 'Normal' | 'Difícil' | 'Brutal'>('Normal');
+  const [mainColor, setMainColor] = useState('#ef4444');
+  const [hpBarColor, setHpBarColor] = useState('#ef4444');
 
-  const reset = () => { setName(''); setEmoji('👹'); setDesc(''); setWeakness(''); setDays(21); setTasks(['', '', '']); };
+  const reset = () => {
+    setName(''); setEmoji('👹'); setDesc(''); setWeakness(''); setDays(21); setTasks(['', '', '']);
+    setImageUrl(''); setStory(''); setHowItAffectsMe(''); setWhyDefeat(''); setCustomPhrasesText('');
+    setAreaIds([]); setDifficulty('Normal'); setMainColor('#ef4444'); setHpBarColor('#ef4444');
+  };
+
+  const toggleArea = (id: string) => setAreaIds(arr => arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
@@ -348,8 +458,64 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
               <Input value={emoji} onChange={e => setEmoji(e.target.value.slice(0, 2))} className="text-center text-xl" />
               <Input placeholder="Nome do boss (ex: O Indeciso)" value={name} onChange={e => setName(e.target.value)} />
             </div>
+            <Input placeholder="URL da imagem (opcional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="text-xs" />
             <Textarea placeholder="Como ele te ataca? Quando aparece?" value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="text-xs" />
+            <Textarea placeholder="História / origem deste inimigo (opcional)" value={story} onChange={e => setStory(e.target.value)} rows={2} className="text-xs" />
+            <Textarea
+              placeholder="Como este inimigo influencia minha vida? Ex: Quando procrastino estudos, sinto culpa e atraso meus sonhos…"
+              value={howItAffectsMe} onChange={e => setHowItAffectsMe(e.target.value)} rows={3} className="text-xs"
+            />
+            <Textarea
+              placeholder="Por que quero derrotá-lo? Ex: Quero ser disciplinado, sentir orgulho de mim mesmo…"
+              value={whyDefeat} onChange={e => setWhyDefeat(e.target.value)} rows={3} className="text-xs"
+            />
             <Input placeholder="Fraqueza (opcional)" value={weakness} onChange={e => setWeakness(e.target.value)} className="text-xs" />
+            <Textarea
+              placeholder="Frases personalizadas para a IA usar (uma por linha)"
+              value={customPhrasesText} onChange={e => setCustomPhrasesText(e.target.value)} rows={2} className="text-xs"
+            />
+
+            {/* Áreas afetadas */}
+            <div>
+              <p className="text-xs font-display tracking-wider text-red-300 mb-1">ÁREAS DE VIDA AFETADAS</p>
+              {lifeAreas.length === 0 ? (
+                <p className="text-[11px] text-foreground/50">Crie áreas na aba "Áreas" para conectar evolução pessoal.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {lifeAreas.map(a => {
+                    const on = areaIds.includes(a.id);
+                    return (
+                      <button
+                        key={a.id} type="button" onClick={() => toggleArea(a.id)}
+                        className={`text-[11px] px-2 py-1 rounded border transition ${on ? 'border-primary bg-primary/15' : 'border-border bg-background/40 hover:bg-secondary/40'}`}
+                        style={on ? { borderColor: a.color, background: a.color + '22' } : undefined}
+                      >
+                        <span className="mr-1">{a.icon}</span>{a.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Dificuldade + Cores */}
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="text-[11px] text-foreground/70">Dificuldade</label>
+                <select value={difficulty} onChange={e => setDifficulty(e.target.value as any)} className="w-full h-9 rounded-md border border-border bg-background text-xs px-2">
+                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] text-foreground/70">Cor principal</label>
+                <input type="color" value={mainColor} onChange={e => setMainColor(e.target.value)} className="w-full h-9 rounded-md border border-border bg-background" />
+              </div>
+              <div>
+                <label className="text-[11px] text-foreground/70">Cor HP</label>
+                <input type="color" value={hpBarColor} onChange={e => setHpBarColor(e.target.value)} className="w-full h-9 rounded-md border border-border bg-background" />
+              </div>
+            </div>
+
             <div className="flex items-center gap-3">
               <label className="text-xs text-foreground/70">Dias da batalha:</label>
               <Input type="number" min={7} max={120} value={days} onChange={e => setDays(Math.max(1, parseInt(e.target.value) || 1))} className="w-24 text-center" />
@@ -375,6 +541,13 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
                 name: name.trim(), emoji: emoji || '👹', description: desc.trim() || 'Padrão pessoal.',
                 weakness: weakness.trim() || undefined, days,
                 tasks: tasks.filter(t => t.trim()).map(t => ({ title: t.trim() })),
+                imageUrl: imageUrl.trim() || undefined,
+                story: story.trim() || undefined,
+                howItAffectsMe: howItAffectsMe.trim() || undefined,
+                whyDefeat: whyDefeat.trim() || undefined,
+                customPhrases: customPhrasesText.split('\n').map(s => s.trim()).filter(Boolean),
+                affectedAreaIds: areaIds,
+                difficulty, mainColor, hpBarColor,
               })}
               className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200"
             >
@@ -385,4 +558,5 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
       </DialogContent>
     </Dialog>
   );
+
 }

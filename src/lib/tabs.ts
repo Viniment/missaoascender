@@ -1,12 +1,13 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, Brain, Activity, Skull, Backpack, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, Brain, Activity, Skull, Backpack, Heart, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'mirror' | 'counsel' | 'journal'
   | 'timer' | 'awakening' | 'trataka'
   | 'mentor' | 'cbt'
-  | 'attributes' | 'dungeon' | 'bosses' | 'inventory'
+  | 'attributes' | 'areas' | 'dungeon' | 'bosses' | 'inventory'
   | 'rewards';
+
 
 export interface TabDef {
   id: TabId;
@@ -28,9 +29,11 @@ export const TAB_GROUPS: TabGroup[] = [
     label: 'RPG',
     tabs: [
       { id: 'attributes', label: 'Atributos', icon: Activity, description: 'Suas 6 stats de vida' },
+      { id: 'areas', label: 'Áreas', icon: Heart, description: 'Áreas de vida que evoluem ao vencer inimigos' },
       { id: 'dungeon', label: 'Dungeon', icon: Swords, description: '3 desafios do dia + loot' },
       { id: 'bosses', label: 'Bosses', icon: Skull, description: 'Padrões reais para derrotar' },
       { id: 'inventory', label: 'Inventário', icon: Backpack, description: 'Itens, buffs ativos' },
+
     ],
   },
   {
