@@ -527,6 +527,23 @@ function BossCard({
   const [newTask, setNewTask] = useState('');
   const [showEdit, setShowEdit] = useState(false);
   const lowHp = pct <= 25;
+  const [selectedDate, setSelectedDate] = useState(today);
+  const isToday = selectedDate === today;
+  const shiftDate = (days: number) => {
+    const d = new Date(selectedDate + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    const next = d.toISOString().slice(0, 10);
+    if (next > today) return;
+    setSelectedDate(next);
+  };
+  const formatDate = (iso: string) => {
+    if (iso === today) return 'HOJE';
+    const d = new Date(iso + 'T00:00:00');
+    const yest = new Date(today + 'T00:00:00');
+    yest.setDate(yest.getDate() - 1);
+    if (iso === yest.toISOString().slice(0, 10)) return 'ONTEM';
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  };
 
   return (
     <motion.div
@@ -598,14 +615,30 @@ function BossCard({
       {/* Tarefas do dia */}
       <div className="mt-4 space-y-1.5">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-[11px] font-display tracking-wider text-red-300/80">TAREFAS DE HOJE</p>
+          <div className="flex items-center gap-1">
+            <button onClick={() => shiftDate(-1)} className="text-red-300/70 hover:text-red-200 px-1" title="Dia anterior">‹</button>
+            <p className="text-[11px] font-display tracking-wider text-red-300/80">
+              TAREFAS · {formatDate(selectedDate)}
+            </p>
+            <button
+              onClick={() => shiftDate(1)}
+              disabled={isToday}
+              className="text-red-300/70 hover:text-red-200 disabled:opacity-30 px-1"
+              title="Próximo dia"
+            >›</button>
+            {!isToday && (
+              <button onClick={() => setSelectedDate(today)} className="ml-1 text-[10px] text-foreground/60 hover:text-foreground underline">
+                voltar p/ hoje
+              </button>
+            )}
+          </div>
           <button onClick={() => setShowEdit(s => !s)} className="text-[11px] text-foreground/60 hover:text-foreground flex items-center gap-1">
             <Pencil className="w-3 h-3" /> {showEdit ? 'Pronto' : 'Editar'}
           </button>
         </div>
         <AnimatePresence>
           {tasks.map(t => {
-            const done = t.doneDates.includes(today);
+            const done = t.doneDates.includes(selectedDate);
             const fx = hitFx[t.id];
             return (
               <motion.div
@@ -623,7 +656,7 @@ function BossCard({
                 ) : (
                   <>
                     <button
-                      onClick={() => done ? onUncomplete(t.id) : onComplete(t.id, combo)}
+                      onClick={() => done ? onUncomplete(t.id, selectedDate) : onComplete(t.id, combo, selectedDate)}
                       className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${done ? 'bg-emerald-500/30 border-emerald-500 text-emerald-300' : 'border-red-400/50 hover:bg-red-500/10'}`}
                     >
                       {done && <Check className="w-3 h-3" />}
@@ -631,7 +664,7 @@ function BossCard({
                     <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>{t.title}</span>
                     {!done && (
                       <button
-                        onClick={() => onFail(t.id)}
+                        onClick={() => onFail(t.id, selectedDate)}
                         title="Falhei — autotraição"
                         className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15 hover:text-red-200"
                       >
