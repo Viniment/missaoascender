@@ -446,7 +446,7 @@ type CreatePayload = {
   mainColor?: string; hpBarColor?: string;
 };
 
-type BossDraft = Omit<CreatePayload, 'tasks'> & { tasksText: string[] };
+
 
 function AssistButton({ loading, onClick, title = 'Gerar com IA' }: { loading?: boolean; onClick: () => void; title?: string }) {
   return (
