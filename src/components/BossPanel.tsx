@@ -211,23 +211,52 @@ function BossCard({
   return (
     <motion.div
       layout
-      className="p-4 rounded-lg border border-red-500/40 bg-gradient-to-br from-red-950/40 via-background to-background relative overflow-hidden"
+      className="p-4 rounded-lg border bg-gradient-to-br from-red-950/40 via-background to-background relative overflow-hidden"
+      style={{ borderColor: boss.mainColor || 'rgba(239,68,68,0.4)' }}
       animate={Object.keys(hitFx).length ? { x: [0, -3, 3, -2, 2, 0] } : {}}
       transition={{ duration: 0.4 }}
     >
       <div className="flex items-start gap-3 mb-3">
-        <motion.div
-          className="text-4xl"
-          animate={lowHp ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-        >{boss.emoji}</motion.div>
+        {boss.imageUrl ? (
+          <img src={boss.imageUrl} alt={boss.name} className="w-14 h-14 rounded-lg object-cover border border-red-500/40" />
+        ) : (
+          <motion.div
+            className="text-4xl"
+            animate={lowHp ? { scale: [1, 1.05, 1] } : {}}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >{boss.emoji}</motion.div>
+        )}
         <div className="flex-1 min-w-0">
-          <div className="font-display text-base text-red-300">{boss.name}</div>
+          <div className="font-display text-base text-red-300 flex items-center gap-2">
+            {boss.name}
+            {boss.difficulty && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 border border-red-500/40">{boss.difficulty}</span>}
+          </div>
           <p className="text-xs text-foreground/70">{boss.description}</p>
           {boss.weakness && <p className="text-[11px] text-gold mt-1">⚡ Fraqueza: {boss.weakness}</p>}
         </div>
         <button onClick={onRemove} className="text-foreground/40 hover:text-red-400" title="Remover boss"><X className="w-4 h-4" /></button>
       </div>
+
+      {(boss.howItAffectsMe || boss.whyDefeat || (boss.affectedAreaIds?.length)) && (
+        <div className="mb-3 p-2.5 rounded-md border border-border bg-background/40 space-y-1.5 text-[11px]">
+          {boss.affectedAreaIds?.length ? (
+            <div className="flex flex-wrap gap-1">
+              {boss.affectedAreaIds.map(id => (
+                <span key={id} className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border text-foreground/80">
+                  Área afetada
+                </span>
+              ))}
+            </div>
+          ) : null}
+          {boss.howItAffectsMe && (
+            <p className="text-foreground/70"><span className="text-red-300 font-display tracking-wider">COMO ME AFETA:</span> {boss.howItAffectsMe}</p>
+          )}
+          {boss.whyDefeat && (
+            <p className="text-foreground/70"><span className="text-emerald-300 font-display tracking-wider">POR QUE DERROTAR:</span> {boss.whyDefeat}</p>
+          )}
+        </div>
+      )}
+
 
       {/* HP Bar */}
       <div className="relative h-4 bg-background/70 rounded-full overflow-hidden border border-red-500/40">
