@@ -350,6 +350,8 @@ export interface PlayerState {
   // === EVOLUX — Fase 1 ===
   alterEgo?: AlterEgo;
   innerEnemy?: InnerEnemy;
+  // Progresso da Forja de Identidade (entrevista brutal) persistido no banco
+  alterEgoForge?: { answers: Record<string, string>; qIdx: number };
   // === Mentor Interno (chat IA) ===
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
@@ -1802,6 +1804,17 @@ export function useGameStore() {
       ...prev,
       alterEgo: { ...defaultAlterEgo, ...(prev.alterEgo || {}), completed: true },
       innerEnemy: { ...defaultInnerEnemy, ...(prev.innerEnemy || {}), completed: true },
+      alterEgoForge: undefined,
+    }));
+  }, []);
+
+  const setAlterEgoForge = useCallback((patch: Partial<{ answers: Record<string, string>; qIdx: number }>) => {
+    setState(prev => ({
+      ...prev,
+      alterEgoForge: {
+        answers: patch.answers ?? prev.alterEgoForge?.answers ?? {},
+        qIdx: patch.qIdx ?? prev.alterEgoForge?.qIdx ?? 0,
+      },
     }));
   }, []);
 
@@ -2718,6 +2731,7 @@ export function useGameStore() {
     updateAlterEgo,
     updateInnerEnemy,
     completeIdentityOnboarding,
+    setAlterEgoForge,
     createMentorConversation,
     appendMentorMessage,
     deleteMentorConversation,
