@@ -8,7 +8,6 @@ import JournalPanel from '@/components/JournalPanel';
 import AwakeningPage from '@/components/AwakeningPage';
 import RewardsShop from '@/components/RewardsShop';
 import AchievementsPanel from '@/components/AchievementsPanel';
-import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
 import LifeAreasPanel from '@/components/LifeAreasPanel';
@@ -49,7 +48,6 @@ export default function Index() {
       case 'missions': return <MissionsPanel />;
       case 'habits': return <HabitsPanel />;
       case 'achievements': return <AchievementsPanel />;
-      case 'mirror': return <MirrorPanel />;
       case 'counsel': return <CounselPanel />;
       case 'journal': return <JournalPanel />;
       case 'awakening': return <AwakeningPage />;
