@@ -15,8 +15,10 @@ import MentorChatPanel from '@/components/MentorChatPanel';
 import CbtImmersionPanel from '@/components/CbtImmersionPanel';
 import TratakaPanel from '@/components/TratakaPanel';
 import AttributesPanel from '@/components/AttributesPanel';
+import LifeAreasPanel from '@/components/LifeAreasPanel';
 import DungeonPanel from '@/components/DungeonPanel';
 import BossPanel from '@/components/BossPanel';
+
 import CurrentBossCard from '@/components/CurrentBossCard';
 
 import InventoryPanel from '@/components/InventoryPanel';
