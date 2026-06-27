@@ -2236,6 +2236,8 @@ export function useGameStore() {
           hpRegained: refundDoneHp + regain,
           missedDays: 0,
           at: new Date().toISOString(),
+          reason: 'self_betrayal',
+          taskTitle: task.title,
         },
       };
       const newBosses = [...bosses];
