@@ -417,7 +417,7 @@ export interface BossBattle {
   mainColor?: string;
   hpBarColor?: string;
   reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
-  pendingMockery?: { hpRegained: number; missedDays: number; at: string };
+  pendingMockery?: { hpRegained: number; missedDays: number; at: string; reason?: 'missed_day' | 'self_betrayal'; taskTitle?: string };
   mockeryHistory?: { date: string; message: string; missedDays: number }[];
 }
 
@@ -2195,11 +2195,58 @@ export function useGameStore() {
         }
         changed = true;
         const pendingMockery = regained > 0
-          ? { hpRegained: regained, missedDays, at: new Date().toISOString() }
+          ? { hpRegained: regained, missedDays, at: new Date().toISOString(), reason: 'missed_day' as const }
           : b.pendingMockery;
         return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery };
       });
       return changed ? { ...prev, bosses: newBosses } : prev;
+    });
+  }, []);
+
+  // === Falhar uma tarefa do boss explicitamente (autotraição) ===
+  // Recupera HP do boss proporcional ao dano que daria, zera o combo
+  // e dispara pendingMockery para a UI gerar a mensagem do inimigo.
+  const failBossTask = useCallback((bossId: string, taskId: string, date?: string) => {
+    setState(prev => {
+      const dateISO = date || getTodayBrasilia();
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (boss.defeatedAt || !boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task) return prev;
+      // Se estava concluída, desfaz primeiro (devolve HP base)
+      const wasDone = task.doneDates.includes(dateISO);
+      const combo = boss.combo || 0;
+      const dmg = damageFromCombo(combo);
+      // Regen: equivalente a dano(combo) + um pequeno bônus do inimigo (mas sem ultrapassar maxHp)
+      const regain = dmg + 2;
+      const refundDoneHp = wasDone ? dmg : 0;
+      const newHp = Math.min(boss.maxHp, boss.hp + refundDoneHp + regain);
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? { ...t, doneDates: wasDone ? t.doneDates.filter(d => d !== dateISO) : t.doneDates }
+        : t);
+      const updated: BossBattle = {
+        ...boss,
+        tasks: newTasks,
+        hp: newHp,
+        combo: 0,
+        pendingMockery: {
+          hpRegained: refundDoneHp + regain,
+          missedDays: 0,
+          at: new Date().toISOString(),
+          reason: 'self_betrayal',
+          taskTitle: task.title,
+        },
+      };
+      const newBosses = [...bosses];
+      newBosses[idx] = updated;
+      return {
+        ...prev,
+        bosses: newBosses,
+        log: [{ date: new Date().toISOString(), action: `💀 ${boss.name} ri: "${task.title}" — autotraição`, xp: 0, gold: 0 }, ...prev.log].slice(0, 100),
+      };
     });
   }, []);
 
@@ -2654,6 +2701,7 @@ export function useGameStore() {
 
     completeBossTask,
     uncompleteBossTask,
+    failBossTask,
     addBossTask,
     editBossTask,
     removeBossTask,

@@ -42,7 +42,7 @@ const BOSS_TEMPLATES: Array<{
 export default function BossPanel() {
   const {
     state, addBoss, updateBoss, clearBossMockery, completeBossTask, uncompleteBossTask,
-    addBossTask, editBossTask, removeBossTask, settleBossesForToday,
+    failBossTask, addBossTask, editBossTask, removeBossTask, settleBossesForToday,
     defeatBoss, removeBoss, recordBossReinforcement,
   } = useGame();
   const bosses = state.bosses || [];
@@ -74,6 +74,8 @@ export default function BossPanel() {
             nome: b.name, emoji: b.emoji, descricao: b.description,
             hpAtual: b.hp, hpMax: b.maxHp, hpRecuperado: b.pendingMockery.hpRegained,
             diasFalhados: b.pendingMockery.missedDays,
+            motivo: b.pendingMockery.reason || 'missed_day',
+            tarefaFalhada: b.pendingMockery.taskTitle || null,
             historia: b.story, frasesPersonalizadas: b.customPhrases || [],
             comoAfeta: b.howItAffectsMe, porQueDerrotar: b.whyDefeat,
           },
@@ -86,7 +88,10 @@ export default function BossPanel() {
           },
         };
         const { data, error } = await supabase.functions.invoke('boss-mockery', { body: { context: ctx } });
-        const msg: string = (!error && data?.message) ? data.message : `*Você sumiu de novo…* Eu agradeço. Cada dia que você me alimenta, mais perto fico de enterrar aquilo que você jura querer ser.`;
+        const fallback = b.pendingMockery.reason === 'self_betrayal'
+          ? `*Ah ah ah…* Mais uma vez fiz você desistir. Você jura que vai mudar, mas eu sei quem você é quando ninguém vê.`
+          : `*Você sumiu de novo…* Eu agradeço. Cada dia que você me alimenta, mais perto fico de enterrar aquilo que você jura querer ser.`;
+        const msg: string = (!error && data?.message) ? data.message : fallback;
         clearBossMockery(b.id, msg);
         if ('vibrate' in navigator) navigator.vibrate?.([60, 40, 60]);
         toast.custom(() => (
@@ -103,7 +108,12 @@ export default function BossPanel() {
             <div className="text-sm text-red-100 leading-relaxed italic">
               <ReactMarkdown>{msg}</ReactMarkdown>
             </div>
-            <p className="text-[10px] text-red-300/70 mt-2">+{b.pendingMockery?.hpRegained} HP recuperados em {b.pendingMockery?.missedDays} dia(s) sem ação.</p>
+            <p className="text-[10px] text-red-300/70 mt-2">
+              +{b.pendingMockery?.hpRegained} HP recuperados
+              {b.pendingMockery?.reason === 'self_betrayal'
+                ? ` · autotraição em "${b.pendingMockery?.taskTitle}"`
+                : ` em ${b.pendingMockery?.missedDays} dia(s) sem ação`}.
+            </p>
           </motion.div>
         ), { duration: 11000 });
       } catch (e) {
@@ -199,6 +209,7 @@ export default function BossPanel() {
                   hitFx={hitFx}
                   onComplete={(taskId, combo) => onComplete(b, taskId, combo)}
                   onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
+                  onFail={(taskId) => failBossTask(b.id, taskId)}
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
@@ -385,13 +396,14 @@ function StrikeOverlay({
 
 // ====== Boss Card ======
 function BossCard({
-  boss, today, hitFx, onComplete, onUncomplete, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
+  boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
 }: {
   boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
   today: string;
   hitFx: Record<string, number>;
   onComplete: (taskId: string, combo: number) => void;
   onUncomplete: (taskId: string) => void;
+  onFail: (taskId: string) => void;
   onAddTask: (title: string) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
@@ -510,6 +522,15 @@ function BossCard({
                       {done && <Check className="w-3 h-3" />}
                     </button>
                     <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>{t.title}</span>
+                    {!done && (
+                      <button
+                        onClick={() => onFail(t.id)}
+                        title="Falhei — autotraição"
+                        className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15 hover:text-red-200"
+                      >
+                        <Skull className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     {showEdit && (
                       <>
                         <button onClick={() => { setEditingId(t.id); setEditVal(t.title); }} className="text-foreground/50 hover:text-foreground">

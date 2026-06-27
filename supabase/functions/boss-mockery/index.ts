@@ -45,7 +45,11 @@ serve(async (req) => {
       });
     }
 
-    const userPrompt = `O boss recuperou força. Gere a fala dele AGORA com base nesses dados:\n\n${JSON.stringify(context, null, 2)}\n\nResponda SOMENTE com a fala final do boss (2–4 frases), sem prefixo, sem aspas, sem cabeçalho.`;
+    const motivo = context?.boss?.motivo || 'missed_day';
+    const cenario = motivo === 'self_betrayal'
+      ? `O jogador acabou de marcar uma tarefa como FALHADA HOJE (autotraição declarada). Tarefa: "${context?.boss?.tarefaFalhada || 'tarefa do dia'}". Comece com algo no espírito de "Ah ah ah… mais uma vez fiz você desistir" — mas com a SUA voz de personagem, sem clichê.`
+      : `O jogador SUMIU em ${context?.boss?.diasFalhados ?? 1} dia(s) — ignorou as tarefas e você ganhou força de volta. Faça-o sentir o peso de cada dia desses.`;
+    const userPrompt = `${cenario}\n\nDados do boss + jogador:\n${JSON.stringify(context, null, 2)}\n\nResponda SOMENTE com a fala final do boss (2–4 frases), sem prefixo, sem aspas, sem cabeçalho.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
