@@ -436,7 +436,7 @@ function BossCard({
   );
 }
 
-// ====== Create Boss Dialog ======
+// ====== Boss Form Dialog (Create + Edit + AI Assist) ======
 type CreatePayload = {
   name: string; emoji: string; description: string; weakness?: string;
   days: number; tasks: { title: string }[];
@@ -446,20 +446,42 @@ type CreatePayload = {
   mainColor?: string; hpBarColor?: string;
 };
 
-function CreateBossDialog({ open, onOpenChange, onCreate }: {
+type BossDraft = Omit<CreatePayload, 'tasks'> & { tasksText: string[] };
+
+function AssistButton({ loading, onClick, title = 'Gerar com IA' }: { loading?: boolean; onClick: () => void; title?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      title={title}
+      className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-md border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50"
+    >
+      <motion.span
+        animate={loading ? { rotate: 360 } : { rotate: 0 }}
+        transition={loading ? { repeat: Infinity, duration: 1, ease: 'linear' } : {}}
+      >
+        <Sparkles className="w-4 h-4" />
+      </motion.span>
+    </button>
+  );
+}
+
+function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
   open: boolean; onOpenChange: (b: boolean) => void;
-  onCreate: (p: CreatePayload) => void;
+  onSubmit: (p: CreatePayload) => void;
+  editBoss?: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number] | null;
 }) {
   const { state } = useGame();
   const lifeAreas = state.lifeAreas || [];
-  const [tab, setTab] = useState<'preset' | 'custom'>('preset');
+  const isEdit = !!editBoss;
+  const [tab, setTab] = useState<'preset' | 'custom'>(isEdit ? 'custom' : 'preset');
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('👹');
   const [desc, setDesc] = useState('');
   const [weakness, setWeakness] = useState('');
   const [days, setDays] = useState(21);
   const [tasks, setTasks] = useState<string[]>(['', '', '']);
-  // Personalização emocional
   const [imageUrl, setImageUrl] = useState('');
   const [story, setStory] = useState('');
   const [howItAffectsMe, setHowItAffectsMe] = useState('');
@@ -469,6 +491,33 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
   const [difficulty, setDifficulty] = useState<'Fácil' | 'Normal' | 'Difícil' | 'Brutal'>('Normal');
   const [mainColor, setMainColor] = useState('#ef4444');
   const [hpBarColor, setHpBarColor] = useState('#ef4444');
+  const [assisting, setAssisting] = useState<string | null>(null);
+
+  // Hidrata ao editar
+  useEffect(() => {
+    if (!open) return;
+    if (editBoss) {
+      setTab('custom');
+      setName(editBoss.name);
+      setEmoji(editBoss.emoji || '👹');
+      setDesc(editBoss.description || '');
+      setWeakness(editBoss.weakness || '');
+      setDays(editBoss.days || 21);
+      setTasks((editBoss.tasks || []).map(t => t.title));
+      setImageUrl(editBoss.imageUrl || '');
+      setStory(editBoss.story || '');
+      setHowItAffectsMe(editBoss.howItAffectsMe || '');
+      setWhyDefeat(editBoss.whyDefeat || '');
+      setCustomPhrasesText((editBoss.customPhrases || []).join('\n'));
+      setAreaIds(editBoss.affectedAreaIds || []);
+      setDifficulty(editBoss.difficulty || 'Normal');
+      setMainColor(editBoss.mainColor || '#ef4444');
+      setHpBarColor(editBoss.hpBarColor || '#ef4444');
+    } else {
+      setTab('preset');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editBoss?.id]);
 
   const reset = () => {
     setName(''); setEmoji('👹'); setDesc(''); setWeakness(''); setDays(21); setTasks(['', '', '']);
@@ -476,30 +525,86 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
     setAreaIds([]); setDifficulty('Normal'); setMainColor('#ef4444'); setHpBarColor('#ef4444');
   };
 
-  const toggleArea = (id: string) => setAreaIds(arr => arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
+  const toggleArea = (id: string) =>
+    setAreaIds(arr => arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
+
+  const currentDraft = (): Record<string, unknown> => ({
+    name, emoji, description: desc, weakness, days,
+    imageUrl, story, howItAffectsMe, whyDefeat,
+    customPhrases: customPhrasesText.split('\n').map(s => s.trim()).filter(Boolean),
+    tasks: tasks.filter(t => t.trim()),
+    affectedAreas: lifeAreas.filter(a => areaIds.includes(a.id)).map(a => a.name),
+    difficulty,
+  });
+
+  const playerCtx = () => ({
+    nivel: state.level, rank: state.rank, streak: state.streak,
+    alterEgo: state.alterEgo ? {
+      nome: state.alterEgo.name, valores: state.alterEgo.values,
+      frase: state.alterEgo.identityPhrase, sonhos: state.alterEgo.notes,
+    } : null,
+    areasDeVida: (state.lifeAreas || []).map(a => `${a.icon} ${a.name}`),
+    totalHabitos: (state.habits || []).length,
+  });
+
+  const assist = async (field: string) => {
+    setAssisting(field);
+    try {
+      const { data, error } = await supabase.functions.invoke('boss-assist', {
+        body: { field, draft: currentDraft(), player: playerCtx() },
+      });
+      if (error || !data?.value) { toast.error('IA indisponível agora.'); return; }
+      const v: string = data.value;
+      switch (field) {
+        case 'name': setName(v.replace(/^["']|["']$/g, '').trim()); break;
+        case 'emoji': setEmoji(v.trim().slice(0, 2)); break;
+        case 'description': setDesc(v); break;
+        case 'story': setStory(v); break;
+        case 'howItAffectsMe': setHowItAffectsMe(v); break;
+        case 'whyDefeat': setWhyDefeat(v); break;
+        case 'weakness': setWeakness(v.replace(/^["']|["']$/g, '').trim()); break;
+        case 'customPhrases': setCustomPhrasesText(v); break;
+        case 'tasks': {
+          const lines = v.split('\n').map(s => s.replace(/^[-•\d.)\s]+/, '').trim()).filter(Boolean);
+          if (lines.length) setTasks(lines.slice(0, 8));
+          break;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao chamar IA.');
+    } finally {
+      setAssisting(null);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
+    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o && !isEdit) reset(); }}>
       <DialogContent className="bg-background border-red-500/40 max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display tracking-wider text-red-400">INVOCAR BOSS</DialogTitle>
+          <DialogTitle className="font-display tracking-wider text-red-400">
+            {isEdit ? 'EDITAR BOSS' : 'INVOCAR BOSS'}
+          </DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2 mb-3 border-b border-border">
-          {(['preset', 'custom'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 text-xs font-display tracking-wider border-b-2 -mb-px ${tab === t ? 'border-red-400 text-red-300' : 'border-transparent text-foreground/50'}`}>
-              {t === 'preset' ? 'PRESETS' : 'CUSTOM'}
-            </button>
-          ))}
-        </div>
 
-        {tab === 'preset' ? (
+        {!isEdit && (
+          <div className="flex gap-2 mb-3 border-b border-border">
+            {(['preset', 'custom'] as const).map(t => (
+              <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 text-xs font-display tracking-wider border-b-2 -mb-px ${tab === t ? 'border-red-400 text-red-300' : 'border-transparent text-foreground/50'}`}>
+                {t === 'preset' ? 'PRESETS' : 'CUSTOM'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {(!isEdit && tab === 'preset') ? (
           <div className="grid sm:grid-cols-2 gap-2">
             {BOSS_TEMPLATES.map(t => {
               const hp = t.days * t.tasks.length;
               return (
                 <button
                   key={t.name}
-                  onClick={() => onCreate({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })) })}
+                  onClick={() => onSubmit({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })) })}
                   className="text-left p-3 rounded-lg border border-red-500/30 bg-red-950/10 hover:bg-red-950/30 transition"
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -519,26 +624,53 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="grid grid-cols-[80px_1fr] gap-2">
+            <div className="grid grid-cols-[60px_1fr_auto_auto] gap-2 items-center">
               <Input value={emoji} onChange={e => setEmoji(e.target.value.slice(0, 2))} className="text-center text-xl" />
               <Input placeholder="Nome do boss (ex: O Indeciso)" value={name} onChange={e => setName(e.target.value)} />
+              <AssistButton loading={assisting === 'emoji'} onClick={() => assist('emoji')} title="Sugerir emoji" />
+              <AssistButton loading={assisting === 'name'} onClick={() => assist('name')} title="Sugerir nome" />
             </div>
+
             <Input placeholder="URL da imagem (opcional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="text-xs" />
-            <Textarea placeholder="Como ele te ataca? Quando aparece?" value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="text-xs" />
-            <Textarea placeholder="História / origem deste inimigo (opcional)" value={story} onChange={e => setStory(e.target.value)} rows={2} className="text-xs" />
-            <Textarea
-              placeholder="Como este inimigo influencia minha vida? Ex: Quando procrastino estudos, sinto culpa e atraso meus sonhos…"
-              value={howItAffectsMe} onChange={e => setHowItAffectsMe(e.target.value)} rows={3} className="text-xs"
-            />
-            <Textarea
-              placeholder="Por que quero derrotá-lo? Ex: Quero ser disciplinado, sentir orgulho de mim mesmo…"
-              value={whyDefeat} onChange={e => setWhyDefeat(e.target.value)} rows={3} className="text-xs"
-            />
-            <Input placeholder="Fraqueza (opcional)" value={weakness} onChange={e => setWeakness(e.target.value)} className="text-xs" />
-            <Textarea
-              placeholder="Frases personalizadas para a IA usar (uma por linha)"
-              value={customPhrasesText} onChange={e => setCustomPhrasesText(e.target.value)} rows={2} className="text-xs"
-            />
+
+            <div className="flex gap-2 items-start">
+              <Textarea placeholder="Como ele te ataca? Quando aparece?" value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="text-xs flex-1" />
+              <AssistButton loading={assisting === 'description'} onClick={() => assist('description')} />
+            </div>
+
+            <div className="flex gap-2 items-start">
+              <Textarea placeholder="História / origem deste inimigo (opcional)" value={story} onChange={e => setStory(e.target.value)} rows={2} className="text-xs flex-1" />
+              <AssistButton loading={assisting === 'story'} onClick={() => assist('story')} />
+            </div>
+
+            <div className="flex gap-2 items-start">
+              <Textarea
+                placeholder="Como este inimigo influencia minha vida?"
+                value={howItAffectsMe} onChange={e => setHowItAffectsMe(e.target.value)} rows={3} className="text-xs flex-1"
+              />
+              <AssistButton loading={assisting === 'howItAffectsMe'} onClick={() => assist('howItAffectsMe')} />
+            </div>
+
+            <div className="flex gap-2 items-start">
+              <Textarea
+                placeholder="Por que quero derrotá-lo?"
+                value={whyDefeat} onChange={e => setWhyDefeat(e.target.value)} rows={3} className="text-xs flex-1"
+              />
+              <AssistButton loading={assisting === 'whyDefeat'} onClick={() => assist('whyDefeat')} />
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <Input placeholder="Fraqueza (opcional)" value={weakness} onChange={e => setWeakness(e.target.value)} className="text-xs flex-1" />
+              <AssistButton loading={assisting === 'weakness'} onClick={() => assist('weakness')} />
+            </div>
+
+            <div className="flex gap-2 items-start">
+              <Textarea
+                placeholder="Frases personalizadas (uma por linha)"
+                value={customPhrasesText} onChange={e => setCustomPhrasesText(e.target.value)} rows={3} className="text-xs flex-1"
+              />
+              <AssistButton loading={assisting === 'customPhrases'} onClick={() => assist('customPhrases')} />
+            </div>
 
             {/* Áreas afetadas */}
             <div>
@@ -567,7 +699,7 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="text-[11px] text-foreground/70">Dificuldade</label>
-                <select value={difficulty} onChange={e => setDifficulty(e.target.value as any)} className="w-full h-9 rounded-md border border-border bg-background text-xs px-2">
+                <select value={difficulty} onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')} className="w-full h-9 rounded-md border border-border bg-background text-xs px-2">
                   {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
@@ -589,7 +721,10 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <p className="text-xs font-display tracking-wider text-red-300">TAREFAS DIÁRIAS</p>
-                <Button size="sm" variant="ghost" onClick={() => setTasks(t => [...t, ''])} className="text-xs"><Plus className="w-3 h-3 mr-1" />Adicionar</Button>
+                <div className="flex gap-1">
+                  <AssistButton loading={assisting === 'tasks'} onClick={() => assist('tasks')} title="Sugerir tarefas" />
+                  <Button size="sm" variant="ghost" onClick={() => setTasks(t => [...t, ''])} className="text-xs"><Plus className="w-3 h-3 mr-1" />Adicionar</Button>
+                </div>
               </div>
               <div className="space-y-1.5">
                 {tasks.map((t, i) => (
@@ -602,7 +737,7 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
             </div>
             <Button
               disabled={!name.trim() || tasks.filter(t => t.trim()).length === 0}
-              onClick={() => onCreate({
+              onClick={() => onSubmit({
                 name: name.trim(), emoji: emoji || '👹', description: desc.trim() || 'Padrão pessoal.',
                 weakness: weakness.trim() || undefined, days,
                 tasks: tasks.filter(t => t.trim()).map(t => ({ title: t.trim() })),
@@ -616,12 +751,13 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
               })}
               className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200"
             >
-              Invocar Boss
+              {isEdit ? 'Salvar alterações' : 'Invocar Boss'}
             </Button>
           </div>
         )}
       </DialogContent>
     </Dialog>
   );
+
 
 }
