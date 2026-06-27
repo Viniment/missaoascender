@@ -372,10 +372,21 @@ function BossCard({
 }
 
 // ====== Create Boss Dialog ======
+type CreatePayload = {
+  name: string; emoji: string; description: string; weakness?: string;
+  days: number; tasks: { title: string }[];
+  imageUrl?: string; story?: string; affectedAreaIds?: string[];
+  howItAffectsMe?: string; whyDefeat?: string; customPhrases?: string[];
+  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+  mainColor?: string; hpBarColor?: string;
+};
+
 function CreateBossDialog({ open, onOpenChange, onCreate }: {
   open: boolean; onOpenChange: (b: boolean) => void;
-  onCreate: (p: { name: string; emoji: string; description: string; weakness?: string; days: number; tasks: { title: string }[] }) => void;
+  onCreate: (p: CreatePayload) => void;
 }) {
+  const { state } = useGame();
+  const lifeAreas = state.lifeAreas || [];
   const [tab, setTab] = useState<'preset' | 'custom'>('preset');
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('👹');
@@ -383,8 +394,24 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
   const [weakness, setWeakness] = useState('');
   const [days, setDays] = useState(21);
   const [tasks, setTasks] = useState<string[]>(['', '', '']);
+  // Personalização emocional
+  const [imageUrl, setImageUrl] = useState('');
+  const [story, setStory] = useState('');
+  const [howItAffectsMe, setHowItAffectsMe] = useState('');
+  const [whyDefeat, setWhyDefeat] = useState('');
+  const [customPhrasesText, setCustomPhrasesText] = useState('');
+  const [areaIds, setAreaIds] = useState<string[]>([]);
+  const [difficulty, setDifficulty] = useState<'Fácil' | 'Normal' | 'Difícil' | 'Brutal'>('Normal');
+  const [mainColor, setMainColor] = useState('#ef4444');
+  const [hpBarColor, setHpBarColor] = useState('#ef4444');
 
-  const reset = () => { setName(''); setEmoji('👹'); setDesc(''); setWeakness(''); setDays(21); setTasks(['', '', '']); };
+  const reset = () => {
+    setName(''); setEmoji('👹'); setDesc(''); setWeakness(''); setDays(21); setTasks(['', '', '']);
+    setImageUrl(''); setStory(''); setHowItAffectsMe(''); setWhyDefeat(''); setCustomPhrasesText('');
+    setAreaIds([]); setDifficulty('Normal'); setMainColor('#ef4444'); setHpBarColor('#ef4444');
+  };
+
+  const toggleArea = (id: string) => setAreaIds(arr => arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
@@ -431,8 +458,64 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
               <Input value={emoji} onChange={e => setEmoji(e.target.value.slice(0, 2))} className="text-center text-xl" />
               <Input placeholder="Nome do boss (ex: O Indeciso)" value={name} onChange={e => setName(e.target.value)} />
             </div>
+            <Input placeholder="URL da imagem (opcional)" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="text-xs" />
             <Textarea placeholder="Como ele te ataca? Quando aparece?" value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="text-xs" />
+            <Textarea placeholder="História / origem deste inimigo (opcional)" value={story} onChange={e => setStory(e.target.value)} rows={2} className="text-xs" />
+            <Textarea
+              placeholder="Como este inimigo influencia minha vida? Ex: Quando procrastino estudos, sinto culpa e atraso meus sonhos…"
+              value={howItAffectsMe} onChange={e => setHowItAffectsMe(e.target.value)} rows={3} className="text-xs"
+            />
+            <Textarea
+              placeholder="Por que quero derrotá-lo? Ex: Quero ser disciplinado, sentir orgulho de mim mesmo…"
+              value={whyDefeat} onChange={e => setWhyDefeat(e.target.value)} rows={3} className="text-xs"
+            />
             <Input placeholder="Fraqueza (opcional)" value={weakness} onChange={e => setWeakness(e.target.value)} className="text-xs" />
+            <Textarea
+              placeholder="Frases personalizadas para a IA usar (uma por linha)"
+              value={customPhrasesText} onChange={e => setCustomPhrasesText(e.target.value)} rows={2} className="text-xs"
+            />
+
+            {/* Áreas afetadas */}
+            <div>
+              <p className="text-xs font-display tracking-wider text-red-300 mb-1">ÁREAS DE VIDA AFETADAS</p>
+              {lifeAreas.length === 0 ? (
+                <p className="text-[11px] text-foreground/50">Crie áreas na aba "Áreas" para conectar evolução pessoal.</p>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {lifeAreas.map(a => {
+                    const on = areaIds.includes(a.id);
+                    return (
+                      <button
+                        key={a.id} type="button" onClick={() => toggleArea(a.id)}
+                        className={`text-[11px] px-2 py-1 rounded border transition ${on ? 'border-primary bg-primary/15' : 'border-border bg-background/40 hover:bg-secondary/40'}`}
+                        style={on ? { borderColor: a.color, background: a.color + '22' } : undefined}
+                      >
+                        <span className="mr-1">{a.icon}</span>{a.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Dificuldade + Cores */}
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="text-[11px] text-foreground/70">Dificuldade</label>
+                <select value={difficulty} onChange={e => setDifficulty(e.target.value as any)} className="w-full h-9 rounded-md border border-border bg-background text-xs px-2">
+                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[11px] text-foreground/70">Cor principal</label>
+                <input type="color" value={mainColor} onChange={e => setMainColor(e.target.value)} className="w-full h-9 rounded-md border border-border bg-background" />
+              </div>
+              <div>
+                <label className="text-[11px] text-foreground/70">Cor HP</label>
+                <input type="color" value={hpBarColor} onChange={e => setHpBarColor(e.target.value)} className="w-full h-9 rounded-md border border-border bg-background" />
+              </div>
+            </div>
+
             <div className="flex items-center gap-3">
               <label className="text-xs text-foreground/70">Dias da batalha:</label>
               <Input type="number" min={7} max={120} value={days} onChange={e => setDays(Math.max(1, parseInt(e.target.value) || 1))} className="w-24 text-center" />
@@ -458,6 +541,13 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
                 name: name.trim(), emoji: emoji || '👹', description: desc.trim() || 'Padrão pessoal.',
                 weakness: weakness.trim() || undefined, days,
                 tasks: tasks.filter(t => t.trim()).map(t => ({ title: t.trim() })),
+                imageUrl: imageUrl.trim() || undefined,
+                story: story.trim() || undefined,
+                howItAffectsMe: howItAffectsMe.trim() || undefined,
+                whyDefeat: whyDefeat.trim() || undefined,
+                customPhrases: customPhrasesText.split('\n').map(s => s.trim()).filter(Boolean),
+                affectedAreaIds: areaIds,
+                difficulty, mainColor, hpBarColor,
               })}
               className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200"
             >
@@ -468,4 +558,5 @@ function CreateBossDialog({ open, onOpenChange, onCreate }: {
       </DialogContent>
     </Dialog>
   );
+
 }
