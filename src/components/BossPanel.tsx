@@ -63,6 +63,7 @@ export default function BossPanel() {
     hpRegained: number; hp: number; maxHp: number;
     reason: 'missed_day' | 'self_betrayal';
     missedDays: number; taskTitle?: string;
+    xpLost?: number; goldLost?: number;
     message: string;
   }>(null);
 
@@ -109,6 +110,8 @@ export default function BossPanel() {
           reason,
           missedDays: b.pendingMockery.missedDays,
           taskTitle: b.pendingMockery.taskTitle,
+          xpLost: b.pendingMockery.xpLost,
+          goldLost: b.pendingMockery.goldLost,
           message: msg,
         });
       } catch (e) {
