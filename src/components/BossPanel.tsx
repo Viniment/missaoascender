@@ -1,37 +1,69 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '@/lib/GameContext';
-import { motion } from 'framer-motion';
-import { Skull, Plus, Trophy, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { getTodayBrasilia } from '@/lib/utils';
 
-const BOSS_TEMPLATES = [
-  { name: 'Procrastinador', emoji: '🕷️', desc: 'O padrão que te faz adiar o que importa.', hp: 100, weakness: 'Pomodoros, missões iniciadas no primeiro impulso.' },
-  { name: 'Crítico Interno', emoji: '👁️', desc: 'A voz que diz "não é bom o suficiente".', hp: 80, weakness: 'Diário, autocompaixão, registrar vitórias.' },
-  { name: 'Cansaço Crônico', emoji: '🦇', desc: 'A névoa que pesa antes mesmo do dia começar.', hp: 120, weakness: 'Sono, água, movimento, sol da manhã.' },
-  { name: 'Comparação', emoji: '🐍', desc: 'Aquele que mede sua vida pela alheia.', hp: 90, weakness: 'Foco no próprio progresso, sair de redes.' },
-  { name: 'Vontade Doce', emoji: '🍩', desc: 'O impulso por açúcar e recompensa fácil.', hp: 70, weakness: 'Água, proteína, pausa de 5 min antes de ceder.' },
+const BOSS_TEMPLATES: Array<{
+  name: string; emoji: string; desc: string; weakness?: string;
+  days: number; tasks: string[];
+}> = [
+  { name: 'O Procrastinador', emoji: '🕷️', desc: 'Adia o que importa com promessas vazias.',
+    weakness: 'Iniciar antes de pensar. Pomodoros curtos.',
+    days: 21, tasks: ['Iniciar a tarefa principal em até 5min após acordar', '1 Pomodoro de 25min sem celular', 'Anotar a próxima ação concreta antes de dormir'] },
+  { name: 'O Sedentário', emoji: '🦥', desc: 'Mantém você grudado na cadeira e no sofá.',
+    weakness: 'Movimento curto, frequente, fora de casa.',
+    days: 30, tasks: ['10min de caminhada', '20 polichinelos', '5min de alongamento', 'Beber 2L de água'] },
+  { name: 'O Sabotador', emoji: '🐍', desc: 'Sussurra "não vai dar certo" antes de cada passo.',
+    weakness: 'Registrar vitórias e reler.',
+    days: 21, tasks: ['Anotar 1 vitória do dia', 'Falar uma frase de identidade em voz alta', 'Reler 1 vitória antiga'] },
+  { name: 'Viciado em Dopamina', emoji: '📱', desc: 'Cobra rolagem, açúcar, notificações.',
+    weakness: 'Atrito + substituição saudável.',
+    days: 30, tasks: ['Sem redes antes do meio-dia', 'Ler 10min em vez de rolar', 'Beber água quando bater vontade', 'Pausa de 5min antes de ceder'] },
+  { name: 'A Ansiedade', emoji: '🌪️', desc: 'Acelera o peito e turva o futuro.',
+    weakness: 'Respiração, corpo, presente.',
+    days: 21, tasks: ['5min de respiração 4-7-8', '5min de caminhada lenta', 'Anotar o pensamento que ataca'] },
+  { name: 'O Mestre das Desculpas', emoji: '🎭', desc: 'Tem uma justificativa pronta pra tudo.',
+    weakness: 'Ação mínima imediata.',
+    days: 21, tasks: ['Fazer a tarefa mínima de 2min', 'Marcar 1 hábito mesmo cansado', 'Anotar a desculpa antes de obedecê-la'] },
 ];
 
 export default function BossPanel() {
-  const { state, addBoss, damageBoss, defeatBoss, removeBoss } = useGame();
+  const {
+    state, addBoss, completeBossTask, uncompleteBossTask,
+    addBossTask, editBossTask, removeBossTask, settleBossesForToday,
+    defeatBoss, removeBoss,
+  } = useGame();
   const bosses = state.bosses || [];
   const active = bosses.filter(b => !b.defeatedAt);
   const defeated = bosses.filter(b => b.defeatedAt);
+  const today = getTodayBrasilia();
   const [open, setOpen] = useState(false);
-  const [customName, setCustomName] = useState('');
-  const [customDesc, setCustomDesc] = useState('');
+  const [hitFx, setHitFx] = useState<Record<string, number>>({});
+
+  useEffect(() => { settleBossesForToday(); }, [settleBossesForToday]);
+
+  const damageFor = (combo: number) => combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+
+  const onComplete = (bossId: string, taskId: string, combo: number) => {
+    completeBossTask(bossId, taskId);
+    setHitFx(s => ({ ...s, [taskId]: damageFor(combo) }));
+    if ('vibrate' in navigator) navigator.vibrate?.(40);
+    setTimeout(() => setHitFx(s => { const n = { ...s }; delete n[taskId]; return n; }), 900);
+  };
 
   return (
     <div className="space-y-5">
       <div className="rpg-panel">
         <div className="flex items-center gap-3 mb-3">
           <Skull className="w-5 h-5 text-red-400" />
-          <div>
+          <div className="min-w-0">
             <h2 className="font-display text-lg tracking-wider text-red-400">BOSS BATTLES</h2>
-            <p className="text-xs text-foreground/60">Padrões reais que você está enfrentando. Cada ação contra eles tira HP.</p>
+            <p className="text-xs text-foreground/60">Cada tarefa cumprida fere o comportamento. Combos multiplicam o dano.</p>
           </div>
           <Button size="sm" onClick={() => setOpen(true)} className="ml-auto bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/40">
             <Plus className="w-3 h-3 mr-1" /> Invocar Boss
@@ -39,107 +71,313 @@ export default function BossPanel() {
         </div>
 
         {active.length === 0 ? (
-          <p className="text-sm text-foreground/60">Nenhum boss ativo. Quando notar um padrão te derrubando, invoque-o aqui pra começar a derrotá-lo conscientemente.</p>
+          <p className="text-sm text-foreground/60">Nenhum boss ativo. Escolha um comportamento que quer eliminar e invoque-o como inimigo externo.</p>
         ) : (
-          <div className="space-y-3">
-            {active.map(b => {
-              const pct = Math.max(0, (b.hp / b.maxHp) * 100);
-              return (
-                <motion.div
-                  key={b.id}
-                  layout
-                  className="p-4 rounded-lg border border-red-500/40 bg-gradient-to-br from-red-950/30 to-background"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="text-3xl">{b.emoji}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-display text-base text-red-300">{b.name}</div>
-                      <p className="text-xs text-foreground/70">{b.description}</p>
-                      {b.weakness && <p className="text-[11px] text-gold mt-1">⚡ Fraqueza: {b.weakness}</p>}
-                    </div>
-                    <button onClick={() => removeBoss(b.id)} className="text-foreground/40 hover:text-red-400">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="relative h-3 bg-background/60 rounded-full overflow-hidden border border-red-500/30">
-                    <motion.div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-600 to-red-400"
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.6 }}
-                    />
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-display text-white drop-shadow">
-                      {b.hp} / {b.maxHp} HP
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 mt-3">
-                    <Button size="sm" variant="ghost" onClick={() => damageBoss(b.id, 5)} className="text-xs border border-red-500/30">Golpe leve −5</Button>
-                    <Button size="sm" variant="ghost" onClick={() => damageBoss(b.id, 15)} className="text-xs border border-red-500/40">Golpe forte −15</Button>
-                    <Button size="sm" variant="ghost" onClick={() => damageBoss(b.id, 35)} className="text-xs border border-red-500/60 text-red-200">Crítico −35</Button>
-                  </div>
-                  {b.hp <= 0 && (
-                    <Button size="sm" onClick={() => defeatBoss(b.id)} className="w-full mt-2 bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40">
-                      <Trophy className="w-4 h-4 mr-1" /> Selar a vitória
-                    </Button>
-                  )}
-                </motion.div>
-              );
-            })}
+          <div className="space-y-4">
+            {active.map(b => (
+              <BossCard
+                key={b.id}
+                boss={b}
+                today={today}
+                hitFx={hitFx}
+                onComplete={(taskId, combo) => onComplete(b.id, taskId, combo)}
+                onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
+                onAddTask={(title) => addBossTask(b.id, title)}
+                onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
+                onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
+                onDefeat={() => defeatBoss(b.id)}
+                onRemove={() => removeBoss(b.id)}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {defeated.length > 0 && (
         <div className="rpg-panel">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
             <Trophy className="w-4 h-4 text-gold" />
-            <h3 className="font-display tracking-wider text-gold">DERROTADOS</h3>
+            <h3 className="font-display tracking-wider text-gold">BOSSES DERROTADOS</h3>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="space-y-2">
             {defeated.map(b => (
-              <div key={b.id} className="px-2 py-1 rounded-md bg-gold/10 border border-gold/30 text-xs flex items-center gap-1">
-                <span>{b.emoji}</span><span className="text-gold">{b.name}</span>
+              <div key={b.id} className="p-3 rounded-lg border border-gold/30 bg-gold/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">{b.emoji}</span>
+                  <span className="font-display text-sm text-gold">{b.name}</span>
+                  <span className="ml-auto text-[11px] text-foreground/50">
+                    {b.defeatedAt ? new Date(b.defeatedAt).toLocaleDateString('pt-BR') : ''}
+                  </span>
+                </div>
+                {b.defeatStats && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-foreground/70 mt-2">
+                    <span>⏱ {b.defeatStats.daysTaken} dias</span>
+                    <span>✅ {b.defeatStats.totalTasksDone} tarefas</span>
+                    <span className="text-primary">+{b.defeatStats.xp} XP</span>
+                    <span className="text-gold">+{b.defeatStats.gold} ouro</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-background border-red-500/40 max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="font-display tracking-wider text-red-400">INVOCAR BOSS</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-xs text-foreground/70">Escolha um padrão clássico ou crie o seu.</p>
-            <div className="grid sm:grid-cols-2 gap-2">
-              {BOSS_TEMPLATES.map(t => (
+      <CreateBossDialog open={open} onOpenChange={setOpen} onCreate={(payload) => { addBoss(payload); setOpen(false); }} />
+    </div>
+  );
+}
+
+// ====== Boss Card ======
+function BossCard({
+  boss, today, hitFx, onComplete, onUncomplete, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove,
+}: {
+  boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
+  today: string;
+  hitFx: Record<string, number>;
+  onComplete: (taskId: string, combo: number) => void;
+  onUncomplete: (taskId: string) => void;
+  onAddTask: (title: string) => void;
+  onEditTask: (taskId: string, title: string) => void;
+  onRemoveTask: (taskId: string) => void;
+  onDefeat: () => void;
+  onRemove: () => void;
+}) {
+  const tasks = boss.tasks || [];
+  const combo = boss.combo || 0;
+  const dmg = combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+  const pct = Math.max(0, (boss.hp / boss.maxHp) * 100);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editVal, setEditVal] = useState('');
+  const [newTask, setNewTask] = useState('');
+  const [showEdit, setShowEdit] = useState(false);
+  const lowHp = pct <= 25;
+
+  return (
+    <motion.div
+      layout
+      className="p-4 rounded-lg border border-red-500/40 bg-gradient-to-br from-red-950/40 via-background to-background relative overflow-hidden"
+      animate={Object.keys(hitFx).length ? { x: [0, -3, 3, -2, 2, 0] } : {}}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="flex items-start gap-3 mb-3">
+        <motion.div
+          className="text-4xl"
+          animate={lowHp ? { scale: [1, 1.05, 1] } : {}}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >{boss.emoji}</motion.div>
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-base text-red-300">{boss.name}</div>
+          <p className="text-xs text-foreground/70">{boss.description}</p>
+          {boss.weakness && <p className="text-[11px] text-gold mt-1">⚡ Fraqueza: {boss.weakness}</p>}
+        </div>
+        <button onClick={onRemove} className="text-foreground/40 hover:text-red-400" title="Remover boss"><X className="w-4 h-4" /></button>
+      </div>
+
+      {/* HP Bar */}
+      <div className="relative h-4 bg-background/70 rounded-full overflow-hidden border border-red-500/40">
+        <motion.div
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-red-500 to-red-400"
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.6 }}
+        />
+        <span className="absolute inset-0 flex items-center justify-center text-[11px] font-display text-white drop-shadow">
+          {boss.hp} / {boss.maxHp} HP
+        </span>
+      </div>
+
+      {/* Combo + Stats */}
+      <div className="grid grid-cols-3 gap-2 mt-3 text-center text-[11px]">
+        <div className="rounded-md bg-orange-500/10 border border-orange-500/30 py-1.5">
+          <div className="flex items-center justify-center gap-1 text-orange-300"><Flame className="w-3 h-3" /> Combo</div>
+          <div className="font-display text-orange-200 text-base">{combo}</div>
+        </div>
+        <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 py-1.5">
+          <div className="flex items-center justify-center gap-1 text-yellow-300"><Zap className="w-3 h-3" /> Dano</div>
+          <div className="font-display text-yellow-100 text-base">{dmg}/tarefa</div>
+        </div>
+        <div className="rounded-md bg-secondary/60 border border-border py-1.5">
+          <div className="text-foreground/60">Plano</div>
+          <div className="font-display text-foreground text-base">{boss.days || '—'}d</div>
+        </div>
+      </div>
+
+      {/* Tarefas do dia */}
+      <div className="mt-4 space-y-1.5">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[11px] font-display tracking-wider text-red-300/80">TAREFAS DE HOJE</p>
+          <button onClick={() => setShowEdit(s => !s)} className="text-[11px] text-foreground/60 hover:text-foreground flex items-center gap-1">
+            <Pencil className="w-3 h-3" /> {showEdit ? 'Pronto' : 'Editar'}
+          </button>
+        </div>
+        <AnimatePresence>
+          {tasks.map(t => {
+            const done = t.doneDates.includes(today);
+            const fx = hitFx[t.id];
+            return (
+              <motion.div
+                key={t.id}
+                layout
+                className={`relative flex items-center gap-2 p-2 rounded-md border ${done ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/20 bg-background/50'}`}
+              >
+                {editingId === t.id ? (
+                  <>
+                    <Input value={editVal} onChange={e => setEditVal(e.target.value)} className="h-7 text-xs" />
+                    <Button size="sm" variant="ghost" onClick={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}>
+                      <Check className="w-3 h-3" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => done ? onUncomplete(t.id) : onComplete(t.id, combo)}
+                      className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${done ? 'bg-emerald-500/30 border-emerald-500 text-emerald-300' : 'border-red-400/50 hover:bg-red-500/10'}`}
+                    >
+                      {done && <Check className="w-3 h-3" />}
+                    </button>
+                    <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>{t.title}</span>
+                    {showEdit && (
+                      <>
+                        <button onClick={() => { setEditingId(t.id); setEditVal(t.title); }} className="text-foreground/50 hover:text-foreground">
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button onClick={() => onRemoveTask(t.id)} className="text-foreground/50 hover:text-red-400">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
+                <AnimatePresence>
+                  {fx && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, y: -20, scale: 1.2 }}
+                      exit={{ opacity: 0, y: -32 }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 font-display text-red-300 text-sm pointer-events-none"
+                    >
+                      -{fx} HP
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+        {showEdit && (
+          <div className="flex gap-2 mt-2">
+            <Input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Nova tarefa diária…" className="h-8 text-xs" />
+            <Button size="sm" variant="ghost" onClick={() => { if (newTask.trim()) { onAddTask(newTask.trim()); setNewTask(''); } }}>
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {boss.hp <= 0 && (
+        <Button onClick={onDefeat} className="w-full mt-3 bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40">
+          <Trophy className="w-4 h-4 mr-1" /> Selar a vitória
+        </Button>
+      )}
+    </motion.div>
+  );
+}
+
+// ====== Create Boss Dialog ======
+function CreateBossDialog({ open, onOpenChange, onCreate }: {
+  open: boolean; onOpenChange: (b: boolean) => void;
+  onCreate: (p: { name: string; emoji: string; description: string; weakness?: string; days: number; tasks: { title: string }[] }) => void;
+}) {
+  const [tab, setTab] = useState<'preset' | 'custom'>('preset');
+  const [name, setName] = useState('');
+  const [emoji, setEmoji] = useState('👹');
+  const [desc, setDesc] = useState('');
+  const [weakness, setWeakness] = useState('');
+  const [days, setDays] = useState(21);
+  const [tasks, setTasks] = useState<string[]>(['', '', '']);
+
+  const reset = () => { setName(''); setEmoji('👹'); setDesc(''); setWeakness(''); setDays(21); setTasks(['', '', '']); };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset(); }}>
+      <DialogContent className="bg-background border-red-500/40 max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display tracking-wider text-red-400">INVOCAR BOSS</DialogTitle>
+        </DialogHeader>
+        <div className="flex gap-2 mb-3 border-b border-border">
+          {(['preset', 'custom'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 text-xs font-display tracking-wider border-b-2 -mb-px ${tab === t ? 'border-red-400 text-red-300' : 'border-transparent text-foreground/50'}`}>
+              {t === 'preset' ? 'PRESETS' : 'CUSTOM'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'preset' ? (
+          <div className="grid sm:grid-cols-2 gap-2">
+            {BOSS_TEMPLATES.map(t => {
+              const hp = t.days * t.tasks.length;
+              return (
                 <button
                   key={t.name}
-                  onClick={() => { addBoss({ name: t.name, emoji: t.emoji, description: t.desc, hp: t.hp, maxHp: t.hp, weakness: t.weakness }); setOpen(false); }}
+                  onClick={() => onCreate({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })) })}
                   className="text-left p-3 rounded-lg border border-red-500/30 bg-red-950/10 hover:bg-red-950/30 transition"
                 >
-                  <div className="text-2xl mb-1">{t.emoji}</div>
-                  <div className="font-display text-sm text-red-300">{t.name}</div>
-                  <div className="text-[11px] text-foreground/60">{t.desc}</div>
-                  <div className="text-[10px] text-gold mt-1">HP {t.hp}</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">{t.emoji}</span>
+                    <span className="font-display text-sm text-red-300">{t.name}</span>
+                  </div>
+                  <p className="text-[11px] text-foreground/60">{t.desc}</p>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {t.tasks.map(tk => (
+                      <span key={tk} className="text-[10px] px-1.5 py-0.5 rounded bg-background/60 border border-border text-foreground/70">{tk}</span>
+                    ))}
+                  </div>
+                  <div className="text-[10px] text-gold mt-2">{t.days} dias × {t.tasks.length} tarefas = {hp} HP</div>
                 </button>
-              ))}
-            </div>
-            <div className="pt-3 border-t border-border space-y-2">
-              <p className="text-xs font-display tracking-wider text-red-300">CUSTOM</p>
-              <Input placeholder="Nome do padrão (ex: Dúvida Paralisante)" value={customName} onChange={e => setCustomName(e.target.value)} />
-              <Textarea placeholder="Como ele te ataca? Quando aparece?" value={customDesc} onChange={e => setCustomDesc(e.target.value)} className="text-xs" rows={2} />
-              <Button
-                disabled={!customName.trim()}
-                onClick={() => { addBoss({ name: customName.trim(), emoji: '👹', description: customDesc.trim() || 'Padrão pessoal.', hp: 100, maxHp: 100 }); setCustomName(''); setCustomDesc(''); setOpen(false); }}
-                className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200"
-              >
-                Invocar
-              </Button>
-            </div>
+              );
+            })}
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-[80px_1fr] gap-2">
+              <Input value={emoji} onChange={e => setEmoji(e.target.value.slice(0, 2))} className="text-center text-xl" />
+              <Input placeholder="Nome do boss (ex: O Indeciso)" value={name} onChange={e => setName(e.target.value)} />
+            </div>
+            <Textarea placeholder="Como ele te ataca? Quando aparece?" value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="text-xs" />
+            <Input placeholder="Fraqueza (opcional)" value={weakness} onChange={e => setWeakness(e.target.value)} className="text-xs" />
+            <div className="flex items-center gap-3">
+              <label className="text-xs text-foreground/70">Dias da batalha:</label>
+              <Input type="number" min={7} max={120} value={days} onChange={e => setDays(Math.max(1, parseInt(e.target.value) || 1))} className="w-24 text-center" />
+              <span className="text-[11px] text-foreground/50">HP = {days} × {tasks.filter(t => t.trim()).length || 1} = <strong className="text-red-300">{days * (tasks.filter(t => t.trim()).length || 1)}</strong></span>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-display tracking-wider text-red-300">TAREFAS DIÁRIAS</p>
+                <Button size="sm" variant="ghost" onClick={() => setTasks(t => [...t, ''])} className="text-xs"><Plus className="w-3 h-3 mr-1" />Adicionar</Button>
+              </div>
+              <div className="space-y-1.5">
+                {tasks.map((t, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input value={t} onChange={e => setTasks(arr => arr.map((x, j) => j === i ? e.target.value : x))} placeholder={`Tarefa ${i + 1}`} className="text-xs" />
+                    <Button size="sm" variant="ghost" onClick={() => setTasks(arr => arr.filter((_, j) => j !== i))}><X className="w-3 h-3" /></Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Button
+              disabled={!name.trim() || tasks.filter(t => t.trim()).length === 0}
+              onClick={() => onCreate({
+                name: name.trim(), emoji: emoji || '👹', description: desc.trim() || 'Padrão pessoal.',
+                weakness: weakness.trim() || undefined, days,
+                tasks: tasks.filter(t => t.trim()).map(t => ({ title: t.trim() })),
+              })}
+              className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200"
+            >
+              Invocar Boss
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
