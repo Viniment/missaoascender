@@ -508,9 +508,9 @@ function BossCard({
   boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
   today: string;
   hitFx: Record<string, number>;
-  onComplete: (taskId: string, combo: number) => void;
-  onUncomplete: (taskId: string) => void;
-  onFail: (taskId: string) => void;
+  onComplete: (taskId: string, combo: number, date: string) => void;
+  onUncomplete: (taskId: string, date: string) => void;
+  onFail: (taskId: string, date: string) => void;
   onAddTask: (title: string) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
