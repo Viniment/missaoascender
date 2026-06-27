@@ -1824,6 +1824,20 @@ export function useGameStore() {
     }));
   }, []);
 
+  const setJournalAiCache = useCallback((date: string, patch: { prompts?: unknown; exercise?: unknown }) => {
+    setState(prev => {
+      const cur = prev.journalAiCache && prev.journalAiCache.date === date ? prev.journalAiCache : { date };
+      return {
+        ...prev,
+        journalAiCache: {
+          date,
+          prompts: patch.prompts !== undefined ? patch.prompts : cur.prompts,
+          exercise: patch.exercise !== undefined ? patch.exercise : cur.exercise,
+        },
+      };
+    });
+  }, []);
+
   // === Mentor Interno: chat conversations ===
   const createMentorConversation = useCallback((firstMessage?: string): string => {
     const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
