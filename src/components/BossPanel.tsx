@@ -261,10 +261,14 @@ function BossCard({
       {/* HP Bar */}
       <div className="relative h-4 bg-background/70 rounded-full overflow-hidden border border-red-500/40">
         <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-red-500 to-red-400"
+          className="absolute inset-y-0 left-0"
+          style={boss.hpBarColor ? { background: boss.hpBarColor } : undefined}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.6 }}
-        />
+        >
+          {!boss.hpBarColor && <div className="h-full bg-gradient-to-r from-red-700 via-red-500 to-red-400" />}
+        </motion.div>
+
         <span className="absolute inset-0 flex items-center justify-center text-[11px] font-display text-white drop-shadow">
           {boss.hp} / {boss.maxHp} HP
         </span>
