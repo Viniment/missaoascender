@@ -1,12 +1,13 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, Brain, Activity, Skull, Backpack, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, Brain, Activity, Skull, Backpack, Heart, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'mirror' | 'counsel' | 'journal'
   | 'timer' | 'awakening' | 'trataka'
   | 'mentor' | 'cbt'
-  | 'attributes' | 'dungeon' | 'bosses' | 'inventory'
+  | 'attributes' | 'areas' | 'dungeon' | 'bosses' | 'inventory'
   | 'rewards';
+
 
 export interface TabDef {
   id: TabId;
