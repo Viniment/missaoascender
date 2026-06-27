@@ -352,6 +352,12 @@ export interface PlayerState {
   innerEnemy?: InnerEnemy;
   // Progresso da Forja de Identidade (entrevista brutal) persistido no banco
   alterEgoForge?: { answers: Record<string, string>; qIdx: number };
+  // Cache diário de gerações de IA do Diário (perguntas + exercício), persistido no banco
+  journalAiCache?: {
+    date: string;
+    prompts?: unknown;
+    exercise?: unknown;
+  };
   // === Mentor Interno (chat IA) ===
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
@@ -1818,6 +1824,20 @@ export function useGameStore() {
     }));
   }, []);
 
+  const setJournalAiCache = useCallback((date: string, patch: { prompts?: unknown; exercise?: unknown }) => {
+    setState(prev => {
+      const cur = prev.journalAiCache && prev.journalAiCache.date === date ? prev.journalAiCache : { date };
+      return {
+        ...prev,
+        journalAiCache: {
+          date,
+          prompts: patch.prompts !== undefined ? patch.prompts : cur.prompts,
+          exercise: patch.exercise !== undefined ? patch.exercise : cur.exercise,
+        },
+      };
+    });
+  }, []);
+
   // === Mentor Interno: chat conversations ===
   const createMentorConversation = useCallback((firstMessage?: string): string => {
     const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
@@ -2732,6 +2752,7 @@ export function useGameStore() {
     updateInnerEnemy,
     completeIdentityOnboarding,
     setAlterEgoForge,
+    setJournalAiCache,
     createMentorConversation,
     appendMentorMessage,
     deleteMentorConversation,

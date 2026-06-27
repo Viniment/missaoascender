@@ -29,7 +29,7 @@ interface JournalPromptsResult { mode: 'orgulho' | 'reconexao' | 'neutro'; detec
 interface JournalExercise { title: string; description: string; steps: string[]; purpose: string; }
 
 export default function JournalPanel() {
-  const { state, addJournalEntry, updateJournalEntry, deleteJournalEntry } = useGame();
+  const { state, addJournalEntry, updateJournalEntry, deleteJournalEntry, setJournalAiCache } = useGame();
   const isMobile = useIsMobile();
 
   const [title, setTitle] = useState('');
@@ -53,23 +53,13 @@ export default function JournalPanel() {
 
   // IA — perguntas + exercício do dia
   const today = getTodayBrasilia();
-  const promptsKey = `journal-prompts-${today}`;
-  const exerciseKey = `journal-exercise-${today}`;
-  const [prompts, setPrompts] = useState<JournalPromptsResult | null>(() => {
-    try { const raw = localStorage.getItem(promptsKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
-  });
-  const [exercise, setExercise] = useState<JournalExercise | null>(() => {
-    try { const raw = localStorage.getItem(exerciseKey); return raw ? JSON.parse(raw) : null; } catch { return null; }
-  });
+  const cache = state.journalAiCache && state.journalAiCache.date === today ? state.journalAiCache : null;
+  const prompts = (cache?.prompts as JournalPromptsResult | undefined) ?? null;
+  const exercise = (cache?.exercise as JournalExercise | undefined) ?? null;
+  const setPrompts = (p: JournalPromptsResult | null) => setJournalAiCache(today, { prompts: p ?? undefined });
+  const setExercise = (e: JournalExercise | null) => setJournalAiCache(today, { exercise: e ?? undefined });
   const [loadingPrompts, setLoadingPrompts] = useState(false);
   const [loadingExercise, setLoadingExercise] = useState(false);
-
-  useEffect(() => {
-    if (prompts) try { localStorage.setItem(promptsKey, JSON.stringify(prompts)); } catch {}
-  }, [prompts, promptsKey]);
-  useEffect(() => {
-    if (exercise) try { localStorage.setItem(exerciseKey, JSON.stringify(exercise)); } catch {}
-  }, [exercise, exerciseKey]);
 
   const fetchPrompts = async () => {
     if (loadingPrompts) return;
