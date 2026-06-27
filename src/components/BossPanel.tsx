@@ -390,6 +390,115 @@ function StrikeOverlay({
   );
 }
 
+// ====== Centered Mockery Overlay (voz do inimigo) ======
+function MockeryOverlay({
+  mockery, onClose,
+}: {
+  mockery: null | {
+    bossName: string; bossEmoji: string; mainColor?: string;
+    hpRegained: number; hp: number; maxHp: number;
+    reason: 'missed_day' | 'self_betrayal';
+    missedDays: number; taskTitle?: string;
+    message: string;
+  };
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!mockery) return;
+    const t = setTimeout(onClose, 9000);
+    return () => clearTimeout(t);
+  }, [mockery, onClose]);
+
+  const border = mockery?.mainColor || 'rgba(239,68,68,0.7)';
+
+  return (
+    <AnimatePresence>
+      {mockery && (
+        <motion.div
+          key="mockery"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          onClick={onClose}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0, x: [0, -4, 4, -3, 3, 0] }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ borderColor: border }}
+            className="relative w-[min(94vw,520px)] text-center rounded-2xl border-2 bg-gradient-to-br from-red-950/90 via-background to-red-950/60 px-6 py-6 shadow-[0_0_70px_-10px_rgba(239,68,68,0.6)] overflow-hidden"
+          >
+            <motion.div
+              aria-hidden
+              initial={{ opacity: 0.7, scale: 0.4 }}
+              animate={{ opacity: 0, scale: 1.9 }}
+              transition={{ duration: 1.3, ease: 'easeOut' }}
+              className="absolute inset-0 rounded-2xl bg-red-600/30 blur-3xl pointer-events-none"
+            />
+
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Skull className="w-4 h-4 text-red-400" />
+                <span className="font-display text-[11px] tracking-[0.3em] text-red-400">
+                  {mockery.reason === 'self_betrayal' ? 'AUTOTRAIÇÃO' : 'O INIMIGO RIU'}
+                </span>
+                <Skull className="w-4 h-4 text-red-400" />
+              </div>
+
+              <motion.div
+                initial={{ scale: 0.5, rotate: -10, opacity: 0 }}
+                animate={{ scale: [0.5, 1.35, 1], rotate: [-10, 8, 0], opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="text-6xl mb-2 drop-shadow-[0_0_18px_rgba(239,68,68,0.8)]"
+              >
+                {mockery.bossEmoji}
+              </motion.div>
+              <div className="font-display text-base text-red-200 mb-3 tracking-wide">
+                {mockery.bossName.toUpperCase()}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <motion.div
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}
+                  className="rounded-lg border border-red-500/60 bg-red-500/15 py-2"
+                >
+                  <div className="text-[10px] tracking-widest text-red-300/90">HP RECUPERADO</div>
+                  <div className="font-display text-xl text-red-200">+{mockery.hpRegained}</div>
+                </motion.div>
+                <motion.div
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.22 }}
+                  className="rounded-lg border border-red-500/40 bg-background/40 py-2"
+                >
+                  <div className="text-[10px] tracking-widest text-red-300/80">HP DO INIMIGO</div>
+                  <div className="font-display text-xl text-red-200">{mockery.hp}/{mockery.maxHp}</div>
+                </motion.div>
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                className="mt-3 pt-3 border-t border-red-500/30 text-[15px] text-red-50 leading-relaxed italic"
+              >
+                <ReactMarkdown>{mockery.message}</ReactMarkdown>
+              </motion.div>
+
+              <button
+                onClick={onClose}
+                className="mt-4 text-[10px] tracking-widest text-red-300/70 hover:text-red-200"
+              >
+                EU NÃO SOU ISSO — CONTINUAR
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 // ====== Boss Card ======
 function BossCard({
   boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
