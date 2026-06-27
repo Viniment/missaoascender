@@ -352,6 +352,12 @@ export interface PlayerState {
   innerEnemy?: InnerEnemy;
   // Progresso da Forja de Identidade (entrevista brutal) persistido no banco
   alterEgoForge?: { answers: Record<string, string>; qIdx: number };
+  // Cache diário de gerações de IA do Diário (perguntas + exercício), persistido no banco
+  journalAiCache?: {
+    date: string;
+    prompts?: unknown;
+    exercise?: unknown;
+  };
   // === Mentor Interno (chat IA) ===
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
