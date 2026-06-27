@@ -406,7 +406,19 @@ export interface BossBattle {
   bestCombo?: number;
   lastSettledDate?: string;  // último dia processado (regen/combo)
   defeatStats?: DefeatedBossSummary;
+  // === Personalização emocional ===
+  imageUrl?: string;
+  story?: string;
+  affectedAreaIds?: string[];
+  howItAffectsMe?: string;
+  whyDefeat?: string;
+  customPhrases?: string[];
+  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+  mainColor?: string;
+  hpBarColor?: string;
+  reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
 }
+
 
 
 export interface DungeonChallengeState {
