@@ -36,18 +36,26 @@ const BRUTAL_QUESTIONS: { key: string; label: string; placeholder: string }[] = 
 type Mode = 'intro' | 'interview' | 'forging' | 'review' | 'manual' | 'done';
 
 export default function IdentityOnboarding({ open, onClose }: Props) {
-  const { state, updateAlterEgo, completeIdentityOnboarding } = useGame();
+  const { state, updateAlterEgo, completeIdentityOnboarding, setAlterEgoForge } = useGame();
   const [mode, setMode] = useState<Mode>('intro');
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [forging, setForging] = useState(false);
+
+  const qIdx = state.alterEgoForge?.qIdx ?? 0;
+  const answers = state.alterEgoForge?.answers ?? {};
+  const setQIdx = (updater: number | ((i: number) => number)) => {
+    const next = typeof updater === 'function' ? updater(qIdx) : updater;
+    setAlterEgoForge({ qIdx: next });
+  };
+  const setAnswers = (updater: (a: Record<string, string>) => Record<string, string>) => {
+    setAlterEgoForge({ answers: updater(answers) });
+  };
 
   const ae = state.alterEgo ?? { name: '', values: [], lifeMission: '', identityPhrase: '', habits: [], goals: [], favoritePhrases: [], completed: false };
 
   const toggleInArray = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
 
-  const reset = () => { setMode('intro'); setQIdx(0); };
+  const reset = () => { setMode('intro'); };
 
   const finish = () => {
     completeIdentityOnboarding();
