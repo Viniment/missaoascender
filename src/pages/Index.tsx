@@ -12,7 +12,6 @@ import AchievementsPanel from '@/components/AchievementsPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
-import CbtImmersionPanel from '@/components/CbtImmersionPanel';
 import TratakaPanel from '@/components/TratakaPanel';
 import LifeAreasPanel from '@/components/LifeAreasPanel';
 import DungeonPanel from '@/components/DungeonPanel';
