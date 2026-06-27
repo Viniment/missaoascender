@@ -1804,6 +1804,17 @@ export function useGameStore() {
       ...prev,
       alterEgo: { ...defaultAlterEgo, ...(prev.alterEgo || {}), completed: true },
       innerEnemy: { ...defaultInnerEnemy, ...(prev.innerEnemy || {}), completed: true },
+      alterEgoForge: undefined,
+    }));
+  }, []);
+
+  const setAlterEgoForge = useCallback((patch: Partial<{ answers: Record<string, string>; qIdx: number }>) => {
+    setState(prev => ({
+      ...prev,
+      alterEgoForge: {
+        answers: patch.answers ?? prev.alterEgoForge?.answers ?? {},
+        qIdx: patch.qIdx ?? prev.alterEgoForge?.qIdx ?? 0,
+      },
     }));
   }, []);
 
