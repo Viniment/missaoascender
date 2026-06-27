@@ -52,9 +52,9 @@ serve(async (req) => {
 
     const motivo = context?.boss?.motivo || 'missed_day';
     const cenario = motivo === 'self_betrayal'
-      ? `O jogador acabou de marcar uma tarefa como FALHADA HOJE (autotraição declarada). Tarefa: "${context?.boss?.tarefaFalhada || 'tarefa do dia'}". Comece com algo no espírito de "Ah ah ah… mais uma vez fiz você desistir" — mas com a SUA voz de personagem, sem clichê.`
-      : `O jogador SUMIU em ${context?.boss?.diasFalhados ?? 1} dia(s) — ignorou as tarefas e você ganhou força de volta. Faça-o sentir o peso de cada dia desses.`;
-    const userPrompt = `${cenario}\n\nDados do boss + jogador:\n${JSON.stringify(context, null, 2)}\n\nResponda SOMENTE com a fala final do boss (2–4 frases), sem prefixo, sem aspas, sem cabeçalho.`;
+      ? `O jogador acabou de DECLARAR uma falha AGORA, no exato momento. Ele escolheu ceder a você de novo. Mostre que essa escolha alimenta exatamente o que ele jura querer destruir. Seja específico ao padrão (use a descrição do boss e o "como me afeta"), sem citar a tarefa entre aspas.`
+      : `O jogador SUMIU por ${context?.boss?.diasFalhados ?? 1} dia(s). Você cresceu enquanto ele dormia, rolava feed, adiava. Encarne o estrago: nomeie um sonho/área dele e mostre o que VOCÊ levou nesses dias.`;
+    const userPrompt = `${cenario}\n\nUse os dados abaixo para PERSONIFICAR o inimigo e tocar na vida real do jogador (sonhos, valores, alter ego, áreas afetadas). Lembre: SEM ASPAS, sem clichê, sem mencionar mecânica.\n\n${JSON.stringify(context, null, 2)}\n\nResponda SOMENTE com a fala final do inimigo (2–4 frases), em primeira pessoa, sem prefixo, sem aspas, sem cabeçalho.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
