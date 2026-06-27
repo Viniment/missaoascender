@@ -180,6 +180,12 @@ export default function BossPanel() {
     if (task) askReinforcement(boss, task.title, { dmg, xp, gold, hp: newHp, combo: newCombo });
   };
 
+  const onCompleteAt = (boss: typeof bosses[number], taskId: string, combo: number, date: string) => {
+    if (date === today) return onComplete(boss, taskId, combo);
+    // Retroativo: apenas marca, sem FX/IA
+    completeBossTask(boss.id, taskId, date);
+  };
+
 
   return (
     <div className="space-y-5">
@@ -205,9 +211,9 @@ export default function BossPanel() {
                   boss={b}
                   today={today}
                   hitFx={hitFx}
-                  onComplete={(taskId, combo) => onComplete(b, taskId, combo)}
-                  onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
-                  onFail={(taskId) => failBossTask(b.id, taskId)}
+                  onComplete={(taskId, combo, date) => onCompleteAt(b, taskId, combo, date)}
+                  onUncomplete={(taskId, date) => uncompleteBossTask(b.id, taskId, date)}
+                  onFail={(taskId, date) => failBossTask(b.id, taskId, date)}
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
