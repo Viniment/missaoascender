@@ -65,7 +65,6 @@ export default function Index() {
       case 'awakening': return <AwakeningPage />;
       case 'trataka': return <TratakaPanel />;
       case 'mentor': return <MentorChatPanel />;
-      case 'cbt': return <CbtImmersionPanel />;
       case 'areas': return <LifeAreasPanel />;
 
       case 'dungeon': return <DungeonPanel />;
