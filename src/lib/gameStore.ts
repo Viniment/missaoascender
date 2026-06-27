@@ -2752,6 +2752,7 @@ export function useGameStore() {
     updateInnerEnemy,
     completeIdentityOnboarding,
     setAlterEgoForge,
+    setJournalAiCache,
     createMentorConversation,
     appendMentorMessage,
     deleteMentorConversation,
