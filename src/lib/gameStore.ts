@@ -369,7 +369,10 @@ export interface PlayerState {
   inventory?: LootItem[];
   activeBuffs?: ActiveBuff[];
   redemptionQuests?: RedemptionQuest[];
+  // === Áreas de Vida ===
+  lifeAreas?: LifeArea[];
 }
+
 
 export interface BossTask {
   id: string;
