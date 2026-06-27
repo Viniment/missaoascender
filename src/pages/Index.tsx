@@ -17,6 +17,8 @@ import TratakaPanel from '@/components/TratakaPanel';
 import AttributesPanel from '@/components/AttributesPanel';
 import DungeonPanel from '@/components/DungeonPanel';
 import BossPanel from '@/components/BossPanel';
+import CurrentBossCard from '@/components/CurrentBossCard';
+
 import InventoryPanel from '@/components/InventoryPanel';
 import LevelUpOverlay from '@/components/LevelUpOverlay';
 import RedemptionQuestDialog from '@/components/RedemptionQuestDialog';
