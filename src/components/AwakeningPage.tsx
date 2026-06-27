@@ -19,6 +19,12 @@ interface AwakeningQuestion {
 interface AwakeningResponse {
   detectedState?: string;
   intensity?: 'leve' | 'medio' | 'brutal';
+  strategyMode?: 'expor' | 'reconstruir' | 'reforcar' | 'recurso' | 'confrontar';
+  monsterRead?: string;
+  revealedAttacks?: Array<{ pattern: string; evidence: string; howItFeeds: string }>;
+  twoPaths?: { pathFeedsMonster?: string; pathFeedsIdentity?: string };
+  resourceState?: { message?: string; evidences?: string[] } | null;
+  microChallenge?: string;
   checkIn?: string;
   alterEgoEmergence?: string;
   futureGlimpse?: string;
@@ -32,6 +38,7 @@ interface AwakeningResponse {
   identityAnchor?: string;
   alterEgoName?: string;
   currentSelfName?: string;
+  bossName?: string;
 }
 
 const ZONE_META: Record<string, { emoji: string; label: string }> = {
@@ -39,6 +46,14 @@ const ZONE_META: Record<string, { emoji: string; label: string }> = {
   identidade: { emoji: '⚡', label: 'Identidade' },
   futuro: { emoji: '🌅', label: 'Futuro' },
   reenquadramento: { emoji: '🪞', label: 'Reenquadramento' },
+};
+
+const STRATEGY_META: Record<string, { emoji: string; label: string }> = {
+  expor:        { emoji: '🔦', label: 'Expor padrões' },
+  reconstruir:  { emoji: '🧱', label: 'Reconstruir' },
+  reforcar:     { emoji: '⚡', label: 'Reforçar identidade' },
+  recurso:      { emoji: '🌿', label: 'Estado de recurso' },
+  confrontar:   { emoji: '🪞', label: 'Confronto respeitoso' },
 };
 
 export default function AwakeningPage() {
@@ -58,9 +73,11 @@ export default function AwakeningPage() {
     const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE COM AMOR' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO GENTIL';
     const ae = r.alterEgoName || 'seu Alter Ego';
     const cs = r.currentSelfName || 'Eu Atual';
+    const bn = r.bossName || 'Monstro';
+    const sm = r.strategyMode && STRATEGY_META[r.strategyMode] ? STRATEGY_META[r.strategyMode] : null;
     const parts: string[] = [
       `<h3>🌅 Despertar — ${r.detectedState || ae}</h3>`,
-      `<p><em>${dateStr} · ${intensityLabel} · ${ae} guiando</em></p>`,
+      `<p><em>${dateStr} · ${intensityLabel}${sm ? ` · ${sm.emoji} ${sm.label}` : ''} · ${ae} guiando</em></p>`,
       `<hr/>`,
     ];
 
@@ -71,10 +88,56 @@ export default function AwakeningPage() {
     };
 
     block('🤍', `Como você está hoje`, r.checkIn);
+
+    // Leitura do Monstro
+    if (r.monsterRead && r.monsterRead.trim()) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>👁️ Leitura do ${bn} agora</h4>`);
+      parts.push(`<p>${r.monsterRead.replace(/\n/g, '<br/>')}</p>`);
+    }
+
+    // Ataques revelados
+    if (r.revealedAttacks && r.revealedAttacks.length > 0) {
+      parts.push(`<h4>⚔️ Ataques recentes do ${bn}</h4>`);
+      parts.push(`<ul>`);
+      r.revealedAttacks.forEach(a => {
+        parts.push(
+          `<li><strong>${a.pattern}</strong>` +
+          (a.evidence ? `<br/><em>Evidência:</em> ${a.evidence}` : '') +
+          (a.howItFeeds ? `<br/><em>Como alimenta o ${bn}:</em> ${a.howItFeeds}` : '') +
+          `</li>`
+        );
+      });
+      parts.push(`</ul>`);
+    }
+
     block('⚡', `Onde o ${ae} já está vivo`, r.alterEgoEmergence);
     block('🌅', `Vislumbre do futuro próximo`, r.futureGlimpse);
     block('🌱', `Um padrão do ${cs} para olhar com carinho`, r.currentSelfPattern);
     block('💜', `A verdade do ${ae}`, r.alterEgoTruth);
+
+    // Dois caminhos
+    if (r.twoPaths && (r.twoPaths.pathFeedsMonster || r.twoPaths.pathFeedsIdentity)) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>🛤️ Dois caminhos hoje</h4>`);
+      if (r.twoPaths.pathFeedsMonster) {
+        parts.push(`<p><strong>↳ Caminho que alimenta o ${bn}:</strong> ${r.twoPaths.pathFeedsMonster}</p>`);
+      }
+      if (r.twoPaths.pathFeedsIdentity) {
+        parts.push(`<p><strong>↳ Caminho que fortalece o ${ae}:</strong> ${r.twoPaths.pathFeedsIdentity}</p>`);
+      }
+    }
+
+    // Estado de recurso
+    if (r.resourceState && (r.resourceState.message || (r.resourceState.evidences && r.resourceState.evidences.length))) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>🌿 Estado de recurso</h4>`);
+      if (r.resourceState.message) parts.push(`<p>${r.resourceState.message}</p>`);
+      if (r.resourceState.evidences && r.resourceState.evidences.length > 0) {
+        parts.push(`<p><em>Evidências reais da sua força:</em></p>`);
+        parts.push(`<ul>${r.resourceState.evidences.map(e => `<li>${e}</li>`).join('')}</ul>`);
+      }
+    }
 
     if (r.internalDialogue && (r.internalDialogue.currentSelfSays || r.internalDialogue.alterEgoReplies)) {
       parts.push(`<hr/>`);
@@ -90,6 +153,13 @@ export default function AwakeningPage() {
     if (r.reframe) {
       parts.push(`<hr/>`);
       block('🪞', `Reenquadramento do ${ae}`, r.reframe);
+    }
+
+    // Microdesafio
+    if (r.microChallenge && r.microChallenge.trim()) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>🎯 Microdesafio para enfraquecer o ${bn}</h4>`);
+      parts.push(`<blockquote><p>${r.microChallenge}</p></blockquote>`);
     }
 
     if (r.questions && r.questions.length > 0) {
@@ -139,6 +209,35 @@ export default function AwakeningPage() {
     setLoadingAI(true);
     try {
       const ctx = buildAiContext(state);
+
+      // Pega o Boss ativo (não derrotado) com maior HP — o mais "presente" agora.
+      const activeBossRaw = (state.bosses || [])
+        .filter(b => !b.defeatedAt && b.hp > 0)
+        .sort((a, b) => b.hp - a.hp)[0];
+
+      const activeBoss = activeBossRaw ? {
+        id: activeBossRaw.id,
+        name: activeBossRaw.name,
+        emoji: activeBossRaw.emoji,
+        description: activeBossRaw.description,
+        weakness: activeBossRaw.weakness,
+        hp: activeBossRaw.hp,
+        maxHp: activeBossRaw.maxHp,
+        combo: activeBossRaw.combo,
+        bestCombo: activeBossRaw.bestCombo,
+        difficulty: activeBossRaw.difficulty,
+        story: activeBossRaw.story,
+        howItAffectsMe: activeBossRaw.howItAffectsMe,
+        whyDefeat: activeBossRaw.whyDefeat,
+        customPhrases: activeBossRaw.customPhrases,
+        affectedAreas: (activeBossRaw.affectedAreaIds || [])
+          .map(id => state.lifeAreas?.find(a => a.id === id)?.name)
+          .filter(Boolean),
+        tasks: (activeBossRaw.tasks || []).map(t => ({ title: t.title, doneDates: t.doneDates })),
+        reinforcementHistory: (activeBossRaw.reinforcementHistory || []).slice(-5),
+        mockeryHistory: (activeBossRaw.mockeryHistory || []).slice(-5),
+      } : null;
+
       const { data, error } = await supabase.functions.invoke('awakening-questions', {
         body: {
           journal: ctx.recentJournal.slice(0, 3),
@@ -153,6 +252,7 @@ export default function AwakeningPage() {
           punishments: (state.failureProtocols || []).map(p => ({ status: p.status, reason: p.reason })),
           aiSettings: state.aiSettings,
           context: ctx,
+          activeBoss,
         },
       });
       if (error) throw error;
