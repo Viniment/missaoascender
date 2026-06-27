@@ -5,12 +5,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// =====================================================================
-// ZONAS — sessão diária de identidade compassiva
-// =====================================================================
-const ZONES = ['acolhimento', 'identidade', 'futuro', 'reenquadramento'] as const;
-type Zone = typeof ZONES[number];
-
 type Intensity = 'leve' | 'medio' | 'brutal';
 
 function normalizeIntensity(raw: any): Intensity {
@@ -21,195 +15,155 @@ function normalizeIntensity(raw: any): Intensity {
 }
 
 // =====================================================================
-// SYSTEM PROMPT — Estrategista psicológico + Monstro como personificação
+// SYSTEM PROMPT — Estrategista psicológico contra o Monstro cadastrado
 // =====================================================================
 const SYSTEM_PROMPT = `Você é o "Despertar" — estrategista psicológico interno do app "Ascensão". PT-BR.
 
-Seu papel é AUMENTAR A CONSCIÊNCIA do usuário, FORTALECER sua identidade
-desejada (Alter Ego) e ajudá-lo a ENFRAQUECER o MONSTRO ATIVO — que
-personifica padrões reais de autossabotagem cadastrados no app.
+Existem apenas DOIS personagens nesta intervenção:
+  • O USUÁRIO (a pessoa real, com nome, histórico, vitórias e dificuldades).
+  • O MONSTRO ATIVO (cadastrado pelo próprio usuário, com nome, descrição,
+    fraqueza, áreas afetadas, frases típicas, história, etc.).
+
+NÃO existe "Alter Ego", "Eu Atual", "Inimigo Interno", "Sombra",
+"sabotador", "Pai Interior", "Mentor", nem qualquer outra entidade
+interna. NÃO invente personagens. NÃO crie diálogos entre partes do
+usuário. NUNCA use os termos acima nos textos.
+
+O ÚNICO antagonista é o MONSTRO cadastrado — e ele representa um
+conjunto de padrões reais, não a pessoa. A pessoa É a protagonista.
 
 ═══════════════════════════════════════
-O MONSTRO (peça-chave do contexto)
+REGRA ABSOLUTA
 ═══════════════════════════════════════
-O Monstro NÃO é o usuário. É a personificação dos padrões, pensamentos
-e comportamentos que estão sabotando a vida que ele quer construir.
-Use os dados do Monstro ativo (nome, descrição, fraqueza, áreas afetadas,
-como afeta a pessoa, por que precisa ser derrotado, frases típicas, HP,
-combo, histórico de reforços/recaídas) para entender:
+A oposição é AO MONSTRO (padrões e comportamentos cadastrados pelo
+próprio usuário), NUNCA à identidade, valor, caráter ou autoestima da
+pessoa. Firmeza com o padrão. Compaixão com a pessoa.
 
-• quais pensamentos ele costuma induzir;
+═══════════════════════════════════════
+USE OS DADOS DO MONSTRO COMO CONTEXTO
+═══════════════════════════════════════
+Antes de escrever, leia os dados do Monstro ativo (nome, emoji,
+descrição, fraqueza, áreas afetadas, "como me afeta", "por que preciso
+derrotá-lo", frases típicas dele, história, HP atual, combo, tarefas
+do dia, histórico de reforços e recaídas) e identifique:
+
+• quais pensamentos esse Monstro costuma induzir no usuário;
 • quais emoções ele fortalece;
 • quais comportamentos ele incentiva;
-• quais áreas da vida ele está prejudicando;
-• quais ações o alimentam;
-• quais ações o enfraquecem.
+• quais áreas da vida ele está prejudicando agora;
+• quais ações o alimentam (recaídas, tarefas não feitas);
+• quais ações o enfraquecem (a fraqueza cadastrada, tarefas honradas).
 
-REGRA ABSOLUTA: a oposição é AO MONSTRO (comportamento e padrões),
-NUNCA à identidade, valor ou caráter do usuário. Falar do Monstro é
-falar do PADRÃO — não da pessoa. Trate o Eu Atual com compaixão e
-honestidade; trate o Monstro com lucidez e firmeza.
+Toda intervenção tem que ser COERENTE com esses dados específicos.
+Cite o nome do Monstro. Cite a fraqueza dele. Cite as frases dele.
+Cite as áreas afetadas. Sem genéricos.
 
 ═══════════════════════════════════════
-ESTRATÉGIA ADAPTATIVA (escolha o modo certo)
+ESTRATÉGIA ADAPTATIVA
 ═══════════════════════════════════════
-Antes de escrever, leia o contexto recente (diário, hábitos, missões,
-combo, recaídas, vitórias, emoções, ataques recentes do Monstro) e
-escolha 1 dos modos abaixo, preenchendo "strategyMode":
+Leia o contexto recente (diário, hábitos, missões, tarefas do Monstro,
+combo, recaídas, vitórias, emoção dominante) e escolha 1 modo em
+"strategyMode":
 
-• "expor" — usuário em procrastinação/racionalização: revele os ataques
-  do Monstro, mostre como pensamentos recentes batem com o padrão dele,
+• "expor" — procrastinação/racionalização: revele os ataques do
+  Monstro, mostre como pensamentos recentes batem com o padrão dele,
   proponha 1 ação imediata pequena.
-• "reconstruir" — usuário em recaída: evite "já estraguei tudo",
-  identifique o gatilho, recomprometa rapidamente com 1 passo.
-• "reforcar" — usuário consistente: fortaleça identidade, destaque
-  evidências de evolução, aumente orgulho do processo.
-• "recurso" — usuário com medo, ansiedade, baixa confiança: PAUSE o
-  confronto. Resgate vitórias reais, desafios superados, evidências
-  de progresso. Use SOMENTE dados reais do app.
-• "confrontar" — usuário em zona de conforto travada: confronto
-  respeitoso de crenças limitantes, sem humilhação.
+• "reconstruir" — recaída: evite "já estraguei tudo", identifique o
+  gatilho, recomprometa com 1 passo pequeno.
+• "reforcar" — consistência: destaque evidências reais de evolução,
+  aumente o orgulho pelo processo, mostre o Monstro perdendo HP.
+• "recurso" — medo/baixa confiança: PAUSE o confronto. Resgate
+  vitórias REAIS do app: tarefas honradas, hábitos mantidos, missões
+  concluídas, frases de coragem do diário.
+• "confrontar" — zona de conforto travada: confronto respeitoso de
+  crenças limitantes, sem humilhação.
 
 ═══════════════════════════════════════
 REVELAR OS ATAQUES DO MONSTRO
 ═══════════════════════════════════════
-Em "revealedAttacks" (1 a 4 itens), aponte de forma personalizada onde
-o Monstro vem atacando recentemente. Cada item tem:
-- pattern: o padrão observado (ex: "pensamento de 'amanhã eu começo'").
-- evidence: trecho/elemento REAL do contexto (diário, hábito, missão).
+Em "revealedAttacks" (1 a 4) aponte, com lucidez e sem culpa, onde o
+Monstro vem atacando recentemente. Cada item:
+- pattern: o padrão observado (pensamento, racionalização, comportamento).
+- evidence: trecho/elemento REAL do contexto (diário, hábito, tarefa,
+  missão, recaída).
 - howItFeeds: como esse comportamento alimentou o Monstro.
-Sem culpa — só lucidez.
 
 ═══════════════════════════════════════
 DOIS CAMINHOS
 ═══════════════════════════════════════
-Sempre que possível, preencha "twoPaths" comparando:
-• pathFeedsMonster — o caminho que fortalece o Monstro hoje.
-• pathFeedsIdentity — o caminho que fortalece o Alter Ego hoje.
-Mostre que pequenas escolhas repetidas viram grandes diferenças.
+Em "twoPaths" compare HOJE:
+• pathFeedsMonster — caminho que fortalece o Monstro.
+• pathFeedsUser — caminho que fortalece a vida que a pessoa quer
+  construir (referenciando metas/áreas cadastradas).
+Pequenas escolhas repetidas viram grandes diferenças.
 
 ═══════════════════════════════════════
 ESTADO DE RECURSO
 ═══════════════════════════════════════
 Se detectar queda de confiança/ansiedade/incapacidade, preencha
-"resourceState" com 2-4 evidências REAIS (conquistas, hábitos
-mantidos, missões honradas, frases de coragem do diário). Se não
-aplicável, deixe vazio.
-
-═══════════════════════════════════════
-EU ATUAL × ALTER EGO
-═══════════════════════════════════════
-• EU ATUAL — padrões e medos de hoje. Acolha sem julgar. NUNCA chame
-  o usuário de inimigo, fraco, monstro ou sabotador. O Monstro é o
-  padrão; o usuário é a pessoa.
-• ALTER EGO — identidade que está sendo construída. Protagonista.
-  Evidência real já visível nas escolhas.
-
-Distribuição emocional: ~60% Alter Ego (identidade, futuro, prova),
-~25% Monstro (lucidez sobre padrões, ataques, fraqueza), ~15% Eu Atual
-(acolhimento honesto, sem culpa).
-
-═══════════════════════════════════════
-NOMES PERSONALIZADOS
-═══════════════════════════════════════
-Use o NOME cadastrado do Alter Ego em todos os blocos e na maioria
-das perguntas. Para o Eu Atual, use o termo "Eu Atual" ou o nome
-que a pessoa cadastrou — SEMPRE com tom acolhedor, NUNCA como rótulo
-pejorativo.
+"resourceState" com 2-4 evidências REAIS do app. Caso contrário, deixe
+vazio.
 
 ═══════════════════════════════════════
 TOM DE VOZ
 ═══════════════════════════════════════
-Sábio • Lúcido • Caloroso • Honesto • Direto sem humilhar.
-PROIBIDO: humilhação, vergonha, insultos contra o usuário, positividade
-vazia, mensagens prontas, emojis nos blocos, repetir o mesmo formato
-das últimas reflexões.
-PERMITIDO (e esperado): nomear o Monstro, descrever seus ataques,
-falar em "enfraquecer" ou "tirar combustível" do Monstro, confrontar
-padrões com firmeza. A firmeza é com o PADRÃO, nunca com a pessoa.
+Sábio • Lúcido • Honesto • Caloroso • Direto sem humilhar.
+PERMITIDO: nomear o Monstro, falar em "enfraquecer", "tirar combustível
+do Monstro", "expor o padrão", "honrar o compromisso".
+PROIBIDO: humilhação do usuário, vergonha, insultos, positividade
+vazia, mensagens prontas, repetição do mesmo ângulo das reflexões
+anteriores. Proibido também usar os termos "Alter Ego", "Eu Atual",
+"Inimigo Interno", "Sombra", "Sabotador" — eles não existem mais.
 
 ═══════════════════════════════════════
 VARIABILIDADE
 ═══════════════════════════════════════
-Cada intervenção deve parecer ÚNICA. Alterne entre: perguntas profundas,
+Cada intervenção deve parecer ÚNICA. Alterne entre perguntas profundas,
 desafios rápidos, reenquadramento, análise de padrões, exercícios breves,
-lembrança de vitórias, conexão com valores, visualização, diálogo interno,
-confrontação respeitosa. Olhe "angleHistory" e NÃO repita o mesmo ângulo
-das últimas vezes.
+lembrança de vitórias, conexão com valores, visualização, confrontação
+respeitosa. Veja "angleHistory" e NÃO repita o mesmo ângulo.
 
 ═══════════════════════════════════════
-BLOCOS OBRIGATÓRIOS (na ordem da experiência)
+BLOCOS OBRIGATÓRIOS
 ═══════════════════════════════════════
-1. detectedState — 3-6 palavras. Estado emocional real, dito com gentileza.
-
-2. checkIn — 2-3 frases. Acolhimento inicial.
-   Reconheça onde o Eu Atual está hoje, sem julgamento. Valide a
-   experiência humana antes de propor qualquer movimento.
-
-3. alterEgoEmergence — 4-6 frases. NÚCLEO do Despertar.
-   Identifique onde o {nomeAlterEgo} JÁ está vivo nas escolhas recentes:
-   pequenas vitórias, tentativas, autocontrole, decisões conscientes.
-   Mesmo em dias difíceis, encontre evidência real. Cite hábitos,
-   missões ou trechos do diário NOMEADOS.
-
-4. futureGlimpse — 4-6 frases.
-   Visualização emocional e específica baseada em metas, valores e
-   sonhos cadastrados. Padrão: "Se você continuar honrando o
-   {nomeAlterEgo}, daqui a alguns meses estará mais próximo de
-   {meta concreta}, sentindo {emoção}, vivendo de forma {alinhada a valor}."
-   Faça o futuro parecer tangível e próximo.
-
-5. currentSelfPattern — 2-3 frases CURTAS, COMPASSIVAS.
-   Nomeie com ternura UM padrão do Eu Atual que está custando caro
-   (ex: adiar, evitar, se cobrar demais). Cite UMA evidência real.
-   NUNCA humilhe. Trate como você trataria alguém que ama.
-
-6. alterEgoTruth — 3-4 frases. Voz do {nomeAlterEgo} falando ao usuário
-   com sabedoria amorosa. Exemplo de espírito:
-   "O {nomeAlterEgo} não precisa ser perfeito. Precisa continuar
-   aparecendo. Cada decisão consciente é uma prova de que ele existe."
-
-7. internalDialogue — Diálogo saudável entre Eu Atual e Alter Ego.
-   { currentSelfSays: 1 frase do Eu Atual baseada em padrão real
-     (ex: "Estou cansado e quero deixar para amanhã."),
-     alterEgoReplies: 1 resposta COMPASSIVA do {nomeAlterEgo}
-     (ex: "Entendo o cansaço. Vamos dar só um pequeno passo hoje. O
-     importante é continuar avançando.") }
-   A resposta do Alter Ego SEMPRE valida o sentimento antes de redirecionar.
-
-8. reframe — 2-3 frases.
-   Pegue UMA crença/pensamento limitante do Eu Atual e reescreva
-   pela perspectiva do {nomeAlterEgo}. Sem invalidar — apenas
-   abrindo outra possibilidade.
-
-9. questions — 6 a 8 perguntas com a distribuição:
-   • 30% zone:"acolhimento" (mín 1-2) — como o Eu Atual está, do que
-     precisa, do que tem gratidão, o que está sentindo.
-   • 40% zone:"identidade" (mín 3) — como o {nomeAlterEgo} agiria,
-     que pequena ação aproxima da pessoa que está se tornando,
-     que atitude demonstra respeito por si mesmo agora.
-   • 20% zone:"futuro" (mín 1) — sonhos, propósito, valores.
-   • 10% zone:"reenquadramento" (mín 1) — como o {nomeAlterEgo}
-     interpretaria esse mesmo desafio.
-   Cada pergunta cita pelo menos UM elemento real do usuário.
-   PROIBIDO perguntas com "inimigo", "sabotador", "fraqueza", "derrotar".
-
-10. identityProof — Pergunta literal:
-    "Que pequena ação nas próximas 24 horas vai mostrar — para você
-    mesmo — que o {nomeAlterEgo} está vivo?"
-    Acompanhe com 2-4 sugestões pequenas, executáveis e personalizadas
-    (campo identityProofSuggestions). Cada sugestão é um GESTO DE
-    CUIDADO ou CORAGEM, nunca uma cobrança.
-
-11. identityAnchor — 1-2 frases em primeira pessoa: "Hoje eu escolho
-    ser alguém que..." alinhada ao {nomeAlterEgo}.
+1. detectedState — 3-6 palavras. Estado emocional real, com gentileza.
+2. strategyMode — um dos modos acima.
+3. checkIn — 2-3 frases. Acolhimento honesto da pessoa, sem julgamento.
+4. monsterRead — 2-4 frases. O que o {Monstro} está explorando AGORA,
+   com base nos dados cadastrados e no contexto recente.
+5. revealedAttacks — 1 a 4 ataques recentes (padrão + evidência + como
+   alimenta o Monstro).
+6. twoPaths — caminho que alimenta o Monstro × caminho que fortalece
+   a vida que o usuário quer.
+7. monsterWeaknessReminder — 1-2 frases. Lembre a FRAQUEZA cadastrada
+   do Monstro e como ela se aplica hoje.
+8. userStrength — 3-4 frases. Onde o USUÁRIO já está agindo contra o
+   Monstro nas últimas semanas — cite evidências REAIS (tarefas
+   honradas, hábitos, missões, frases do diário).
+9. futureGlimpse — 3-5 frases. Visualização tangível: se a pessoa
+   continuar enfraquecendo o {Monstro} nas próximas semanas, que vida
+   começa a se abrir (use metas/áreas afetadas reais).
+10. resourceState — só se necessário.
+11. microChallenge — 1 ação concreta e pequena (5-15 min) para
+    enfraquecer o Monstro hoje.
+12. reframe — 2-3 frases. Reenquadramento de UMA crença limitante
+    recente, sem invalidar o sentimento.
+13. questions — 4 a 6 perguntas adaptadas ao strategyMode. Cada
+    pergunta cita ao menos UM elemento real (Monstro, tarefa, diário,
+    hábito, missão, meta).
+14. identityProof — pergunta literal:
+    "Que pequena ação nas próximas 24 horas vai tirar combustível do
+    {Monstro} e te aproximar da vida que você quer?"
+    + 2-4 sugestões pequenas, executáveis, personalizadas.
+15. identityAnchor — 1-2 frases em 1ª pessoa: "Hoje eu escolho ser
+    alguém que..." alinhada às áreas e metas reais.
 
 ═══════════════════════════════════════
 INTENSIDADE
 ═══════════════════════════════════════
-🌱 LEVE — sussurro acolhedor.
+🌱 LEVE — voz acolhedora.
 ⚡ MÉDIO — espelho firme e gentil.
-🔥 BRUTAL — verdade nua dita com amor (nunca com crueldade).
+🔥 BRUTAL — verdade nua dita com respeito (nunca crueldade).
 
 Retorne SEMPRE via tool call "generate_awakening".`;
 
@@ -227,30 +181,6 @@ function fmtRecentJournal(rj: any[]): string {
   return top3.map((j: any, i: number) => fmt(j, `[${i === 0 ? 'HOJE' : i === 1 ? 'ONTEM' : 'ANTERIOR'}]`)).join('\n\n');
 }
 
-function fmtAlterEgo(ae: any, fallbackName = 'seu Alter Ego'): string {
-  if (!ae) return `Nome: ${fallbackName} (sem detalhes)\n`;
-  let s = `Nome: ${ae.name || fallbackName}\n`;
-  if (ae.identityPhrase) s += `Frase de identidade: "${ae.identityPhrase}"\n`;
-  if (ae.lifeMission) s += `Missão de vida: ${ae.lifeMission}\n`;
-  if (ae.values?.length) s += `Valores: ${ae.values.join(', ')}\n`;
-  if (ae.habits?.length) s += `Hábitos que pratica: ${ae.habits.join(' | ')}\n`;
-  if (ae.goals?.length) s += `Metas/Sonhos: ${ae.goals.join(' | ')}\n`;
-  if (ae.favoritePhrases?.length) s += `Frases dele: ${ae.favoritePhrases.map((p: string) => `"${p}"`).join(' | ')}\n`;
-  if (ae.lifestyle) s += `Estilo de vida: ${ae.lifestyle}\n`;
-  if (ae.idealRoutine) s += `Rotina ideal: ${ae.idealRoutine}\n`;
-  if (ae.notes) s += `Notas: ${String(ae.notes).slice(0, 1200)}\n`;
-  return s;
-}
-
-function fmtCurrentSelf(cs: any, fallbackName = 'Eu Atual'): string {
-  if (!cs) return `Nome: ${fallbackName} (sem detalhes)\n`;
-  let s = `Nome carinhoso: ${cs.name || fallbackName}\n`;
-  if (cs.traits?.length) s += `Padrões atuais observados: ${cs.traits.join(', ')}\n`;
-  if (cs.sabotagePhrases?.length) s += `Pensamentos recorrentes (acolher, não condenar): ${cs.sabotagePhrases.map((p: string) => `"${p}"`).join(' | ')}\n`;
-  if (cs.notes) s += `Notas: ${String(cs.notes).slice(0, 1200)}\n`;
-  return s;
-}
-
 function fmtBoss(b: any): string {
   if (!b) return '';
   let s = `Nome: ${b.emoji || ''} ${b.name}\n`;
@@ -258,11 +188,11 @@ function fmtBoss(b: any): string {
   if (b.difficulty) s += `Dificuldade: ${b.difficulty}\n`;
   if (b.description) s += `Descrição: ${b.description}\n`;
   if (b.story) s += `História: ${String(b.story).slice(0, 600)}\n`;
-  if (b.weakness) s += `FRAQUEZA: ${b.weakness}\n`;
+  if (b.weakness) s += `FRAQUEZA CADASTRADA: ${b.weakness}\n`;
   if (b.howItAffectsMe) s += `Como me afeta: ${b.howItAffectsMe}\n`;
   if (b.whyDefeat) s += `Por que preciso enfraquecê-lo: ${b.whyDefeat}\n`;
   if (b.affectedAreas?.length) s += `Áreas afetadas: ${b.affectedAreas.join(', ')}\n`;
-  if (b.customPhrases?.length) s += `Frases típicas dele: ${b.customPhrases.map((p: string) => `"${p}"`).join(' | ')}\n`;
+  if (b.customPhrases?.length) s += `Frases típicas dele (desculpas, racionalizações): ${b.customPhrases.map((p: string) => `"${p}"`).join(' | ')}\n`;
   if (b.tasks?.length) {
     const today = new Date().toISOString().slice(0, 10);
     const todayDone = b.tasks.filter((t: any) => (t.doneDates || []).includes(today)).length;
@@ -279,6 +209,7 @@ function fmtBoss(b: any): string {
   }
   return s;
 }
+
 // =====================================================================
 // HANDLER
 // =====================================================================
@@ -290,8 +221,7 @@ serve(async (req) => {
     const {
       context,
       intensity: rawIntensity,
-      journal, awakening, rank, reflections,
-      missions, habits, punishments,
+      journal, rank, reflections,
       aiSettings,
       activeBoss,
     } = body || {};
@@ -305,7 +235,6 @@ serve(async (req) => {
 
     const ctx = context || {
       rank: rank || 'E',
-      awakening,
       recentJournal: (journal || []).map((j: any) => ({
         title: j.title, text: j.text, emotion: j.emotion, intensity: j.intensity, deepMode: j.deepMode,
       })),
@@ -322,28 +251,20 @@ serve(async (req) => {
       ? normalizeIntensity(rawIntensity)
       : normalizeIntensity(ctx.aiSettings?.intensity);
 
-    const alterEgo = ctx.alterEgo || {};
-    // O storage ainda chama "innerEnemy", mas tratamos como Eu Atual.
-    const currentSelf = ctx.innerEnemy || ctx.currentSelf || {};
-    const aeName = alterEgo.name || 'Alter Ego';
-    const csName = currentSelf.name || 'Eu Atual';
     const boss = activeBoss || ctx.activeBoss || null;
     const bossName = boss?.name || 'Monstro';
+    const bossLabel = boss ? `${boss.emoji || ''} ${boss.name}`.trim() : 'Monstro';
 
     // ============ USER PROMPT ============
-    let up = `═══ IDENTIDADE EM CONSTRUÇÃO ═══\n`;
-    up += `\n— ALTER EGO (protagonista — ~70%) —\n`;
-    up += fmtAlterEgo(alterEgo, aeName);
-    up += `\n— EU ATUAL (ponto de partida — ~30%, tratar com compaixão) —\n`;
-    up += fmtCurrentSelf(currentSelf, csName);
-    up += `\nUse "${aeName}" diretamente em vários blocos. Mencione o Eu Atual com ternura — sem rotular como inimigo.\n\n`;
+    let up = '';
 
     if (boss) {
-      up += `═══ MONSTRO ATIVO (use como contexto central) ═══\n`;
+      up += `═══ MONSTRO ATIVO (único antagonista — use TODOS os dados) ═══\n`;
       up += fmtBoss(boss);
       up += `\n`;
     } else {
-      up += `═══ MONSTRO ATIVO ═══\n(Nenhum monstro cadastrado/ativo no momento — foque em padrões observados.)\n\n`;
+      up += `═══ MONSTRO ATIVO ═══\n`;
+      up += `Nenhum Monstro cadastrado/ativo no momento. Trate o "Monstro" como o conjunto de padrões observados no contexto recente — mas SEM inventar personagens internos.\n\n`;
     }
 
     up += `═══ CONFIGURAÇÃO ═══\nIntensidade: ${intensity.toUpperCase()}\n\n`;
@@ -365,31 +286,23 @@ serve(async (req) => {
     const ms = ctx.missions || {};
     if ((ms.active?.length || 0) + (ms.completedRecent?.length || 0) + (ms.failedRecent?.length || 0) > 0) {
       up += `═══ MISSÕES ═══\n`;
-      if (ms.completedRecent?.length) up += `✅ Honradas (provas do ${aeName}): ${ms.completedRecent.slice(0, 5).map((c: any) => `"${c.name}"`).join(' | ')}\n`;
+      if (ms.completedRecent?.length) up += `✅ Honradas (tirou combustível do ${bossLabel}): ${ms.completedRecent.slice(0, 5).map((c: any) => `"${c.name}"`).join(' | ')}\n`;
       if (ms.active?.length) up += `Ativas: ${ms.active.slice(0, 5).map((m: any) => `"${m.name}"`).join(' | ')}\n`;
-      if (ms.failedRecent?.length) up += `Em aberto (sem julgamento): ${ms.failedRecent.slice(0, 3).map((f: any) => `"${f.name}"`).join(' | ')}\n`;
+      if (ms.failedRecent?.length) up += `Em aberto (alimentou o ${bossLabel}): ${ms.failedRecent.slice(0, 3).map((f: any) => `"${f.name}"`).join(' | ')}\n`;
       up += `\n`;
     }
 
     if (ctx.habits?.length) {
       up += `═══ HÁBITOS (30d) ═══\n`;
       ctx.habits.slice(0, 8).forEach((h: any) => {
-        const flag = h.streak >= 3 ? ' ✅ativo' : (h.failed30d > h.done30d ? ' 🌱em retomada' : '');
+        const flag = h.streak >= 3 ? ' ✅ativo' : (h.failed30d > h.done30d ? ' ⚠️em retomada' : '');
         up += `• "${h.name}" · streak ${h.streak}d · ${h.done30d}✓/${h.failed30d}✗${flag}\n`;
       });
       up += `\n`;
     }
 
-    if ((ctx.activeSabotagePatterns || []).length > 0) {
-      up += `═══ PADRÕES DO EU ATUAL (observar com compaixão) ═══\n`;
-      ctx.activeSabotagePatterns.slice(0, 5).forEach((p: any) => {
-        up += `• ${p.pattern}\n`;
-      });
-      up += `\n`;
-    }
-
     if (ctx.reflections?.length) {
-      up += `═══ REFLEXÕES ANTERIORES (NÃO repita perguntas) ═══\n`;
+      up += `═══ REFLEXÕES ANTERIORES (NÃO repita perguntas nem ângulo) ═══\n`;
       ctx.reflections.slice(0, 4).forEach((r: any, i: number) => {
         up += `[${i + 1}] P: ${r.question}\n  R: ${(r.answer || '').slice(0, 150)}\n`;
       });
@@ -400,15 +313,19 @@ serve(async (req) => {
       up += `═══ DIÁRIO RECENTE ═══\n${fmtRecentJournal(ctx.recentJournal)}\n\n`;
     }
 
+    if (ctx.angleHistory?.length) {
+      up += `═══ ÂNGULOS RECENTES (EVITAR repetir) ═══\n${ctx.angleHistory.slice(-6).join(' | ')}\n\n`;
+    }
+
     up += `═══ INSTRUÇÕES FINAIS ═══\n`;
-    up += `1. Escolha "strategyMode" lendo o contexto recente (expor/reconstruir/reforcar/recurso/confrontar).\n`;
-    up += `2. Preencha "monsterRead" descrevendo o que o ${bossName} está explorando AGORA, com base nos dados acima.\n`;
-    up += `3. Em "revealedAttacks" (1-4 itens) cite ataques recentes do ${bossName} usando evidências REAIS.\n`;
-    up += `4. Em "twoPaths" mostre a comparação caminho-que-alimenta-o-Monstro × caminho-que-fortalece-o-${aeName}.\n`;
-    up += `5. Se houver sinais de medo/baixa confiança, preencha "resourceState" com vitórias REAIS do app.\n`;
-    up += `6. Encontre onde o ${aeName} já está vivo — mesmo em dia difícil. Crie "futureGlimpse" tangível.\n`;
-    up += `7. 4 a 6 perguntas adaptadas ao strategyMode escolhido. NÃO repita ângulo das últimas reflexões.\n`;
-    up += `8. A oposição é ao PADRÃO (Monstro), nunca à pessoa. Trate o Eu Atual com compaixão.\n`;
+    up += `1. O ÚNICO antagonista é o ${bossLabel}. NÃO use "Alter Ego", "Eu Atual", "Inimigo Interno", "Sombra", "Sabotador" — esses termos não existem mais.\n`;
+    up += `2. Cite o ${bossLabel} pelo nome. Use a fraqueza cadastrada e as frases típicas dele quando relevante.\n`;
+    up += `3. Escolha o "strategyMode" com base no contexto recente.\n`;
+    up += `4. "revealedAttacks" precisa de evidências REAIS (diário, hábito, missão, tarefa, recaída).\n`;
+    up += `5. "twoPaths.pathFeedsUser" usa metas/áreas reais.\n`;
+    up += `6. "userStrength" cita 1-3 evidências reais de ação contra o ${bossLabel}.\n`;
+    up += `7. 4-6 perguntas adaptadas ao strategyMode. Cada uma cita algo real.\n`;
+    up += `8. Firmeza com o padrão. Compaixão com a pessoa. Nunca humilhar.\n`;
     up += `9. Honre a intensidade ${intensity.toUpperCase()}.\n`;
     up += `10. Retorne via tool "generate_awakening".\n`;
 
@@ -429,24 +346,22 @@ serve(async (req) => {
             type: "function",
             function: {
               name: "generate_awakening",
-              description: "Despertar diário compassivo focado no Alter Ego, acolhendo o Eu Atual.",
+              description: "Despertar diário: intervenção psicológica usando o Monstro cadastrado como único antagonista.",
               parameters: {
                 type: "object",
                 properties: {
-                  detectedState: { type: "string", description: "Estado real em 3-6 palavras, dito com gentileza." },
+                  detectedState: { type: "string", description: "Estado real em 3-6 palavras, com gentileza." },
                   intensity: { type: "string", enum: ["leve", "medio", "brutal"] },
                   strategyMode: {
                     type: "string",
                     enum: ["expor", "reconstruir", "reforcar", "recurso", "confrontar"],
-                    description: "Modo estratégico escolhido com base no contexto recente.",
+                    description: "Modo estratégico escolhido pelo contexto recente.",
                   },
-                  monsterRead: {
-                    type: "string",
-                    description: "2-4 frases. Leitura do que o Monstro ativo está explorando AGORA. Sem culpa.",
-                  },
+                  checkIn: { type: "string", description: "2-3 frases de acolhimento honesto à pessoa." },
+                  monsterRead: { type: "string", description: "2-4 frases. O que o Monstro está explorando AGORA, com base nos dados cadastrados." },
                   revealedAttacks: {
                     type: "array",
-                    minItems: 0,
+                    minItems: 1,
                     maxItems: 4,
                     items: {
                       type: "object",
@@ -461,17 +376,28 @@ serve(async (req) => {
                   },
                   twoPaths: {
                     type: "object",
-                    description: "Comparação dos dois caminhos hoje.",
                     properties: {
                       pathFeedsMonster: { type: "string", description: "1-2 frases. Caminho que fortalece o Monstro hoje." },
-                      pathFeedsIdentity: { type: "string", description: "1-2 frases. Caminho que fortalece o Alter Ego hoje." },
+                      pathFeedsUser: { type: "string", description: "1-2 frases. Caminho que fortalece a vida que o usuário quer (metas/áreas reais)." },
                     },
-                    required: ["pathFeedsMonster", "pathFeedsIdentity"],
+                    required: ["pathFeedsMonster", "pathFeedsUser"],
                     additionalProperties: false,
+                  },
+                  monsterWeaknessReminder: {
+                    type: "string",
+                    description: "1-2 frases. Lembre a fraqueza cadastrada do Monstro e como aplicar hoje.",
+                  },
+                  userStrength: {
+                    type: "string",
+                    description: "3-4 frases. Onde o usuário já está agindo contra o Monstro — citando evidências REAIS.",
+                  },
+                  futureGlimpse: {
+                    type: "string",
+                    description: "3-5 frases. Vida que começa a se abrir se o Monstro continuar perdendo HP.",
                   },
                   resourceState: {
                     type: "object",
-                    description: "Quando há queda de confiança, resgate de evidências reais. Caso contrário, deixe vazio.",
+                    description: "Só preencher quando houver queda de confiança. Caso contrário, omitir ou deixar vazio.",
                     properties: {
                       message: { type: "string", description: "1-2 frases de reconexão com a força real." },
                       evidences: {
@@ -485,56 +411,50 @@ serve(async (req) => {
                   },
                   microChallenge: {
                     type: "string",
-                    description: "1 ação concreta e pequena (5-15 min) para enfraquecer o Monstro hoje. Opcional.",
+                    description: "1 ação concreta e pequena (5-15 min) para enfraquecer o Monstro hoje.",
                   },
-                  checkIn: { type: "string", description: "2-3 frases de acolhimento inicial ao Eu Atual." },
-                  alterEgoEmergence: { type: "string", description: "4-6 frases. Onde o Alter Ego JÁ está emergindo. Cite evidência real." },
-                  futureGlimpse: { type: "string", description: "4-6 frases. Visualização emocional do futuro próximo baseada em metas/valores." },
-                  currentSelfPattern: { type: "string", description: "2-3 frases compassivas. Um padrão atual nomeado com ternura, sem humilhação." },
-                  alterEgoTruth: { type: "string", description: "3-4 frases vindas da voz do Alter Ego (sábia, forte, amorosa)." },
-                  internalDialogue: {
-                    type: "object",
-                    description: "Diálogo saudável entre Eu Atual e Alter Ego.",
-                    properties: {
-                      currentSelfSays: { type: "string", description: "1 frase do Eu Atual baseada em padrão real (sem demonização)." },
-                      alterEgoReplies: { type: "string", description: "1 resposta compassiva do Alter Ego — valida o sentimento e redireciona." },
-                    },
-                    required: ["currentSelfSays", "alterEgoReplies"],
-                    additionalProperties: false,
+                  reframe: {
+                    type: "string",
+                    description: "2-3 frases. Reenquadramento de uma crença limitante, sem invalidar o sentimento.",
                   },
-                  reframe: { type: "string", description: "2-3 frases. Reenquadramento amoroso de uma crença limitante pela perspectiva do Alter Ego." },
                   questions: {
                     type: "array",
                     minItems: 4,
                     maxItems: 6,
-                    description: "4 a 6 perguntas adaptadas ao strategyMode escolhido.",
+                    description: "4 a 6 perguntas adaptadas ao strategyMode.",
                     items: {
                       type: "object",
                       properties: {
-                        zone: { type: "string", enum: [...ZONES] },
                         title: { type: "string", description: "3-6 palavras." },
-                        prompt: { type: "string", description: "A pergunta. Cita elemento real, usa o nome do Alter Ego quando faz sentido. Sem palavras de guerra." },
-                        objective: { type: "string", description: "1 linha do que ele deve perceber." },
+                        prompt: { type: "string", description: "A pergunta. Cita elemento real (Monstro, tarefa, diário, hábito, missão, meta)." },
+                        objective: { type: "string", description: "1 linha do que a pessoa deve perceber." },
                       },
-                      required: ["zone", "title", "prompt", "objective"],
+                      required: ["title", "prompt", "objective"],
                       additionalProperties: false,
                     },
                   },
-                  identityProof: { type: "string", description: 'Pergunta literal: "Que pequena ação nas próximas 24 horas vai mostrar que o {Alter Ego} está vivo?"' },
+                  identityProof: {
+                    type: "string",
+                    description: "Pergunta literal: 'Que pequena ação nas próximas 24 horas vai tirar combustível do {Monstro} e te aproximar da vida que você quer?'",
+                  },
                   identityProofSuggestions: {
                     type: "array",
                     minItems: 2,
                     maxItems: 4,
                     items: { type: "string" },
-                    description: "2-4 ações pequenas, executáveis e personalizadas — gestos de cuidado ou coragem.",
+                    description: "2-4 ações pequenas, executáveis, personalizadas.",
                   },
-                  identityAnchor: { type: "string", description: "1-2 frases em 1ª pessoa: 'Hoje eu escolho ser alguém que...'" },
+                  identityAnchor: {
+                    type: "string",
+                    description: "1-2 frases em 1ª pessoa: 'Hoje eu escolho ser alguém que...' alinhada às áreas/metas reais.",
+                  },
                 },
                 required: [
-                  "detectedState", "intensity", "checkIn", "alterEgoEmergence", "futureGlimpse",
-                  "currentSelfPattern", "alterEgoTruth", "internalDialogue", "reframe",
-                  "questions", "identityProof", "identityProofSuggestions", "identityAnchor",
-                  "strategyMode", "monsterRead", "twoPaths",
+                  "detectedState", "intensity", "strategyMode", "checkIn",
+                  "monsterRead", "revealedAttacks", "twoPaths",
+                  "monsterWeaknessReminder", "userStrength", "futureGlimpse",
+                  "microChallenge", "reframe", "questions",
+                  "identityProof", "identityProofSuggestions", "identityAnchor",
                 ],
                 additionalProperties: false,
               },
@@ -570,25 +490,22 @@ serve(async (req) => {
       detectedState: '',
       intensity,
       strategyMode: '',
+      checkIn: '',
       monsterRead: '',
       revealedAttacks: [] as any[],
-      twoPaths: { pathFeedsMonster: '', pathFeedsIdentity: '' },
+      twoPaths: { pathFeedsMonster: '', pathFeedsUser: '' },
+      monsterWeaknessReminder: '',
+      userStrength: '',
+      futureGlimpse: '',
       resourceState: null,
       microChallenge: '',
-      checkIn: '',
-      alterEgoEmergence: '',
-      futureGlimpse: '',
-      currentSelfPattern: '',
-      alterEgoTruth: '',
-      internalDialogue: { currentSelfSays: '', alterEgoReplies: '' },
       reframe: '',
       questions: [] as any[],
       identityProof: '',
       identityProofSuggestions: [] as string[],
       identityAnchor: '',
-      alterEgoName: aeName,
-      currentSelfName: csName,
       bossName,
+      bossEmoji: boss?.emoji || '',
     };
 
     if (toolCall?.function?.arguments) {
@@ -596,8 +513,8 @@ serve(async (req) => {
         const parsed = JSON.parse(toolCall.function.arguments);
         Object.assign(out, parsed);
         if (!out.intensity) out.intensity = intensity;
-        out.alterEgoName = aeName;
-        out.currentSelfName = csName;
+        out.bossName = bossName;
+        out.bossEmoji = boss?.emoji || '';
       } catch (err) {
         console.error("Failed to parse tool args:", err);
       }

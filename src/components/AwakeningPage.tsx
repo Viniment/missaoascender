@@ -10,7 +10,6 @@ import { buildAiContext } from '@/lib/aiContext';
 import RichEditor from './RichEditor';
 
 interface AwakeningQuestion {
-  zone?: 'acolhimento' | 'identidade' | 'futuro' | 'reenquadramento';
   title: string;
   prompt: string;
   objective: string;
@@ -20,38 +19,28 @@ interface AwakeningResponse {
   detectedState?: string;
   intensity?: 'leve' | 'medio' | 'brutal';
   strategyMode?: 'expor' | 'reconstruir' | 'reforcar' | 'recurso' | 'confrontar';
+  checkIn?: string;
   monsterRead?: string;
   revealedAttacks?: Array<{ pattern: string; evidence: string; howItFeeds: string }>;
-  twoPaths?: { pathFeedsMonster?: string; pathFeedsIdentity?: string };
+  twoPaths?: { pathFeedsMonster?: string; pathFeedsUser?: string };
+  monsterWeaknessReminder?: string;
+  userStrength?: string;
+  futureGlimpse?: string;
   resourceState?: { message?: string; evidences?: string[] } | null;
   microChallenge?: string;
-  checkIn?: string;
-  alterEgoEmergence?: string;
-  futureGlimpse?: string;
-  currentSelfPattern?: string;
-  alterEgoTruth?: string;
-  questions?: AwakeningQuestion[];
-  internalDialogue?: { currentSelfSays?: string; alterEgoReplies?: string };
   reframe?: string;
+  questions?: AwakeningQuestion[];
   identityProof?: string;
   identityProofSuggestions?: string[];
   identityAnchor?: string;
-  alterEgoName?: string;
-  currentSelfName?: string;
   bossName?: string;
+  bossEmoji?: string;
 }
-
-const ZONE_META: Record<string, { emoji: string; label: string }> = {
-  acolhimento: { emoji: '🤍', label: 'Acolhimento' },
-  identidade: { emoji: '⚡', label: 'Identidade' },
-  futuro: { emoji: '🌅', label: 'Futuro' },
-  reenquadramento: { emoji: '🪞', label: 'Reenquadramento' },
-};
 
 const STRATEGY_META: Record<string, { emoji: string; label: string }> = {
   expor:        { emoji: '🔦', label: 'Expor padrões' },
   reconstruir:  { emoji: '🧱', label: 'Reconstruir' },
-  reforcar:     { emoji: '⚡', label: 'Reforçar identidade' },
+  reforcar:     { emoji: '⚡', label: 'Reforçar progresso' },
   recurso:      { emoji: '🌿', label: 'Estado de recurso' },
   confrontar:   { emoji: '🪞', label: 'Confronto respeitoso' },
 };
@@ -71,13 +60,12 @@ export default function AwakeningPage() {
   const buildExperienceHtml = useCallback((r: AwakeningResponse) => {
     const dateStr = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
     const intensityLabel = r.intensity === 'brutal' ? '🔥 VERDADE COM AMOR' : r.intensity === 'leve' ? '🌱 SUSSURRO' : '⚡ ESPELHO GENTIL';
-    const ae = r.alterEgoName || 'seu Alter Ego';
-    const cs = r.currentSelfName || 'Eu Atual';
     const bn = r.bossName || 'Monstro';
+    const bnLabel = [r.bossEmoji, r.bossName].filter(Boolean).join(' ') || 'Monstro';
     const sm = r.strategyMode && STRATEGY_META[r.strategyMode] ? STRATEGY_META[r.strategyMode] : null;
     const parts: string[] = [
-      `<h3>🌅 Despertar — ${r.detectedState || ae}</h3>`,
-      `<p><em>${dateStr} · ${intensityLabel}${sm ? ` · ${sm.emoji} ${sm.label}` : ''} · ${ae} guiando</em></p>`,
+      `<h3>🌅 Despertar — ${r.detectedState || 'Reflexão de hoje'}</h3>`,
+      `<p><em>${dateStr} · ${intensityLabel}${sm ? ` · ${sm.emoji} ${sm.label}` : ''} · contra ${bnLabel}</em></p>`,
       `<hr/>`,
     ];
 
@@ -92,13 +80,13 @@ export default function AwakeningPage() {
     // Leitura do Monstro
     if (r.monsterRead && r.monsterRead.trim()) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>👁️ Leitura do ${bn} agora</h4>`);
+      parts.push(`<h4>👁️ Leitura do ${bnLabel} agora</h4>`);
       parts.push(`<p>${r.monsterRead.replace(/\n/g, '<br/>')}</p>`);
     }
 
     // Ataques revelados
     if (r.revealedAttacks && r.revealedAttacks.length > 0) {
-      parts.push(`<h4>⚔️ Ataques recentes do ${bn}</h4>`);
+      parts.push(`<h4>⚔️ Ataques recentes do ${bnLabel}</h4>`);
       parts.push(`<ul>`);
       r.revealedAttacks.forEach(a => {
         parts.push(
@@ -111,20 +99,28 @@ export default function AwakeningPage() {
       parts.push(`</ul>`);
     }
 
-    block('⚡', `Onde o ${ae} já está vivo`, r.alterEgoEmergence);
-    block('🌅', `Vislumbre do futuro próximo`, r.futureGlimpse);
-    block('🌱', `Um padrão do ${cs} para olhar com carinho`, r.currentSelfPattern);
-    block('💜', `A verdade do ${ae}`, r.alterEgoTruth);
+    // Fraqueza do Monstro
+    if (r.monsterWeaknessReminder && r.monsterWeaknessReminder.trim()) {
+      parts.push(`<hr/>`);
+      parts.push(`<h4>🗡️ A fraqueza do ${bnLabel}</h4>`);
+      parts.push(`<p>${r.monsterWeaknessReminder.replace(/\n/g, '<br/>')}</p>`);
+    }
+
+    // Força do usuário
+    block('💪', `Onde você já está agindo contra o ${bnLabel}`, r.userStrength);
+
+    // Futuro
+    block('🌅', `Se o ${bnLabel} continuar perdendo HP`, r.futureGlimpse);
 
     // Dois caminhos
-    if (r.twoPaths && (r.twoPaths.pathFeedsMonster || r.twoPaths.pathFeedsIdentity)) {
+    if (r.twoPaths && (r.twoPaths.pathFeedsMonster || r.twoPaths.pathFeedsUser)) {
       parts.push(`<hr/>`);
       parts.push(`<h4>🛤️ Dois caminhos hoje</h4>`);
       if (r.twoPaths.pathFeedsMonster) {
-        parts.push(`<p><strong>↳ Caminho que alimenta o ${bn}:</strong> ${r.twoPaths.pathFeedsMonster}</p>`);
+        parts.push(`<p><strong>↳ Caminho que alimenta o ${bnLabel}:</strong> ${r.twoPaths.pathFeedsMonster}</p>`);
       }
-      if (r.twoPaths.pathFeedsIdentity) {
-        parts.push(`<p><strong>↳ Caminho que fortalece o ${ae}:</strong> ${r.twoPaths.pathFeedsIdentity}</p>`);
+      if (r.twoPaths.pathFeedsUser) {
+        parts.push(`<p><strong>↳ Caminho que fortalece a vida que você quer:</strong> ${r.twoPaths.pathFeedsUser}</p>`);
       }
     }
 
@@ -139,26 +135,15 @@ export default function AwakeningPage() {
       }
     }
 
-    if (r.internalDialogue && (r.internalDialogue.currentSelfSays || r.internalDialogue.alterEgoReplies)) {
-      parts.push(`<hr/>`);
-      parts.push(`<h4>💬 Diálogo interno saudável</h4>`);
-      if (r.internalDialogue.currentSelfSays) {
-        parts.push(`<p><strong>${cs}:</strong> <em>"${r.internalDialogue.currentSelfSays}"</em></p>`);
-      }
-      if (r.internalDialogue.alterEgoReplies) {
-        parts.push(`<p><strong>${ae}:</strong> <em>"${r.internalDialogue.alterEgoReplies}"</em></p>`);
-      }
-    }
-
     if (r.reframe) {
       parts.push(`<hr/>`);
-      block('🪞', `Reenquadramento do ${ae}`, r.reframe);
+      block('🪞', `Reenquadramento`, r.reframe);
     }
 
     // Microdesafio
     if (r.microChallenge && r.microChallenge.trim()) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>🎯 Microdesafio para enfraquecer o ${bn}</h4>`);
+      parts.push(`<h4>🎯 Microdesafio para enfraquecer o ${bnLabel}</h4>`);
       parts.push(`<blockquote><p>${r.microChallenge}</p></blockquote>`);
     }
 
@@ -166,10 +151,8 @@ export default function AwakeningPage() {
       parts.push(`<hr/>`);
       parts.push(`<h4>✍️ Perguntas para você</h4>`);
       r.questions.forEach((q, i) => {
-        const zone = q.zone && ZONE_META[q.zone] ? ZONE_META[q.zone] : null;
-        const zoneTag = zone ? `<em style="opacity:0.7">${zone.emoji} ${zone.label}</em> · ` : '';
         parts.push(`<h5>${i + 1}. ${q.title}</h5>`);
-        if (q.objective) parts.push(`<p>${zoneTag}<em>${q.objective}</em></p>`);
+        if (q.objective) parts.push(`<p><em>${q.objective}</em></p>`);
         parts.push(`<blockquote><p>${q.prompt}</p></blockquote>`);
         parts.push(`<p><strong>Sua resposta:</strong></p>`);
         parts.push(`<p></p>`);
@@ -178,10 +161,10 @@ export default function AwakeningPage() {
 
     if (r.identityProof || (r.identityProofSuggestions && r.identityProofSuggestions.length > 0)) {
       parts.push(`<hr/>`);
-      parts.push(`<h4>🧬 Prova de identidade (próximas 24h)</h4>`);
+      parts.push(`<h4>🧬 Tirar combustível do ${bnLabel} nas próximas 24h</h4>`);
       if (r.identityProof) parts.push(`<blockquote><p>${r.identityProof}</p></blockquote>`);
       if (r.identityProofSuggestions && r.identityProofSuggestions.length > 0) {
-        parts.push(`<p><em>Pequenos gestos de cuidado ou coragem:</em></p>`);
+        parts.push(`<p><em>Sugestões pequenas:</em></p>`);
         parts.push(`<ul>${r.identityProofSuggestions.map(s => `<li>${s}</li>`).join('')}</ul>`);
       }
       parts.push(`<p><strong>Meu gesto de hoje:</strong></p>`);
@@ -190,7 +173,7 @@ export default function AwakeningPage() {
 
     if (r.identityAnchor) {
       parts.push(`<hr/>`);
-      block('🪞', `Hoje eu escolho ser (âncora · ${ae})`, r.identityAnchor);
+      block('🪞', `Hoje eu escolho ser`, r.identityAnchor);
     }
 
     return parts.join('');
