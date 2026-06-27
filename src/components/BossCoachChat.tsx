@@ -68,7 +68,7 @@ export default function BossCoachChat({ bossId }: { bossId: string }) {
       };
       const context = {
         boss: ctxBoss,
-        name: state.playerName,
+        name: state.name,
         level: state.level,
         rank: state.rank,
         streak: state.streak,
