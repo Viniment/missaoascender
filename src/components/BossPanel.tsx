@@ -194,6 +194,7 @@ export default function BossPanel() {
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
                   onDefeat={() => defeatBoss(b.id)}
                   onRemove={() => removeBoss(b.id)}
+                  onEdit={() => setEditingId(b.id)}
                 />
                 <BossCoachChat bossId={b.id} />
               </div>
@@ -233,14 +234,37 @@ export default function BossPanel() {
         </div>
       )}
 
-      <CreateBossDialog open={open} onOpenChange={setOpen} onCreate={(payload) => { addBoss(payload); setOpen(false); }} />
+      <BossFormDialog
+        open={open}
+        onOpenChange={setOpen}
+        onSubmit={(payload) => { addBoss(payload); setOpen(false); }}
+      />
+      <BossFormDialog
+        open={!!editingId}
+        onOpenChange={(o) => { if (!o) setEditingId(null); }}
+        editBoss={active.find(b => b.id === editingId) || null}
+        onSubmit={(payload) => {
+          if (!editingId) return;
+          updateBoss(editingId, {
+            name: payload.name, emoji: payload.emoji, description: payload.description,
+            weakness: payload.weakness, days: payload.days,
+            tasks: payload.tasks.map(t => ({ id: crypto.randomUUID(), title: t.title, doneDates: [] })),
+            imageUrl: payload.imageUrl, story: payload.story,
+            affectedAreaIds: payload.affectedAreaIds,
+            howItAffectsMe: payload.howItAffectsMe, whyDefeat: payload.whyDefeat,
+            customPhrases: payload.customPhrases,
+            difficulty: payload.difficulty, mainColor: payload.mainColor, hpBarColor: payload.hpBarColor,
+          });
+          setEditingId(null);
+        }}
+      />
     </div>
   );
 }
 
 // ====== Boss Card ======
 function BossCard({
-  boss, today, hitFx, onComplete, onUncomplete, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove,
+  boss, today, hitFx, onComplete, onUncomplete, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
 }: {
   boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
   today: string;
@@ -252,6 +276,7 @@ function BossCard({
   onRemoveTask: (taskId: string) => void;
   onDefeat: () => void;
   onRemove: () => void;
+  onEdit: () => void;
 }) {
   const tasks = boss.tasks || [];
   const combo = boss.combo || 0;
@@ -289,8 +314,10 @@ function BossCard({
           <p className="text-xs text-foreground/70">{boss.description}</p>
           {boss.weakness && <p className="text-[11px] text-gold mt-1">⚡ Fraqueza: {boss.weakness}</p>}
         </div>
+        <button onClick={onEdit} className="text-foreground/40 hover:text-primary" title="Editar boss"><Pencil className="w-4 h-4" /></button>
         <button onClick={onRemove} className="text-foreground/40 hover:text-red-400" title="Remover boss"><X className="w-4 h-4" /></button>
       </div>
+
 
       {/* (Bloco "Área afetada / COMO ME AFETA / POR QUE DERROTAR" removido do card ativo —
            informações permanecem salvas e são usadas pela IA + Editar boss) */}
