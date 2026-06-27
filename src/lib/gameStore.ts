@@ -257,13 +257,9 @@ export const defaultAlterEgo: AlterEgo = {
 };
 
 export const defaultInnerEnemy: InnerEnemy = {
-  name: 'EndMan',
-  traits: ['Manipulador', 'Sedutor', 'Mentiroso'],
-  sabotagePhrases: [
-    'Você merece descansar.',
-    'Começa amanhã.',
-    'Uma vez não faz diferença.',
-  ],
+  name: '',
+  traits: [],
+  sabotagePhrases: [],
   notes: '',
   completed: false,
 };
