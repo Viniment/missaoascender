@@ -417,6 +417,8 @@ export interface BossBattle {
   mainColor?: string;
   hpBarColor?: string;
   reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
+  pendingMockery?: { hpRegained: number; missedDays: number; at: string };
+  mockeryHistory?: { date: string; message: string; missedDays: number }[];
 }
 
 
@@ -2116,7 +2118,8 @@ export function useGameStore() {
         if (b.lastSettledDate >= today) return b;
         let hp = b.hp;
         let combo = b.combo || 0;
-        // varrer dias do lastSettledDate (exclusivo) até ontem (inclusivo)
+        let regained = 0;
+        let missedDays = 0;
         const start = new Date(b.lastSettledDate + 'T00:00:00');
         const end = new Date(today + 'T00:00:00');
         const cursor = new Date(start);
@@ -2127,7 +2130,11 @@ export function useGameStore() {
           const doneCount = b.tasks.filter(t => t.doneDates.includes(d)).length;
           const pct = totalTasks ? doneCount / totalTasks : 0;
           if (pct < 1) {
-            hp = Math.min(b.maxHp, hp + regenFromPct(pct));
+            const gain = regenFromPct(pct);
+            const before = hp;
+            hp = Math.min(b.maxHp, hp + gain);
+            regained += (hp - before);
+            if (pct < 0.5) missedDays += 1;
             combo = 0;
           } else {
             combo += 1;
@@ -2135,7 +2142,10 @@ export function useGameStore() {
           cursor.setDate(cursor.getDate() + 1);
         }
         changed = true;
-        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today };
+        const pendingMockery = regained > 0
+          ? { hpRegained: regained, missedDays, at: new Date().toISOString() }
+          : b.pendingMockery;
+        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery };
       });
       return changed ? { ...prev, bosses: newBosses } : prev;
     });
@@ -2242,6 +2252,46 @@ export function useGameStore() {
       } : b),
     }));
   }, []);
+
+  // === Editar boss existente ===
+  const updateBoss = useCallback((bossId: string, patch: Partial<BossBattle>) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => {
+        if (b.id !== bossId) return b;
+        const next: BossBattle = { ...b, ...patch };
+        // Se mudaram tasks/days, recalcular maxHp preservando proporção
+        if (patch.tasks || patch.days) {
+          const tasks = next.tasks || [];
+          const newMax = Math.max(1, (next.days || b.days || 1) * tasks.length);
+          const ratio = b.maxHp > 0 ? b.hp / b.maxHp : 1;
+          next.maxHp = newMax;
+          next.hp = Math.round(newMax * ratio);
+          next.tasksPerDay = tasks.length;
+        }
+        return next;
+      }),
+    }));
+  }, []);
+
+  // === Limpar deboche pendente após exibir ===
+  const clearBossMockery = useCallback((bossId: string, message?: string) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => {
+        if (b.id !== bossId) return b;
+        const next: BossBattle = { ...b, pendingMockery: undefined };
+        if (message && b.pendingMockery) {
+          next.mockeryHistory = [
+            { date: new Date().toISOString(), message, missedDays: b.pendingMockery.missedDays },
+            ...(b.mockeryHistory || []),
+          ].slice(0, 30);
+        }
+        return next;
+      }),
+    }));
+  }, []);
+
 
 
 
@@ -2540,6 +2590,8 @@ export function useGameStore() {
     chooseClass,
     dismissClassChoice,
     addBoss,
+    updateBoss,
+    clearBossMockery,
     damageBoss,
     defeatBoss,
     removeBoss,

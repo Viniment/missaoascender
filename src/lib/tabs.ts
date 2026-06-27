@@ -5,7 +5,7 @@ export type TabId =
   | 'mirror' | 'counsel' | 'journal'
   | 'timer' | 'awakening' | 'trataka'
   | 'mentor' | 'cbt'
-  | 'attributes' | 'areas' | 'dungeon' | 'bosses' | 'inventory'
+  | 'areas' | 'dungeon' | 'bosses' | 'inventory'
   | 'rewards';
 
 
@@ -28,8 +28,7 @@ export const TAB_GROUPS: TabGroup[] = [
     id: 'rpg',
     label: 'RPG',
     tabs: [
-      { id: 'attributes', label: 'Atributos', icon: Activity, description: 'Suas 6 stats de vida' },
-      { id: 'areas', label: 'Áreas', icon: Heart, description: 'Áreas de vida que evoluem ao vencer inimigos' },
+      { id: 'areas', label: 'Áreas', icon: Heart, description: 'Áreas de vida + atributos que evoluem ao agir' },
       { id: 'dungeon', label: 'Dungeon', icon: Swords, description: '3 desafios do dia + loot' },
       { id: 'bosses', label: 'Bosses', icon: Skull, description: 'Padrões reais para derrotar' },
       { id: 'inventory', label: 'Inventário', icon: Backpack, description: 'Itens, buffs ativos' },

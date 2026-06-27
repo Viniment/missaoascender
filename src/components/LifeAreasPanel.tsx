@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Plus, X, Pencil, Check, Heart } from 'lucide-react';
+import { Plus, X, Pencil, Check, Heart, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ATTRIBUTES, xpForAttrLevel, totalAttributeLevel, defaultAttributes } from '@/lib/attributes';
 
 export default function LifeAreasPanel() {
   const { state, addLifeArea, updateLifeArea, removeLifeArea } = useGame();
   const areas = state.lifeAreas || [];
+  const attrs = state.attributes || defaultAttributes;
+  const totalAttr = totalAttributeLevel(attrs);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('🎯');
@@ -25,6 +28,51 @@ export default function LifeAreasPanel() {
 
   return (
     <div className="space-y-5">
+      {/* Atributos base */}
+      <div className="rpg-panel">
+        <div className="flex items-center gap-3 mb-3">
+          <Activity className="w-5 h-5 text-primary" />
+          <div>
+            <h2 className="font-display text-lg tracking-wider text-primary">ATRIBUTOS BASE</h2>
+            <p className="text-xs text-muted-foreground">Treinados automaticamente por cada hábito e missão.</p>
+          </div>
+          <div className="ml-auto text-right">
+            <div className="text-[10px] text-muted-foreground font-display tracking-wider">TOTAL</div>
+            <div className="font-display text-xl text-gold">{totalAttr}</div>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {ATTRIBUTES.map((a, i) => {
+            const s = attrs[a.id] || { xp: 0, level: 1 };
+            const need = xpForAttrLevel(s.level);
+            const pct = Math.min(100, (s.xp / need) * 100);
+            return (
+              <motion.div
+                key={a.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                className={`p-2.5 rounded-lg border ${a.border} ${a.bg}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{a.emoji}</span>
+                  <span className={`text-xs font-display tracking-wider flex-1 truncate ${a.color}`}>{a.label}</span>
+                  <span className={`font-display text-sm ${a.color}`}>Lv {s.level}</span>
+                </div>
+                <div className="relative h-1.5 bg-background/60 rounded-full overflow-hidden mt-1.5">
+                  <motion.div
+                    className={`absolute inset-y-0 left-0 ${a.bg.replace('/10', '/80')}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.7 }}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="rpg-panel">
         <div className="flex items-center gap-3 mb-4">
           <Heart className="w-5 h-5 text-primary" />

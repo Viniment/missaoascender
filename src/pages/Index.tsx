@@ -14,7 +14,6 @@ import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
 import CbtImmersionPanel from '@/components/CbtImmersionPanel';
 import TratakaPanel from '@/components/TratakaPanel';
-import AttributesPanel from '@/components/AttributesPanel';
 import LifeAreasPanel from '@/components/LifeAreasPanel';
 import DungeonPanel from '@/components/DungeonPanel';
 import BossPanel from '@/components/BossPanel';
@@ -67,7 +66,6 @@ export default function Index() {
       case 'trataka': return <TratakaPanel />;
       case 'mentor': return <MentorChatPanel />;
       case 'cbt': return <CbtImmersionPanel />;
-      case 'attributes': return <AttributesPanel />;
       case 'areas': return <LifeAreasPanel />;
 
       case 'dungeon': return <DungeonPanel />;
