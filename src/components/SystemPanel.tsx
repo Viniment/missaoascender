@@ -1,7 +1,7 @@
 import { useGame } from '@/lib/GameContext';
 import { getTodayBrasilia } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Swords, Gem, ScrollText, ScrollIcon, Lock, CheckCircle2, Zap, Shield, TrendingUp } from 'lucide-react';
+import { Swords, Gem, ScrollText, Scroll, CheckCircle2, Zap, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -87,7 +87,7 @@ export default function SystemPanel() {
       {systemMessages.length > 0 && (
         <div className="space-y-2 pt-2 border-t border-border">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <ScrollIcon className="w-3 h-3" /> DECRETO DO SISTEMA
+            <Scroll className="w-3 h-3" /> DECRETO DO SISTEMA
           </div>
           {systemMessages.map((msg, i) => (
             <p key={i} className="text-xs text-foreground/80 font-body leading-relaxed">{msg}</p>
