@@ -40,7 +40,7 @@ const BOSS_TEMPLATES: Array<{
 
 export default function BossPanel() {
   const {
-    state, addBoss, completeBossTask, uncompleteBossTask,
+    state, addBoss, updateBoss, clearBossMockery, completeBossTask, uncompleteBossTask,
     addBossTask, editBossTask, removeBossTask, settleBossesForToday,
     defeatBoss, removeBoss, recordBossReinforcement,
   } = useGame();
@@ -49,10 +49,65 @@ export default function BossPanel() {
   const defeated = bosses.filter(b => b.defeatedAt);
   const today = getTodayBrasilia();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [hitFx, setHitFx] = useState<Record<string, number>>({});
   const [lastAngle, setLastAngle] = useState<string>('');
+  const [mockeryShown, setMockeryShown] = useState<Record<string, string>>({});
 
   useEffect(() => { settleBossesForToday(); }, [settleBossesForToday]);
+
+  // === Reagir a regen do boss → buscar deboche da IA ===
+  useEffect(() => {
+    active.forEach(async (b) => {
+      if (!b.pendingMockery) return;
+      const key = `${b.id}:${b.pendingMockery.at}`;
+      if (mockeryShown[key]) return;
+      setMockeryShown(s => ({ ...s, [key]: 'loading' }));
+      try {
+        const ctx = {
+          boss: {
+            nome: b.name, emoji: b.emoji, descricao: b.description,
+            hpAtual: b.hp, hpMax: b.maxHp, hpRecuperado: b.pendingMockery.hpRegained,
+            diasFalhados: b.pendingMockery.missedDays,
+            historia: b.story, frasesPersonalizadas: b.customPhrases || [],
+            comoAfeta: b.howItAffectsMe, porQueDerrotar: b.whyDefeat,
+          },
+          player: {
+            nivel: state.level, streak: state.streak,
+            alterEgo: state.alterEgo ? {
+              nome: state.alterEgo.name, valores: state.alterEgo.values,
+              frase: state.alterEgo.identityPhrase, sonhos: state.alterEgo.notes,
+            } : null,
+          },
+        };
+        const { data, error } = await supabase.functions.invoke('boss-mockery', { body: { context: ctx } });
+        const msg: string = (!error && data?.message) ? data.message : `*Você sumiu de novo…* Eu agradeço. Cada dia que você me alimenta, mais perto fico de enterrar aquilo que você jura querer ser.`;
+        clearBossMockery(b.id, msg);
+        if ('vibrate' in navigator) navigator.vibrate?.([60, 40, 60]);
+        toast.custom(() => (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            className="rpg-panel max-w-sm border-red-500/60 bg-gradient-to-br from-red-950/80 via-background to-red-950/40"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xl">{b.emoji}</span>
+              <span className="font-display text-xs tracking-[0.2em] text-red-400">VOZ DE {b.name.toUpperCase()}</span>
+            </div>
+            <div className="text-sm text-red-100 leading-relaxed italic">
+              <ReactMarkdown>{msg}</ReactMarkdown>
+            </div>
+            <p className="text-[10px] text-red-300/70 mt-2">+{b.pendingMockery?.hpRegained} HP recuperados em {b.pendingMockery?.missedDays} dia(s) sem ação.</p>
+          </motion.div>
+        ), { duration: 11000 });
+      } catch (e) {
+        console.error('boss-mockery error', e);
+        clearBossMockery(b.id);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active.map(b => b.pendingMockery?.at || '').join('|')]);
 
   const damageFor = (combo: number) => combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
 
