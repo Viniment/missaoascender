@@ -137,17 +137,45 @@ export default function BossPanel() {
       const msg: string = data.message;
       setLastAngle(msg.slice(0, 80));
       recordBossReinforcement(boss.id, msg, taskTitle);
+      const dmgNow = damageFor(boss.combo || 0);
       toast.custom(() => (
-        <div className="rpg-panel max-w-sm border-primary/50">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="font-display text-xs tracking-wider text-primary">VOZ DO ALTER EGO</span>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85, y: -12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: -8 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+          className="relative w-[min(92vw,440px)] mx-auto text-center rounded-xl border border-primary/60 bg-gradient-to-br from-primary/15 via-background to-gold/10 px-5 py-4 shadow-[0_0_40px_-10px_hsl(var(--primary))] overflow-hidden"
+        >
+          <motion.div
+            aria-hidden
+            initial={{ opacity: 0.6, scale: 0.4 }}
+            animate={{ opacity: 0, scale: 1.6 }}
+            transition={{ duration: 1.1, ease: 'easeOut' }}
+            className="absolute inset-0 rounded-xl bg-primary/20 blur-2xl pointer-events-none"
+          />
+          <div className="relative">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="font-display text-[11px] tracking-[0.25em] text-primary">VOZ DO ALTER EGO</span>
+              <Sparkles className="w-4 h-4 text-primary" />
+            </div>
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: [0.6, 1.25, 1], opacity: 1 }}
+              transition={{ duration: 0.55 }}
+              className="font-display text-2xl text-gold drop-shadow-[0_0_10px_hsl(var(--gold))] mb-1"
+            >
+              −{dmgNow} HP em {boss.name}
+            </motion.div>
+            <div className="text-[13px] text-foreground/95 leading-relaxed italic">
+              <ReactMarkdown>{msg}</ReactMarkdown>
+            </div>
+            <p className="mt-2 text-[10px] tracking-widest text-primary/70 uppercase">
+              Combo {boss.combo} · Você está se tornando quem decidiu ser
+            </p>
           </div>
-          <div className="text-sm text-foreground leading-relaxed">
-            <ReactMarkdown>{msg}</ReactMarkdown>
-          </div>
-        </div>
-      ), { duration: 7000 });
+        </motion.div>
+      ), { duration: 7000, position: 'top-center' });
     } catch (e) {
       console.error('reinforcement error', e);
     }
@@ -699,8 +727,14 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="text-[11px] text-foreground/70">Dificuldade</label>
-                <select value={difficulty} onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')} className="w-full h-9 rounded-md border border-border bg-background text-xs px-2">
-                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => <option key={d} value={d}>{d}</option>)}
+                <select
+                  value={difficulty}
+                  onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')}
+                  className="w-full h-9 rounded-md border border-border bg-background text-foreground text-xs px-2"
+                >
+                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => (
+                    <option key={d} value={d} className="bg-background text-foreground">{d}</option>
+                  ))}
                 </select>
               </div>
               <div>
