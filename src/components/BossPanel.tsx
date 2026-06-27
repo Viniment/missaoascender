@@ -522,6 +522,15 @@ function BossCard({
                       {done && <Check className="w-3 h-3" />}
                     </button>
                     <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>{t.title}</span>
+                    {!done && (
+                      <button
+                        onClick={() => onFail(t.id)}
+                        title="Falhei — autotraição"
+                        className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15 hover:text-red-200"
+                      >
+                        <Skull className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     {showEdit && (
                       <>
                         <button onClick={() => { setEditingId(t.id); setEditVal(t.title); }} className="text-foreground/50 hover:text-foreground">
