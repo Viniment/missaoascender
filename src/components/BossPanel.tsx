@@ -727,8 +727,14 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <label className="text-[11px] text-foreground/70">Dificuldade</label>
-                <select value={difficulty} onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')} className="w-full h-9 rounded-md border border-border bg-background text-xs px-2">
-                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => <option key={d} value={d}>{d}</option>)}
+                <select
+                  value={difficulty}
+                  onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')}
+                  className="w-full h-9 rounded-md border border-border bg-background text-foreground text-xs px-2"
+                >
+                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => (
+                    <option key={d} value={d} className="bg-background text-foreground">{d}</option>
+                  ))}
                 </select>
               </div>
               <div>
