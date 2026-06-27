@@ -2140,6 +2140,34 @@ export function useGameStore() {
     });
   }, []);
 
+  // Trocar UM desafio específico da dungeon (se o usuário não curtiu)
+  const regenerateDungeonChallenge = useCallback((date: string, challengeId: string) => {
+    setState(prev => {
+      const dungeons = prev.dungeons || [];
+      const idx = dungeons.findIndex(d => d.date === date);
+      if (idx === -1) return prev;
+      const dungeon = dungeons[idx];
+      const target = dungeon.challenges.find(c => c.id === challengeId);
+      if (!target || target.done) return prev;
+      const existingTitles = new Set(dungeon.challenges.map(c => c.title));
+      // gerar pool de candidatos diferente
+      let attempt = 0;
+      let pick = null as null | (typeof dungeon.challenges)[number];
+      while (attempt < 10 && !pick) {
+        const fresh = rollDungeonChallenges(date + '-swap-' + challengeId + '-' + Math.random());
+        const candidate = fresh.find(c => !existingTitles.has(c.title));
+        if (candidate) pick = { ...candidate, id: crypto.randomUUID() } as any;
+        attempt++;
+      }
+      if (!pick) return prev;
+      const newChallenges = dungeon.challenges.map(c => c.id === challengeId ? pick! : c);
+      const newDungeons = [...dungeons];
+      newDungeons[idx] = { ...dungeon, challenges: newChallenges };
+      return { ...prev, dungeons: newDungeons };
+    });
+  }, []);
+
+
   const completeDungeonChallenge = useCallback((date: string, challengeId: string) => {
     setState(prev => {
       const dungeons = prev.dungeons || [];
