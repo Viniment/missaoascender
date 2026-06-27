@@ -72,7 +72,7 @@ export default function BossPanel() {
         },
         player: {
           nivel: state.level, rank: state.rank, streak: state.streak,
-          alterEgo: state.alterEgo ? { nome: state.alterEgo.name, virtudes: state.alterEgo.virtues, notas: state.alterEgo.notes } : null,
+          alterEgo: state.alterEgo ? { nome: state.alterEgo.name, valores: state.alterEgo.values, frase: state.alterEgo.identityPhrase, notas: state.alterEgo.notes } : null,
           totalHabitos: (state.habits || []).length,
           tarefasConcluidasNesteBoss: totalDone + 1,
         },
