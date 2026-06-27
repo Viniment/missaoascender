@@ -268,6 +268,38 @@ export const defaultInnerEnemy: InnerEnemy = {
   completed: false,
 };
 
+// === ÁREAS DE VIDA (Life Areas) ===
+export interface LifeArea {
+  id: string;
+  name: string;
+  icon: string;       // emoji
+  color: string;      // tailwind text class or hex
+  level: number;
+  xp: number;
+  xpToNext: number;
+}
+
+export const DEFAULT_LIFE_AREAS: Omit<LifeArea, 'id'>[] = [
+  { name: 'Saúde',           icon: '❤️',  color: '#ef4444', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Mentalidade',     icon: '🧠',  color: '#a855f7', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Financeiro',      icon: '💰',  color: '#eab308', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Estudos',         icon: '📚',  color: '#3b82f6', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Disciplina',      icon: '🏋️',  color: '#f97316', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Sono',            icon: '😴',  color: '#6366f1', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Espiritualidade', icon: '🙏',  color: '#06b6d4', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Relacionamentos', icon: '❤️‍🔥', color: '#ec4899', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Trabalho',        icon: '💼',  color: '#64748b', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Foco',            icon: '🎯',  color: '#10b981', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Autoestima',      icon: '✨',  color: '#facc15', level: 1, xp: 0, xpToNext: 100 },
+  { name: 'Liderança',       icon: '👑',  color: '#f59e0b', level: 1, xp: 0, xpToNext: 100 },
+];
+
+export function buildDefaultLifeAreas(): LifeArea[] {
+  return DEFAULT_LIFE_AREAS.map(a => ({ ...a, id: crypto.randomUUID() }));
+}
+
+
+
 export interface PlayerState {
   name: string;
   title: string;
