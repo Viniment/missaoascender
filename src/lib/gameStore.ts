@@ -2195,7 +2195,7 @@ export function useGameStore() {
         }
         changed = true;
         const pendingMockery = regained > 0
-          ? { hpRegained: regained, missedDays, at: new Date().toISOString() }
+          ? { hpRegained: regained, missedDays, at: new Date().toISOString(), reason: 'missed_day' as const }
           : b.pendingMockery;
         return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery };
       });
