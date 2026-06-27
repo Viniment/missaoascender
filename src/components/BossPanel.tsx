@@ -209,6 +209,7 @@ export default function BossPanel() {
                   hitFx={hitFx}
                   onComplete={(taskId, combo) => onComplete(b, taskId, combo)}
                   onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
+                  onFail={(taskId) => failBossTask(b.id, taskId)}
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
