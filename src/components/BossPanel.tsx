@@ -276,6 +276,7 @@ export default function BossPanel() {
       />
 
       <StrikeOverlay strike={strike} onClose={() => setStrike(null)} />
+      <MockeryOverlay mockery={mockery} onClose={() => setMockery(null)} />
     </div>
   );
 }
