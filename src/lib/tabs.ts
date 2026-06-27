@@ -1,11 +1,11 @@
-import { Swords, Sparkles, BookOpen, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Backpack, Heart, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Heart, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'counsel' | 'journal'
   | 'awakening'
   | 'mentor' | 'cbt'
-  | 'areas' | 'dungeon' | 'bosses' | 'inventory'
+  | 'areas' | 'dungeon' | 'bosses'
   | 'rewards';
 
 
@@ -30,8 +30,6 @@ export const TAB_GROUPS: TabGroup[] = [
     tabs: [
       { id: 'areas', label: 'Áreas', icon: Heart, description: 'Áreas de vida + atributos que evoluem ao agir' },
       { id: 'bosses', label: 'Bosses', icon: Skull, description: 'Padrões reais para derrotar' },
-      { id: 'inventory', label: 'Inventário', icon: Backpack, description: 'Itens, buffs ativos' },
-
     ],
   },
   {
