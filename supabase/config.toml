@@ -12,5 +12,11 @@ verify_jwt = false
 [functions.attack-reinforcement]
 verify_jwt = false
 
+[functions.boss-mockery]
+verify_jwt = false
+
+[functions.boss-assist]
+verify_jwt = false
+
 
 
