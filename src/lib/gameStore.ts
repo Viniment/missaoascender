@@ -786,28 +786,9 @@ export function normalizePlayerStateForToday(state: PlayerState): PlayerState {
   };
 }
 
+// Persistência fica 100% no banco (ver usePlayerData). Sem cache em localStorage.
 function loadState(): PlayerState {
-  try {
-    const saved = localStorage.getItem('ascensao-state');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      const merged = normalizePlayerStateForToday({ ...defaultState, ...parsed });
-      if (merged.punishments) {
-        merged.punishments = merged.punishments.filter(
-          (p: any) => VALID_PUNISHMENT_CATEGORIES.includes(p.category)
-        );
-      }
-      // Merge identity defaults for migration
-      merged.identity = { ...defaultIdentity, ...(merged.identity || {}) };
-      merged.awakeningConfig = { ...defaultAwakeningConfig, ...(merged.awakeningConfig || {}) };
-      return merged;
-    }
-  } catch { /* ignore */ }
   return defaultState;
-}
-
-function saveState(state: PlayerState) {
-  localStorage.setItem('ascensao-state', JSON.stringify(state));
 }
 
 // XP per hour by difficulty
@@ -866,9 +847,7 @@ export function useGameStore() {
     };
   }, []);
 
-  useEffect(() => {
-    saveState(state);
-  }, [state]);
+  // Estado é persistido no Supabase via usePlayerData — não usamos localStorage.
 
   const addXp = useCallback((amount: number, action: string) => {
     setState(prev => {

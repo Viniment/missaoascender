@@ -24,9 +24,9 @@ export function usePlayerData(
         .from('player_data')
         .select('game_state')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (data?.game_state && typeof data.game_state === 'object' && !Array.isArray(data.game_state)) {
+      if (data?.game_state && typeof data.game_state === 'object' && !Array.isArray(data.game_state) && Object.keys(data.game_state as object).length > 0) {
         const saved = data.game_state as Record<string, unknown>;
         const merged = normalizePlayerStateForToday({ ...defaultState, ...saved } as PlayerState);
         // Filter out invalid punishment categories (e.g. legacy "Controle")
@@ -39,6 +39,9 @@ export function usePlayerData(
           merged.disabledTabs = merged.disabledTabs.filter(t => !REMOVED_TABS.includes(t));
         }
         setState(() => merged);
+      } else if (!data) {
+        // Garante que existe uma linha para esse usuário (cobre contas antigas sem trigger).
+        await supabase.from('player_data').insert({ user_id: user.id, game_state: {} as unknown as Json });
       }
 
       // Also load profile name
@@ -73,11 +76,14 @@ export function usePlayerData(
 
     saveTimeout.current = setTimeout(async () => {
       lastSaved.current = stateJson;
-      await supabase
+      const { error } = await supabase
         .from('player_data')
-        .update({ game_state: state as unknown as Json })
-        .eq('user_id', user.id);
-    }, 1000); // 1s debounce
+        .upsert(
+          { user_id: user.id, game_state: state as unknown as Json },
+          { onConflict: 'user_id' },
+        );
+      if (error) console.error('[player_data] save error:', error);
+    }, 800); // debounce
 
     return () => {
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
@@ -98,8 +104,10 @@ export function usePlayerData(
     setState(() => resetState);
     await supabase
       .from('player_data')
-      .update({ game_state: resetState as unknown as Json })
-      .eq('user_id', user.id);
+      .upsert(
+        { user_id: user.id, game_state: resetState as unknown as Json },
+        { onConflict: 'user_id' },
+      );
   }, [user, setState, defaultState, state.name, state.avatar]);
 
   const deleteAccount = useCallback(async () => {
