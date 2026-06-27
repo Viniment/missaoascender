@@ -58,6 +58,13 @@ export default function BossPanel() {
     bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number;
     combo: number; hp: number; maxHp: number; message: string;
   }>(null);
+  const [mockery, setMockery] = useState<null | {
+    bossName: string; bossEmoji: string; mainColor?: string;
+    hpRegained: number; hp: number; maxHp: number;
+    reason: 'missed_day' | 'self_betrayal';
+    missedDays: number; taskTitle?: string;
+    message: string;
+  }>(null);
 
   useEffect(() => { settleBossesForToday(); }, [settleBossesForToday]);
 
@@ -88,34 +95,22 @@ export default function BossPanel() {
           },
         };
         const { data, error } = await supabase.functions.invoke('boss-mockery', { body: { context: ctx } });
-        const fallback = b.pendingMockery.reason === 'self_betrayal'
-          ? `*Ah ah ah…* Mais uma vez fiz você desistir. Você jura que vai mudar, mas eu sei quem você é quando ninguém vê.`
-          : `*Você sumiu de novo…* Eu agradeço. Cada dia que você me alimenta, mais perto fico de enterrar aquilo que você jura querer ser.`;
+        const reason = (b.pendingMockery.reason || 'missed_day') as 'missed_day' | 'self_betrayal';
+        const fallback = reason === 'self_betrayal'
+          ? `Mais uma vez fiz você desistir. Eu como o que você não vive — e você me serve com sorriso. Cada vez que você foge, eu me visto com mais um pedaço do seu futuro.`
+          : `Você sumiu, e eu engordei. Olha em volta: cada dia que você ignora, vira mais um sonho meu — não seu. Continua assim, vai. Você ainda vai me chamar de identidade.`;
         const msg: string = (!error && data?.message) ? data.message : fallback;
         clearBossMockery(b.id, msg);
-        if ('vibrate' in navigator) navigator.vibrate?.([60, 40, 60]);
-        toast.custom(() => (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="rpg-panel max-w-sm border-red-500/60 bg-gradient-to-br from-red-950/80 via-background to-red-950/40"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl">{b.emoji}</span>
-              <span className="font-display text-xs tracking-[0.2em] text-red-400">VOZ DE {b.name.toUpperCase()}</span>
-            </div>
-            <div className="text-sm text-red-100 leading-relaxed italic">
-              <ReactMarkdown>{msg}</ReactMarkdown>
-            </div>
-            <p className="text-[10px] text-red-300/70 mt-2">
-              +{b.pendingMockery?.hpRegained} HP recuperados
-              {b.pendingMockery?.reason === 'self_betrayal'
-                ? ` · autotraição em "${b.pendingMockery?.taskTitle}"`
-                : ` em ${b.pendingMockery?.missedDays} dia(s) sem ação`}.
-            </p>
-          </motion.div>
-        ), { duration: 11000 });
+        if ('vibrate' in navigator) navigator.vibrate?.([80, 40, 120, 40, 80]);
+        setMockery({
+          bossName: b.name, bossEmoji: b.emoji, mainColor: b.mainColor,
+          hpRegained: b.pendingMockery.hpRegained,
+          hp: b.hp, maxHp: b.maxHp,
+          reason,
+          missedDays: b.pendingMockery.missedDays,
+          taskTitle: b.pendingMockery.taskTitle,
+          message: msg,
+        });
       } catch (e) {
         console.error('boss-mockery error', e);
         clearBossMockery(b.id);
