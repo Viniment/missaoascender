@@ -42,7 +42,7 @@ const BOSS_TEMPLATES: Array<{
 export default function BossPanel() {
   const {
     state, addBoss, updateBoss, clearBossMockery, completeBossTask, uncompleteBossTask,
-    addBossTask, editBossTask, removeBossTask, settleBossesForToday,
+    failBossTask, addBossTask, editBossTask, removeBossTask, settleBossesForToday,
     defeatBoss, removeBoss, recordBossReinforcement,
   } = useGame();
   const bosses = state.bosses || [];
@@ -74,6 +74,8 @@ export default function BossPanel() {
             nome: b.name, emoji: b.emoji, descricao: b.description,
             hpAtual: b.hp, hpMax: b.maxHp, hpRecuperado: b.pendingMockery.hpRegained,
             diasFalhados: b.pendingMockery.missedDays,
+            motivo: b.pendingMockery.reason || 'missed_day',
+            tarefaFalhada: b.pendingMockery.taskTitle || null,
             historia: b.story, frasesPersonalizadas: b.customPhrases || [],
             comoAfeta: b.howItAffectsMe, porQueDerrotar: b.whyDefeat,
           },
@@ -86,7 +88,10 @@ export default function BossPanel() {
           },
         };
         const { data, error } = await supabase.functions.invoke('boss-mockery', { body: { context: ctx } });
-        const msg: string = (!error && data?.message) ? data.message : `*Você sumiu de novo…* Eu agradeço. Cada dia que você me alimenta, mais perto fico de enterrar aquilo que você jura querer ser.`;
+        const fallback = b.pendingMockery.reason === 'self_betrayal'
+          ? `*Ah ah ah…* Mais uma vez fiz você desistir. Você jura que vai mudar, mas eu sei quem você é quando ninguém vê.`
+          : `*Você sumiu de novo…* Eu agradeço. Cada dia que você me alimenta, mais perto fico de enterrar aquilo que você jura querer ser.`;
+        const msg: string = (!error && data?.message) ? data.message : fallback;
         clearBossMockery(b.id, msg);
         if ('vibrate' in navigator) navigator.vibrate?.([60, 40, 60]);
         toast.custom(() => (
@@ -103,7 +108,12 @@ export default function BossPanel() {
             <div className="text-sm text-red-100 leading-relaxed italic">
               <ReactMarkdown>{msg}</ReactMarkdown>
             </div>
-            <p className="text-[10px] text-red-300/70 mt-2">+{b.pendingMockery?.hpRegained} HP recuperados em {b.pendingMockery?.missedDays} dia(s) sem ação.</p>
+            <p className="text-[10px] text-red-300/70 mt-2">
+              +{b.pendingMockery?.hpRegained} HP recuperados
+              {b.pendingMockery?.reason === 'self_betrayal'
+                ? ` · autotraição em "${b.pendingMockery?.taskTitle}"`
+                : ` em ${b.pendingMockery?.missedDays} dia(s) sem ação`}.
+            </p>
           </motion.div>
         ), { duration: 11000 });
       } catch (e) {
