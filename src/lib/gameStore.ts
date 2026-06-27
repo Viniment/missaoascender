@@ -339,6 +339,20 @@ export interface PlayerState {
   redemptionQuests?: RedemptionQuest[];
 }
 
+export interface BossTask {
+  id: string;
+  title: string;
+  doneDates: string[]; // YYYY-MM-DD
+}
+
+export interface DefeatedBossSummary {
+  daysTaken: number;
+  totalTasksDone: number;
+  xp: number;
+  gold: number;
+  bestCombo: number;
+}
+
 export interface BossBattle {
   id: string;
   name: string;
@@ -349,7 +363,16 @@ export interface BossBattle {
   maxHp: number;
   createdAt: string;
   defeatedAt?: string;
+  // === NEW (sistema de batalha) ===
+  days?: number;             // duração planejada
+  tasksPerDay?: number;      // qtd de tarefas/dia
+  tasks?: BossTask[];        // tarefas personalizadas
+  combo?: number;            // combo atual de consistência
+  bestCombo?: number;
+  lastSettledDate?: string;  // último dia processado (regen/combo)
+  defeatStats?: DefeatedBossSummary;
 }
+
 
 export interface DungeonChallengeState {
   id: string;
