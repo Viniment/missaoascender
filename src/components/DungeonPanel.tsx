@@ -76,7 +76,17 @@ export default function DungeonPanel() {
                       <span className={attr.color}>+{c.xp} XP {attr.label}</span>
                     </div>
                   </div>
+                  {!c.done && (
+                    <button
+                      onClick={() => regenerateDungeonChallenge(today, c.id)}
+                      className="self-start text-foreground/40 hover:text-primary transition-colors p-1"
+                      title="Trocar este desafio"
+                    >
+                      <Shuffle className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </motion.div>
+
               );
             })}
           </div>
