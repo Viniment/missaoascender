@@ -191,7 +191,10 @@ export default function AwakeningPage() {
 
     setLoadingAI(true);
     try {
-      const ctx = buildAiContext(state);
+      const fullCtx = buildAiContext(state);
+      // Remove qualquer vestígio da filosofia antiga (Alter Ego / Inimigo Interno / "EndMan").
+      // No Despertar, o único antagonista é o Monstro ativo.
+      const { alterEgo: _ae, innerEnemy: _ie, ...ctx } = fullCtx as any;
 
       // Pega o Boss ativo (não derrotado) com maior HP — o mais "presente" agora.
       const activeBossRaw = (state.bosses || [])
