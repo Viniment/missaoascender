@@ -1,132 +1,125 @@
-# Plano: Life RPG — Transformação Completa em Jogo
+## Atualização do Sistema de Combate e Progressão
 
-Vou expandir o sistema atual de XP/níveis para uma experiência completa de RPG da vida, mantendo a filosofia de liderança compassiva já estabelecida. Tudo será integrado aos hábitos e missões existentes — nada será descartado.
-
----
-
-## 1. Atributos de Vida (6 stats centrais)
-
-Cada hábito/missão passa a dar XP em **um atributo** além do XP geral. Os 6 atributos:
-
-| Atributo | Símbolo | Representa |
-|---|---|---|
-| **Força** | ⚔️ | Exercício, esforço físico, ação |
-| **Mente** | 🧠 | Estudo, leitura, foco, aprendizado |
-| **Espírito** | ✨ | Meditação, journaling, Trataka, TCC |
-| **Social** | 🤝 | Conexões, conversas, vínculos |
-| **Disciplina** | 🛡️ | Hábitos mantidos, promessas cumpridas |
-| **Vitalidade** | ❤️‍🔥 | Sono, alimentação, água, autocuidado |
-
-- Cada atributo tem nível próprio (1-100) com curva de XP.
-- Ao criar/editar hábito ou missão → escolher atributo principal.
-- IA do mentor sugere atributo ao criar hábito via tool-calling.
-- Novo painel **Atributos** mostrando barras radiais e progressão.
-
-## 2. Classes e Skill Tree
-
-- Aos **Nível 5** o usuário desbloqueia escolha de classe baseada no atributo dominante:
-  - **Guerreiro** (Força) — bônus em quests físicas
-  - **Sábio** (Mente) — bônus de XP em estudo
-  - **Místico** (Espírito) — bônus em práticas contemplativas
-  - **Diplomata** (Social) — bônus em quests sociais
-  - **Monge** (Disciplina) — bônus em streaks
-  - **Curandeiro** (Vitalidade) — regen passiva
-- Skill tree simples por classe (3 ramos × 3 níveis = 9 perks) desbloqueados por XP do atributo.
-- Perks são **passivos reais**: multiplicadores de XP, slots extras de missão, custos reduzidos na loja, etc.
-
-## 3. Quests Épicas e Boss Battles
-
-- **Quest Épica**: missão de longo prazo (semanas/meses) com fases. Ex: "Reconstruir meu corpo" → 4 fases × várias sub-missões.
-- **Boss Battle**: chefes representam padrões de sabotagem reais (Procrastinação, Comparação, Autocrítica, Cansaço Crônico).
-  - Cada boss tem "HP" reduzido por ações específicas durante 7-14 dias.
-  - Visual de barra de HP do boss + recompensa épica ao derrotar.
-  - IA do mentor pode propor um boss quando detectar padrão recorrente.
-
-## 4. Dungeons Diárias e Eventos
-
-- **Dungeon do Dia**: gerada todo dia pela IA com 3 desafios temáticos (curtos, 5-30min) + timer e loot.
-- **Loot system**: ao completar, drop aleatório (raridade comum/raro/épico/lendário) que vira item visual no inventário e bônus temporário (ex: "Poção de Foco: +20% XP por 2h").
-- **Eventos sazonais**: semana temática (ex: "Semana da Vitalidade") com multiplicadores e quest exclusiva.
-
-## 5. Quest de Redenção (sistema de falha)
-
-- Sem perda dura. Ao quebrar streak ou falhar missão crítica:
-  - IA gera uma **Quest de Redenção** personalizada (1-3 dias) usando contexto do usuário e tom compassivo.
-  - Completar → restaura streak parcialmente + insígnia "Voltei".
-  - Aparece como dialog acolhedor, não punitivo.
-
-## 6. Intensidade visual (nível 3 — moderado)
-
-- Animação de **Level Up** com partículas + som sutil ao subir nível geral, de atributo ou desbloquear perk.
-- Boss com barra de HP pulsante e shake ao receber dano.
-- Loot drop com flip card animado.
-- Sem áudio invasivo — apenas SFX opt-in nas configurações.
+Toda lógica de HP, dano, combo, XP e progresso existente será **preservada**. Esta é uma camada de personalização + apresentação + IA.
 
 ---
 
-## Implementação técnica
+### 1. Áreas de Vida (Life Areas) — nova entidade
 
-### Game store (`src/lib/gameStore.ts`)
-Novos campos no `PlayerState`:
-- `attributes: Record<AttributeId, { xp: number; level: number }>`
-- `class: { id: ClassId; chosenAt: string } | null`
-- `perks: PerkId[]`
-- `epicQuests: EpicQuest[]` (fases, progresso)
-- `bosses: BossBattle[]` (ativos + derrotados)
-- `dungeons: { date: string; challenges: DungeonChallenge[]; loot?: LootItem }[]`
-- `inventory: LootItem[]`
-- `activeBuffs: ActiveBuff[]` (expira por tempo)
-- `redemptionQuests: RedemptionQuest[]`
+Nova estrutura no `gameStore.ts`:
 
-Hábitos e missões ganham campo opcional `attribute: AttributeId`.
+```ts
+interface LifeArea {
+  id: string;
+  name: string;        // "Saúde", "Foco" — editável
+  icon: string;        // emoji
+  color: string;
+  level: number;       // começa em 1
+  xp: number;          // XP acumulado para a área
+  xpToNext: number;    // cresce por nível
+}
+```
 
-### Novos componentes
-- `src/components/AttributesPanel.tsx` — visualização das 6 stats com gráfico radial
-- `src/components/ClassSelectionDialog.tsx` — escolha de classe no nível 5
-- `src/components/SkillTreePanel.tsx` — árvore de perks por classe
-- `src/components/EpicQuestsPanel.tsx` — quests longas com fases
-- `src/components/BossBattlePanel.tsx` — chefes ativos com barra HP
-- `src/components/DungeonOfTheDay.tsx` — desafios diários gerados pela IA
-- `src/components/LootDropOverlay.tsx` — animação de drop
-- `src/components/InventoryPanel.tsx` — itens coletados + buffs ativos
-- `src/components/RedemptionQuestDialog.tsx` — dialog acolhedor pós-falha
-- `src/components/LevelUpOverlay.tsx` — animação de level up
+- Seed default: Saúde, Mentalidade, Financeiro, Estudos, Disciplina, Sono, Espiritualidade, Relacionamentos, Trabalho, Foco, Autoestima, Liderança.
+- CRUD completo (criar/editar/excluir/ícone/cor).
+- Quando boss é derrotado → distribui XP entre as áreas ligadas a ele e dispara level-up das áreas (toast).
 
-### Edge functions novas
-- `dungeon-generator` — gera os 3 desafios diários personalizados
-- `boss-suggester` — detecta padrões e sugere boss
-- `redemption-quest` — cria quest de redenção pós-falha
-- `epic-quest-planner` — quebra meta grande em fases
-
-### Lógica central
-- Sistema de cálculo de XP de atributo em `src/lib/attributes.ts`
-- Sistema de perks/bônus em `src/lib/perks.ts` (multiplicadores aplicados em todo gain de XP/ouro)
-- Sistema de loot em `src/lib/loot.ts` (tabela de drops por raridade)
-- Hook `useBuffs` para expirar buffs ativos
-
-### Navegação
-Novo grupo na sidebar **"RPG"**:
-- Atributos
-- Classe & Skills
-- Quests Épicas
-- Bosses
-- Dungeon do Dia
-- Inventário
-
-### Integração com sistemas atuais
-- Mentor IA passa a sugerir atributo ao criar hábito.
-- Hábitos completados → XP no atributo + chance de loot.
-- Awakening/TCC → XP em Espírito.
-- Trataka → XP em Espírito + Mente.
+Painel novo: **`src/components/LifeAreasPanel.tsx`** — grid com card por área (ícone, nível, barra de XP). Integrado na aba "Atributos" ou nova aba "Áreas".
 
 ---
 
-## Faseamento da entrega
+### 2. Monstro: campos novos (personalização total)
 
-Para entregar bem, vou implementar em **3 ondas** dentro deste mesmo plano (sem pausa para aprovação):
+Adicionar ao `BossBattle`:
 
-1. **Onda 1 — Fundação**: Atributos, integração em hábitos/missões, painel de atributos, level up overlay, classes + seleção.
-2. **Onda 2 — Conteúdo**: Quests épicas, bosses, dungeon do dia + edge functions, loot, inventário.
-3. **Onda 3 — Polish**: Skill tree, quest de redenção, eventos sazonais, animações finais.
+```ts
+imageUrl?: string;
+story?: string;                  // história/lore
+affectedAreaIds: string[];       // áreas que ele afeta
+howItAffectsMe?: string;         // "Como este monstro influencia minha vida"
+whyDefeat?: string;              // "Por que quero derrotá-lo"
+customPhrases?: string[];        // frases que ele diz
+difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+mainColor?: string;
+hpBarColor?: string;
+```
 
-O resultado: o app deixa de ser "produtividade com XP" e vira de fato um **Life RPG** onde cada dia é uma sessão de jogo significativa.
+- `BossPanel.tsx`: formulário de criação/edição expandido com todos esses campos + upload/URL de imagem + multi-seleção de áreas afetadas + dois textareas (`howItAffectsMe`, `whyDefeat`) sem limite.
+- `CurrentBossCard.tsx`: mostra imagem (se tiver), título, áreas afetadas como chips.
+
+---
+
+### 3. XP do Monstro (fórmula automática)
+
+`maxHp` / XP recompensa derivado de:
+
+```
+maxXp = (totalHabits + totalTasks) * days
+```
+
+Mostrar prévia no formulário ao escolher dias/tasks. Manter cálculo de dano atual (não mexer).
+
+---
+
+### 4. Sequência de ataque (animação)
+
+Quando o usuário marca task do boss como feita:
+
+- Botão pulse + glow
+- Partículas (CSS) saindo do botão
+- HP bar drena suave (já existe, melhorar transição)
+- Número de dano flutuante subindo
+- Shake leve no card do boss
+- Som opcional (skip se não houver asset)
+
+Tudo CSS/framer-motion em `BossPanel.tsx`. Novo subcomponente `BossAttackEffects.tsx` (overlay de partículas + dano flutuante).
+
+---
+
+### 5. Mensagem emocional pós-ataque (IA única)
+
+Nova edge function: **`supabase/functions/attack-reinforcement/index.ts`**
+
+- Input: snapshot completo (alter ego, boss, áreas afetadas, streak, level, hábitos do dia, histórico recente, último ângulo usado).
+- Modelo: `google/gemini-2.5-flash`.
+- System prompt focado em: orgulho, identidade, anti-culpa, anti-genérico, variação de tom (épico, acolhedor, filosófico, etc), evolução do discurso conforme `level`/`streak`.
+- Anti-repetição: persistir últimos 10 tons/ângulos em `aiAngleHistory`.
+- Resposta curta (1–3 frases), markdown leve.
+
+UI: toast/modal flutuante após cada ataque com a mensagem; também salvar em `boss.reinforcementHistory` para o usuário rever.
+
+`supabase/config.toml`: adicionar `[functions.attack-reinforcement] verify_jwt = false`.
+
+---
+
+### 6. Detalhes técnicos
+
+- Tipos novos em `gameStore.ts` + reducers: `addLifeArea`, `updateLifeArea`, `removeLifeArea`, `awardAreaXp(boss)`.
+- `defeatBoss()` já existente: chamar `awardAreaXp` com `affectedAreaIds`.
+- Migração: se `state.lifeAreas` não existir, seed com 12 default na inicialização.
+- Persistência via localStorage (padrão atual do app).
+
+---
+
+### Arquivos afetados
+
+- `src/lib/gameStore.ts` (+ tipos + actions)
+- `src/components/BossPanel.tsx` (formulário expandido + animações)
+- `src/components/CurrentBossCard.tsx` (mostrar imagem/áreas)
+- `src/components/LifeAreasPanel.tsx` **novo**
+- `src/components/BossAttackEffects.tsx` **novo**
+- `src/lib/tabs.ts` (+ aba "Áreas" opcional)
+- `src/pages/Index.tsx` (mount nova aba)
+- `supabase/functions/attack-reinforcement/index.ts` **novo**
+- `supabase/config.toml` (+ verify_jwt false)
+
+---
+
+### Fora de escopo (manter como está)
+
+- Cálculo de dano, HP, combo, regen
+- XP/ouro do jogador
+- Boss Coach Chat (já existe e fica)
+- Mentor Chat, TCC, Trataka, Despertar
+
+Posso seguir e implementar tudo de uma vez?
