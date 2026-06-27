@@ -2128,7 +2128,43 @@ export function useGameStore() {
       const newHp = Math.min(boss.maxHp, boss.hp + refund);
       const newBosses = [...bosses];
       newBosses[idx] = { ...boss, tasks: newTasks, hp: newHp, combo: newCombo };
-      return { ...prev, bosses: newBosses };
+      // === Reverter recompensas que o usuário ganhou ao concluir ===
+      const comboAtCompletion = Math.max(0, wasAllDone ? combo - 1 : combo);
+      const reward = computeBossTaskReward(boss.difficulty, comboAtCompletion, wasAllDone);
+      const xpBack = reward.xp;
+      const goldBack = reward.gold;
+      const newXp = Math.max(0, prev.xp - xpBack);
+      const newGold = Math.max(0, prev.gold - goldBack);
+      const prog = processLevelUp(newXp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      // Reverter XP das áreas de vida afetadas
+      const areas = prev.lifeAreas || buildDefaultLifeAreas();
+      const affected = (boss.affectedAreaIds || []).filter(aid => areas.some(a => a.id === aid));
+      const perAreaXpBack = affected.length
+        ? Math.max(2, Math.floor(xpBack / Math.max(1, affected.length)))
+        : 0;
+      const newAreas = affected.length
+        ? areas.map(a => {
+            if (!affected.includes(a.id)) return a;
+            let lvl = a.level;
+            let curXp = a.xp - perAreaXpBack;
+            let toNext = a.xpToNext;
+            while (curXp < 0 && lvl > 1) {
+              lvl -= 1;
+              toNext = Math.max(100, Math.floor(toNext / 1.25));
+              curXp += toNext;
+            }
+            if (curXp < 0) curXp = 0;
+            return { ...a, level: lvl, xp: curXp, xpToNext: toNext };
+          })
+        : areas;
+      return {
+        ...prev,
+        ...prog,
+        gold: newGold,
+        bosses: newBosses,
+        lifeAreas: newAreas,
+        log: [{ date: new Date().toISOString(), action: `↩️ ${boss.name}: tarefa desmarcada (${task.title})`, xp: -xpBack, gold: -goldBack }, ...prev.log].slice(0, 100),
+      };
     });
   }, []);
 
