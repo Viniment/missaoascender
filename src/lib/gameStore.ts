@@ -1982,6 +1982,10 @@ export function useGameStore() {
   const addBoss = useCallback((b: {
     name: string; emoji: string; description: string; weakness?: string;
     days: number; tasks: { title: string }[];
+    imageUrl?: string; story?: string; affectedAreaIds?: string[];
+    howItAffectsMe?: string; whyDefeat?: string; customPhrases?: string[];
+    difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+    mainColor?: string; hpBarColor?: string;
   }) => {
     setState(prev => {
       const tasks: BossTask[] = b.tasks
@@ -1997,10 +2001,21 @@ export function useGameStore() {
         days: b.days, tasksPerDay: tasks.length, tasks,
         combo: 0, bestCombo: 0,
         lastSettledDate: today,
+        imageUrl: b.imageUrl,
+        story: b.story,
+        affectedAreaIds: b.affectedAreaIds || [],
+        howItAffectsMe: b.howItAffectsMe,
+        whyDefeat: b.whyDefeat,
+        customPhrases: b.customPhrases || [],
+        difficulty: b.difficulty,
+        mainColor: b.mainColor,
+        hpBarColor: b.hpBarColor,
+        reinforcementHistory: [],
       };
       return { ...prev, bosses: [...(prev.bosses || []), boss] };
     });
   }, []);
+
 
   // Concluir tarefa do dia. Damage = damageFromCombo(combo).
   // Se todas as tarefas do dia ficarem completas, combo +1.
