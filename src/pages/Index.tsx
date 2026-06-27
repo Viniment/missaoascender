@@ -15,7 +15,6 @@ import BossPanel from '@/components/BossPanel';
 
 import CurrentBossCard from '@/components/CurrentBossCard';
 
-import InventoryPanel from '@/components/InventoryPanel';
 import LevelUpOverlay from '@/components/LevelUpOverlay';
 import RedemptionQuestDialog from '@/components/RedemptionQuestDialog';
 import ClassSelectionDialog from '@/components/ClassSelectionDialog';
@@ -54,7 +53,6 @@ export default function Index() {
       case 'mentor': return <MentorChatPanel />;
       case 'areas': return <LifeAreasPanel />;
       case 'bosses': return <BossPanel />;
-      case 'inventory': return <InventoryPanel />;
       case 'rewards': return <RewardsShop />;
     }
   };
