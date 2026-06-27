@@ -1,9 +1,9 @@
-import { Swords, Sparkles, BookOpen, Eye, Gift, Timer, Trophy, ScrollText, Compass, MessageCircleHeart, Focus, Brain, Activity, Skull, Backpack, Heart, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Eye, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Backpack, Heart, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'mirror' | 'counsel' | 'journal'
-  | 'timer' | 'awakening' | 'trataka'
+  | 'awakening'
   | 'mentor' | 'cbt'
   | 'areas' | 'dungeon' | 'bosses' | 'inventory'
   | 'rewards';
@@ -53,14 +53,6 @@ export const TAB_GROUPS: TabGroup[] = [
       { id: 'journal', label: 'Diário', icon: BookOpen, description: 'Registro de pensamentos e emoções' },
       { id: 'mentor', label: 'Mentor', icon: MessageCircleHeart, description: 'Chat com seu mentor interno', core: true },
       { id: 'awakening', label: 'Despertar', icon: ScrollText, description: 'Exercícios de escrita terapêutica' },
-    ],
-  },
-  {
-    id: 'tools',
-    label: 'Ferramentas',
-    tabs: [
-      { id: 'timer', label: 'Timer', icon: Timer, description: 'Pomodoro e sessões focadas' },
-      { id: 'trataka', label: 'Trataka', icon: Focus, description: 'Concentração visual em um único ponto' },
     ],
   },
   {

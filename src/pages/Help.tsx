@@ -148,22 +148,6 @@ const groups: Group[] = [
         ],
       },
       {
-        icon: Timer,
-        title: 'Timer Pomodoro',
-        color: 'text-primary',
-        content: `O Timer usa a técnica Pomodoro: ciclos de foco intenso (25 min) seguidos de pausas curtas (5 min). Após 4 ciclos, uma pausa longa. Ideal para manter a concentração.`,
-        benefits: [
-          'Foco profundo sem burnout',
-          'Pausas estratégicas aumentam a produtividade',
-          'Estrutura o tempo de trabalho de forma saudável',
-        ],
-        tips: [
-          'Durante o foco, elimine todas as distrações',
-          'Use as pausas para se movimentar e hidratar',
-          'Combine com missões para máxima eficiência',
-        ],
-      },
-      {
         icon: Skull,
         title: 'Protocolo de Falha',
         color: 'text-destructive',
