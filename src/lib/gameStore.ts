@@ -2543,6 +2543,11 @@ export function useGameStore() {
     damageBoss,
     defeatBoss,
     removeBoss,
+    recordBossReinforcement,
+    addLifeArea,
+    updateLifeArea,
+    removeLifeArea,
+
     completeBossTask,
     uncompleteBossTask,
     addBossTask,
