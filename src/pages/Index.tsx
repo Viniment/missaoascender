@@ -68,6 +68,8 @@ export default function Index() {
       case 'mentor': return <MentorChatPanel />;
       case 'cbt': return <CbtImmersionPanel />;
       case 'attributes': return <AttributesPanel />;
+      case 'areas': return <LifeAreasPanel />;
+
       case 'dungeon': return <DungeonPanel />;
       case 'bosses': return <BossPanel />;
       case 'inventory': return <InventoryPanel />;
