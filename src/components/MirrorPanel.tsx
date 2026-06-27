@@ -392,7 +392,7 @@ function buildExercises(d: ExerciseInput): Exercise[] {
 
   if (d.completionRate < 40 && d.hasFinalized) {
     out.push({
-      name: 'Janela de Atenção (Pomodoro com sofrimento)',
+      name: 'Janela de Atenção (foco com sofrimento)',
       howto: '25 min cravados na tarefa difícil. Se vier impulso de fugir, escreva o impulso num papel ao lado e CONTINUE. Ao fim, 5 min de pausa real (sem tela).',
       why: `Taxa de ${d.completionRate}% nas finalizadas — você foge antes de entrar em foco profundo. Treinar tolerar o desconforto inicial é a chave.`,
       duration: '3× ao dia',

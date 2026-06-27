@@ -20,8 +20,8 @@ const BOSS_TEMPLATES: Array<{
   days: number; tasks: string[];
 }> = [
   { name: 'O Procrastinador', emoji: '🕷️', desc: 'Adia o que importa com promessas vazias.',
-    weakness: 'Iniciar antes de pensar. Pomodoros curtos.',
-    days: 21, tasks: ['Iniciar a tarefa principal em até 5min após acordar', '1 Pomodoro de 25min sem celular', 'Anotar a próxima ação concreta antes de dormir'] },
+    weakness: 'Iniciar antes de pensar. Blocos curtos de foco.',
+    days: 21, tasks: ['Iniciar a tarefa principal em até 5min após acordar', '1 bloco de 25min sem celular', 'Anotar a próxima ação concreta antes de dormir'] },
   { name: 'O Sedentário', emoji: '🦥', desc: 'Mantém você grudado na cadeira e no sofá.',
     weakness: 'Movimento curto, frequente, fora de casa.',
     days: 30, tasks: ['10min de caminhada', '20 polichinelos', '5min de alongamento', 'Beber 2L de água'] },

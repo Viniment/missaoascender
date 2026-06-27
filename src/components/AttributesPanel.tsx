@@ -66,7 +66,7 @@ export default function AttributesPanel() {
         <p className="font-display text-primary text-sm tracking-wider mb-1">COMO TREINAR CADA ATRIBUTO</p>
         <p>⚔️ <b>Força</b> — missões de Treino e Saúde.</p>
         <p>🧠 <b>Mente</b> — Estudo, Leitura, Trabalho, Criatividade.</p>
-        <p>✨ <b>Espírito</b> — Trataka, Despertar TCC, Diário, missões Espirituais.</p>
+        <p>✨ <b>Espírito</b> — Despertar, Diário, missões Espirituais.</p>
         <p>🤝 <b>Social</b> — missões e hábitos sociais.</p>
         <p>🛡️ <b>Disciplina</b> — todo hábito feito + ritual diário.</p>
         <p>❤️‍🔥 <b>Vitalidade</b> — missões de Saúde, sono, alimentação.</p>

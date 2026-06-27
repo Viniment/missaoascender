@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
 import MissionsPanel from '@/components/MissionsPanel';
-import PomodoroTimer from '@/components/PomodoroTimer';
 import HabitsPanel from '@/components/HabitsPanel';
 import JournalPanel from '@/components/JournalPanel';
 import AwakeningPage from '@/components/AwakeningPage';
@@ -12,7 +11,6 @@ import AchievementsPanel from '@/components/AchievementsPanel';
 import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
-import TratakaPanel from '@/components/TratakaPanel';
 import LifeAreasPanel from '@/components/LifeAreasPanel';
 import DungeonPanel from '@/components/DungeonPanel';
 import BossPanel from '@/components/BossPanel';
@@ -36,8 +34,7 @@ import { cn } from '@/lib/utils';
 
 export default function Index() {
   const { newlyUnlocked, dismissAchievement, state, dismissClassChoice, ensureTodayDungeon } = useGame();
-  const hasBgPomodoro = !!(state.pomodoroStartedAt && state.pomodoroDuration && state.pomodoroMode);
-  const [activeTab, setActiveTab] = useState<TabId>(hasBgPomodoro ? 'timer' : 'missions');
+  const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
   const navigate = useNavigate();
@@ -60,9 +57,7 @@ export default function Index() {
       case 'mirror': return <MirrorPanel />;
       case 'counsel': return <CounselPanel />;
       case 'journal': return <JournalPanel />;
-      case 'timer': return <PomodoroTimer />;
       case 'awakening': return <AwakeningPage />;
-      case 'trataka': return <TratakaPanel />;
       case 'mentor': return <MentorChatPanel />;
       case 'areas': return <LifeAreasPanel />;
 
