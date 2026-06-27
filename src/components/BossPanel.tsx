@@ -614,22 +614,27 @@ function BossCard({
 
       {/* Tarefas do dia */}
       <div className="mt-4 space-y-1.5">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1">
-            <button onClick={() => shiftDate(-1)} className="text-red-300/70 hover:text-red-200 px-1" title="Dia anterior">‹</button>
-            <p className="text-[11px] font-display tracking-wider text-red-300/80">
-              TAREFAS · {formatDate(selectedDate)}
-            </p>
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <div className="flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-1 py-1">
+            <button
+              onClick={() => shiftDate(-1)}
+              className="h-7 w-7 inline-flex items-center justify-center rounded border border-red-500/40 bg-background/60 text-red-200 hover:bg-red-500/20"
+              title="Dia anterior"
+            >‹</button>
+            <span className="font-display text-[11px] tracking-wider text-red-200 min-w-[68px] text-center px-1">
+              {formatDate(selectedDate)}
+            </span>
             <button
               onClick={() => shiftDate(1)}
               disabled={isToday}
-              className="text-red-300/70 hover:text-red-200 disabled:opacity-30 px-1"
+              className="h-7 w-7 inline-flex items-center justify-center rounded border border-red-500/40 bg-background/60 text-red-200 hover:bg-red-500/20 disabled:opacity-30 disabled:hover:bg-background/60"
               title="Próximo dia"
             >›</button>
             {!isToday && (
-              <button onClick={() => setSelectedDate(today)} className="ml-1 text-[10px] text-foreground/60 hover:text-foreground underline">
-                voltar p/ hoje
-              </button>
+              <button
+                onClick={() => setSelectedDate(today)}
+                className="ml-1 text-[10px] text-foreground/70 hover:text-foreground underline px-1"
+              >hoje</button>
             )}
           </div>
           <button onClick={() => setShowEdit(s => !s)} className="text-[11px] text-foreground/60 hover:text-foreground flex items-center gap-1">
