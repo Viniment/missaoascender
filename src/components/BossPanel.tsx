@@ -132,7 +132,7 @@ export default function BossPanel() {
                   boss={b}
                   today={today}
                   hitFx={hitFx}
-                  onComplete={(taskId, combo) => onComplete(b.id, taskId, combo)}
+                  onComplete={(taskId, combo) => onComplete(b, taskId, combo)}
                   onUncomplete={(taskId) => uncompleteBossTask(b.id, taskId)}
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
