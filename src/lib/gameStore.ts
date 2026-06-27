@@ -350,6 +350,8 @@ export interface PlayerState {
   // === EVOLUX — Fase 1 ===
   alterEgo?: AlterEgo;
   innerEnemy?: InnerEnemy;
+  // Progresso da Forja de Identidade (entrevista brutal) persistido no banco
+  alterEgoForge?: { answers: Record<string, string>; qIdx: number };
   // === Mentor Interno (chat IA) ===
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
