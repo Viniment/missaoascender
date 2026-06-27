@@ -237,25 +237,8 @@ function BossCard({
         <button onClick={onRemove} className="text-foreground/40 hover:text-red-400" title="Remover boss"><X className="w-4 h-4" /></button>
       </div>
 
-      {(boss.howItAffectsMe || boss.whyDefeat || (boss.affectedAreaIds?.length)) && (
-        <div className="mb-3 p-2.5 rounded-md border border-border bg-background/40 space-y-1.5 text-[11px]">
-          {boss.affectedAreaIds?.length ? (
-            <div className="flex flex-wrap gap-1">
-              {boss.affectedAreaIds.map(id => (
-                <span key={id} className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border text-foreground/80">
-                  Área afetada
-                </span>
-              ))}
-            </div>
-          ) : null}
-          {boss.howItAffectsMe && (
-            <p className="text-foreground/70"><span className="text-red-300 font-display tracking-wider">COMO ME AFETA:</span> {boss.howItAffectsMe}</p>
-          )}
-          {boss.whyDefeat && (
-            <p className="text-foreground/70"><span className="text-emerald-300 font-display tracking-wider">POR QUE DERROTAR:</span> {boss.whyDefeat}</p>
-          )}
-        </div>
-      )}
+      {/* (Bloco "Área afetada / COMO ME AFETA / POR QUE DERROTAR" removido do card ativo —
+           informações permanecem salvas e são usadas pela IA + Editar boss) */}
 
 
       {/* HP Bar */}
