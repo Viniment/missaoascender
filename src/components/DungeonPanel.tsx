@@ -35,12 +35,13 @@ export default function DungeonPanel() {
             <Swords className="w-5 h-5 text-primary" />
             <div>
               <h2 className="font-display text-lg tracking-wider text-primary">DUNGEON DO DIA</h2>
-              <p className="text-xs text-foreground/60">3 desafios. Curtos. Reais. Loot ao final.</p>
+              <p className="text-xs text-foreground/60">Mini-hábitos do dia que complementam seus objetivos.</p>
             </div>
-            <Button size="sm" variant="ghost" className="ml-auto text-xs" onClick={() => regenerateDungeon(today)}>
-              <RefreshCw className="w-3 h-3 mr-1" /> Refazer
+            <Button size="sm" variant="ghost" className="ml-auto text-xs" onClick={() => regenerateDungeon(today)} title="Sortear novos desafios">
+              <RefreshCw className="w-3 h-3 mr-1" /> Refazer tudo
             </Button>
           </div>
+
 
           <div className="space-y-2">
             {dungeon.challenges.map((c, i) => {
