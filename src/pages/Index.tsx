@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
@@ -12,7 +12,6 @@ import MirrorPanel from '@/components/MirrorPanel';
 import CounselPanel from '@/components/CounselPanel';
 import MentorChatPanel from '@/components/MentorChatPanel';
 import LifeAreasPanel from '@/components/LifeAreasPanel';
-import DungeonPanel from '@/components/DungeonPanel';
 import BossPanel from '@/components/BossPanel';
 
 import CurrentBossCard from '@/components/CurrentBossCard';
@@ -33,15 +32,11 @@ import { TAB_GROUPS, CORE_TAB_IDS, type TabId } from '@/lib/tabs';
 import { cn } from '@/lib/utils';
 
 export default function Index() {
-  const { newlyUnlocked, dismissAchievement, state, dismissClassChoice, ensureTodayDungeon } = useGame();
+  const { newlyUnlocked, dismissAchievement, state, dismissClassChoice } = useGame();
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
   const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
   const navigate = useNavigate();
-
-  // Ensure today's dungeon exists
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  useEffect(() => { ensureTodayDungeon(today); }, [today, ensureTodayDungeon]);
 
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));
   const isVisible = (id: TabId) => !disabledTabs.includes(id);
@@ -60,8 +55,6 @@ export default function Index() {
       case 'awakening': return <AwakeningPage />;
       case 'mentor': return <MentorChatPanel />;
       case 'areas': return <LifeAreasPanel />;
-
-      case 'dungeon': return <DungeonPanel />;
       case 'bosses': return <BossPanel />;
       case 'inventory': return <InventoryPanel />;
       case 'rewards': return <RewardsShop />;
