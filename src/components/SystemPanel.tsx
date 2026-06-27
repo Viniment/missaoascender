@@ -1,7 +1,7 @@
 import { useGame } from '@/lib/GameContext';
 import { getTodayBrasilia } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Flame, Gift, AlertTriangle, Target, Lock, CheckCircle2, Sparkles } from 'lucide-react';
+import { Swords, Gem, ScrollText, Scroll, CheckCircle2, Zap, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -23,9 +23,9 @@ export default function SystemPanel() {
     }
     dailyCheckIn();
     if (state.missedDays > 0) {
-      toast.warning(`💧 ${state.missedDays} dia(s) de distância de mim. Uma queda não apaga quem você está se tornando.`);
+      toast.warning(`🩸 ${state.missedDays} dia(s) fora da arena. A jornada continua de onde você parou.`);
     } else {
-      toast.success('❤️ Hoje você se escolheu. +10 XP');
+      toast.success('⚔️ Presença selada no grimório. +10 XP');
     }
   };
 
@@ -41,12 +41,12 @@ export default function SystemPanel() {
   })();
 
   const systemMessages = [
-    potentialPenalty < 0 ? `💧 ${Math.abs(potentialPenalty)} XP de consciência ao registrar — sem destruição, só verdade.` : null,
-    state.streak >= 7 ? '❤️ Você está se escolhendo há dias. Sinta isso.' : null,
-    state.streak === 0 ? '🌱 Hoje é um bom dia para voltar pra você.' : null,
-    pendingMissions > 0 ? `🎯 ${pendingMissions} missão(ões) esperando por você.` : null,
-    pendingHabits > 0 ? `✨ ${pendingHabits} hábito(s) pendente(s) — pequenos atos de amor-próprio.` : null,
-    xpNeeded > 0 ? `🔓 Faltam ${xpNeeded} XP para o nível ${nextLevel}.` : null,
+    potentialPenalty < 0 ? `🩸 −${Math.abs(potentialPenalty)} XP ao registrar — o sistema cobra o silêncio, não você.` : null,
+    state.streak >= 7 ? '🔥 Combo lendário ativo. A arena reconhece sua presença.' : null,
+    state.streak === 0 ? '🌑 Combo zerado. Toda saga começa com um passo de volta à arena.' : null,
+    pendingMissions > 0 ? `📜 ${pendingMissions} missão(ões) aguardando no painel.` : null,
+    pendingHabits > 0 ? `⚡ ${pendingHabits} ritual(is) diário(s) ainda não executado(s).` : null,
+    xpNeeded > 0 ? `🗝️ ${xpNeeded} XP até o Nível ${nextLevel}.` : null,
   ].filter(Boolean);
 
   const bonus = state.streak >= 7 ? '1.5x XP' : state.streak >= 3 ? '1.2x XP' : 'Nenhum';
@@ -58,7 +58,7 @@ export default function SystemPanel() {
       className="rpg-panel neon-glow space-y-4"
     >
       <h3 className="font-display text-sm text-primary glow-text-purple tracking-wider uppercase">
-        ⟐ ESPELHO INTERNO
+        ⚔ STATUS DO HERÓI
       </h3>
 
       {/* Daily Check-in */}
@@ -69,25 +69,25 @@ export default function SystemPanel() {
         variant={state.todayCheckedIn ? 'secondary' : 'default'}
       >
         {state.todayCheckedIn ? (
-          <><CheckCircle2 className="w-4 h-4 mr-2" /> Hoje me escolhi</>
+          <><CheckCircle2 className="w-4 h-4 mr-2" /> Presença Selada</>
         ) : (
-          '❤️ Hoje eu me escolho'
+          <><Swords className="w-4 h-4 mr-2" /> Registrar Presença</>
         )}
       </Button>
 
       <div className="space-y-3 text-sm">
-        <InfoRow icon={<Flame className="w-4 h-4 text-destructive" />} label="Me escolhendo há" value={`${state.streak} dia(s)`} />
-        <InfoRow icon={<Gift className="w-4 h-4 text-primary" />} label="Bônus" value={bonus} />
-        <InfoRow icon={<Target className="w-4 h-4 text-neon-blue" />} label="Missões" value={`${completedMissions} ✔️ / ${pendingMissions} pendente(s)`} />
-        <InfoRow icon={<Sparkles className="w-4 h-4 text-primary" />} label="Hábitos" value={`${doneHabits} ✔️ / ${pendingHabits} pendente(s)`} />
-        <InfoRow icon={<Lock className="w-4 h-4 text-gold" />} label="Próximo nível" value={`${xpNeeded} XP`} />
+        <InfoRow icon={<Swords className="w-4 h-4 text-destructive" />} label="Combo de batalha" value={`${state.streak} dia(s)`} />
+        <InfoRow icon={<Gem className="w-4 h-4 text-primary" />} label="Bônus de XP" value={bonus} />
+        <InfoRow icon={<ScrollText className="w-4 h-4 text-neon-blue" />} label="Missões" value={`${completedMissions} ✔ / ${pendingMissions} ativa(s)`} />
+        <InfoRow icon={<Zap className="w-4 h-4 text-primary" />} label="Rituais diários" value={`${doneHabits} ✔ / ${pendingHabits} pendente(s)`} />
+        <InfoRow icon={<TrendingUp className="w-4 h-4 text-gold" />} label="Próximo nível" value={`${xpNeeded} XP`} />
       </div>
 
       {/* System Messages */}
       {systemMessages.length > 0 && (
         <div className="space-y-2 pt-2 border-t border-border">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <AlertTriangle className="w-3 h-3" /> SUSSURROS INTERNOS
+            <Scroll className="w-3 h-3" /> DECRETO DO SISTEMA
           </div>
           {systemMessages.map((msg, i) => (
             <p key={i} className="text-xs text-foreground/80 font-body leading-relaxed">{msg}</p>
