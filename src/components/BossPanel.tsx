@@ -291,12 +291,6 @@ function StrikeOverlay({
   strike: null | { bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number; combo: number; hp: number; maxHp: number; message: string };
   onClose: () => void;
 }) {
-  useEffect(() => {
-    if (!strike) return;
-    const t = setTimeout(onClose, 5200);
-    return () => clearTimeout(t);
-  }, [strike, onClose]);
-
   return (
     <AnimatePresence>
       {strike && (
@@ -306,7 +300,6 @@ function StrikeOverlay({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          onClick={onClose}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-background/70 backdrop-blur-sm px-4"
         >
           <motion.div
@@ -314,7 +307,6 @@ function StrikeOverlay({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 240, damping: 20 }}
-            onClick={(e) => e.stopPropagation()}
             className="relative w-[min(94vw,520px)] text-center rounded-2xl border border-primary/60 bg-gradient-to-br from-primary/15 via-background to-gold/10 px-6 py-6 shadow-[0_0_60px_-10px_hsl(var(--primary))] overflow-hidden"
           >
             <motion.div
