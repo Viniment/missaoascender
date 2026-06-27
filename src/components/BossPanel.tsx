@@ -407,14 +407,6 @@ function MockeryOverlay({
   };
   onClose: () => void;
 }) {
-  useEffect(() => {
-    if (!mockery) return;
-    const t = setTimeout(onClose, 9000);
-    return () => clearTimeout(t);
-  }, [mockery, onClose]);
-
-  const border = mockery?.mainColor || 'rgba(239,68,68,0.7)';
-
   return (
     <AnimatePresence>
       {mockery && (
@@ -423,25 +415,22 @@ function MockeryOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          onClick={onClose}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4"
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/70 backdrop-blur-sm px-4"
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0, x: [0, -4, 4, -3, 3, 0] }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
-            onClick={(e) => e.stopPropagation()}
-            style={{ borderColor: border }}
-            className="relative w-[min(94vw,520px)] text-center rounded-2xl border-2 bg-gradient-to-br from-red-950/90 via-background to-red-950/60 px-6 py-6 shadow-[0_0_70px_-10px_rgba(239,68,68,0.6)] overflow-hidden"
+            transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+            className="relative w-[min(94vw,520px)] text-center rounded-2xl border border-red-500/60 bg-gradient-to-br from-red-500/15 via-background to-red-900/10 px-6 py-6 shadow-[0_0_60px_-10px_rgba(239,68,68,0.7)] overflow-hidden"
           >
             <motion.div
               aria-hidden
               initial={{ opacity: 0.7, scale: 0.4 }}
-              animate={{ opacity: 0, scale: 1.9 }}
-              transition={{ duration: 1.3, ease: 'easeOut' }}
-              className="absolute inset-0 rounded-2xl bg-red-600/30 blur-3xl pointer-events-none"
+              animate={{ opacity: 0, scale: 1.8 }}
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              className="absolute inset-0 rounded-2xl bg-red-500/25 blur-3xl pointer-events-none"
             />
 
             <div className="relative">
@@ -454,65 +443,57 @@ function MockeryOverlay({
               </div>
 
               <motion.div
-                initial={{ scale: 0.5, rotate: -10, opacity: 0 }}
-                animate={{ scale: [0.5, 1.35, 1], rotate: [-10, 8, 0], opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                className="text-6xl mb-2 drop-shadow-[0_0_18px_rgba(239,68,68,0.8)]"
+                initial={{ scale: 0.4, rotate: -8, opacity: 0 }}
+                animate={{ scale: [0.4, 1.3, 1], rotate: [-8, 6, 0], opacity: 1 }}
+                transition={{ duration: 0.55 }}
+                className="text-5xl mb-2"
               >
                 {mockery.bossEmoji}
               </motion.div>
-              <div className="font-display text-base text-red-200 mb-3 tracking-wide">
-                {mockery.bossName.toUpperCase()}
+              <div className="font-display text-base text-red-300 mb-3">
+                contra <span className="text-red-200">{mockery.bossName}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="grid grid-cols-3 gap-2 mb-4">
                 <motion.div
-                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}
-                  className="rounded-lg border border-red-500/60 bg-red-500/15 py-2"
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+                  className="rounded-lg border border-red-500/40 bg-red-500/10 py-2"
                 >
-                  <div className="text-[10px] tracking-widest text-red-300/90">HP RECUPERADO</div>
+                  <div className="text-[10px] tracking-widest text-red-300/80">HP</div>
                   <div className="font-display text-xl text-red-200">+{mockery.hpRegained}</div>
                 </motion.div>
                 <motion.div
-                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.22 }}
-                  className="rounded-lg border border-red-500/40 bg-background/40 py-2"
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.18 }}
+                  className="rounded-lg border border-primary/40 bg-primary/10 py-2"
                 >
-                  <div className="text-[10px] tracking-widest text-red-300/80">HP DO INIMIGO</div>
-                  <div className="font-display text-xl text-red-200">{mockery.hp}/{mockery.maxHp}</div>
+                  <div className="text-[10px] tracking-widest text-primary/80">XP</div>
+                  <div className="font-display text-xl text-primary">−{mockery.xpLost || 0}</div>
+                </motion.div>
+                <motion.div
+                  initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.26 }}
+                  className="rounded-lg border border-gold/40 bg-gold/10 py-2"
+                >
+                  <div className="text-[10px] tracking-widest text-gold/90">OURO</div>
+                  <div className="font-display text-xl text-gold">−{mockery.goldLost || 0}</div>
                 </motion.div>
               </div>
 
-              {(mockery.xpLost || mockery.goldLost) ? (
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <motion.div
-                    initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.28 }}
-                    className="rounded-lg border border-red-500/60 bg-red-500/10 py-2"
-                  >
-                    <div className="text-[10px] tracking-widest text-red-300/90">XP PERDIDO</div>
-                    <div className="font-display text-xl text-red-200">-{mockery.xpLost || 0}</div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.34 }}
-                    className="rounded-lg border border-red-500/60 bg-red-500/10 py-2"
-                  >
-                    <div className="text-[10px] tracking-widest text-red-300/90">OURO PERDIDO</div>
-                    <div className="font-display text-xl text-red-200">-{mockery.goldLost || 0}</div>
-                  </motion.div>
-                </div>
-              ) : null}
+              <div className="text-[10px] tracking-widest text-foreground/60 mb-1">
+                COMBO RESETADO · HP DO INIMIGO {mockery.hp}/{mockery.maxHp}
+              </div>
 
               <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-                className="mt-3 pt-3 border-t border-red-500/30 text-[15px] text-red-50 leading-relaxed italic"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+                className="mt-3 pt-3 border-t border-red-500/20 text-sm text-foreground/95 leading-relaxed italic"
               >
                 <ReactMarkdown>{mockery.message}</ReactMarkdown>
               </motion.div>
 
               <button
                 onClick={onClose}
-                className="mt-4 text-[10px] tracking-widest text-red-300/70 hover:text-red-200"
+                className="mt-4 text-[10px] tracking-widest text-foreground/50 hover:text-foreground"
               >
-                EU NÃO SOU ISSO — CONTINUAR
+                TOCAR PARA CONTINUAR
               </button>
             </div>
           </motion.div>
