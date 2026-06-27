@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
-import { Swords, CheckCircle2, Clock, Sparkles, RefreshCw } from 'lucide-react';
+import { Swords, CheckCircle2, Clock, Sparkles, RefreshCw, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RARITY_STYLES } from '@/lib/loot';
@@ -9,8 +9,9 @@ import { getTodayBrasilia } from '@/lib/utils';
 import { rollDungeonChallenges } from '@/lib/dungeon';
 
 export default function DungeonPanel() {
-  const { state, completeDungeonChallenge, regenerateDungeon, ensureTodayDungeon } = useGame();
+  const { state, completeDungeonChallenge, regenerateDungeon, regenerateDungeonChallenge, ensureTodayDungeon } = useGame();
   const today = getTodayBrasilia();
+
 
   useEffect(() => {
     ensureTodayDungeon(today);
