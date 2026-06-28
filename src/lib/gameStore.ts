@@ -466,6 +466,25 @@ export interface TratakaSession {
   focusAfter?: number;   // 1..10
 }
 
+// === Zazen (Wall Gazing) ===
+export interface ZazenSession {
+  id: string;
+  date: string;            // ISO
+  durationSec: number;     // tempo planejado
+  completedSec: number;    // tempo efetivamente cumprido
+  distractions: number;    // pensamentos percebidos
+  completed: boolean;
+}
+
+export interface ZazenSettings {
+  startBell: boolean;
+  endBell: boolean;
+  breathingMode: boolean;
+  showTimerHint: boolean;
+  showDistractionCount: boolean;
+  autoFullscreen: boolean;
+}
+
 export interface MentorMessage {
   id: string;
   role: 'user' | 'assistant';
