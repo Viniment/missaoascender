@@ -6,6 +6,7 @@ import MissionsPanel from '@/components/MissionsPanel';
 import HabitsPanel from '@/components/HabitsPanel';
 import JournalPanel from '@/components/JournalPanel';
 import AwakeningPage from '@/components/AwakeningPage';
+import ZazenPanel from '@/components/ZazenPanel';
 import RewardsShop from '@/components/RewardsShop';
 import AchievementsPanel from '@/components/AchievementsPanel';
 import CounselPanel from '@/components/CounselPanel';
@@ -50,6 +51,7 @@ export default function Index() {
       case 'counsel': return <CounselPanel />;
       case 'journal': return <JournalPanel />;
       case 'awakening': return <AwakeningPage />;
+      case 'zazen': return <ZazenPanel />;
       case 'mentor': return <MentorChatPanel />;
       case 'areas': return <LifeAreasPanel />;
       case 'bosses': return <BossPanel />;
