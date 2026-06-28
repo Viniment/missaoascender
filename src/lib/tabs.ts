@@ -36,7 +36,7 @@ export const TAB_GROUPS: TabGroup[] = [
     id: 'action',
     label: 'Ação',
     tabs: [
-      { id: 'missions', label: 'Missões', icon: Swords, description: 'Suas missões ativas e progresso', core: true },
+      { id: 'missions', label: 'Mini Vitórias', icon: Swords, description: 'Suas mini vitórias ativas e progresso', core: true },
       { id: 'habits', label: 'Hábitos', icon: Sparkles, description: 'Construa rotinas diárias', core: true },
       { id: 'achievements', label: 'Conquistas', icon: Trophy, description: 'Marcos desbloqueados' },
     ],
