@@ -1,9 +1,9 @@
-import { Swords, Sparkles, BookOpen, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Heart, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Heart, Circle, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
   | 'counsel' | 'journal'
-  | 'awakening'
+  | 'awakening' | 'zazen'
   | 'mentor' | 'cbt'
   | 'areas' | 'dungeon' | 'bosses'
   | 'rewards';
@@ -49,6 +49,7 @@ export const TAB_GROUPS: TabGroup[] = [
       { id: 'journal', label: 'Diário', icon: BookOpen, description: 'Registro de pensamentos e emoções' },
       { id: 'mentor', label: 'Mentor', icon: MessageCircleHeart, description: 'Chat com seu mentor interno', core: true },
       { id: 'awakening', label: 'Despertar', icon: ScrollText, description: 'Exercícios de escrita terapêutica' },
+      { id: 'zazen', label: 'Zazen', icon: Circle, description: 'Meditação silenciosa de foco em um único ponto' },
     ],
   },
   {

@@ -362,6 +362,9 @@ export interface PlayerState {
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
   tratakaSessions?: TratakaSession[];
+  // === Zazen (Wall Gazing) ===
+  zazenSessions?: ZazenSession[];
+  zazenSettings?: ZazenSettings;
   // === Despertar TCC (imersão diária de Terapia Cognitivo-Comportamental) ===
   cbtSessions?: CbtSession[];
   // === LIFE RPG — Atributos, Classes, Quests, Bosses, Dungeons, Loot ===
@@ -464,6 +467,25 @@ export interface TratakaSession {
   sound: TratakaSound;
   focusBefore?: number;  // 1..10
   focusAfter?: number;   // 1..10
+}
+
+// === Zazen (Wall Gazing) ===
+export interface ZazenSession {
+  id: string;
+  date: string;            // ISO
+  durationSec: number;     // tempo planejado
+  completedSec: number;    // tempo efetivamente cumprido
+  distractions: number;    // pensamentos percebidos
+  completed: boolean;
+}
+
+export interface ZazenSettings {
+  startBell: boolean;
+  endBell: boolean;
+  breathingMode: boolean;
+  showTimerHint: boolean;
+  showDistractionCount: boolean;
+  autoFullscreen: boolean;
 }
 
 export interface MentorMessage {
@@ -685,6 +707,15 @@ export const defaultState: PlayerState = {
   innerEnemy: defaultInnerEnemy,
   mentorConversations: [],
   tratakaSessions: [],
+  zazenSessions: [],
+  zazenSettings: {
+    startBell: true,
+    endBell: true,
+    breathingMode: true,
+    showTimerHint: true,
+    showDistractionCount: true,
+    autoFullscreen: true,
+  },
   cbtSessions: [],
   attributes: defaultAttributes,
   chosenClass: null,
@@ -1912,6 +1943,36 @@ export function useGameStore() {
     }));
   }, []);
 
+  // === Zazen ===
+  const addZazenSession = useCallback((session: Omit<ZazenSession, 'id'>) => {
+    setState(prev => ({
+      ...prev,
+      zazenSessions: [
+        { ...session, id: (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : Math.random().toString(36).slice(2) },
+        ...(prev.zazenSessions || []),
+      ].slice(0, 1000),
+    }));
+  }, []);
+
+  const deleteZazenSession = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      zazenSessions: (prev.zazenSessions || []).filter(s => s.id !== id),
+    }));
+  }, []);
+
+  const updateZazenSettings = useCallback((patch: Partial<ZazenSettings>) => {
+    setState(prev => ({
+      ...prev,
+      zazenSettings: {
+        startBell: true, endBell: true, breathingMode: true,
+        showTimerHint: true, showDistractionCount: true, autoFullscreen: true,
+        ...(prev.zazenSettings || {}),
+        ...patch,
+      },
+    }));
+  }, []);
+
   // === CBT (Despertar TCC) ===
   const newId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
     ? crypto.randomUUID() : Math.random().toString(36).slice(2);
@@ -2759,6 +2820,9 @@ export function useGameStore() {
     deleteMentorMessage,
     addTratakaSession,
     deleteTratakaSession,
+    addZazenSession,
+    deleteZazenSession,
+    updateZazenSettings,
     createCbtSession,
     appendCbtMessage,
     updateCbtSession,
