@@ -362,6 +362,9 @@ export interface PlayerState {
   mentorConversations?: MentorConversation[];
   // === Trataka (concentração visual) ===
   tratakaSessions?: TratakaSession[];
+  // === Zazen (Wall Gazing) ===
+  zazenSessions?: ZazenSession[];
+  zazenSettings?: ZazenSettings;
   // === Despertar TCC (imersão diária de Terapia Cognitivo-Comportamental) ===
   cbtSessions?: CbtSession[];
   // === LIFE RPG — Atributos, Classes, Quests, Bosses, Dungeons, Loot ===
