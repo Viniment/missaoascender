@@ -1943,6 +1943,36 @@ export function useGameStore() {
     }));
   }, []);
 
+  // === Zazen ===
+  const addZazenSession = useCallback((session: Omit<ZazenSession, 'id'>) => {
+    setState(prev => ({
+      ...prev,
+      zazenSessions: [
+        { ...session, id: (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : Math.random().toString(36).slice(2) },
+        ...(prev.zazenSessions || []),
+      ].slice(0, 1000),
+    }));
+  }, []);
+
+  const deleteZazenSession = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      zazenSessions: (prev.zazenSessions || []).filter(s => s.id !== id),
+    }));
+  }, []);
+
+  const updateZazenSettings = useCallback((patch: Partial<ZazenSettings>) => {
+    setState(prev => ({
+      ...prev,
+      zazenSettings: {
+        startBell: true, endBell: true, breathingMode: true,
+        showTimerHint: true, showDistractionCount: true, autoFullscreen: true,
+        ...(prev.zazenSettings || {}),
+        ...patch,
+      },
+    }));
+  }, []);
+
   // === CBT (Despertar TCC) ===
   const newId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
     ? crypto.randomUUID() : Math.random().toString(36).slice(2);
