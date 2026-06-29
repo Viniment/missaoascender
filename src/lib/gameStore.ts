@@ -443,7 +443,7 @@ export interface BossBattle {
   howItAffectsMe?: string;
   whyDefeat?: string;
   customPhrases?: string[];
-  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal' | 'Pesadelo';
   mainColor?: string;
   hpBarColor?: string;
   reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
@@ -867,26 +867,129 @@ const GOLD_PER_HOUR: Record<MissionDifficulty, number> = {
   'Difícil': 3,
 };
 
-// === Recompensa por tarefa de Boss (mesma régua das missões, com Brutal) ===
-const BOSS_XP_BY_DIFF: Record<'Fácil' | 'Normal' | 'Difícil' | 'Brutal', number> = {
-  'Fácil': 3, 'Normal': 5, 'Difícil': 8, 'Brutal': 12,
+// === HP do Boss: auto-calculado por dias × dificuldade ===
+export type BossDifficulty = 'Fácil' | 'Normal' | 'Difícil' | 'Brutal' | 'Pesadelo';
+export const BOSS_HP_PER_DAY: Record<BossDifficulty, number> = {
+  'Fácil': 8, 'Normal': 12, 'Difícil': 16, 'Brutal': 22, 'Pesadelo': 30,
 };
-const BOSS_GOLD_BY_DIFF: Record<'Fácil' | 'Normal' | 'Difícil' | 'Brutal', number> = {
-  'Fácil': 1, 'Normal': 2, 'Difícil': 3, 'Brutal': 5,
+export function bossMaxHpFor(days: number, diff: BossDifficulty | undefined): number {
+  return Math.max(1, Math.round(days * (BOSS_HP_PER_DAY[diff || 'Normal'] || 12)));
+}
+
+// === Recompensa por tarefa de Boss (régua das missões, com Brutal/Pesadelo) ===
+const BOSS_XP_BY_DIFF: Record<BossDifficulty, number> = {
+  'Fácil': 3, 'Normal': 5, 'Difícil': 8, 'Brutal': 12, 'Pesadelo': 18,
+};
+const BOSS_GOLD_BY_DIFF: Record<BossDifficulty, number> = {
+  'Fácil': 1, 'Normal': 2, 'Difícil': 3, 'Brutal': 5, 'Pesadelo': 8,
 };
 
-export function computeBossTaskReward(
-  difficulty: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal' | undefined,
-  combo: number,
+// === Poder Base do hábito/tarefa: Impacto + Resistência + Prioridade ===
+const IMPACT_VAL = { baixo: 1, medio: 2, alto: 3, transformador: 5 } as const;
+const RESIST_VAL = { nunca: 1, as_vezes: 2, frequentemente: 3, quase_sempre: 4, sempre: 5 } as const;
+export function habitBasePower(t: { impact?: BossTask['impact']; resistance?: BossTask['resistance']; priority?: BossTask['priority'] }): number {
+  const I = IMPACT_VAL[t.impact || 'medio'];
+  const R = RESIST_VAL[t.resistance || 'as_vezes'];
+  const P = (t.priority ?? 3);
+  return I + R + P; // 3..15
+}
+
+function comboMultiplier(combo: number): number {
+  if (combo >= 20) return 2.0;
+  if (combo >= 10) return 1.5;
+  if (combo >= 5) return 1.25;
+  return 1.0;
+}
+function consistencyMultiplier(streak: number): number {
+  if (streak >= 30) return 1.3;
+  if (streak >= 14) return 1.2;
+  if (streak >= 7) return 1.1;
+  return 1.0;
+}
+function weaknessMultiplier(boss: { weakness?: string }, task: { title?: string }): number {
+  if (!boss.weakness || !task.title) return 1.0;
+  const w = boss.weakness.toLowerCase();
+  const t = task.title.toLowerCase();
+  // match simples: alguma palavra-chave de 4+ chars em comum
+  const tokens = w.split(/[^a-zà-ú0-9]+/i).filter(s => s.length >= 4);
+  return tokens.some(tok => t.includes(tok)) ? 1.5 : 1.0;
+}
+
+export interface AttackBreakdown {
+  base: number;          // Poder Base
+  impactVal: number;
+  resistanceVal: number;
+  priorityVal: number;
+  weaknessMul: number;
+  comboMul: number;
+  consistencyMul: number;
+  weaknessHit: boolean;
+  dmg: number;
+  xp: number;
+  gold: number;
+  baseXp: number;
+  baseGold: number;
+}
+
+export function computeTaskAttack(
+  task: Pick<BossTask, 'title' | 'impact' | 'resistance' | 'priority'> | undefined | null,
+  boss: { difficulty?: BossDifficulty; weakness?: string; combo?: number },
+  streak: number,
   allDoneAfter: boolean,
-) {
-  const diff = difficulty || 'Normal';
-  const dmg = combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+): AttackBreakdown {
+  const diff = boss.difficulty || 'Normal';
+  const combo = boss.combo || 0;
+  const t = task || {};
+  const I = IMPACT_VAL[(t as BossTask).impact || 'medio'];
+  const R = RESIST_VAL[(t as BossTask).resistance || 'as_vezes'];
+  const P = ((t as BossTask).priority ?? 3);
+  const base = I + R + P;
+  const wMul = weaknessMultiplier(boss, t as BossTask);
+  const cMul = comboMultiplier(combo);
+  const sMul = consistencyMultiplier(streak);
+  const dmg = Math.max(1, Math.round(base * wMul * cMul * sMul));
   const baseXp = BOSS_XP_BY_DIFF[diff];
   const baseGold = BOSS_GOLD_BY_DIFF[diff];
-  const xp = baseXp * dmg + (allDoneAfter ? baseXp * 2 : 0);
-  const gold = baseGold * dmg + (allDoneAfter ? baseGold : 0);
-  return { dmg, xp, gold, baseXp, baseGold };
+  // XP/Ouro: base por dificuldade, escalado pelo dano dado (cap razoável) + bônus se dia 100%
+  const xpScale = Math.min(3, Math.max(1, dmg / 5));
+  const xp = Math.round(baseXp * xpScale + (allDoneAfter ? baseXp * 2 : 0));
+  const gold = Math.round(baseGold * xpScale + (allDoneAfter ? baseGold : 0));
+  return {
+    base,
+    impactVal: I, resistanceVal: R, priorityVal: P,
+    weaknessMul: wMul, comboMul: cMul, consistencyMul: sMul,
+    weaknessHit: wMul > 1,
+    dmg, xp, gold, baseXp, baseGold,
+  };
+}
+
+// Compat shim: alguns callers antigos esperavam `{ dmg, xp, gold, baseXp, baseGold }`.
+export function computeBossTaskReward(
+  difficulty: BossDifficulty | undefined,
+  combo: number,
+  allDoneAfter: boolean,
+  task?: Pick<BossTask, 'title' | 'impact' | 'resistance' | 'priority'>,
+) {
+  return computeTaskAttack(task || null, { difficulty, combo }, 0, allDoneAfter);
+}
+
+// === Potencial de Ataque Hoje: soma do dano possível de tarefas pendentes ===
+export function getTodayAttackPotential(
+  bosses: BossBattle[] | undefined,
+  bossId: string,
+  today: string,
+  streak: number,
+): number {
+  const b = (bosses || []).find(x => x.id === bossId);
+  if (!b || !b.tasks) return 0;
+  const combo = b.combo || 0;
+  let total = 0;
+  for (const t of b.tasks) {
+    if (t.doneDates.includes(today)) continue;
+    const atk = computeTaskAttack(t, { difficulty: b.difficulty, weakness: b.weakness, combo }, streak, false);
+    total += atk.dmg;
+  }
+  return total;
 }
 
 export function useGameStore() {
