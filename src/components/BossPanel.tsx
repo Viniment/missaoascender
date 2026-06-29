@@ -177,14 +177,15 @@ export default function BossPanel() {
     const task = (boss.tasks || []).find(t => t.id === taskId);
     const allDoneAfter = (boss.tasks || []).every(t =>
       t.id === taskId ? true : t.doneDates.includes(today));
-    const { dmg, xp, gold } = computeBossTaskReward(boss.difficulty, combo, allDoneAfter);
+    const breakdown = computeTaskAttack(task, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, state.streak || 0, allDoneAfter);
+    const { dmg, xp, gold } = breakdown;
     const newHp = Math.max(0, boss.hp - dmg);
     const newCombo = allDoneAfter ? combo + 1 : combo;
     completeBossTask(boss.id, taskId);
     setHitFx(s => ({ ...s, [taskId]: dmg }));
     if ('vibrate' in navigator) navigator.vibrate?.([30, 20, 50]);
     setTimeout(() => setHitFx(s => { const n = { ...s }; delete n[taskId]; return n; }), 900);
-    if (task) askReinforcement(boss, task.title, { dmg, xp, gold, hp: newHp, combo: newCombo });
+    if (task) askReinforcement(boss, task.title, { dmg, xp, gold, hp: newHp, combo: newCombo, breakdown });
   };
 
   const onCompleteAt = (boss: typeof bosses[number], taskId: string, combo: number, date: string) => {
