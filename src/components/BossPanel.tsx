@@ -222,6 +222,10 @@ export default function BossPanel() {
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
+                  onUpdateTask={(taskId, patch) => updateBossTask(b.id, taskId, patch)}
+                  onIncrementCount={(taskId) => incrementBossTaskCount(b.id, taskId)}
+                  onStartTimer={(taskId, iso) => startBossTaskTimer(b.id, taskId, iso)}
+                  onStopTimer={(taskId, iso) => stopBossTaskTimer(b.id, taskId, iso)}
                   onDefeat={() => defeatBoss(b.id)}
                   onRemove={() => removeBoss(b.id)}
                   onEdit={() => setEditingId(b.id)}
