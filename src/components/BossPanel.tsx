@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles } from 'lucide-react';
+import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles, Play, Square, Hash, Clock, Video, FileText, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,6 +12,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { computeBossTaskReward } from '@/lib/gameStore';
+import type { BossTask, BossTaskType } from '@/lib/gameStore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import RichEditor from '@/components/RichEditor';
+import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
 
 
 
