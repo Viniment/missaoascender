@@ -423,6 +423,15 @@ function StrikeOverlay({
 }
 
 // ====== Centered Mockery Overlay (voz do inimigo) ======
+function BreakdownLine({ label, val, accent }: { label: string; val: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between text-[11px]">
+      <span className="text-foreground/70">{label}</span>
+      <span className={`font-display ${accent ? 'text-gold' : 'text-foreground'}`}>{val}</span>
+    </div>
+  );
+}
+
 function MockeryOverlay({
   mockery, onClose,
 }: {
