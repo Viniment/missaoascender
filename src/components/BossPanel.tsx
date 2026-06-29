@@ -542,6 +542,13 @@ function BossCard({
   const tasks = boss.tasks || [];
   const combo = boss.combo || 0;
   const dmg = combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+  const potentialToday = useMemo(() =>
+    tasks.reduce((sum, t) => {
+      if (t.doneDates.includes(today)) return sum;
+      return sum + computeTaskAttack(t, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, 0, false).dmg;
+    }, 0),
+    [tasks, today, boss.difficulty, boss.weakness, combo]
+  );
   const pct = Math.max(0, (boss.hp / boss.maxHp) * 100);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editVal, setEditVal] = useState('');
