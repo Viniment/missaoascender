@@ -113,7 +113,7 @@ export default function MissionsPanel() {
         ...(editDialog.missionType === 'Contagem' ? { targetCount: editTargetCount } : {}),
       });
       setEditDialog(null);
-      toast.success('Missão editada!');
+      toast.success('Mini vitória editada!');
     } finally {
       setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
     }
@@ -147,7 +147,7 @@ export default function MissionsPanel() {
       setHasDescription(false);
       setRepeatable(false);
       setShowForm(false);
-      toast.success('Missão adicionada!');
+      toast.success('Mini vitória adicionada!');
     } finally {
       setTimeout(() => { submittingRef.current = false; setSubmitting(false); }, 500);
     }
@@ -195,7 +195,7 @@ export default function MissionsPanel() {
       const xp = Math.floor(hours * XP_PER_HOUR[mission.difficulty]);
       const gold = Math.floor(hours * GOLD_PER_HOUR[mission.difficulty]);
       completeTimeMission(finishDialog, hours);
-      setRewardPopup({ open: true, xp, gold, title: '⚔️ MISSÃO CONCLUÍDA' });
+      setRewardPopup({ open: true, xp, gold, title: '⚔️ MINI VITÓRIA CONCLUÍDA' });
     }
 
     setFinishDialog(null);
@@ -270,7 +270,7 @@ export default function MissionsPanel() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg text-primary glow-text-purple flex items-center gap-2">
-          <Swords className="w-5 h-5" /> MISSÕES
+          <Swords className="w-5 h-5" /> MINI VITÓRIAS
         </h2>
         <Button size="sm" onClick={() => setShowForm(!showForm)}>
           <Plus className="w-4 h-4 mr-1" /> Nova
@@ -280,7 +280,7 @@ export default function MissionsPanel() {
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="rpg-panel space-y-3">
-            <Input placeholder="Nome da missão" value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" />
+            <Input placeholder="Nome da mini vitória" value={name} onChange={e => setName(e.target.value)} className="bg-secondary border-border" />
             <div className="grid grid-cols-3 gap-2">
               <Select value={missionType} onValueChange={(v) => setMissionType(v as MissionType)}>
                 <SelectTrigger className="bg-secondary"><SelectValue placeholder="Tipo" /></SelectTrigger>
@@ -344,16 +344,16 @@ export default function MissionsPanel() {
                 <FileText className="w-3 h-3" /> Adicionar descrição
               </label>
               {hasDescription && (
-                <RichEditor content={description} onChange={setDescription} placeholder="Descreva a missão..." />
+                <RichEditor content={description} onChange={setDescription} placeholder="Descreva a mini vitória..." />
               )}
             </div>
 
             <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
               <Checkbox checked={repeatable} onCheckedChange={(v) => setRepeatable(!!v)} />
-              <Repeat className="w-3 h-3" /> Missão repetível (não desaparece ao concluir)
+              <Repeat className="w-3 h-3" /> Mini vitória repetível (não desaparece ao concluir)
             </label>
 
-            <Button className="w-full" onClick={handleAdd} disabled={submitting}>Adicionar Missão</Button>
+            <Button className="w-full" onClick={handleAdd} disabled={submitting}>Adicionar Mini Vitória</Button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -362,7 +362,7 @@ export default function MissionsPanel() {
       <Dialog open={!!startTimeDialog} onOpenChange={() => setStartTimeDialog(null)}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="font-display text-primary">Iniciar Missão</DialogTitle>
+            <DialogTitle className="font-display text-primary">Iniciar Mini Vitória</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
@@ -421,7 +421,7 @@ export default function MissionsPanel() {
           />
         ))}
         {active.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">Nenhuma missão ativa.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">Nenhuma mini vitória ativa.</p>
         )}
       </div>
 
@@ -464,7 +464,7 @@ export default function MissionsPanel() {
           ].sort((a, b) => b.date - a.date);
 
           if (items.length === 0) {
-            return <p className="text-xs text-muted-foreground text-center py-2">Nenhuma missão neste período.</p>;
+            return <p className="text-xs text-muted-foreground text-center py-2">Nenhuma mini vitória neste período.</p>;
           }
 
           const XP_PER_HOUR_LOCAL: Record<string, number> = { 'Fácil': 3, 'Normal': 5, 'Difícil': 8, 'Insano': 12 };
@@ -542,7 +542,7 @@ export default function MissionsPanel() {
       <Dialog open={!!finishDialog} onOpenChange={() => setFinishDialog(null)}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="font-display text-primary">Finalizar Missão</DialogTitle>
+            <DialogTitle className="font-display text-primary">Finalizar Mini Vitória</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {dialogMission?.startedAt && (
@@ -602,10 +602,10 @@ export default function MissionsPanel() {
       <Dialog open={!!editDialog} onOpenChange={() => setEditDialog(null)}>
         <DialogContent className="bg-card border-border max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-primary">Editar Missão</DialogTitle>
+            <DialogTitle className="font-display text-primary">Editar Mini Vitória</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Nome da missão" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
+            <Input placeholder="Nome da mini vitória" value={editName} onChange={e => setEditName(e.target.value)} className="bg-secondary border-border" />
             <div className="grid grid-cols-2 gap-2">
               <Select value={editCategory} onValueChange={(v) => setEditCategory(v as MissionCategory)}>
                 <SelectTrigger className="bg-secondary"><SelectValue /></SelectTrigger>
@@ -648,13 +648,13 @@ export default function MissionsPanel() {
                 <FileText className="w-3 h-3" /> Adicionar descrição
               </label>
               {editHasDescription && (
-                <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva a missão..." />
+                <RichEditor content={editDescription} onChange={setEditDescription} placeholder="Descreva a mini vitória..." />
               )}
             </div>
 
             <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
               <Checkbox checked={editRepeatable} onCheckedChange={(v) => setEditRepeatable(!!v)} />
-              <Repeat className="w-3 h-3" /> Missão repetível
+              <Repeat className="w-3 h-3" /> Mini vitória repetível
             </label>
           </div>
           <DialogFooter>
@@ -894,7 +894,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-destructive">Marcar como Falhada</AlertDialogTitle>
             <AlertDialogDescription>
-              Deseja marcar esta missão como falhada? Você perderá <span className="text-destructive font-display">-{XP_PER_HOUR[mission.difficulty] * 2} XP</span> e um Protocolo de Falha será ativado.
+              Deseja marcar esta mini vitória como falhada? Você perderá <span className="text-destructive font-display">-{XP_PER_HOUR[mission.difficulty] * 2} XP</span> e um Protocolo de Falha será ativado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
