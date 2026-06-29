@@ -396,6 +396,10 @@ export interface BossTask {
   intervalHours?: number;
   activeStartedAt?: string | null;     // ISO; null/undefined = parado
   sessionsByDate?: Record<string, BossTaskSession[]>;
+  // === Poder Base do ataque (Impacto/Resistência/Prioridade) ===
+  impact?: 'baixo' | 'medio' | 'alto' | 'transformador';
+  resistance?: 'nunca' | 'as_vezes' | 'frequentemente' | 'quase_sempre' | 'sempre';
+  priority?: 1 | 2 | 3 | 4 | 5;
 }
 
 export type BossTaskType = 'simple' | 'count' | 'temporal';
