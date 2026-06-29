@@ -704,13 +704,248 @@ function BossCard({
   );
 }
 
+// ====== Boss Task Row (checkbox + expand panel) ======
+const IMPACT_OPTIONS: Array<{ v: NonNullable<BossTask['impact']>; label: string }> = [
+  { v: 'baixo', label: 'Baixo' },
+  { v: 'medio', label: 'Médio' },
+  { v: 'alto', label: 'Alto' },
+  { v: 'transformador', label: 'Transformador' },
+];
+const RESIST_OPTIONS: Array<{ v: NonNullable<BossTask['resistance']>; label: string }> = [
+  { v: 'nunca', label: 'Nunca' },
+  { v: 'as_vezes', label: 'Às vezes' },
+  { v: 'frequentemente', label: 'Frequentemente' },
+  { v: 'quase_sempre', label: 'Quase sempre' },
+  { v: 'sempre', label: 'Sempre' },
+];
+
+function BossTaskRow({
+  task, selectedDate, isToday, boss, combo, fx,
+  editing, editVal, setEditVal, showEdit,
+  onStartEdit, onConfirmEdit,
+  onComplete, onUncomplete,
+  onFail, onRemoveTask, onUpdateTask,
+}: {
+  task: BossTask;
+  selectedDate: string;
+  isToday: boolean;
+  boss: { difficulty?: BossDifficulty; weakness?: string };
+  combo: number;
+  fx?: number;
+  editing: boolean;
+  editVal: string;
+  setEditVal: (v: string) => void;
+  showEdit: boolean;
+  onStartEdit: () => void;
+  onConfirmEdit: () => void;
+  onComplete: () => void;
+  onUncomplete: () => void;
+  onFail: () => void;
+  onRemoveTask: () => void;
+  onUpdateTask: (patch: Partial<BossTask>) => void;
+}) {
+  const done = task.doneDates.includes(selectedDate);
+  const [expanded, setExpanded] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [showDesc, setShowDesc] = useState(false);
+  const [hasDesc, setHasDesc] = useState(!!task.description);
+
+  const power = habitBasePower(task);
+  const potential = computeTaskAttack(task, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, 0, false);
+
+  return (
+    <motion.div
+      layout
+      className={`relative p-2 rounded-md border ${done ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/20 bg-background/50'}`}
+    >
+      <div className="flex items-center gap-2">
+        {editing ? (
+          <>
+            <Input value={editVal} onChange={e => setEditVal(e.target.value)} className="h-7 text-xs" />
+            <Button size="sm" variant="ghost" onClick={onConfirmEdit}><Check className="w-3 h-3" /></Button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              disabled={!isToday}
+              onClick={() => (done ? onUncomplete() : onComplete())}
+              title={done ? 'Desfazer' : 'Concluir'}
+              className={`shrink-0 w-5 h-5 rounded border flex items-center justify-center transition ${
+                done
+                  ? 'bg-emerald-500/30 border-emerald-400 text-emerald-100'
+                  : 'border-red-400/50 hover:bg-red-500/10'
+              } ${!isToday ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {done && <Check className="w-3 h-3" />}
+            </button>
+
+            <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>
+              {task.title}
+              <span className="ml-1 text-[10px] text-foreground/45 font-display">⚔ {potential.dmg}</span>
+            </span>
+
+            {task.videoUrl && (
+              <button onClick={() => setShowVideo(true)} className="text-foreground/40 hover:text-primary" title="Vídeo">
+                <Video className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {task.description && (
+              <button onClick={() => setShowDesc(true)} className="text-foreground/40 hover:text-primary" title="Descrição">
+                <FileText className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {!done && (
+              <button
+                onClick={onFail}
+                title="Falhei — autotraição"
+                className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15"
+              ><Skull className="w-3.5 h-3.5" /></button>
+            )}
+
+            <button onClick={() => setExpanded(s => !s)} className="shrink-0 text-foreground/40 hover:text-primary" title="Opções">
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showEdit && (
+              <>
+                <button onClick={onStartEdit} className="text-foreground/50 hover:text-foreground">
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button onClick={onRemoveTask} className="text-foreground/50 hover:text-red-400">
+                  <X className="w-3 h-3" />
+                </button>
+              </>
+            )}
+          </>
+        )}
+
+        <AnimatePresence>
+          {fx && (
+            <motion.div
+              initial={{ opacity: 0, y: 0, scale: 0.8 }}
+              animate={{ opacity: 1, y: -20, scale: 1.2 }}
+              exit={{ opacity: 0, y: -32 }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 font-display text-red-300 text-sm pointer-events-none"
+            >
+              -{fx} HP
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2 pt-2 border-t border-red-500/15 space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] text-foreground/60">Impacto na vida</label>
+                  <Select
+                    value={task.impact || 'medio'}
+                    onValueChange={(v) => onUpdateTask({ impact: v as BossTask['impact'] })}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-background/60"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {IMPACT_OPTIONS.map(o => <SelectItem key={o.v} value={o.v}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-foreground/60">Resistência</label>
+                  <Select
+                    value={task.resistance || 'as_vezes'}
+                    onValueChange={(v) => onUpdateTask({ resistance: v as BossTask['resistance'] })}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-background/60"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {RESIST_OPTIONS.map(o => <SelectItem key={o.v} value={o.v}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-foreground/60">Prioridade</label>
+                  <div className="flex items-center gap-0.5 h-8">
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => onUpdateTask({ priority: n as 1 | 2 | 3 | 4 | 5 })}
+                        className="p-0.5"
+                        title={`${n} estrela${n > 1 ? 's' : ''}`}
+                      >
+                        <Star className={`w-3.5 h-3.5 ${(task.priority ?? 3) >= n ? 'text-yellow-300 fill-yellow-300' : 'text-foreground/30'}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[10px] text-foreground/60 flex items-center gap-2 flex-wrap">
+                <span className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border">Poder Base: <strong className="text-foreground">{power}</strong></span>
+                <span className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border">Dano agora: <strong className="text-red-300">{potential.dmg}</strong></span>
+                {potential.weaknessHit && <span className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold">⚡ Fraqueza ×{potential.weaknessMul}</span>}
+                <span className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border">Combo ×{potential.comboMul}</span>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-foreground/60 flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+                <Input
+                  placeholder="https://youtube.com/watch?v=..."
+                  value={task.videoUrl || ''}
+                  onChange={e => onUpdateTask({ videoUrl: e.target.value || undefined })}
+                  className="h-8 text-xs bg-background/60"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-foreground/60 flex items-center gap-2 mb-1">
+                  <input
+                    type="checkbox"
+                    checked={hasDesc}
+                    onChange={e => {
+                      setHasDesc(e.target.checked);
+                      if (!e.target.checked) onUpdateTask({ description: undefined });
+                    }}
+                  />
+                  <FileText className="w-3 h-3" /> Adicionar descrição
+                </label>
+                {hasDesc && (
+                  <RichEditor
+                    content={task.description || ''}
+                    onChange={(html) => onUpdateTask({ description: html })}
+                    placeholder="Descreva a tarefa..."
+                  />
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {task.videoUrl && (
+        <VideoDialog open={showVideo} onOpenChange={setShowVideo} videoUrl={task.videoUrl} title={`🎥 ${task.title}`} />
+      )}
+      {task.description && (
+        <DescriptionDialog open={showDesc} onOpenChange={setShowDesc} html={task.description} title={`📝 ${task.title}`} />
+      )}
+    </motion.div>
+  );
+}
+
 // ====== Boss Form Dialog (Create + Edit + AI Assist) ======
 type CreatePayload = {
   name: string; emoji: string; description: string; weakness?: string;
   days: number; tasks: { title: string }[];
   imageUrl?: string; story?: string; affectedAreaIds?: string[];
   howItAffectsMe?: string; whyDefeat?: string; customPhrases?: string[];
-  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+  difficulty?: BossDifficulty;
   mainColor?: string; hpBarColor?: string;
 };
 
