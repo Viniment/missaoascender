@@ -1103,11 +1103,11 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
         {(!isEdit && tab === 'preset') ? (
           <div className="grid sm:grid-cols-2 gap-2">
             {BOSS_TEMPLATES.map(t => {
-              const hp = t.days * t.tasks.length;
+              const hp = t.days * 12; // preview com dificuldade Normal
               return (
                 <button
                   key={t.name}
-                  onClick={() => onSubmit({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })) })}
+                  onClick={() => onSubmit({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })), difficulty: 'Normal' })}
                   className="text-left p-3 rounded-lg border border-red-500/30 bg-red-950/10 hover:bg-red-950/30 transition"
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -1120,7 +1120,7 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
                       <span key={tk} className="text-[10px] px-1.5 py-0.5 rounded bg-background/60 border border-border text-foreground/70">{tk}</span>
                     ))}
                   </div>
-                  <div className="text-[10px] text-gold mt-2">{t.days} dias × {t.tasks.length} tarefas = {hp} HP</div>
+                  <div className="text-[10px] text-gold mt-2">{t.days} dias · ~{hp} HP (Normal)</div>
                 </button>
               );
             })}
@@ -1222,10 +1222,12 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <label className="text-xs text-foreground/70">Dias da batalha:</label>
               <Input type="number" min={7} max={120} value={days} onChange={e => setDays(Math.max(1, parseInt(e.target.value) || 1))} className="w-24 text-center" />
-              <span className="text-[11px] text-foreground/50">HP = {days} × {tasks.filter(t => t.trim()).length || 1} = <strong className="text-red-300">{days * (tasks.filter(t => t.trim()).length || 1)}</strong></span>
+              <span className="text-[11px] text-foreground/50">
+                HP = {days} × {BOSS_HP_PER_DAY_LABEL[difficulty]} ({difficulty}) = <strong className="text-red-300">{days * BOSS_HP_PER_DAY_LABEL[difficulty]}</strong>
+              </span>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
