@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlayerCard from '@/components/PlayerCard';
 import SystemPanel from '@/components/SystemPanel';
@@ -37,6 +37,10 @@ export default function Index() {
   // Esconde a Forja se o alter ego já foi preenchido (mesmo sem clicar "concluir")
   const identityFilled = !!(state.alterEgo?.completed || state.alterEgo?.name?.trim() || state.alterEgo?.identityPhrase?.trim());
   const [identityOpen, setIdentityOpen] = useState(!identityFilled);
+  // Garante que a Forja de Identidade fecha (e nunca reabre) assim que o alter ego é preenchido
+  useEffect(() => {
+    if (identityFilled && identityOpen) setIdentityOpen(false);
+  }, [identityFilled, identityOpen]);
   const navigate = useNavigate();
 
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));

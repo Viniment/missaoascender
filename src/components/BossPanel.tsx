@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles, Play, Square, Hash, Clock, Video, FileText, ChevronDown } from 'lucide-react';
+import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles, Video, FileText, ChevronDown, Star, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,8 +11,9 @@ import BossCoachChat from '@/components/BossCoachChat';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
-import { computeBossTaskReward } from '@/lib/gameStore';
-import type { BossTask, BossTaskType } from '@/lib/gameStore';
+import { computeTaskAttack, getTodayAttackPotential, habitBasePower, BOSS_HP_PER_DAY } from '@/lib/gameStore';
+import type { BossTask, BossDifficulty, AttackBreakdown } from '@/lib/gameStore';
+const BOSS_HP_PER_DAY_LABEL = BOSS_HP_PER_DAY;
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import RichEditor from '@/components/RichEditor';
 import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
@@ -62,6 +63,8 @@ export default function BossPanel() {
   const [strike, setStrike] = useState<null | {
     bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number;
     combo: number; hp: number; maxHp: number; message: string;
+    breakdown?: AttackBreakdown;
+    taskTitle?: string;
   }>(null);
   const [mockery, setMockery] = useState<null | {
     bossName: string; bossEmoji: string; mainColor?: string;
@@ -132,7 +135,7 @@ export default function BossPanel() {
   const askReinforcement = async (
     boss: typeof bosses[number],
     taskTitle: string,
-    reward: { dmg: number; xp: number; gold: number; hp: number; combo: number },
+    reward: { dmg: number; xp: number; gold: number; hp: number; combo: number; breakdown?: AttackBreakdown },
   ) => {
     try {
       const areas = (state.lifeAreas || []).filter(a => (boss.affectedAreaIds || []).includes(a.id));
@@ -155,9 +158,15 @@ export default function BossPanel() {
         },
       };
       const { data, error } = await supabase.functions.invoke('attack-reinforcement', { body: { context: ctx } });
-      const msg: string = (!error && data?.message)
-        ? data.message
-        : `Mais um passo. Você está deixando de ser quem reclamava — e virando quem age.`;
+      const IDENTITY_FALLBACKS = [
+        'Você reforçou sua disciplina.',
+        'Você provou que consegue cumprir promessas.',
+        'Hoje o Boss perdeu influência sobre você.',
+        'Você acabou de honrar quem está se tornando.',
+        'Cada ataque escreve uma identidade nova.',
+      ];
+      const fallback = IDENTITY_FALLBACKS[Math.floor(Math.random() * IDENTITY_FALLBACKS.length)];
+      const msg: string = (!error && data?.message) ? data.message : fallback;
       setLastAngle(msg.slice(0, 80));
       recordBossReinforcement(boss.id, msg, taskTitle);
       setStrike({
@@ -165,6 +174,8 @@ export default function BossPanel() {
         dmg: reward.dmg, xp: reward.xp, gold: reward.gold,
         combo: reward.combo, hp: reward.hp, maxHp: boss.maxHp,
         message: msg,
+        breakdown: reward.breakdown,
+        taskTitle,
       });
     } catch (e) {
       console.error('reinforcement error', e);
@@ -175,14 +186,15 @@ export default function BossPanel() {
     const task = (boss.tasks || []).find(t => t.id === taskId);
     const allDoneAfter = (boss.tasks || []).every(t =>
       t.id === taskId ? true : t.doneDates.includes(today));
-    const { dmg, xp, gold } = computeBossTaskReward(boss.difficulty, combo, allDoneAfter);
+    const breakdown = computeTaskAttack(task, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, state.streak || 0, allDoneAfter);
+    const { dmg, xp, gold } = breakdown;
     const newHp = Math.max(0, boss.hp - dmg);
     const newCombo = allDoneAfter ? combo + 1 : combo;
     completeBossTask(boss.id, taskId);
     setHitFx(s => ({ ...s, [taskId]: dmg }));
     if ('vibrate' in navigator) navigator.vibrate?.([30, 20, 50]);
     setTimeout(() => setHitFx(s => { const n = { ...s }; delete n[taskId]; return n; }), 900);
-    if (task) askReinforcement(boss, task.title, { dmg, xp, gold, hp: newHp, combo: newCombo });
+    if (task) askReinforcement(boss, task.title, { dmg, xp, gold, hp: newHp, combo: newCombo, breakdown });
   };
 
   const onCompleteAt = (boss: typeof bosses[number], taskId: string, combo: number, date: string) => {
@@ -303,7 +315,7 @@ export default function BossPanel() {
 function StrikeOverlay({
   strike, onClose,
 }: {
-  strike: null | { bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number; combo: number; hp: number; maxHp: number; message: string };
+  strike: null | { bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number; combo: number; hp: number; maxHp: number; message: string; breakdown?: AttackBreakdown; taskTitle?: string };
   onClose: () => void;
 }) {
   return (
@@ -379,6 +391,22 @@ function StrikeOverlay({
                 COMBO {strike.combo} · HP RESTANTE {strike.hp}/{strike.maxHp}
               </div>
 
+              {strike.breakdown && (
+                <div className="mt-3 text-left space-y-1 text-[11px] bg-background/40 border border-primary/20 rounded-md p-2">
+                  <div className="font-display text-[10px] tracking-widest text-primary/80 mb-1 text-center">⚔ ATAQUE EXECUTADO</div>
+                  <BreakdownLine label="Impacto" val={`+${strike.breakdown.impactVal}`} />
+                  <BreakdownLine label="Resistência" val={`+${strike.breakdown.resistanceVal}`} />
+                  <BreakdownLine label="Prioridade" val={'⭐'.repeat(strike.breakdown.priorityVal)} />
+                  {strike.breakdown.weaknessHit && <BreakdownLine label="Fraqueza explorada" val={`×${strike.breakdown.weaknessMul}`} accent />}
+                  <BreakdownLine label="Combo" val={`×${strike.breakdown.comboMul}`} />
+                  <BreakdownLine label="Consistência" val={`×${strike.breakdown.consistencyMul}`} />
+                  <div className="border-t border-primary/20 pt-1 mt-1 flex items-center justify-between">
+                    <span className="text-foreground/80">Dano Final</span>
+                    <span className="font-display text-red-300">−{strike.breakdown.dmg} HP</span>
+                  </div>
+                </div>
+              )}
+
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
                 className="mt-3 pt-3 border-t border-primary/20 text-sm text-foreground/95 leading-relaxed italic"
@@ -401,6 +429,15 @@ function StrikeOverlay({
 }
 
 // ====== Centered Mockery Overlay (voz do inimigo) ======
+function BreakdownLine({ label, val, accent }: { label: string; val: string; accent?: boolean }) {
+  return (
+    <div className="flex items-center justify-between text-[11px]">
+      <span className="text-foreground/70">{label}</span>
+      <span className={`font-display ${accent ? 'text-gold' : 'text-foreground'}`}>{val}</span>
+    </div>
+  );
+}
+
 function MockeryOverlay({
   mockery, onClose,
 }: {
@@ -536,6 +573,13 @@ function BossCard({
   const tasks = boss.tasks || [];
   const combo = boss.combo || 0;
   const dmg = combo >= 20 ? 4 : combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+  const potentialToday = useMemo(() =>
+    tasks.reduce((sum, t) => {
+      if (t.doneDates.includes(today)) return sum;
+      return sum + computeTaskAttack(t, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, 0, false).dmg;
+    }, 0),
+    [tasks, today, boss.difficulty, boss.weakness, combo]
+  );
   const pct = Math.max(0, (boss.hp / boss.maxHp) * 100);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editVal, setEditVal] = useState('');
@@ -611,15 +655,19 @@ function BossCard({
         </span>
       </div>
 
-      {/* Combo + Stats */}
-      <div className="grid grid-cols-3 gap-2 mt-3 text-center text-[11px]">
+      {/* Combo + Stats + Potencial */}
+      <div className="grid grid-cols-4 gap-2 mt-3 text-center text-[11px]">
         <div className="rounded-md bg-orange-500/10 border border-orange-500/30 py-1.5">
           <div className="flex items-center justify-center gap-1 text-orange-300"><Flame className="w-3 h-3" /> Combo</div>
           <div className="font-display text-orange-200 text-base">{combo}</div>
         </div>
         <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 py-1.5">
-          <div className="flex items-center justify-center gap-1 text-yellow-300"><Zap className="w-3 h-3" /> Dano</div>
-          <div className="font-display text-yellow-100 text-base">{dmg}/tarefa</div>
+          <div className="flex items-center justify-center gap-1 text-yellow-300"><Zap className="w-3 h-3" /> Combo×</div>
+          <div className="font-display text-yellow-100 text-base">{combo >= 20 ? '2.0' : combo >= 10 ? '1.5' : combo >= 5 ? '1.25' : '1.0'}</div>
+        </div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/30 py-1.5" title="Soma do dano possível com as tarefas pendentes de hoje">
+          <div className="flex items-center justify-center gap-1 text-red-300"><Target className="w-3 h-3" /> Potencial hoje</div>
+          <div className="font-display text-red-200 text-base">{potentialToday}</div>
         </div>
         <div className="rounded-md bg-secondary/60 border border-border py-1.5">
           <div className="text-foreground/60">Plano</div>
@@ -663,6 +711,7 @@ function BossCard({
               task={t}
               selectedDate={selectedDate}
               isToday={isToday}
+              boss={boss}
               combo={combo}
               fx={hitFx[t.id]}
               editing={editingId === t.id}
@@ -673,9 +722,6 @@ function BossCard({
               onConfirmEdit={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}
               onComplete={() => onComplete(t.id, combo, selectedDate)}
               onUncomplete={() => onUncomplete(t.id, selectedDate)}
-              onIncrementCount={() => onIncrementCount(t.id)}
-              onStartTimer={(iso) => onStartTimer(t.id, iso)}
-              onStopTimer={(iso) => onStopTimer(t.id, iso)}
               onFail={() => onFail(t.id, selectedDate)}
               onRemoveTask={() => onRemoveTask(t.id)}
               onUpdateTask={(patch) => onUpdateTask(t.id, patch)}
@@ -701,17 +747,32 @@ function BossCard({
   );
 }
 
-// ====== Boss Task Row ======
+// ====== Boss Task Row (checkbox + expand panel) ======
+const IMPACT_OPTIONS: Array<{ v: NonNullable<BossTask['impact']>; label: string }> = [
+  { v: 'baixo', label: 'Baixo' },
+  { v: 'medio', label: 'Médio' },
+  { v: 'alto', label: 'Alto' },
+  { v: 'transformador', label: 'Transformador' },
+];
+const RESIST_OPTIONS: Array<{ v: NonNullable<BossTask['resistance']>; label: string }> = [
+  { v: 'nunca', label: 'Nunca' },
+  { v: 'as_vezes', label: 'Às vezes' },
+  { v: 'frequentemente', label: 'Frequentemente' },
+  { v: 'quase_sempre', label: 'Quase sempre' },
+  { v: 'sempre', label: 'Sempre' },
+];
+
 function BossTaskRow({
-  task, selectedDate, isToday, combo, fx,
+  task, selectedDate, isToday, boss, combo, fx,
   editing, editVal, setEditVal, showEdit,
   onStartEdit, onConfirmEdit,
-  onComplete, onUncomplete, onIncrementCount, onStartTimer, onStopTimer,
+  onComplete, onUncomplete,
   onFail, onRemoveTask, onUpdateTask,
 }: {
   task: BossTask;
   selectedDate: string;
   isToday: boolean;
+  boss: { difficulty?: BossDifficulty; weakness?: string };
   combo: number;
   fx?: number;
   editing: boolean;
@@ -722,68 +783,18 @@ function BossTaskRow({
   onConfirmEdit: () => void;
   onComplete: () => void;
   onUncomplete: () => void;
-  onIncrementCount: () => void;
-  onStartTimer: (iso: string) => void;
-  onStopTimer: (iso: string) => void;
   onFail: () => void;
   onRemoveTask: () => void;
   onUpdateTask: (patch: Partial<BossTask>) => void;
 }) {
-  const type: BossTaskType = task.type || 'simple';
   const done = task.doneDates.includes(selectedDate);
   const [expanded, setExpanded] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showDesc, setShowDesc] = useState(false);
   const [hasDesc, setHasDesc] = useState(!!task.description);
 
-  // Temporal dialogs
-  const nowTime = () => {
-    const d = new Date();
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  };
-  const today = new Date().toISOString().slice(0, 10);
-  const [startOpen, setStartOpen] = useState(false);
-  const [stopOpen, setStopOpen] = useState(false);
-  const [startDate, setStartDate] = useState(today);
-  const [startTime, setStartTime] = useState(nowTime());
-  const [stopDate, setStopDate] = useState(today);
-  const [stopTime, setStopTime] = useState(nowTime());
-
-  const isRunning = type === 'temporal' && !!task.activeStartedAt;
-  const todayCount = task.countByDate?.[selectedDate] || 0;
-  const target = task.targetCount || 1;
-
-  const openStartDialog = () => {
-    const d = new Date();
-    setStartDate(d.toISOString().slice(0, 10));
-    setStartTime(nowTime());
-    setStartOpen(true);
-  };
-  const openStopDialog = () => {
-    const d = new Date();
-    setStopDate(d.toISOString().slice(0, 10));
-    setStopTime(nowTime());
-    setStopOpen(true);
-  };
-  const confirmStart = () => {
-    const [y, mo, d] = startDate.split('-').map(Number);
-    const [h, mi] = startTime.split(':').map(Number);
-    const dt = new Date(y, mo - 1, d, h, mi, 0, 0);
-    if (dt.getTime() > Date.now()) { toast.error('Início no futuro não é permitido.'); return; }
-    onStartTimer(dt.toISOString());
-    setStartOpen(false);
-  };
-  const confirmStop = () => {
-    const [y, mo, d] = stopDate.split('-').map(Number);
-    const [h, mi] = stopTime.split(':').map(Number);
-    const dt = new Date(y, mo - 1, d, h, mi, 0, 0);
-    if (!task.activeStartedAt) { setStopOpen(false); return; }
-    if (dt.getTime() <= new Date(task.activeStartedAt).getTime()) {
-      toast.error('Fim precisa ser depois do início.'); return;
-    }
-    onStopTimer(dt.toISOString());
-    setStopOpen(false);
-  };
+  const power = habitBasePower(task);
+  const potential = computeTaskAttack(task, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, 0, false);
 
   return (
     <motion.div
@@ -798,19 +809,25 @@ function BossTaskRow({
           </>
         ) : (
           <>
-            {/* Type icon */}
-            <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded text-foreground/50" title={type}>
-              {type === 'count' && <Hash className="w-3 h-3" />}
-              {type === 'temporal' && <Clock className="w-3 h-3" />}
-              {type === 'simple' && <Check className="w-3 h-3" />}
-            </span>
+            <button
+              type="button"
+              disabled={!isToday}
+              onClick={() => (done ? onUncomplete() : onComplete())}
+              title={done ? 'Desfazer' : 'Concluir'}
+              className={`shrink-0 w-5 h-5 rounded border flex items-center justify-center transition ${
+                done
+                  ? 'bg-emerald-500/30 border-emerald-400 text-emerald-100'
+                  : 'border-red-400/50 hover:bg-red-500/10'
+              } ${!isToday ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {done && <Check className="w-3 h-3" />}
+            </button>
+
             <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>
               {task.title}
-              {type === 'count' && <span className="ml-1 text-foreground/50 font-display">({todayCount}/{target})</span>}
-              {type === 'temporal' && <span className="ml-1 text-foreground/50 font-display">a cada {task.intervalHours || 1}h</span>}
+              <span className="ml-1 text-[10px] text-foreground/45 font-display">⚔ {potential.dmg}</span>
             </span>
 
-            {/* Open video/description icons */}
             {task.videoUrl && (
               <button onClick={() => setShowVideo(true)} className="text-foreground/40 hover:text-primary" title="Vídeo">
                 <Video className="w-3.5 h-3.5" />
@@ -820,43 +837,6 @@ function BossTaskRow({
               <button onClick={() => setShowDesc(true)} className="text-foreground/40 hover:text-primary" title="Descrição">
                 <FileText className="w-3.5 h-3.5" />
               </button>
-            )}
-
-            {/* Action button by type */}
-            {!done && isToday && type === 'simple' && (
-              <button
-                onClick={onComplete}
-                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px]"
-                title="Concluir"
-              >Concluir</button>
-            )}
-            {done && isToday && type === 'simple' && (
-              <button
-                onClick={onUncomplete}
-                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-foreground/20 text-foreground/50 hover:text-foreground text-[11px]"
-                title="Desfazer"
-              >Desfazer</button>
-            )}
-            {!done && isToday && type === 'count' && (
-              <button
-                onClick={onIncrementCount}
-                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px]"
-                title="+1"
-              >+1</button>
-            )}
-            {isToday && type === 'temporal' && !isRunning && (
-              <button
-                onClick={openStartDialog}
-                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px] gap-1"
-                title="Iniciar"
-              ><Play className="w-3 h-3" /> Iniciar</button>
-            )}
-            {isToday && type === 'temporal' && isRunning && (
-              <button
-                onClick={openStopDialog}
-                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-orange-400/50 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 text-[11px] gap-1"
-                title="Parar"
-              ><Square className="w-3 h-3" /> Parar</button>
             )}
 
             {!done && (
@@ -898,7 +878,6 @@ function BossTaskRow({
         </AnimatePresence>
       </div>
 
-      {/* Expand panel: type + video + description */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -908,43 +887,54 @@ function BossTaskRow({
             className="overflow-hidden"
           >
             <div className="mt-2 pt-2 border-t border-red-500/15 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] text-foreground/60">Tipo</label>
+                  <label className="text-[10px] text-foreground/60">Impacto na vida</label>
                   <Select
-                    value={type}
-                    onValueChange={(v) => onUpdateTask({ type: v as BossTaskType })}
+                    value={task.impact || 'medio'}
+                    onValueChange={(v) => onUpdateTask({ impact: v as BossTask['impact'] })}
                   >
                     <SelectTrigger className="h-8 text-xs bg-background/60"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="simple">Simples (1× por dia)</SelectItem>
-                      <SelectItem value="count">Contagem (X vezes/dia)</SelectItem>
-                      <SelectItem value="temporal">Temporal (a cada X horas)</SelectItem>
+                      {IMPACT_OPTIONS.map(o => <SelectItem key={o.v} value={o.v}>{o.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                {type === 'count' && (
-                  <div>
-                    <label className="text-[10px] text-foreground/60">Quantidade/dia</label>
-                    <Input
-                      type="number" min={1}
-                      value={task.targetCount || 1}
-                      onChange={e => onUpdateTask({ targetCount: Math.max(1, Number(e.target.value)) })}
-                      className="h-8 text-xs bg-background/60"
-                    />
+                <div>
+                  <label className="text-[10px] text-foreground/60">Resistência</label>
+                  <Select
+                    value={task.resistance || 'as_vezes'}
+                    onValueChange={(v) => onUpdateTask({ resistance: v as BossTask['resistance'] })}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-background/60"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {RESIST_OPTIONS.map(o => <SelectItem key={o.v} value={o.v}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-foreground/60">Prioridade</label>
+                  <div className="flex items-center gap-0.5 h-8">
+                    {[1, 2, 3, 4, 5].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => onUpdateTask({ priority: n as 1 | 2 | 3 | 4 | 5 })}
+                        className="p-0.5"
+                        title={`${n} estrela${n > 1 ? 's' : ''}`}
+                      >
+                        <Star className={`w-3.5 h-3.5 ${(task.priority ?? 3) >= n ? 'text-yellow-300 fill-yellow-300' : 'text-foreground/30'}`} />
+                      </button>
+                    ))}
                   </div>
-                )}
-                {type === 'temporal' && (
-                  <div>
-                    <label className="text-[10px] text-foreground/60">Intervalo (horas)</label>
-                    <Input
-                      type="number" min={0.25} step={0.25}
-                      value={task.intervalHours || 1}
-                      onChange={e => onUpdateTask({ intervalHours: Math.max(0.25, Number(e.target.value)) })}
-                      className="h-8 text-xs bg-background/60"
-                    />
-                  </div>
-                )}
+                </div>
+              </div>
+
+              <div className="text-[10px] text-foreground/60 flex items-center gap-2 flex-wrap">
+                <span className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border">Poder Base: <strong className="text-foreground">{power}</strong></span>
+                <span className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border">Dano agora: <strong className="text-red-300">{potential.dmg}</strong></span>
+                {potential.weaknessHit && <span className="px-1.5 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold">⚡ Fraqueza ×{potential.weaknessMul}</span>}
+                <span className="px-1.5 py-0.5 rounded bg-secondary/60 border border-border">Combo ×{potential.comboMul}</span>
               </div>
 
               <div>
@@ -977,82 +967,10 @@ function BossTaskRow({
                   />
                 )}
               </div>
-
-              {isRunning && (
-                <p className="text-[10px] text-orange-300">
-                  ⏱ Em andamento desde {new Date(task.activeStartedAt!).toLocaleString('pt-BR')}
-                </p>
-              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Start dialog */}
-      <Dialog open={startOpen} onOpenChange={setStartOpen}>
-        <DialogContent className="bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="font-display text-primary">Iniciar Contagem</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-muted-foreground">Dia</label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Hora</label>
-              <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => setStartOpen(false)}>Cancelar</Button>
-            <Button onClick={confirmStart}>Iniciar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Stop dialog */}
-      <Dialog open={stopOpen} onOpenChange={setStopOpen}>
-        <DialogContent className="bg-card border-border">
-          <DialogHeader>
-            <DialogTitle className="font-display text-primary">Finalizar Contagem</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            {task.activeStartedAt && (
-              <p className="text-xs text-muted-foreground">
-                Iniciou em {new Date(task.activeStartedAt).toLocaleString('pt-BR')}
-              </p>
-            )}
-            <div>
-              <label className="text-xs text-muted-foreground">Dia que terminei</label>
-              <Input type="date" value={stopDate} onChange={e => setStopDate(e.target.value)} />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground">Hora que terminei</label>
-              <Input type="time" value={stopTime} onChange={e => setStopTime(e.target.value)} />
-            </div>
-            {task.activeStartedAt && (() => {
-              const [y, mo, d] = stopDate.split('-').map(Number);
-              const [h, mi] = stopTime.split(':').map(Number);
-              const dt = new Date(y, mo - 1, d, h, mi, 0, 0).getTime();
-              const startMs = new Date(task.activeStartedAt).getTime();
-              if (dt <= startMs) return null;
-              const hours = (dt - startMs) / 3600000;
-              const interval = Math.max(0.05, task.intervalHours || 1);
-              const cycles = Math.floor(hours / interval);
-              return (
-                <p className="text-xs text-foreground/70">
-                  Duração: <span className="font-display">{hours.toFixed(1)}h</span> · Ciclos: <span className="font-display text-emerald-300">{cycles}</span>
-                </p>
-              );
-            })()}
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="secondary" onClick={() => setStopOpen(false)}>Cancelar</Button>
-            <Button onClick={confirmStop}>Finalizar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {task.videoUrl && (
         <VideoDialog open={showVideo} onOpenChange={setShowVideo} videoUrl={task.videoUrl} title={`🎥 ${task.title}`} />
@@ -1070,7 +988,7 @@ type CreatePayload = {
   days: number; tasks: { title: string }[];
   imageUrl?: string; story?: string; affectedAreaIds?: string[];
   howItAffectsMe?: string; whyDefeat?: string; customPhrases?: string[];
-  difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+  difficulty?: BossDifficulty;
   mainColor?: string; hpBarColor?: string;
 };
 
@@ -1116,7 +1034,7 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
   const [whyDefeat, setWhyDefeat] = useState('');
   const [customPhrasesText, setCustomPhrasesText] = useState('');
   const [areaIds, setAreaIds] = useState<string[]>([]);
-  const [difficulty, setDifficulty] = useState<'Fácil' | 'Normal' | 'Difícil' | 'Brutal'>('Normal');
+  const [difficulty, setDifficulty] = useState<BossDifficulty>('Normal');
   const [mainColor, setMainColor] = useState('#ef4444');
   const [hpBarColor, setHpBarColor] = useState('#ef4444');
   const [assisting, setAssisting] = useState<string | null>(null);
@@ -1228,11 +1146,11 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
         {(!isEdit && tab === 'preset') ? (
           <div className="grid sm:grid-cols-2 gap-2">
             {BOSS_TEMPLATES.map(t => {
-              const hp = t.days * t.tasks.length;
+              const hp = t.days * 12; // preview com dificuldade Normal
               return (
                 <button
                   key={t.name}
-                  onClick={() => onSubmit({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })) })}
+                  onClick={() => onSubmit({ name: t.name, emoji: t.emoji, description: t.desc, weakness: t.weakness, days: t.days, tasks: t.tasks.map(x => ({ title: x })), difficulty: 'Normal' })}
                   className="text-left p-3 rounded-lg border border-red-500/30 bg-red-950/10 hover:bg-red-950/30 transition"
                 >
                   <div className="flex items-center gap-2 mb-1">
@@ -1245,7 +1163,7 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
                       <span key={tk} className="text-[10px] px-1.5 py-0.5 rounded bg-background/60 border border-border text-foreground/70">{tk}</span>
                     ))}
                   </div>
-                  <div className="text-[10px] text-gold mt-2">{t.days} dias × {t.tasks.length} tarefas = {hp} HP</div>
+                  <div className="text-[10px] text-gold mt-2">{t.days} dias · ~{hp} HP (Normal)</div>
                 </button>
               );
             })}
@@ -1329,10 +1247,10 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
                 <label className="text-[11px] text-foreground/70">Dificuldade</label>
                 <select
                   value={difficulty}
-                  onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')}
+                  onChange={e => setDifficulty(e.target.value as BossDifficulty)}
                   className="w-full h-9 rounded-md border border-border bg-background text-foreground text-xs px-2"
                 >
-                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => (
+                  {(['Fácil', 'Normal', 'Difícil', 'Brutal', 'Pesadelo'] as const).map(d => (
                     <option key={d} value={d} className="bg-background text-foreground">{d}</option>
                   ))}
                 </select>
@@ -1347,10 +1265,12 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <label className="text-xs text-foreground/70">Dias da batalha:</label>
               <Input type="number" min={7} max={120} value={days} onChange={e => setDays(Math.max(1, parseInt(e.target.value) || 1))} className="w-24 text-center" />
-              <span className="text-[11px] text-foreground/50">HP = {days} × {tasks.filter(t => t.trim()).length || 1} = <strong className="text-red-300">{days * (tasks.filter(t => t.trim()).length || 1)}</strong></span>
+              <span className="text-[11px] text-foreground/50">
+                HP = {days} × {BOSS_HP_PER_DAY_LABEL[difficulty]} ({difficulty}) = <strong className="text-red-300">{days * BOSS_HP_PER_DAY_LABEL[difficulty]}</strong>
+              </span>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
