@@ -1,125 +1,123 @@
-## Atualização do Sistema de Combate e Progressão
+## O que vai mudar
 
-Toda lógica de HP, dano, combo, XP e progresso existente será **preservada**. Esta é uma camada de personalização + apresentação + IA.
+### 1. Tarefas do Boss — vídeo + descrição (igual Mini Vitórias)
+
+Cada tarefa do boss vai poder ter, opcionalmente:
+
+- **Vídeo** (URL YouTube/Vimeo) — abre no `VideoDialog` existente.
+- **Descrição rich-text** — usa o `RichEditor` já usado nas Mini Vitórias (emoji, alinhamento, listas, etc.) e abre no `DescriptionDialog`.
+
+Na linha da tarefa aparece um botão "+" discreto que **expande** um pequeno painel embaixo com os campos. Se a tarefa já tem vídeo/descrição, ícones 🎥 e 📝 aparecem do lado para abrir os dialogs.
+
+### 2. Tarefas do Boss — tipos selecionáveis
+
+Hoje toda tarefa é "checar uma vez por dia". Vou adicionar um seletor de **tipo** ao criar/editar uma tarefa:
+
+- **Simples** (atual) — botão único "Concluir hoje". Sem checkbox visual de antes — só botão. Concluiu → 1 hit no boss.
+- **Contagem** — "X vezes por dia" (ex.: 3×). Cada toque no botão = +1. Ao chegar em X, conta como dia 100% concluído da tarefa. Cada toque já dá uma parte do dano/recompensa (dano e XP/ouro divididos por X), o último toque solta o bônus de "tarefa completa".
+- **Temporal** — "A cada X tempo" (ex.: a cada 1h). Mostra botões **Iniciar / Parar** ao lado, igual à mini-vitória de tempo:
+  - Ao iniciar, abre dialog para escolher **dia + hora de início** (default = agora).
+  - Ao parar, abre dialog para escolher **dia + hora de fim**.
+  - Calcula `ciclos = floor(horas / X)`. Cada ciclo dá `dano × 1` no boss e `2× XP/ouro` da régua normal da dificuldade (conforme exemplo do usuário: "a cada 1h ganho vitória, 2h passadas = 2 hits, 2× recompensa").
+  - Sessões temporais ficam registradas no histórico da tarefa (`sessions: { startedAt, endedAt, cycles }[]`), persistido em `player_data` no banco.
+
+Em todos os tipos, a conclusão **não usa checkbox** — apenas botão de ação (Concluir / +1 / Iniciar+Parar), como pedido.
+
+### 3. Renomear "Missão" → "Mini Vitória" na UI
+
+Trocar textos do `MissionsPanel` (título "MISSÕES" → "MINI VITÓRIAS", botões "Adicionar Missão" → "Adicionar Mini Vitória", "Iniciar Missão", toasts "Missão adicionada/editada!", "MISSÃO CONCLUÍDA", "DIÁRIA CONCLUÍDA", "Nome da missão", "Descreva a missão...", "Missão repetível…"). Tipos internos (`Mission`, `missionType`, etc.) **continuam iguais** — só texto visível muda.
+
+### 4. Boss menos punitivo (núcleo do pedido)
+
+Hoje o boss só morre se o usuário fizer 100% todo dia, porque dias parciais regeneram muito HP e zeram o combo. Mudanças em `settleBossesForToday` e `regenFromPct`:
+
+- **Progresso conta sempre**: se o usuário fez ≥ 1 tarefa no dia, **não** há regen do boss naquele dia. Só dias 100% vazios (0 tarefas, 0 ciclos temporais, 0 contagens) geram regen.
+- **Regen reduzido e com teto**: regen por dia vazio cai de "proporcional ao % faltante" para um valor pequeno fixo (ex.: 5% do `maxHp`, máx. 3 HP). Nunca pode regenerar mais do que o boss perdeu no último ciclo de 7 dias (teto anti-frustração: o jogador não perde tudo de uma vez).
+- **Combo decai, não zera**: dia parcial (>0 e <100%) → combo `-1` (mínimo 0). Dia vazio → combo `÷ 2` (não 0). Dia 100% → combo `+1`. Assim perder um dia não apaga uma semana boa.
+- **Janela de graça**: o primeiro dia vazio após um streak ≥ 3 não causa regen nenhum ("dia de descanso").
+- **Mensagem do inimigo (`mockery`)** só dispara em dias realmente vazios e não em dias parciais.
+
+Resultado: o boss continua morrendo via dano acumulado das tarefas. Perder um dia atrasa, mas não desfaz o progresso.
+
+### 5. Persistência
+
+Todos os novos campos (tipo de tarefa, contagem atual, vídeo, descrição, histórico de sessões temporais) ficam dentro de `state.bosses[].tasks[]`, que já é serializado em `player_data.game_state` no Lovable Cloud — **zero localStorage**.
 
 ---
 
-### 1. Áreas de Vida (Life Areas) — nova entidade
+## Detalhes técnicos
 
-Nova estrutura no `gameStore.ts`:
+### `src/lib/gameStore.ts`
+
+Estender `BossTask`:
 
 ```ts
-interface LifeArea {
+export type BossTaskType = 'simple' | 'count' | 'temporal';
+export interface BossTaskSession { startedAt: string; endedAt: string; cycles: number; }
+export interface BossTask {
   id: string;
-  name: string;        // "Saúde", "Foco" — editável
-  icon: string;        // emoji
-  color: string;
-  level: number;       // começa em 1
-  xp: number;          // XP acumulado para a área
-  xpToNext: number;    // cresce por nível
+  title: string;
+  doneDates: string[];
+  type?: BossTaskType;              // default 'simple'
+  videoUrl?: string;
+  description?: string;             // HTML do RichEditor
+  // count
+  targetCount?: number;             // X vezes/dia
+  countByDate?: Record<string, number>;
+  // temporal
+  intervalHours?: number;           // X horas por ciclo
+  activeStartedAt?: string | null;  // ISO quando iniciou
+  sessionsByDate?: Record<string, BossTaskSession[]>;
 }
 ```
 
-- Seed default: Saúde, Mentalidade, Financeiro, Estudos, Disciplina, Sono, Espiritualidade, Relacionamentos, Trabalho, Foco, Autoestima, Liderança.
-- CRUD completo (criar/editar/excluir/ícone/cor).
-- Quando boss é derrotado → distribui XP entre as áreas ligadas a ele e dispara level-up das áreas (toast).
+Novas ações no hook:
 
-Painel novo: **`src/components/LifeAreasPanel.tsx`** — grid com card por área (ícone, nível, barra de XP). Integrado na aba "Atributos" ou nova aba "Áreas".
+- `incrementBossTaskCount(bossId, taskId)` — +1 na contagem do dia; se atingir `targetCount`, marca `doneDates` e roda a recompensa via `computeBossTaskReward(..., allDoneAfter)`. Toques intermediários dão `dmg=1, xp/gold = base/target` (arredondado).
+- `startBossTaskTimer(bossId, taskId, isoStart)` — seta `activeStartedAt`.
+- `stopBossTaskTimer(bossId, taskId, isoEnd)` — calcula `cycles = floor((end-start)/intervalHours)`, aplica `cycles × dano` ao boss e `cycles × 2 × (xp/gold da dificuldade)` ao jogador, salva sessão.
+- `updateBossTask(bossId, taskId, patch)` — para editar título, vídeo, descrição, tipo e parâmetros.
 
----
-
-### 2. Monstro: campos novos (personalização total)
-
-Adicionar ao `BossBattle`:
+Rebalancear `settleBossesForToday`:
 
 ```ts
-imageUrl?: string;
-story?: string;                  // história/lore
-affectedAreaIds: string[];       // áreas que ele afeta
-howItAffectsMe?: string;         // "Como este monstro influencia minha vida"
-whyDefeat?: string;              // "Por que quero derrotá-lo"
-customPhrases?: string[];        // frases que ele diz
-difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
-mainColor?: string;
-hpBarColor?: string;
+const doneCount = b.tasks.reduce((s,t) => s
+  + (t.doneDates.includes(d) ? 1 : 0)
+  + Object.keys(t.sessionsByDate?.[d] || {}).length
+  + ((t.countByDate?.[d] || 0) > 0 ? 1 : 0), 0);
+if (doneCount === 0) {
+  if (graceAvailable) { graceUsed = true; /* sem regen */ }
+  else {
+    const gain = Math.min(3, Math.floor(b.maxHp * 0.05));
+    hp = Math.min(b.maxHp, hp + gain);
+    combo = Math.floor(combo / 2);
+    regained += gain;
+  }
+} else if (allDone) {
+  combo += 1;
+} else {
+  combo = Math.max(0, combo - 1);
+}
 ```
 
-- `BossPanel.tsx`: formulário de criação/edição expandido com todos esses campos + upload/URL de imagem + multi-seleção de áreas afetadas + dois textareas (`howItAffectsMe`, `whyDefeat`) sem limite.
-- `CurrentBossCard.tsx`: mostra imagem (se tiver), título, áreas afetadas como chips.
+### `src/components/BossPanel.tsx` / `BossCard`
+
+- Adicionar UI dos botões por tipo na linha de tarefa (`Play/Square` para temporal, `+N/X` para contagem, "Concluir" para simples).
+- Botão "+" ao lado de cada tarefa que expande um sub-painel inline com: vídeo (Input), descrição (RichEditor), tipo (Select), parâmetros do tipo.
+- Reusar `VideoDialog` e `DescriptionDialog` de `ContentViewerDialog` para abrir o conteúdo na lista.
+- Reusar o fluxo de dialogs de Iniciar/Parar de `MissionsPanel` (data + hora editáveis).
+
+### `src/components/MissionsPanel.tsx`
+
+- Apenas substituir strings PT visíveis ao usuário ("Missão" → "Mini Vitória", "MISSÕES" → "MINI VITÓRIAS"). Sem mudança de tipos/comportamento.  
+  
+Se o Alter Ego For Preenchido, Pare de Aparecer a "Forja de Identidade"  
+Altere as Conquistas... todas.. dando a ideia de liferpg.. RPG DA VIDA REAL... Tornando o App Imersivo.. e Totalmente Gamificado.. Gamificando a Vida Do Usuario.. Motivando..
 
 ---
 
-### 3. XP do Monstro (fórmula automática)
+## Fora do escopo
 
-`maxHp` / XP recompensa derivado de:
-
-```
-maxXp = (totalHabits + totalTasks) * days
-```
-
-Mostrar prévia no formulário ao escolher dias/tasks. Manter cálculo de dano atual (não mexer).
-
----
-
-### 4. Sequência de ataque (animação)
-
-Quando o usuário marca task do boss como feita:
-
-- Botão pulse + glow
-- Partículas (CSS) saindo do botão
-- HP bar drena suave (já existe, melhorar transição)
-- Número de dano flutuante subindo
-- Shake leve no card do boss
-- Som opcional (skip se não houver asset)
-
-Tudo CSS/framer-motion em `BossPanel.tsx`. Novo subcomponente `BossAttackEffects.tsx` (overlay de partículas + dano flutuante).
-
----
-
-### 5. Mensagem emocional pós-ataque (IA única)
-
-Nova edge function: **`supabase/functions/attack-reinforcement/index.ts`**
-
-- Input: snapshot completo (alter ego, boss, áreas afetadas, streak, level, hábitos do dia, histórico recente, último ângulo usado).
-- Modelo: `google/gemini-2.5-flash`.
-- System prompt focado em: orgulho, identidade, anti-culpa, anti-genérico, variação de tom (épico, acolhedor, filosófico, etc), evolução do discurso conforme `level`/`streak`.
-- Anti-repetição: persistir últimos 10 tons/ângulos em `aiAngleHistory`.
-- Resposta curta (1–3 frases), markdown leve.
-
-UI: toast/modal flutuante após cada ataque com a mensagem; também salvar em `boss.reinforcementHistory` para o usuário rever.
-
-`supabase/config.toml`: adicionar `[functions.attack-reinforcement] verify_jwt = false`.
-
----
-
-### 6. Detalhes técnicos
-
-- Tipos novos em `gameStore.ts` + reducers: `addLifeArea`, `updateLifeArea`, `removeLifeArea`, `awardAreaXp(boss)`.
-- `defeatBoss()` já existente: chamar `awardAreaXp` com `affectedAreaIds`.
-- Migração: se `state.lifeAreas` não existir, seed com 12 default na inicialização.
-- Persistência via localStorage (padrão atual do app).
-
----
-
-### Arquivos afetados
-
-- `src/lib/gameStore.ts` (+ tipos + actions)
-- `src/components/BossPanel.tsx` (formulário expandido + animações)
-- `src/components/CurrentBossCard.tsx` (mostrar imagem/áreas)
-- `src/components/LifeAreasPanel.tsx` **novo**
-- `src/components/BossAttackEffects.tsx` **novo**
-- `src/lib/tabs.ts` (+ aba "Áreas" opcional)
-- `src/pages/Index.tsx` (mount nova aba)
-- `supabase/functions/attack-reinforcement/index.ts` **novo**
-- `supabase/config.toml` (+ verify_jwt false)
-
----
-
-### Fora de escopo (manter como está)
-
-- Cálculo de dano, HP, combo, regen
-- XP/ouro do jogador
-- Boss Coach Chat (já existe e fica)
-- Mentor Chat, TCC, Trataka, Despertar
-
-Posso seguir e implementar tudo de uma vez?
+- Não muda esquema do banco (tudo cabe em `game_state` jsonb).
+- Não mexe nas Mini Vitórias em si — elas já têm vídeo, descrição e rich-text.
+- Não muda visual de outros painéis.
