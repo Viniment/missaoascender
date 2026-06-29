@@ -657,67 +657,30 @@ function BossCard({
           </button>
         </div>
         <AnimatePresence>
-          {tasks.map(t => {
-            const done = t.doneDates.includes(selectedDate);
-            const fx = hitFx[t.id];
-            return (
-              <motion.div
-                key={t.id}
-                layout
-                className={`relative flex items-center gap-2 p-2 rounded-md border ${done ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/20 bg-background/50'}`}
-              >
-                {editingId === t.id ? (
-                  <>
-                    <Input value={editVal} onChange={e => setEditVal(e.target.value)} className="h-7 text-xs" />
-                    <Button size="sm" variant="ghost" onClick={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}>
-                      <Check className="w-3 h-3" />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => done ? onUncomplete(t.id, selectedDate) : onComplete(t.id, combo, selectedDate)}
-                      className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${done ? 'bg-emerald-500/30 border-emerald-500 text-emerald-300' : 'border-red-400/50 hover:bg-red-500/10'}`}
-                    >
-                      {done && <Check className="w-3 h-3" />}
-                    </button>
-                    <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>{t.title}</span>
-                    {!done && (
-                      <button
-                        onClick={() => onFail(t.id, selectedDate)}
-                        title="Falhei — autotraição"
-                        className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15 hover:text-red-200"
-                      >
-                        <Skull className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {showEdit && (
-                      <>
-                        <button onClick={() => { setEditingId(t.id); setEditVal(t.title); }} className="text-foreground/50 hover:text-foreground">
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                        <button onClick={() => onRemoveTask(t.id)} className="text-foreground/50 hover:text-red-400">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </>
-                    )}
-                  </>
-                )}
-                <AnimatePresence>
-                  {fx && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, y: -20, scale: 1.2 }}
-                      exit={{ opacity: 0, y: -32 }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 font-display text-red-300 text-sm pointer-events-none"
-                    >
-                      -{fx} HP
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+          {tasks.map(t => (
+            <BossTaskRow
+              key={t.id}
+              task={t}
+              selectedDate={selectedDate}
+              isToday={isToday}
+              combo={combo}
+              fx={hitFx[t.id]}
+              editing={editingId === t.id}
+              editVal={editVal}
+              setEditVal={setEditVal}
+              showEdit={showEdit}
+              onStartEdit={() => { setEditingId(t.id); setEditVal(t.title); }}
+              onConfirmEdit={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}
+              onComplete={() => onComplete(t.id, combo, selectedDate)}
+              onUncomplete={() => onUncomplete(t.id, selectedDate)}
+              onIncrementCount={() => onIncrementCount(t.id)}
+              onStartTimer={(iso) => onStartTimer(t.id, iso)}
+              onStopTimer={(iso) => onStopTimer(t.id, iso)}
+              onFail={() => onFail(t.id, selectedDate)}
+              onRemoveTask={() => onRemoveTask(t.id)}
+              onUpdateTask={(patch) => onUpdateTask(t.id, patch)}
+            />
+          ))}
         </AnimatePresence>
         {showEdit && (
           <div className="flex gap-2 mt-2">
