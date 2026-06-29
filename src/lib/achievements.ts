@@ -306,12 +306,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: s => s.rewards.filter(r => r.redeemed).length >= 5, progress: s => ({ current: Math.min(s.rewards.filter(r => r.redeemed).length, 5), target: 5 }) },
 
   // ========== NEW: HABITS ==========
-  { id: 'habits-10', type: 'habit', label: '10 formas de cuidar de mim', value: 10, rank: 'B', icon: '💐',
-    description: 'Dez cuidados ativos ao mesmo tempo. Sua vida virou um jardim que você rega.',
+  { id: 'habits-10', type: 'habit', label: 'Skill Tree Completa (10 Passivas)', value: 10, rank: 'B', icon: '🌟',
+    description: 'Dez passivas ativas simultâneas. Sua árvore de skills tá full build.',
     requirements: ['Ter 10 hábitos criados simultaneamente'],
     check: s => s.habits.length >= 10, progress: s => ({ current: Math.min(s.habits.length, 10), target: 10 }) },
-  { id: 'habit-perfect-week', type: 'habit', label: 'Uma semana inteira sem me abandonar', value: 7, rank: 'C', icon: '🤍',
-    description: 'Sete dias seguidos honrando cada cuidado seu. Você não se largou nenhum dia.',
+  { id: 'habit-perfect-week', type: 'habit', label: 'Semana Perfeita — 7 Dias 100%', value: 7, rank: 'C', icon: '⚡',
+    description: 'Sete dias seguidos batendo 100% de todos os hábitos. Run perfeita.',
     requirements: ['Concluir 100% dos hábitos por 7 dias seguidos'],
     check: s => {
       if (s.habits.length === 0) return false;
@@ -335,8 +335,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       }
       return { current: Math.min(streak, 7), target: 7 };
     } },
-  { id: 'habit-perfect-month', type: 'habit', label: 'Um mês inteiro sem me abandonar', value: 30, rank: 'A', icon: '💖',
-    description: 'Trinta dias sem virar as costas pra você em nenhum cuidado. Isso é amor diário.',
+  { id: 'habit-perfect-month', type: 'habit', label: 'Mês Perfeito — 30 Dias 100%', value: 30, rank: 'A', icon: '🏆',
+    description: 'Trinta dias batendo 100% das passivas. World record local.',
     requirements: ['Concluir 100% dos hábitos por 30 dias seguidos'],
     check: s => {
       if (s.habits.length === 0) return false;
@@ -361,13 +361,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       return { current: Math.min(streak, 30), target: 30 };
     } },
 
-  // ========== NEW: MISSIONS ==========
-  { id: 'mission-200', type: 'mission', label: '200 vezes que apareci pra mim', value: 200, rank: 'Monarca', icon: '💖',
-    description: 'Duzentas escolhas a favor de você. Você reescreveu sua relação consigo.',
+  // ========== NEW: MINI VITÓRIAS ==========
+  { id: 'mission-200', type: 'mission', label: '200 Quests no Histórico', value: 200, rank: 'Monarca', icon: '👑',
+    description: 'Duzentas mini vitórias batidas. Você é hall of fame.',
     requirements: ['Concluir 200 missões no total'],
     check: s => completedMissions(s) >= 200, progress: s => ({ current: Math.min(completedMissions(s), 200), target: 200 }) },
-  { id: 'mission-day-5', type: 'mission', label: 'Um dia inteiro me priorizando', value: 5, rank: 'C', icon: '🌷',
-    description: 'Cinco escolhas por você num mesmo dia. Esse dia foi seu.',
+  { id: 'mission-day-5', type: 'mission', label: 'Combo Diário x5', value: 5, rank: 'C', icon: '⚔️',
+    description: 'Cinco mini vitórias no mesmo dia. Esse dia rendeu loot triplo.',
     requirements: ['Concluir 5 missões em um único dia'],
     check: s => {
       const counts: Record<string, number> = {};
@@ -393,8 +393,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       });
       return { current: Math.min(Math.max(0, ...Object.values(counts)), 5), target: 5 };
     } },
-  { id: 'mission-day-10', type: 'mission', label: 'Um dia 100% por mim', value: 10, rank: 'B', icon: '💗',
-    description: 'Dez escolhas por você no mesmo dia. Esse dia foi inteiramente seu.',
+  { id: 'mission-day-10', type: 'mission', label: 'Raid Diária x10', value: 10, rank: 'B', icon: '🔥',
+    description: 'Dez vitórias num único dia. Esse dia foi uma raid solo.',
     requirements: ['Concluir 10 missões em um único dia'],
     check: s => {
       const counts: Record<string, number> = {};
@@ -412,8 +412,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       });
       return { current: Math.min(Math.max(0, ...Object.values(counts)), 10), target: 10 };
     } },
-  { id: 'mission-category-master', type: 'mission', label: 'Cuidei de mim em todas as áreas', value: 10, rank: 'A', icon: '💞',
-    description: 'Você não negligenciou nenhuma parte da sua vida. Amor-próprio inteiro.',
+  { id: 'mission-category-master', type: 'mission', label: 'Multi-Class Master', value: 10, rank: 'A', icon: '🌈',
+    description: 'Concluiu quest em todas as categorias. Você é multi-classe de verdade.',
     requirements: ['Concluir missão em Estudo, Trabalho, Treino, Leitura, Espiritual, Social, Saúde, Mental, Financeiro, Criatividade'],
     check: s => {
       const cats = new Set(s.missions.filter(m => m.status === 'Concluída' || (m.completionHistory && m.completionHistory.some(h => !h.failed))).map(m => m.category));
@@ -425,13 +425,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     } },
 
   // ========== NEW: JOURNAL ==========
-  { id: 'journal-deep-10', type: 'special', label: '10 mergulhos honestos em mim', value: 10, rank: 'C', icon: '🪞',
-    description: 'Dez vezes que você foi até o fundo sem fugir. Isso constrói intimidade consigo.',
+  { id: 'journal-deep-10', type: 'special', label: 'Deep Dive x10', value: 10, rank: 'C', icon: '🪞',
+    description: 'Dez entradas em modo profundo. Você desceu até a área secreta do mapa.',
     requirements: ['Criar 10 entradas no diário em modo profundo'],
     check: s => s.journal.filter(j => j.deepMode).length >= 10,
     progress: s => ({ current: Math.min(s.journal.filter(j => j.deepMode).length, 10), target: 10 }) },
-  { id: 'journal-week-streak', type: 'special', label: '7 dias me escutando', value: 7, rank: 'D', icon: '💜',
-    description: 'Uma semana inteira sentando com você todo dia. Você merecia essa escuta.',
+  { id: 'journal-week-streak', type: 'special', label: 'Save Diário x7', value: 7, rank: 'D', icon: '💜',
+    description: 'Sete dias seguidos salvando o jogo. Backup garantido.',
     requirements: ['Escrever no diário 7 dias seguidos'],
     check: s => {
       const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
@@ -453,8 +453,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
       }
       return { current: Math.min(streak, 7), target: 7 };
     } },
-  { id: 'journal-month-streak', type: 'special', label: '30 dias me escutando', value: 30, rank: 'A', icon: '💜',
-    description: 'Um mês inteiro sentando com você. Você virou um lugar seguro pra você mesmo.',
+  { id: 'journal-month-streak', type: 'special', label: 'Save Diário x30', value: 30, rank: 'A', icon: '💜',
+    description: 'Trinta dias seguidos salvando. Cloud save de verdade.',
     requirements: ['Escrever no diário 30 dias seguidos'],
     check: s => {
       const dates = new Set(s.journal.map(j => j.date.slice(0, 10)));
@@ -478,47 +478,47 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     } },
 
   // ========== NEW: REFLECTIONS (Despertar) ==========
-  { id: 'reflections-10', type: 'special', label: '10 vezes que parei pra me ver', value: 10, rank: 'D', icon: '🌷',
-    description: 'Dez pausas pra olhar pra dentro. Quem faz isso muda.',
+  { id: 'reflections-10', type: 'special', label: '10 Reflexões — Skill Insight', value: 10, rank: 'D', icon: '🧠',
+    description: 'Dez reflexões respondidas. Você ganhou pontos passivos de Sabedoria.',
     requirements: ['Responder 10 reflexões no Despertar'],
     check: s => (s.reflections?.length || 0) >= 10,
     progress: s => ({ current: Math.min(s.reflections?.length || 0, 10), target: 10 }) },
-  { id: 'reflections-50', type: 'special', label: '50 vezes que me olhei com honestidade', value: 50, rank: 'A', icon: '💐',
-    description: 'Cinquenta encontros com você. A pessoa que se conhece é a que mais se ama.',
+  { id: 'reflections-50', type: 'special', label: '50 Reflexões — Mestre do Insight', value: 50, rank: 'A', icon: '🧠',
+    description: 'Cinquenta reflexões. Stat de Sabedoria maximizado.',
     requirements: ['Responder 50 reflexões no Despertar'],
     check: s => (s.reflections?.length || 0) >= 50,
     progress: s => ({ current: Math.min(s.reflections?.length || 0, 50), target: 50 }) },
 
   // ========== NEW: GOLD / REWARDS ==========
-  { id: 'gold-10000', type: 'special', label: 'Acervo do meu próprio cuidado', value: 10000, rank: 'Monarca', icon: '🎁',
-    description: 'Dez mil moedas vindas de cuidar de você. Isso é riqueza interna de verdade.',
+  { id: 'gold-10000', type: 'special', label: 'Cofre do Dragão (10k)', value: 10000, rank: 'Monarca', icon: '🐉',
+    description: 'Dez mil moedas. Você é o dragão guardando o próprio tesouro.',
     requirements: ['Acumular 10000 Gold'],
     check: s => s.gold >= 10000, progress: s => ({ current: Math.min(s.gold, 10000), target: 10000 }) },
-  { id: 'reward-20', type: 'special', label: '20 vezes que me dei carinho', value: 20, rank: 'B', icon: '🎁',
-    description: 'Vinte presentes pra você. Aprender a receber também é amor-próprio.',
+  { id: 'reward-20', type: 'special', label: '20 Loots Resgatados', value: 20, rank: 'B', icon: '🎁',
+    description: 'Vinte baús abertos. Você sabe gastar XP em si.',
     requirements: ['Resgatar 20 recompensas na loja'],
     check: s => s.rewards.filter(r => r.redeemed).length >= 20,
     progress: s => ({ current: Math.min(s.rewards.filter(r => r.redeemed).length, 20), target: 20 }) },
 
   // ========== NEW: CHALLENGES ==========
-  { id: 'challenge-complete-1', type: 'special', label: 'Mantive uma promessa grande comigo', value: 1, rank: 'D', icon: '🤍',
-    description: 'Você cumpriu, do começo ao fim, algo que prometeu pra você. Isso fica.',
+  { id: 'challenge-complete-1', type: 'special', label: 'Quest Épica Completa', value: 1, rank: 'D', icon: '🏅',
+    description: 'Você fechou uma quest épica do começo ao fim. Cutscene desbloqueada.',
     requirements: ['Concluir 100% dos passos de 1 desafio'],
     check: s => s.challenges.some(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed),
     progress: s => ({ current: s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length > 0 ? 1 : 0, target: 1 }) },
-  { id: 'challenge-complete-5', type: 'special', label: '5 promessas grandes cumpridas comigo', value: 5, rank: 'A', icon: '💖',
-    description: 'Cinco vezes que você foi até o fim por você. Sua palavra com você vale ouro.',
+  { id: 'challenge-complete-5', type: 'special', label: '5 Quests Épicas Completas', value: 5, rank: 'A', icon: '🏅',
+    description: 'Cinco quests longas vencidas. Você tem build de completionist.',
     requirements: ['Concluir 100% dos passos de 5 desafios'],
     check: s => s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length >= 5,
     progress: s => ({ current: Math.min(s.challenges.filter(c => c.steps.length > 0 && c.steps.every(st => st.completed) && !c.failed).length, 5), target: 5 }) },
 
   // ========== NEW: DISCIPLINE ==========
-  { id: 'protocol-30', type: 'discipline', label: '30 vezes que voltei pra mim', value: 30, rank: 'S', icon: '🕊️',
-    description: 'Trinta retornos. Você se tornou alguém que sempre encontra o caminho de volta pra si.',
+  { id: 'protocol-30', type: 'discipline', label: '30 Respawns — Imortal', value: 30, rank: 'S', icon: '🕊️',
+    description: 'Trinta respawns concluídos. Game over não existe pra você.',
     requirements: ['Concluir 30 Protocolos de Falha'],
     check: s => protocolsDone(s) >= 30, progress: s => ({ current: Math.min(protocolsDone(s), 30), target: 30 }) },
-  { id: 'comeback', type: 'discipline', label: 'Voltei pra mim depois de me perder', value: 7, rank: 'C', icon: '🕊️',
-    description: 'Você sumiu de você por dias — e voltou. Isso é amor que não desiste.',
+  { id: 'comeback', type: 'discipline', label: 'Comeback Lendário', value: 7, rank: 'C', icon: '🔥',
+    description: 'Você sumiu por dias e voltou pra um streak de 7. Plot twist do herói.',
     requirements: ['Após perder 3 ou mais dias, alcançar streak ≥ 7 novamente'],
     check: s => s.streak >= 7 && s.missedDays >= 3,
     progress: s => ({ current: s.missedDays >= 3 ? Math.min(s.streak, 7) : 0, target: 7 }) },
