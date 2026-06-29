@@ -385,6 +385,25 @@ export interface BossTask {
   id: string;
   title: string;
   doneDates: string[]; // YYYY-MM-DD
+  // === Nova: tipo + conteúdo opcional ===
+  type?: BossTaskType;                 // default 'simple'
+  videoUrl?: string;
+  description?: string;                // HTML do RichEditor
+  // Contagem (X vezes/dia)
+  targetCount?: number;
+  countByDate?: Record<string, number>;
+  // Temporal (a cada X horas)
+  intervalHours?: number;
+  activeStartedAt?: string | null;     // ISO; null/undefined = parado
+  sessionsByDate?: Record<string, BossTaskSession[]>;
+}
+
+export type BossTaskType = 'simple' | 'count' | 'temporal';
+
+export interface BossTaskSession {
+  startedAt: string;
+  endedAt: string;
+  cycles: number;
 }
 
 export interface DefeatedBossSummary {
@@ -426,6 +445,7 @@ export interface BossBattle {
   reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
   pendingMockery?: { hpRegained: number; missedDays: number; at: string; reason?: 'missed_day' | 'self_betrayal'; taskTitle?: string; xpLost?: number; goldLost?: number };
   mockeryHistory?: { date: string; message: string; missedDays: number }[];
+  lastGraceDate?: string;
 }
 
 
