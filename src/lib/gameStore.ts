@@ -2297,6 +2297,9 @@ export function useGameStore() {
         let combo = b.combo || 0;
         let regained = 0;
         let missedDays = 0;
+        let lastGraceDate = b.lastGraceDate;
+        // Streak de dias 100% antes do início desse processamento (para regra de graça)
+        let recent100Streak = 0;
         const start = new Date(b.lastSettledDate + 'T00:00:00');
         const end = new Date(today + 'T00:00:00');
         const cursor = new Date(start);
@@ -2304,17 +2307,39 @@ export function useGameStore() {
         while (cursor < end) {
           const d = cursor.toISOString().slice(0, 10);
           const totalTasks = b.tasks.length;
-          const doneCount = b.tasks.filter(t => t.doneDates.includes(d)).length;
-          const pct = totalTasks ? doneCount / totalTasks : 0;
-          if (pct < 1) {
-            const gain = regenFromPct(pct);
-            const before = hp;
-            hp = Math.min(b.maxHp, hp + gain);
-            regained += (hp - before);
-            if (pct < 0.5) missedDays += 1;
-            combo = 0;
-          } else {
+          // Considera "algum progresso" no dia: tarefa marcada, contagem > 0 ou sessão temporal registrada.
+          const tasksWithProgress = b.tasks.filter(t =>
+            t.doneDates.includes(d)
+            || ((t.countByDate?.[d] || 0) > 0)
+            || ((t.sessionsByDate?.[d]?.length || 0) > 0)
+          ).length;
+          const tasksFullyDone = b.tasks.filter(t => t.doneDates.includes(d)).length;
+          const allDone = totalTasks > 0 && tasksFullyDone === totalTasks;
+          if (tasksWithProgress === 0) {
+            // Dia vazio — verifica janela de graça
+            const graceAvailable = recent100Streak >= 3
+              && (!lastGraceDate || (
+                (new Date(d).getTime() - new Date(lastGraceDate).getTime()) / 86400000 >= 7
+              ));
+            if (graceAvailable) {
+              lastGraceDate = d;
+              // sem regen, sem mudança de combo, "dia de descanso"
+            } else {
+              const gain = Math.min(3, Math.max(1, Math.floor(b.maxHp * 0.05)));
+              const before = hp;
+              hp = Math.min(b.maxHp, hp + gain);
+              regained += (hp - before);
+              missedDays += 1;
+              combo = Math.floor(combo / 2);
+              recent100Streak = 0;
+            }
+          } else if (allDone) {
             combo += 1;
+            recent100Streak += 1;
+          } else {
+            // Dia parcial — combo decai mas não zera; sem regen.
+            combo = Math.max(0, combo - 1);
+            recent100Streak = 0;
           }
           cursor.setDate(cursor.getDate() + 1);
         }
@@ -2322,7 +2347,7 @@ export function useGameStore() {
         const pendingMockery = regained > 0
           ? { hpRegained: regained, missedDays, at: new Date().toISOString(), reason: 'missed_day' as const }
           : b.pendingMockery;
-        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery };
+        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery, lastGraceDate };
       });
       return changed ? { ...prev, bosses: newBosses } : prev;
     });
