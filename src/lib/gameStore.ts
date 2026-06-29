@@ -385,6 +385,25 @@ export interface BossTask {
   id: string;
   title: string;
   doneDates: string[]; // YYYY-MM-DD
+  // === Nova: tipo + conteúdo opcional ===
+  type?: BossTaskType;                 // default 'simple'
+  videoUrl?: string;
+  description?: string;                // HTML do RichEditor
+  // Contagem (X vezes/dia)
+  targetCount?: number;
+  countByDate?: Record<string, number>;
+  // Temporal (a cada X horas)
+  intervalHours?: number;
+  activeStartedAt?: string | null;     // ISO; null/undefined = parado
+  sessionsByDate?: Record<string, BossTaskSession[]>;
+}
+
+export type BossTaskType = 'simple' | 'count' | 'temporal';
+
+export interface BossTaskSession {
+  startedAt: string;
+  endedAt: string;
+  cycles: number;
 }
 
 export interface DefeatedBossSummary {
@@ -426,6 +445,7 @@ export interface BossBattle {
   reinforcementHistory?: { date: string; message: string; taskTitle?: string }[];
   pendingMockery?: { hpRegained: number; missedDays: number; at: string; reason?: 'missed_day' | 'self_betrayal'; taskTitle?: string; xpLost?: number; goldLost?: number };
   mockeryHistory?: { date: string; message: string; missedDays: number }[];
+  lastGraceDate?: string;
 }
 
 
@@ -2263,6 +2283,145 @@ export function useGameStore() {
     }));
   }, []);
 
+  // === NEW: editar propriedades arbitrárias de uma BossTask (tipo, vídeo, descrição, etc.) ===
+  const updateBossTask = useCallback((bossId: string, taskId: string, patch: Partial<BossTask>) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, ...patch } : t) }
+        : b),
+    }));
+  }, []);
+
+  // === NEW: incrementa contagem do dia (+1). Atinge target → conta como concluída.
+  // Toques intermediários dão dmg=1 + frações de XP/Ouro. Último toque dispara bônus.
+  const incrementBossTaskCount = useCallback((bossId: string, taskId: string) => {
+    setState(prev => {
+      const today = getTodayBrasilia();
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (boss.defeatedAt || !boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task || task.doneDates.includes(today)) return prev;
+      const target = Math.max(1, task.targetCount || 1);
+      const cur = task.countByDate?.[today] || 0;
+      const next = cur + 1;
+      const reached = next >= target;
+      const newCountByDate = { ...(task.countByDate || {}), [today]: next };
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? { ...t, countByDate: newCountByDate, doneDates: reached ? [...t.doneDates, today] : t.doneDates }
+        : t);
+      const allDoneToday = reached && newTasks.every(t => t.doneDates.includes(today));
+      const combo = boss.combo || 0;
+      const base = computeBossTaskReward(boss.difficulty, combo, reached && allDoneToday);
+      // Toque intermediário: 1 dmg, fração de xp/gold. Toque final: dmg/xp/gold padrão.
+      const dmg = reached ? base.dmg : 1;
+      const xp = reached
+        ? base.xp
+        : Math.max(1, Math.floor(base.baseXp / target));
+      const gold = reached
+        ? base.gold
+        : Math.max(0, Math.floor(base.baseGold / target));
+      const newHp = Math.max(0, boss.hp - dmg);
+      const newCombo = reached && allDoneToday ? combo + 1 : combo;
+      const updated: BossBattle = {
+        ...boss,
+        tasks: newTasks,
+        hp: newHp,
+        combo: newCombo,
+        bestCombo: Math.max(boss.bestCombo || 0, newCombo),
+      };
+      const newBosses = [...bosses];
+      newBosses[idx] = updated;
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + gold,
+        bosses: newBosses,
+        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: +1 (${task.title}) ${next}/${target}`, xp, gold }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // === NEW: iniciar contagem temporal — armazena ISO de início ===
+  const startBossTaskTimer = useCallback((bossId: string, taskId: string, startedAtIso: string) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, activeStartedAt: startedAtIso } : t) }
+        : b),
+    }));
+  }, []);
+
+  // === NEW: parar contagem temporal — calcula ciclos e aplica recompensas (2× missão) ===
+  const stopBossTaskTimer = useCallback((bossId: string, taskId: string, endedAtIso: string) => {
+    setState(prev => {
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (!boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task || !task.activeStartedAt) return prev;
+      const interval = Math.max(0.05, task.intervalHours || 1);
+      const start = new Date(task.activeStartedAt).getTime();
+      const end = new Date(endedAtIso).getTime();
+      const hours = (end - start) / 3600000;
+      if (!isFinite(hours) || hours <= 0) {
+        return {
+          ...prev,
+          bosses: bosses.map(b => b.id === bossId
+            ? { ...b, tasks: b.tasks!.map(t => t.id === taskId ? { ...t, activeStartedAt: null } : t) }
+            : b),
+        };
+      }
+      const cycles = Math.max(0, Math.floor(hours / interval));
+      const dateISO = endedAtIso.slice(0, 10);
+      const session: BossTaskSession = { startedAt: task.activeStartedAt, endedAt: endedAtIso, cycles };
+      const newSessionsByDate = { ...(task.sessionsByDate || {}) };
+      newSessionsByDate[dateISO] = [...(newSessionsByDate[dateISO] || []), session];
+      // Se completou ao menos 1 ciclo, marca o dia como "feito" para essa tarefa
+      const shouldMarkDone = cycles >= 1 && !task.doneDates.includes(dateISO);
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? {
+            ...t,
+            activeStartedAt: null,
+            sessionsByDate: newSessionsByDate,
+            doneDates: shouldMarkDone ? [...t.doneDates, dateISO] : t.doneDates,
+          }
+        : t);
+      const combo = boss.combo || 0;
+      const base = computeBossTaskReward(boss.difficulty, combo, false);
+      // 2× XP/Ouro por ciclo (regra pedida pelo usuário).
+      const xpGain = cycles * base.baseXp * 2;
+      const goldGain = cycles * base.baseGold * 2;
+      const dmg = cycles * base.dmg;
+      const newHp = Math.max(0, boss.hp - dmg);
+      const allDoneToday = newTasks.every(t => t.doneDates.includes(dateISO));
+      const newCombo = allDoneToday && shouldMarkDone ? combo + 1 : combo;
+      const updated: BossBattle = {
+        ...boss,
+        tasks: newTasks,
+        hp: newHp,
+        combo: newCombo,
+        bestCombo: Math.max(boss.bestCombo || 0, newCombo),
+      };
+      const newBosses = [...bosses];
+      newBosses[idx] = updated;
+      const prog = processLevelUp(prev.xp + xpGain, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + goldGain,
+        bosses: newBosses,
+        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: ${cycles}× ciclos (${task.title})`, xp: xpGain, gold: goldGain }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
   // Regen inteligente: roda quando o dia muda. Para cada dia entre lastSettledDate e hoje
   // (exclusivo de hoje), aplica regen se < 100% e zera combo se < 100%.
   const settleBossesForToday = useCallback(() => {
@@ -2277,6 +2436,9 @@ export function useGameStore() {
         let combo = b.combo || 0;
         let regained = 0;
         let missedDays = 0;
+        let lastGraceDate = b.lastGraceDate;
+        // Streak de dias 100% antes do início desse processamento (para regra de graça)
+        let recent100Streak = 0;
         const start = new Date(b.lastSettledDate + 'T00:00:00');
         const end = new Date(today + 'T00:00:00');
         const cursor = new Date(start);
@@ -2284,17 +2446,39 @@ export function useGameStore() {
         while (cursor < end) {
           const d = cursor.toISOString().slice(0, 10);
           const totalTasks = b.tasks.length;
-          const doneCount = b.tasks.filter(t => t.doneDates.includes(d)).length;
-          const pct = totalTasks ? doneCount / totalTasks : 0;
-          if (pct < 1) {
-            const gain = regenFromPct(pct);
-            const before = hp;
-            hp = Math.min(b.maxHp, hp + gain);
-            regained += (hp - before);
-            if (pct < 0.5) missedDays += 1;
-            combo = 0;
-          } else {
+          // Considera "algum progresso" no dia: tarefa marcada, contagem > 0 ou sessão temporal registrada.
+          const tasksWithProgress = b.tasks.filter(t =>
+            t.doneDates.includes(d)
+            || ((t.countByDate?.[d] || 0) > 0)
+            || ((t.sessionsByDate?.[d]?.length || 0) > 0)
+          ).length;
+          const tasksFullyDone = b.tasks.filter(t => t.doneDates.includes(d)).length;
+          const allDone = totalTasks > 0 && tasksFullyDone === totalTasks;
+          if (tasksWithProgress === 0) {
+            // Dia vazio — verifica janela de graça
+            const graceAvailable = recent100Streak >= 3
+              && (!lastGraceDate || (
+                (new Date(d).getTime() - new Date(lastGraceDate).getTime()) / 86400000 >= 7
+              ));
+            if (graceAvailable) {
+              lastGraceDate = d;
+              // sem regen, sem mudança de combo, "dia de descanso"
+            } else {
+              const gain = Math.min(3, Math.max(1, Math.floor(b.maxHp * 0.05)));
+              const before = hp;
+              hp = Math.min(b.maxHp, hp + gain);
+              regained += (hp - before);
+              missedDays += 1;
+              combo = Math.floor(combo / 2);
+              recent100Streak = 0;
+            }
+          } else if (allDone) {
             combo += 1;
+            recent100Streak += 1;
+          } else {
+            // Dia parcial — combo decai mas não zera; sem regen.
+            combo = Math.max(0, combo - 1);
+            recent100Streak = 0;
           }
           cursor.setDate(cursor.getDate() + 1);
         }
@@ -2302,7 +2486,7 @@ export function useGameStore() {
         const pendingMockery = regained > 0
           ? { hpRegained: regained, missedDays, at: new Date().toISOString(), reason: 'missed_day' as const }
           : b.pendingMockery;
-        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery };
+        return { ...b, hp, combo, bestCombo: Math.max(b.bestCombo || 0, combo), lastSettledDate: today, pendingMockery, lastGraceDate };
       });
       return changed ? { ...prev, bosses: newBosses } : prev;
     });
@@ -2848,6 +3032,10 @@ export function useGameStore() {
     addBossTask,
     editBossTask,
     removeBossTask,
+    updateBossTask,
+    incrementBossTaskCount,
+    startBossTaskTimer,
+    stopBossTaskTimer,
     settleBossesForToday,
     ensureTodayDungeon,
     regenerateDungeon,

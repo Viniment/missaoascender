@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles } from 'lucide-react';
+import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles, Play, Square, Hash, Clock, Video, FileText, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -12,6 +12,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { computeBossTaskReward } from '@/lib/gameStore';
+import type { BossTask, BossTaskType } from '@/lib/gameStore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import RichEditor from '@/components/RichEditor';
+import { VideoDialog, DescriptionDialog } from '@/components/ContentViewerDialog';
 
 
 
@@ -44,6 +48,7 @@ export default function BossPanel() {
     state, addBoss, updateBoss, clearBossMockery, completeBossTask, uncompleteBossTask,
     failBossTask, addBossTask, editBossTask, removeBossTask, settleBossesForToday,
     defeatBoss, removeBoss, recordBossReinforcement,
+    updateBossTask, incrementBossTaskCount, startBossTaskTimer, stopBossTaskTimer,
   } = useGame();
   const bosses = state.bosses || [];
   const active = bosses.filter(b => !b.defeatedAt);
@@ -217,6 +222,10 @@ export default function BossPanel() {
                   onAddTask={(title) => addBossTask(b.id, title)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
+                  onUpdateTask={(taskId, patch) => updateBossTask(b.id, taskId, patch)}
+                  onIncrementCount={(taskId) => incrementBossTaskCount(b.id, taskId)}
+                  onStartTimer={(taskId, iso) => startBossTaskTimer(b.id, taskId, iso)}
+                  onStopTimer={(taskId, iso) => stopBossTaskTimer(b.id, taskId, iso)}
                   onDefeat={() => defeatBoss(b.id)}
                   onRemove={() => removeBoss(b.id)}
                   onEdit={() => setEditingId(b.id)}
@@ -503,7 +512,9 @@ function MockeryOverlay({
 
 // ====== Boss Card ======
 function BossCard({
-  boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
+  boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask,
+  onUpdateTask, onIncrementCount, onStartTimer, onStopTimer,
+  onDefeat, onRemove, onEdit,
 }: {
   boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
   today: string;
@@ -514,6 +525,10 @@ function BossCard({
   onAddTask: (title: string) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
+  onUpdateTask: (taskId: string, patch: Partial<BossTask>) => void;
+  onIncrementCount: (taskId: string) => void;
+  onStartTimer: (taskId: string, isoStart: string) => void;
+  onStopTimer: (taskId: string, isoEnd: string) => void;
   onDefeat: () => void;
   onRemove: () => void;
   onEdit: () => void;
@@ -642,67 +657,30 @@ function BossCard({
           </button>
         </div>
         <AnimatePresence>
-          {tasks.map(t => {
-            const done = t.doneDates.includes(selectedDate);
-            const fx = hitFx[t.id];
-            return (
-              <motion.div
-                key={t.id}
-                layout
-                className={`relative flex items-center gap-2 p-2 rounded-md border ${done ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/20 bg-background/50'}`}
-              >
-                {editingId === t.id ? (
-                  <>
-                    <Input value={editVal} onChange={e => setEditVal(e.target.value)} className="h-7 text-xs" />
-                    <Button size="sm" variant="ghost" onClick={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}>
-                      <Check className="w-3 h-3" />
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => done ? onUncomplete(t.id, selectedDate) : onComplete(t.id, combo, selectedDate)}
-                      className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${done ? 'bg-emerald-500/30 border-emerald-500 text-emerald-300' : 'border-red-400/50 hover:bg-red-500/10'}`}
-                    >
-                      {done && <Check className="w-3 h-3" />}
-                    </button>
-                    <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>{t.title}</span>
-                    {!done && (
-                      <button
-                        onClick={() => onFail(t.id, selectedDate)}
-                        title="Falhei — autotraição"
-                        className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15 hover:text-red-200"
-                      >
-                        <Skull className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {showEdit && (
-                      <>
-                        <button onClick={() => { setEditingId(t.id); setEditVal(t.title); }} className="text-foreground/50 hover:text-foreground">
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                        <button onClick={() => onRemoveTask(t.id)} className="text-foreground/50 hover:text-red-400">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </>
-                    )}
-                  </>
-                )}
-                <AnimatePresence>
-                  {fx && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, y: -20, scale: 1.2 }}
-                      exit={{ opacity: 0, y: -32 }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 font-display text-red-300 text-sm pointer-events-none"
-                    >
-                      -{fx} HP
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+          {tasks.map(t => (
+            <BossTaskRow
+              key={t.id}
+              task={t}
+              selectedDate={selectedDate}
+              isToday={isToday}
+              combo={combo}
+              fx={hitFx[t.id]}
+              editing={editingId === t.id}
+              editVal={editVal}
+              setEditVal={setEditVal}
+              showEdit={showEdit}
+              onStartEdit={() => { setEditingId(t.id); setEditVal(t.title); }}
+              onConfirmEdit={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}
+              onComplete={() => onComplete(t.id, combo, selectedDate)}
+              onUncomplete={() => onUncomplete(t.id, selectedDate)}
+              onIncrementCount={() => onIncrementCount(t.id)}
+              onStartTimer={(iso) => onStartTimer(t.id, iso)}
+              onStopTimer={(iso) => onStopTimer(t.id, iso)}
+              onFail={() => onFail(t.id, selectedDate)}
+              onRemoveTask={() => onRemoveTask(t.id)}
+              onUpdateTask={(patch) => onUpdateTask(t.id, patch)}
+            />
+          ))}
         </AnimatePresence>
         {showEdit && (
           <div className="flex gap-2 mt-2">
@@ -718,6 +696,369 @@ function BossCard({
         <Button onClick={onDefeat} className="w-full mt-3 bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40">
           <Trophy className="w-4 h-4 mr-1" /> Selar a vitória
         </Button>
+      )}
+    </motion.div>
+  );
+}
+
+// ====== Boss Task Row ======
+function BossTaskRow({
+  task, selectedDate, isToday, combo, fx,
+  editing, editVal, setEditVal, showEdit,
+  onStartEdit, onConfirmEdit,
+  onComplete, onUncomplete, onIncrementCount, onStartTimer, onStopTimer,
+  onFail, onRemoveTask, onUpdateTask,
+}: {
+  task: BossTask;
+  selectedDate: string;
+  isToday: boolean;
+  combo: number;
+  fx?: number;
+  editing: boolean;
+  editVal: string;
+  setEditVal: (v: string) => void;
+  showEdit: boolean;
+  onStartEdit: () => void;
+  onConfirmEdit: () => void;
+  onComplete: () => void;
+  onUncomplete: () => void;
+  onIncrementCount: () => void;
+  onStartTimer: (iso: string) => void;
+  onStopTimer: (iso: string) => void;
+  onFail: () => void;
+  onRemoveTask: () => void;
+  onUpdateTask: (patch: Partial<BossTask>) => void;
+}) {
+  const type: BossTaskType = task.type || 'simple';
+  const done = task.doneDates.includes(selectedDate);
+  const [expanded, setExpanded] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [showDesc, setShowDesc] = useState(false);
+  const [hasDesc, setHasDesc] = useState(!!task.description);
+
+  // Temporal dialogs
+  const nowTime = () => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  const today = new Date().toISOString().slice(0, 10);
+  const [startOpen, setStartOpen] = useState(false);
+  const [stopOpen, setStopOpen] = useState(false);
+  const [startDate, setStartDate] = useState(today);
+  const [startTime, setStartTime] = useState(nowTime());
+  const [stopDate, setStopDate] = useState(today);
+  const [stopTime, setStopTime] = useState(nowTime());
+
+  const isRunning = type === 'temporal' && !!task.activeStartedAt;
+  const todayCount = task.countByDate?.[selectedDate] || 0;
+  const target = task.targetCount || 1;
+
+  const openStartDialog = () => {
+    const d = new Date();
+    setStartDate(d.toISOString().slice(0, 10));
+    setStartTime(nowTime());
+    setStartOpen(true);
+  };
+  const openStopDialog = () => {
+    const d = new Date();
+    setStopDate(d.toISOString().slice(0, 10));
+    setStopTime(nowTime());
+    setStopOpen(true);
+  };
+  const confirmStart = () => {
+    const [y, mo, d] = startDate.split('-').map(Number);
+    const [h, mi] = startTime.split(':').map(Number);
+    const dt = new Date(y, mo - 1, d, h, mi, 0, 0);
+    if (dt.getTime() > Date.now()) { toast.error('Início no futuro não é permitido.'); return; }
+    onStartTimer(dt.toISOString());
+    setStartOpen(false);
+  };
+  const confirmStop = () => {
+    const [y, mo, d] = stopDate.split('-').map(Number);
+    const [h, mi] = stopTime.split(':').map(Number);
+    const dt = new Date(y, mo - 1, d, h, mi, 0, 0);
+    if (!task.activeStartedAt) { setStopOpen(false); return; }
+    if (dt.getTime() <= new Date(task.activeStartedAt).getTime()) {
+      toast.error('Fim precisa ser depois do início.'); return;
+    }
+    onStopTimer(dt.toISOString());
+    setStopOpen(false);
+  };
+
+  return (
+    <motion.div
+      layout
+      className={`relative p-2 rounded-md border ${done ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/20 bg-background/50'}`}
+    >
+      <div className="flex items-center gap-2">
+        {editing ? (
+          <>
+            <Input value={editVal} onChange={e => setEditVal(e.target.value)} className="h-7 text-xs" />
+            <Button size="sm" variant="ghost" onClick={onConfirmEdit}><Check className="w-3 h-3" /></Button>
+          </>
+        ) : (
+          <>
+            {/* Type icon */}
+            <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded text-foreground/50" title={type}>
+              {type === 'count' && <Hash className="w-3 h-3" />}
+              {type === 'temporal' && <Clock className="w-3 h-3" />}
+              {type === 'simple' && <Check className="w-3 h-3" />}
+            </span>
+            <span className={`flex-1 text-xs ${done ? 'line-through text-foreground/50' : 'text-foreground'}`}>
+              {task.title}
+              {type === 'count' && <span className="ml-1 text-foreground/50 font-display">({todayCount}/{target})</span>}
+              {type === 'temporal' && <span className="ml-1 text-foreground/50 font-display">a cada {task.intervalHours || 1}h</span>}
+            </span>
+
+            {/* Open video/description icons */}
+            {task.videoUrl && (
+              <button onClick={() => setShowVideo(true)} className="text-foreground/40 hover:text-primary" title="Vídeo">
+                <Video className="w-3.5 h-3.5" />
+              </button>
+            )}
+            {task.description && (
+              <button onClick={() => setShowDesc(true)} className="text-foreground/40 hover:text-primary" title="Descrição">
+                <FileText className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Action button by type */}
+            {!done && isToday && type === 'simple' && (
+              <button
+                onClick={onComplete}
+                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px]"
+                title="Concluir"
+              >Concluir</button>
+            )}
+            {done && isToday && type === 'simple' && (
+              <button
+                onClick={onUncomplete}
+                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-foreground/20 text-foreground/50 hover:text-foreground text-[11px]"
+                title="Desfazer"
+              >Desfazer</button>
+            )}
+            {!done && isToday && type === 'count' && (
+              <button
+                onClick={onIncrementCount}
+                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px]"
+                title="+1"
+              >+1</button>
+            )}
+            {isToday && type === 'temporal' && !isRunning && (
+              <button
+                onClick={openStartDialog}
+                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px] gap-1"
+                title="Iniciar"
+              ><Play className="w-3 h-3" /> Iniciar</button>
+            )}
+            {isToday && type === 'temporal' && isRunning && (
+              <button
+                onClick={openStopDialog}
+                className="shrink-0 inline-flex items-center justify-center h-7 px-2 rounded border border-orange-400/50 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 text-[11px] gap-1"
+                title="Parar"
+              ><Square className="w-3 h-3" /> Parar</button>
+            )}
+
+            {!done && (
+              <button
+                onClick={onFail}
+                title="Falhei — autotraição"
+                className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded border border-red-500/40 text-red-300/80 hover:bg-red-500/15"
+              ><Skull className="w-3.5 h-3.5" /></button>
+            )}
+
+            <button onClick={() => setExpanded(s => !s)} className="shrink-0 text-foreground/40 hover:text-primary" title="Opções">
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showEdit && (
+              <>
+                <button onClick={onStartEdit} className="text-foreground/50 hover:text-foreground">
+                  <Pencil className="w-3 h-3" />
+                </button>
+                <button onClick={onRemoveTask} className="text-foreground/50 hover:text-red-400">
+                  <X className="w-3 h-3" />
+                </button>
+              </>
+            )}
+          </>
+        )}
+
+        <AnimatePresence>
+          {fx && (
+            <motion.div
+              initial={{ opacity: 0, y: 0, scale: 0.8 }}
+              animate={{ opacity: 1, y: -20, scale: 1.2 }}
+              exit={{ opacity: 0, y: -32 }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 font-display text-red-300 text-sm pointer-events-none"
+            >
+              -{fx} HP
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Expand panel: type + video + description */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2 pt-2 border-t border-red-500/15 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-foreground/60">Tipo</label>
+                  <Select
+                    value={type}
+                    onValueChange={(v) => onUpdateTask({ type: v as BossTaskType })}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-background/60"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="simple">Simples (1× por dia)</SelectItem>
+                      <SelectItem value="count">Contagem (X vezes/dia)</SelectItem>
+                      <SelectItem value="temporal">Temporal (a cada X horas)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {type === 'count' && (
+                  <div>
+                    <label className="text-[10px] text-foreground/60">Quantidade/dia</label>
+                    <Input
+                      type="number" min={1}
+                      value={task.targetCount || 1}
+                      onChange={e => onUpdateTask({ targetCount: Math.max(1, Number(e.target.value)) })}
+                      className="h-8 text-xs bg-background/60"
+                    />
+                  </div>
+                )}
+                {type === 'temporal' && (
+                  <div>
+                    <label className="text-[10px] text-foreground/60">Intervalo (horas)</label>
+                    <Input
+                      type="number" min={0.25} step={0.25}
+                      value={task.intervalHours || 1}
+                      onChange={e => onUpdateTask({ intervalHours: Math.max(0.25, Number(e.target.value)) })}
+                      className="h-8 text-xs bg-background/60"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-[10px] text-foreground/60 flex items-center gap-1"><Video className="w-3 h-3" /> Vídeo (opcional)</label>
+                <Input
+                  placeholder="https://youtube.com/watch?v=..."
+                  value={task.videoUrl || ''}
+                  onChange={e => onUpdateTask({ videoUrl: e.target.value || undefined })}
+                  className="h-8 text-xs bg-background/60"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-foreground/60 flex items-center gap-2 mb-1">
+                  <input
+                    type="checkbox"
+                    checked={hasDesc}
+                    onChange={e => {
+                      setHasDesc(e.target.checked);
+                      if (!e.target.checked) onUpdateTask({ description: undefined });
+                    }}
+                  />
+                  <FileText className="w-3 h-3" /> Adicionar descrição
+                </label>
+                {hasDesc && (
+                  <RichEditor
+                    content={task.description || ''}
+                    onChange={(html) => onUpdateTask({ description: html })}
+                    placeholder="Descreva a tarefa..."
+                  />
+                )}
+              </div>
+
+              {isRunning && (
+                <p className="text-[10px] text-orange-300">
+                  ⏱ Em andamento desde {new Date(task.activeStartedAt!).toLocaleString('pt-BR')}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Start dialog */}
+      <Dialog open={startOpen} onOpenChange={setStartOpen}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">Iniciar Contagem</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Dia</label>
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Hora</label>
+              <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setStartOpen(false)}>Cancelar</Button>
+            <Button onClick={confirmStart}>Iniciar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stop dialog */}
+      <Dialog open={stopOpen} onOpenChange={setStopOpen}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">Finalizar Contagem</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {task.activeStartedAt && (
+              <p className="text-xs text-muted-foreground">
+                Iniciou em {new Date(task.activeStartedAt).toLocaleString('pt-BR')}
+              </p>
+            )}
+            <div>
+              <label className="text-xs text-muted-foreground">Dia que terminei</label>
+              <Input type="date" value={stopDate} onChange={e => setStopDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Hora que terminei</label>
+              <Input type="time" value={stopTime} onChange={e => setStopTime(e.target.value)} />
+            </div>
+            {task.activeStartedAt && (() => {
+              const [y, mo, d] = stopDate.split('-').map(Number);
+              const [h, mi] = stopTime.split(':').map(Number);
+              const dt = new Date(y, mo - 1, d, h, mi, 0, 0).getTime();
+              const startMs = new Date(task.activeStartedAt).getTime();
+              if (dt <= startMs) return null;
+              const hours = (dt - startMs) / 3600000;
+              const interval = Math.max(0.05, task.intervalHours || 1);
+              const cycles = Math.floor(hours / interval);
+              return (
+                <p className="text-xs text-foreground/70">
+                  Duração: <span className="font-display">{hours.toFixed(1)}h</span> · Ciclos: <span className="font-display text-emerald-300">{cycles}</span>
+                </p>
+              );
+            })()}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setStopOpen(false)}>Cancelar</Button>
+            <Button onClick={confirmStop}>Finalizar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {task.videoUrl && (
+        <VideoDialog open={showVideo} onOpenChange={setShowVideo} videoUrl={task.videoUrl} title={`🎥 ${task.title}`} />
+      )}
+      {task.description && (
+        <DescriptionDialog open={showDesc} onOpenChange={setShowDesc} html={task.description} title={`📝 ${task.title}`} />
       )}
     </motion.div>
   );

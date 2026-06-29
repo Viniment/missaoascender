@@ -34,7 +34,9 @@ export default function Index() {
   const { newlyUnlocked, dismissAchievement, state, dismissClassChoice } = useGame();
   const [activeTab, setActiveTab] = useState<TabId>('missions');
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [identityOpen, setIdentityOpen] = useState(!state.alterEgo?.completed);
+  // Esconde a Forja se o alter ego já foi preenchido (mesmo sem clicar "concluir")
+  const identityFilled = !!(state.alterEgo?.completed || state.alterEgo?.name?.trim() || state.alterEgo?.identityPhrase?.trim());
+  const [identityOpen, setIdentityOpen] = useState(!identityFilled);
   const navigate = useNavigate();
 
   const disabledTabs = (state.disabledTabs || []).filter(id => !CORE_TAB_IDS.includes(id as TabId));
