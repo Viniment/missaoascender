@@ -617,15 +617,19 @@ function BossCard({
         </span>
       </div>
 
-      {/* Combo + Stats */}
-      <div className="grid grid-cols-3 gap-2 mt-3 text-center text-[11px]">
+      {/* Combo + Stats + Potencial */}
+      <div className="grid grid-cols-4 gap-2 mt-3 text-center text-[11px]">
         <div className="rounded-md bg-orange-500/10 border border-orange-500/30 py-1.5">
           <div className="flex items-center justify-center gap-1 text-orange-300"><Flame className="w-3 h-3" /> Combo</div>
           <div className="font-display text-orange-200 text-base">{combo}</div>
         </div>
         <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 py-1.5">
-          <div className="flex items-center justify-center gap-1 text-yellow-300"><Zap className="w-3 h-3" /> Dano</div>
-          <div className="font-display text-yellow-100 text-base">{dmg}/tarefa</div>
+          <div className="flex items-center justify-center gap-1 text-yellow-300"><Zap className="w-3 h-3" /> Combo×</div>
+          <div className="font-display text-yellow-100 text-base">{combo >= 20 ? '2.0' : combo >= 10 ? '1.5' : combo >= 5 ? '1.25' : '1.0'}</div>
+        </div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/30 py-1.5" title="Soma do dano possível com as tarefas pendentes de hoje">
+          <div className="flex items-center justify-center gap-1 text-red-300"><Target className="w-3 h-3" /> Potencial hoje</div>
+          <div className="font-display text-red-200 text-base">{potentialToday}</div>
         </div>
         <div className="rounded-md bg-secondary/60 border border-border py-1.5">
           <div className="text-foreground/60">Plano</div>
