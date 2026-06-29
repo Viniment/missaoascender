@@ -2283,6 +2283,145 @@ export function useGameStore() {
     }));
   }, []);
 
+  // === NEW: editar propriedades arbitrárias de uma BossTask (tipo, vídeo, descrição, etc.) ===
+  const updateBossTask = useCallback((bossId: string, taskId: string, patch: Partial<BossTask>) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, ...patch } : t) }
+        : b),
+    }));
+  }, []);
+
+  // === NEW: incrementa contagem do dia (+1). Atinge target → conta como concluída.
+  // Toques intermediários dão dmg=1 + frações de XP/Ouro. Último toque dispara bônus.
+  const incrementBossTaskCount = useCallback((bossId: string, taskId: string) => {
+    setState(prev => {
+      const today = getTodayBrasilia();
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (boss.defeatedAt || !boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task || task.doneDates.includes(today)) return prev;
+      const target = Math.max(1, task.targetCount || 1);
+      const cur = task.countByDate?.[today] || 0;
+      const next = cur + 1;
+      const reached = next >= target;
+      const newCountByDate = { ...(task.countByDate || {}), [today]: next };
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? { ...t, countByDate: newCountByDate, doneDates: reached ? [...t.doneDates, today] : t.doneDates }
+        : t);
+      const allDoneToday = reached && newTasks.every(t => t.doneDates.includes(today));
+      const combo = boss.combo || 0;
+      const base = computeBossTaskReward(boss.difficulty, combo, reached && allDoneToday);
+      // Toque intermediário: 1 dmg, fração de xp/gold. Toque final: dmg/xp/gold padrão.
+      const dmg = reached ? base.dmg : 1;
+      const xp = reached
+        ? base.xp
+        : Math.max(1, Math.floor(base.baseXp / target));
+      const gold = reached
+        ? base.gold
+        : Math.max(0, Math.floor(base.baseGold / target));
+      const newHp = Math.max(0, boss.hp - dmg);
+      const newCombo = reached && allDoneToday ? combo + 1 : combo;
+      const updated: BossBattle = {
+        ...boss,
+        tasks: newTasks,
+        hp: newHp,
+        combo: newCombo,
+        bestCombo: Math.max(boss.bestCombo || 0, newCombo),
+      };
+      const newBosses = [...bosses];
+      newBosses[idx] = updated;
+      const prog = processLevelUp(prev.xp + xp, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + gold,
+        bosses: newBosses,
+        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: +1 (${task.title}) ${next}/${target}`, xp, gold }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
+  // === NEW: iniciar contagem temporal — armazena ISO de início ===
+  const startBossTaskTimer = useCallback((bossId: string, taskId: string, startedAtIso: string) => {
+    setState(prev => ({
+      ...prev,
+      bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
+        ? { ...b, tasks: b.tasks.map(t => t.id === taskId ? { ...t, activeStartedAt: startedAtIso } : t) }
+        : b),
+    }));
+  }, []);
+
+  // === NEW: parar contagem temporal — calcula ciclos e aplica recompensas (2× missão) ===
+  const stopBossTaskTimer = useCallback((bossId: string, taskId: string, endedAtIso: string) => {
+    setState(prev => {
+      const bosses = prev.bosses || [];
+      const idx = bosses.findIndex(b => b.id === bossId);
+      if (idx === -1) return prev;
+      const boss = bosses[idx];
+      if (!boss.tasks) return prev;
+      const task = boss.tasks.find(t => t.id === taskId);
+      if (!task || !task.activeStartedAt) return prev;
+      const interval = Math.max(0.05, task.intervalHours || 1);
+      const start = new Date(task.activeStartedAt).getTime();
+      const end = new Date(endedAtIso).getTime();
+      const hours = (end - start) / 3600000;
+      if (!isFinite(hours) || hours <= 0) {
+        return {
+          ...prev,
+          bosses: bosses.map(b => b.id === bossId
+            ? { ...b, tasks: b.tasks!.map(t => t.id === taskId ? { ...t, activeStartedAt: null } : t) }
+            : b),
+        };
+      }
+      const cycles = Math.max(0, Math.floor(hours / interval));
+      const dateISO = endedAtIso.slice(0, 10);
+      const session: BossTaskSession = { startedAt: task.activeStartedAt, endedAt: endedAtIso, cycles };
+      const newSessionsByDate = { ...(task.sessionsByDate || {}) };
+      newSessionsByDate[dateISO] = [...(newSessionsByDate[dateISO] || []), session];
+      // Se completou ao menos 1 ciclo, marca o dia como "feito" para essa tarefa
+      const shouldMarkDone = cycles >= 1 && !task.doneDates.includes(dateISO);
+      const newTasks = boss.tasks.map(t => t.id === taskId
+        ? {
+            ...t,
+            activeStartedAt: null,
+            sessionsByDate: newSessionsByDate,
+            doneDates: shouldMarkDone ? [...t.doneDates, dateISO] : t.doneDates,
+          }
+        : t);
+      const combo = boss.combo || 0;
+      const base = computeBossTaskReward(boss.difficulty, combo, false);
+      // 2× XP/Ouro por ciclo (regra pedida pelo usuário).
+      const xpGain = cycles * base.baseXp * 2;
+      const goldGain = cycles * base.baseGold * 2;
+      const dmg = cycles * base.dmg;
+      const newHp = Math.max(0, boss.hp - dmg);
+      const allDoneToday = newTasks.every(t => t.doneDates.includes(dateISO));
+      const newCombo = allDoneToday && shouldMarkDone ? combo + 1 : combo;
+      const updated: BossBattle = {
+        ...boss,
+        tasks: newTasks,
+        hp: newHp,
+        combo: newCombo,
+        bestCombo: Math.max(boss.bestCombo || 0, newCombo),
+      };
+      const newBosses = [...bosses];
+      newBosses[idx] = updated;
+      const prog = processLevelUp(prev.xp + xpGain, prev.level, prev.rank, prev.difficultyDivisor || 1);
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + goldGain,
+        bosses: newBosses,
+        log: [{ date: new Date().toISOString(), action: `⚔️ ${boss.name}: ${cycles}× ciclos (${task.title})`, xp: xpGain, gold: goldGain }, ...prev.log].slice(0, 100),
+      };
+    });
+  }, []);
+
   // Regen inteligente: roda quando o dia muda. Para cada dia entre lastSettledDate e hoje
   // (exclusivo de hoje), aplica regen se < 100% e zera combo se < 100%.
   const settleBossesForToday = useCallback(() => {
