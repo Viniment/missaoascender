@@ -2204,14 +2204,14 @@ export function useGameStore() {
     days: number; tasks: { title: string }[];
     imageUrl?: string; story?: string; affectedAreaIds?: string[];
     howItAffectsMe?: string; whyDefeat?: string; customPhrases?: string[];
-    difficulty?: 'Fácil' | 'Normal' | 'Difícil' | 'Brutal';
+    difficulty?: BossDifficulty;
     mainColor?: string; hpBarColor?: string;
   }) => {
     setState(prev => {
       const tasks: BossTask[] = b.tasks
         .filter(t => t.title.trim())
         .map(t => ({ id: crypto.randomUUID(), title: t.title.trim(), doneDates: [] }));
-      const maxHp = Math.max(1, b.days * tasks.length);
+      const maxHp = bossMaxHpFor(b.days, b.difficulty);
       const today = getTodayBrasilia();
       const boss: BossBattle = {
         id: crypto.randomUUID(),
@@ -2788,13 +2788,13 @@ export function useGameStore() {
       bosses: (prev.bosses || []).map(b => {
         if (b.id !== bossId) return b;
         const next: BossBattle = { ...b, ...patch };
-        // Se mudaram tasks/days, recalcular maxHp preservando proporção
-        if (patch.tasks || patch.days) {
+        // HP é auto-calculado por dias × dificuldade — recalcular quando qualquer um mudar
+        if (patch.tasks || patch.days || patch.difficulty) {
           const tasks = next.tasks || [];
-          const newMax = Math.max(1, (next.days || b.days || 1) * tasks.length);
+          const newMax = bossMaxHpFor(next.days || b.days || 1, next.difficulty || b.difficulty);
           const ratio = b.maxHp > 0 ? b.hp / b.maxHp : 1;
           next.maxHp = newMax;
-          next.hp = Math.round(newMax * ratio);
+          next.hp = Math.max(0, Math.min(newMax, Math.round(newMax * ratio)));
           next.tasksPerDay = tasks.length;
         }
         return next;
