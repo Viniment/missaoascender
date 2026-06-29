@@ -2255,7 +2255,7 @@ export function useGameStore() {
         ? { ...t, doneDates: [...t.doneDates, dateISO] } : t);
       const allDoneToday = newTasks.every(t => t.doneDates.includes(dateISO));
       const newCombo = allDoneToday ? combo + 1 : combo;
-      const reward = computeBossTaskReward(boss.difficulty, combo, allDoneToday);
+      const reward = computeTaskAttack(task, { difficulty: boss.difficulty, weakness: boss.weakness, combo }, prev.streak || 0, allDoneToday);
       const dmg = reward.dmg;
       const newHp = Math.max(0, boss.hp - dmg);
       const updated: BossBattle = {
