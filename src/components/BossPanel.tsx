@@ -158,9 +158,15 @@ export default function BossPanel() {
         },
       };
       const { data, error } = await supabase.functions.invoke('attack-reinforcement', { body: { context: ctx } });
-      const msg: string = (!error && data?.message)
-        ? data.message
-        : `Mais um passo. Você está deixando de ser quem reclamava — e virando quem age.`;
+      const IDENTITY_FALLBACKS = [
+        'Você reforçou sua disciplina.',
+        'Você provou que consegue cumprir promessas.',
+        'Hoje o Boss perdeu influência sobre você.',
+        'Você acabou de honrar quem está se tornando.',
+        'Cada ataque escreve uma identidade nova.',
+      ];
+      const fallback = IDENTITY_FALLBACKS[Math.floor(Math.random() * IDENTITY_FALLBACKS.length)];
+      const msg: string = (!error && data?.message) ? data.message : fallback;
       setLastAngle(msg.slice(0, 80));
       recordBossReinforcement(boss.id, msg, taskTitle);
       setStrike({
