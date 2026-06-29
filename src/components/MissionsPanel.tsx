@@ -399,7 +399,7 @@ export default function MissionsPanel() {
               }
               startTimeMission(startTimeDialog, dt.toISOString());
               setStartTimeDialog(null);
-              toast.success('Missão iniciada!');
+              toast.success('Mini vitória iniciada!');
             }}>Iniciar</Button>
           </DialogFooter>
         </DialogContent>
@@ -582,7 +582,7 @@ export default function MissionsPanel() {
             })()}
             <label className="flex items-start gap-2 text-xs text-foreground/80 bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2 cursor-pointer">
               <Checkbox checked={finishConfirmed} onCheckedChange={(v) => setFinishConfirmed(!!v)} className="mt-0.5" />
-              <span>Confirmo que quero <strong>encerrar a missão agora</strong>. Isto vai parar o cronômetro e registrar o tempo acima.</span>
+              <span>Confirmo que quero <strong>encerrar a mini vitória agora</strong>. Isto vai parar o cronômetro e registrar o tempo acima.</span>
             </label>
           </div>
           <DialogFooter>
@@ -832,7 +832,7 @@ function MissionCard({ mission, today, onStart, onFinish, onCompleteDaily, onInc
                   className="h-9 w-9 sm:h-8 sm:w-8 text-warning hover:text-destructive disabled:opacity-30"
                   onClick={() => setShowFailConfirm(true)}
                   disabled={inCooldown}
-                  title={inCooldown ? 'Aguarde — missão acabou de mudar de estado' : 'Marcar como falhada'}
+                  title={inCooldown ? 'Aguarde — mini vitória acabou de mudar de estado' : 'Marcar como falhada'}
                 >
                   <XCircle className="w-4 h-4" />
                 </Button>
