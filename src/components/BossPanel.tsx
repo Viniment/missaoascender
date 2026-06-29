@@ -668,6 +668,7 @@ function BossCard({
               task={t}
               selectedDate={selectedDate}
               isToday={isToday}
+              boss={boss}
               combo={combo}
               fx={hitFx[t.id]}
               editing={editingId === t.id}
@@ -678,9 +679,6 @@ function BossCard({
               onConfirmEdit={() => { if (editVal.trim()) onEditTask(t.id, editVal.trim()); setEditingId(null); }}
               onComplete={() => onComplete(t.id, combo, selectedDate)}
               onUncomplete={() => onUncomplete(t.id, selectedDate)}
-              onIncrementCount={() => onIncrementCount(t.id)}
-              onStartTimer={(iso) => onStartTimer(t.id, iso)}
-              onStopTimer={(iso) => onStopTimer(t.id, iso)}
               onFail={() => onFail(t.id, selectedDate)}
               onRemoveTask={() => onRemoveTask(t.id)}
               onUpdateTask={(patch) => onUpdateTask(t.id, patch)}
