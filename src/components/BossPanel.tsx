@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skull, Plus, Trophy, X, Pencil, Check, Flame, Zap, Heart, Sparkles, Video, FileText, ChevronDown, Star, Target } from 'lucide-react';
