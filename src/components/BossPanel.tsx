@@ -309,7 +309,7 @@ export default function BossPanel() {
 function StrikeOverlay({
   strike, onClose,
 }: {
-  strike: null | { bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number; combo: number; hp: number; maxHp: number; message: string };
+  strike: null | { bossName: string; bossEmoji: string; dmg: number; xp: number; gold: number; combo: number; hp: number; maxHp: number; message: string; breakdown?: AttackBreakdown; taskTitle?: string };
   onClose: () => void;
 }) {
   return (
@@ -384,6 +384,22 @@ function StrikeOverlay({
               <div className="text-[10px] tracking-widest text-foreground/60 mb-1">
                 COMBO {strike.combo} · HP RESTANTE {strike.hp}/{strike.maxHp}
               </div>
+
+              {strike.breakdown && (
+                <div className="mt-3 text-left space-y-1 text-[11px] bg-background/40 border border-primary/20 rounded-md p-2">
+                  <div className="font-display text-[10px] tracking-widest text-primary/80 mb-1 text-center">⚔ ATAQUE EXECUTADO</div>
+                  <BreakdownLine label="Impacto" val={`+${strike.breakdown.impactVal}`} />
+                  <BreakdownLine label="Resistência" val={`+${strike.breakdown.resistanceVal}`} />
+                  <BreakdownLine label="Prioridade" val={'⭐'.repeat(strike.breakdown.priorityVal)} />
+                  {strike.breakdown.weaknessHit && <BreakdownLine label="Fraqueza explorada" val={`×${strike.breakdown.weaknessMul}`} accent />}
+                  <BreakdownLine label="Combo" val={`×${strike.breakdown.comboMul}`} />
+                  <BreakdownLine label="Consistência" val={`×${strike.breakdown.consistencyMul}`} />
+                  <div className="border-t border-primary/20 pt-1 mt-1 flex items-center justify-between">
+                    <span className="text-foreground/80">Dano Final</span>
+                    <span className="font-display text-red-300">−{strike.breakdown.dmg} HP</span>
+                  </div>
+                </div>
+              )}
 
               <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
