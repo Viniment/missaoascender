@@ -512,7 +512,9 @@ function MockeryOverlay({
 
 // ====== Boss Card ======
 function BossCard({
-  boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask, onDefeat, onRemove, onEdit,
+  boss, today, hitFx, onComplete, onUncomplete, onFail, onAddTask, onEditTask, onRemoveTask,
+  onUpdateTask, onIncrementCount, onStartTimer, onStopTimer,
+  onDefeat, onRemove, onEdit,
 }: {
   boss: NonNullable<ReturnType<typeof useGame>['state']['bosses']>[number];
   today: string;
@@ -523,6 +525,10 @@ function BossCard({
   onAddTask: (title: string) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
+  onUpdateTask: (taskId: string, patch: Partial<BossTask>) => void;
+  onIncrementCount: (taskId: string) => void;
+  onStartTimer: (taskId: string, isoStart: string) => void;
+  onStopTimer: (taskId: string, isoEnd: string) => void;
   onDefeat: () => void;
   onRemove: () => void;
   onEdit: () => void;
