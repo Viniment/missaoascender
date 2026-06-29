@@ -991,7 +991,7 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
   const [whyDefeat, setWhyDefeat] = useState('');
   const [customPhrasesText, setCustomPhrasesText] = useState('');
   const [areaIds, setAreaIds] = useState<string[]>([]);
-  const [difficulty, setDifficulty] = useState<'Fácil' | 'Normal' | 'Difícil' | 'Brutal'>('Normal');
+  const [difficulty, setDifficulty] = useState<BossDifficulty>('Normal');
   const [mainColor, setMainColor] = useState('#ef4444');
   const [hpBarColor, setHpBarColor] = useState('#ef4444');
   const [assisting, setAssisting] = useState<string | null>(null);
@@ -1204,10 +1204,10 @@ function BossFormDialog({ open, onOpenChange, onSubmit, editBoss }: {
                 <label className="text-[11px] text-foreground/70">Dificuldade</label>
                 <select
                   value={difficulty}
-                  onChange={e => setDifficulty(e.target.value as 'Fácil' | 'Normal' | 'Difícil' | 'Brutal')}
+                  onChange={e => setDifficulty(e.target.value as BossDifficulty)}
                   className="w-full h-9 rounded-md border border-border bg-background text-foreground text-xs px-2"
                 >
-                  {(['Fácil', 'Normal', 'Difícil', 'Brutal'] as const).map(d => (
+                  {(['Fácil', 'Normal', 'Difícil', 'Brutal', 'Pesadelo'] as const).map(d => (
                     <option key={d} value={d} className="bg-background text-foreground">{d}</option>
                   ))}
                 </select>
