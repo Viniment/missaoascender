@@ -134,7 +134,7 @@ export default function BossPanel() {
   const askReinforcement = async (
     boss: typeof bosses[number],
     taskTitle: string,
-    reward: { dmg: number; xp: number; gold: number; hp: number; combo: number },
+    reward: { dmg: number; xp: number; gold: number; hp: number; combo: number; breakdown?: AttackBreakdown },
   ) => {
     try {
       const areas = (state.lifeAreas || []).filter(a => (boss.affectedAreaIds || []).includes(a.id));
@@ -167,6 +167,8 @@ export default function BossPanel() {
         dmg: reward.dmg, xp: reward.xp, gold: reward.gold,
         combo: reward.combo, hp: reward.hp, maxHp: boss.maxHp,
         message: msg,
+        breakdown: reward.breakdown,
+        taskTitle,
       });
     } catch (e) {
       console.error('reinforcement error', e);
