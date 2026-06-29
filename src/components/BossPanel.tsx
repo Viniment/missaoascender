@@ -48,6 +48,7 @@ export default function BossPanel() {
     state, addBoss, updateBoss, clearBossMockery, completeBossTask, uncompleteBossTask,
     failBossTask, addBossTask, editBossTask, removeBossTask, settleBossesForToday,
     defeatBoss, removeBoss, recordBossReinforcement,
+    updateBossTask, incrementBossTaskCount, startBossTaskTimer, stopBossTaskTimer,
   } = useGame();
   const bosses = state.bosses || [];
   const active = bosses.filter(b => !b.defeatedAt);
