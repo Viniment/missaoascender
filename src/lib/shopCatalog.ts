@@ -91,3 +91,97 @@ export function getFrame(id: string | undefined): ShopFrame {
 export function getTheme(id: string | undefined): ShopTheme {
   return SHOP_THEMES.find(t => t.id === id) || SHOP_THEMES[0];
 }
+
+// ============================================================
+// TÍTULOS — texto exibido abaixo do nome no PlayerCard
+// ============================================================
+export type Rarity = 'comum' | 'raro' | 'epico' | 'lendario';
+
+export interface ShopTitle {
+  id: string;
+  name: string;      // texto do título ("O Imparável")
+  description: string;
+  cost: number;
+  rarity: Rarity;
+  /** classes tailwind aplicadas ao texto do título */
+  className: string;
+}
+
+export const SHOP_TITLES: ShopTitle[] = [
+  { id: 'aprendiz',    name: 'O Aprendiz',      description: 'Todo mestre começou aqui.',           cost: 0,    rarity: 'comum',    className: 'text-muted-foreground' },
+  { id: 'disciplinado',name: 'O Disciplinado',  description: 'Consistência é sua arma.',            cost: 300,  rarity: 'comum',    className: 'text-primary' },
+  { id: 'imparavel',   name: 'O Imparável',     description: 'Ninguém te para. Nem você mesmo.',    cost: 800,  rarity: 'raro',     className: 'text-neon-blue glow-text-blue' },
+  { id: 'cacador',     name: 'Caçador de Monstros', description: 'Vive para a caçada.',             cost: 1200, rarity: 'raro',     className: 'text-success' },
+  { id: 'sombra',      name: 'A Sombra',        description: 'Age no silêncio, colhe no ruído.',    cost: 2000, rarity: 'epico',    className: 'text-primary glow-text-purple' },
+  { id: 'ascendente',  name: 'O Ascendente',    description: 'Sobe onde outros desistem.',          cost: 3000, rarity: 'epico',    className: 'text-gold glow-text-gold' },
+  { id: 'monarca',     name: 'Monarca da Ascensão', description: 'O topo. E ainda em movimento.',   cost: 5000, rarity: 'lendario', className: 'text-gold glow-text-gold font-display uppercase tracking-widest' },
+];
+
+// ============================================================
+// PETS — pequeno companheiro visual (emoji + aura)
+// ============================================================
+export interface ShopPet {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  rarity: Rarity;
+  emoji: string;         // representação simples
+  auraClass: string;     // ring/glow class ao redor do pet
+}
+
+export const SHOP_PETS: ShopPet[] = [
+  { id: 'lobinho',   name: 'Lobinho da Alvorada',  description: 'Uiva quando você acorda cedo.',        cost: 500,  rarity: 'comum',    emoji: '🐺', auraClass: 'border-primary/60' },
+  { id: 'coruja',    name: 'Coruja Estrategista',  description: 'Vê no escuro. Planeja no claro.',      cost: 800,  rarity: 'raro',     emoji: '🦉', auraClass: 'border-neon-blue glow-blue' },
+  { id: 'fenix',     name: 'Fênix Renascida',      description: 'Renasce toda vez que você recomeça.',  cost: 1500, rarity: 'raro',     emoji: '🔥', auraClass: 'border-primary glow-purple' },
+  { id: 'dragao',    name: 'Dragãozinho Sombrio',  description: 'Cospe fogo em cada tarefa concluída.', cost: 2500, rarity: 'epico',    emoji: '🐉', auraClass: 'border-primary glow-purple-strong animate-pulse-glow' },
+  { id: 'unicornio', name: 'Unicórnio Prismático', description: 'Raro. Impossível de replicar.',        cost: 4000, rarity: 'lendario', emoji: '🦄', auraClass: 'border-gold glow-gold animate-pulse-glow' },
+];
+
+// ============================================================
+// BAÚS — loot boxes com cooldown que sortem itens não-possuídos
+// ============================================================
+export interface ShopChest {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  rarity: Rarity;
+  cooldownHours: number;
+  /** faixa de ouro sorteada [min, max] */
+  goldRange: [number, number];
+  /** chance (0-1) de dropar um item cosmético não-possuído */
+  itemChance: number;
+  /** raridades permitidas ao sortear item */
+  itemRarities: Rarity[];
+  icon: string;
+  color: string;
+}
+
+export const SHOP_CHESTS: ShopChest[] = [
+  { id: 'bronze',   name: 'Baú de Bronze',   description: 'Ouro modesto e chance de item comum.',     cost: 200,  rarity: 'comum',    cooldownHours: 4,  goldRange: [50, 200],    itemChance: 0.25, itemRarities: ['comum'],                                icon: '📦', color: '#B08D57' },
+  { id: 'prata',    name: 'Baú de Prata',    description: 'Ouro sólido + chance de item raro.',       cost: 600,  rarity: 'raro',     cooldownHours: 12, goldRange: [200, 700],   itemChance: 0.45, itemRarities: ['comum', 'raro'],                        icon: '🎁', color: '#C0C0C0' },
+  { id: 'ouro',     name: 'Baú Dourado',     description: 'Grande recompensa + chance de item épico.',cost: 1500, rarity: 'epico',    cooldownHours: 24, goldRange: [700, 2000],  itemChance: 0.65, itemRarities: ['raro', 'epico'],                        icon: '🏆', color: '#F5C518' },
+  { id: 'mitico',   name: 'Baú Mítico',      description: 'Chance real de item lendário.',            cost: 4000, rarity: 'lendario', cooldownHours: 72, goldRange: [1500, 5000], itemChance: 0.85, itemRarities: ['epico', 'lendario'],                    icon: '💠', color: '#A855F7' },
+];
+
+export const RARITY_LABEL: Record<Rarity, string> = {
+  comum: 'Comum', raro: 'Raro', epico: 'Épico', lendario: 'Lendário',
+};
+
+export const RARITY_CLASS: Record<Rarity, string> = {
+  comum:    'text-muted-foreground border-border',
+  raro:     'text-neon-blue border-neon-blue/50',
+  epico:    'text-primary border-primary/60 glow-purple',
+  lendario: 'text-gold border-gold/70 glow-gold',
+};
+
+export function getTitle(id: string | undefined): ShopTitle | undefined {
+  return SHOP_TITLES.find(t => t.id === id);
+}
+export function getPet(id: string | undefined): ShopPet | undefined {
+  return SHOP_PETS.find(p => p.id === id);
+}
+export function getChest(id: string): ShopChest | undefined {
+  return SHOP_CHESTS.find(c => c.id === id);
+}
