@@ -761,6 +761,8 @@ export const defaultState: PlayerState = {
   ownedThemes: ['neon-purple'],
   ownedFrames: ['iniciante'],
   activeFrame: 'iniciante',
+  lastPerfectDay: undefined,
+  pendingLoot: null,
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
