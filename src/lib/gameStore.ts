@@ -383,6 +383,9 @@ export interface PlayerState {
   ownedThemes?: string[];
   ownedFrames?: string[];
   activeFrame?: string;
+  // === Perfect Day / Loot Chest ===
+  lastPerfectDay?: string;          // YYYY-MM-DD
+  pendingLoot?: PerfectDayLoot | null;
 }
 
 
