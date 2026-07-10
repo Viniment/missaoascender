@@ -1681,9 +1681,10 @@ export function useGameStore() {
       const ownedFrames = prev.ownedFrames || [];
       const ownedTitles = prev.ownedTitles || [];
       const ownedPets = prev.ownedPets || [];
-      type Candidate = { kind: 'theme'|'frame'|'title'|'pet'; id: string; name: string; rarity: string };
+      type Rarity2 = 'comum'|'raro'|'epico'|'lendario';
+      type Candidate = { kind: 'theme'|'frame'|'title'|'pet'; id: string; name: string; rarity: Rarity2 };
       const pool: Candidate[] = [];
-      const costToRarity = (cost: number): string => cost >= 2000 ? 'lendario' : cost >= 1000 ? 'epico' : cost >= 400 ? 'raro' : 'comum';
+      const costToRarity = (cost: number): Rarity2 => cost >= 2000 ? 'lendario' : cost >= 1000 ? 'epico' : cost >= 400 ? 'raro' : 'comum';
       SHOP_THEMES.forEach(t => {
         if (t.cost > 0 && !ownedThemes.includes(t.id)) pool.push({ kind: 'theme', id: t.id, name: t.name, rarity: costToRarity(t.cost) });
       });
