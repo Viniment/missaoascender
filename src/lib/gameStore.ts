@@ -383,6 +383,12 @@ export interface PlayerState {
   ownedThemes?: string[];
   ownedFrames?: string[];
   activeFrame?: string;
+  // === Loja: títulos, pets, baús ===
+  ownedTitles?: string[];
+  activeTitle?: string;
+  ownedPets?: string[];
+  activePet?: string;
+  chestCooldowns?: Record<string, string>; // chestId -> ISO of last open
   // === Perfect Day / Loot Chest ===
   lastPerfectDay?: string;          // YYYY-MM-DD
   pendingLoot?: PerfectDayLoot | null;
