@@ -754,7 +754,9 @@ export const defaultState: PlayerState = {
   activeBuffs: [],
   redemptionQuests: [],
   lifeAreas: buildDefaultLifeAreas(),
-
+  ownedThemes: ['neon-purple'],
+  ownedFrames: ['iniciante'],
+  activeFrame: 'iniciante',
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
