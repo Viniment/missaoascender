@@ -6,6 +6,7 @@ import { classXpMultiplier, type ChosenClass, type ClassId } from './classes';
 import { rollLoot, type LootItem, type ActiveBuff } from './loot';
 import { rollDungeonChallenges } from './dungeon';
 import { rollPerfectDayLoot, type PerfectDayLoot } from './perfectDay';
+import { SHOP_CHESTS, SHOP_THEMES, SHOP_FRAMES, SHOP_TITLES, SHOP_PETS } from './shopCatalog';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
