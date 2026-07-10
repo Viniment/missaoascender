@@ -378,13 +378,10 @@ export interface PlayerState {
   redemptionQuests?: RedemptionQuest[];
   // === Áreas de Vida ===
   lifeAreas?: LifeArea[];
-}
-
-// === Loja: temas e molduras compráveis com ouro ===
-export interface ShopOwnership {
-  ownedThemes?: string[];   // ids de ThemeId comprados/desbloqueados
-  ownedFrames?: string[];   // ids de moldura desbloqueados
-  activeFrame?: string;     // moldura atualmente equipada
+  // === Loja: temas e molduras compráveis com ouro ===
+  ownedThemes?: string[];
+  ownedFrames?: string[];
+  activeFrame?: string;
 }
 
 
