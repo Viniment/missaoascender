@@ -380,6 +380,13 @@ export interface PlayerState {
   lifeAreas?: LifeArea[];
 }
 
+// === Loja: temas e molduras compráveis com ouro ===
+export interface ShopOwnership {
+  ownedThemes?: string[];   // ids de ThemeId comprados/desbloqueados
+  ownedFrames?: string[];   // ids de moldura desbloqueados
+  activeFrame?: string;     // moldura atualmente equipada
+}
+
 
 export interface BossTask {
   id: string;
