@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Coins, Trophy, Heart } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 import { formatEmotionalStreak } from '@/lib/affirmations';
-import { getFrame } from '@/lib/shopCatalog';
+import { getFrame, getTitle, getPet } from '@/lib/shopCatalog';
 
 const rankColors: Record<string, string> = {
   E: 'text-muted-foreground',
@@ -21,6 +21,8 @@ export default function PlayerCard() {
   const streakInfo = formatEmotionalStreak(state.streak);
   const frame = getFrame(state.activeFrame);
   const isPrismatic = frame.id === 'prismatico';
+  const activeTitle = getTitle(state.activeTitle);
+  const activePet = getPet(state.activePet);
 
   return (
     <motion.div
@@ -39,6 +41,12 @@ export default function PlayerCard() {
               <span className="text-2xl font-display text-primary">{state.name[0]}</span>
             )}
           </div>
+          {activePet && (
+            <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 bg-background ${activePet.auraClass}`}
+              title={activePet.name}>
+              <span className="text-xs leading-none">{activePet.emoji}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -51,6 +59,9 @@ export default function PlayerCard() {
               Nível {state.level}
             </span>
           </div>
+          {activeTitle && (
+            <p className={`text-xs mb-1 truncate ${activeTitle.className}`}>« {activeTitle.name} »</p>
+          )}
           <p className="text-xs text-muted-foreground italic mb-2 sm:mb-3 break-words">
             "{state.title}"
           </p>
