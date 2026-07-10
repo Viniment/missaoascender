@@ -2490,7 +2490,7 @@ export function useGameStore() {
             ...b,
             tasks: [
               ...b.tasks,
-              { id: crypto.randomUUID(), title, doneDates: [], ...(patch || {}), title },
+              { id: crypto.randomUUID(), doneDates: [], ...(patch || {}), title },
             ],
             tasksPerDay: (b.tasks.length + 1),
           }
