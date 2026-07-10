@@ -3191,6 +3191,7 @@ export function useGameStore() {
     setTheme,
     buyFrame,
     setActiveFrame,
+    claimPerfectDayLoot,
     updateAwakening,
     updateProfile,
     addChallenge,
