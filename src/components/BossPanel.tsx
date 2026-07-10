@@ -231,7 +231,7 @@ export default function BossPanel() {
                   onComplete={(taskId, combo, date) => onCompleteAt(b, taskId, combo, date)}
                   onUncomplete={(taskId, date) => uncompleteBossTask(b.id, taskId, date)}
                   onFail={(taskId, date) => failBossTask(b.id, taskId, date)}
-                  onAddTask={(title) => addBossTask(b.id, title)}
+                  onAddTask={(title, patch) => addBossTask(b.id, title, patch)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
                   onUpdateTask={(taskId, patch) => updateBossTask(b.id, taskId, patch)}
@@ -559,7 +559,7 @@ function BossCard({
   onComplete: (taskId: string, combo: number, date: string) => void;
   onUncomplete: (taskId: string, date: string) => void;
   onFail: (taskId: string, date: string) => void;
-  onAddTask: (title: string) => void;
+  onAddTask: (title: string, patch?: Partial<BossTask>) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
   onUpdateTask: (taskId: string, patch: Partial<BossTask>) => void;
@@ -585,6 +585,42 @@ function BossCard({
   const [editVal, setEditVal] = useState('');
   const [newTask, setNewTask] = useState('');
   const [showEdit, setShowEdit] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const handleAiAdd = async () => {
+    const seed = newTask.trim();
+    if (!seed || generating) return;
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('boss-task-generator', {
+        body: {
+          seed,
+          boss: {
+            nome: boss.name, emoji: boss.emoji, descricao: boss.description,
+            fraqueza: boss.weakness, dificuldade: boss.difficulty,
+          },
+        },
+      });
+      if (error) throw error;
+      const patch: Partial<BossTask> = {
+        impact: (data?.impact as BossTask['impact']) || 'medio',
+        resistance: (data?.resistance as BossTask['resistance']) || 'as_vezes',
+        priority: (Math.min(5, Math.max(1, Number(data?.priority) || 3)) as BossTask['priority']),
+      };
+      if (data?.description) patch.description = String(data.description);
+      if (data?.videoUrl) patch.videoUrl = String(data.videoUrl);
+      onAddTask(String(data?.title || seed), patch);
+      toast.success('⚔ Tarefa forjada pela IA');
+    } catch (e) {
+      console.error(e);
+      onAddTask(seed);
+      toast.info('Tarefa criada (IA indisponível — ajuste manualmente)');
+    } finally {
+      setNewTask('');
+      setShowAdd(false);
+      setGenerating(false);
+    }
+  };
   const lowHp = pct <= 25;
   const [selectedDate, setSelectedDate] = useState(today);
   const isToday = selectedDate === today;
@@ -728,13 +764,46 @@ function BossCard({
             />
           ))}
         </AnimatePresence>
-        {showEdit && (
-          <div className="flex gap-2 mt-2">
-            <Input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Nova tarefa diária…" className="h-8 text-xs" />
-            <Button size="sm" variant="ghost" onClick={() => { if (newTask.trim()) { onAddTask(newTask.trim()); setNewTask(''); } }}>
-              <Plus className="w-3 h-3" />
+        {showAdd ? (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-2 rounded-lg border border-primary/40 bg-primary/5 p-2 flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4 text-primary shrink-0" />
+            <Input
+              autoFocus
+              value={newTask}
+              onChange={e => setNewTask(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAiAdd(); if (e.key === 'Escape') { setShowAdd(false); setNewTask(''); } }}
+              placeholder="Nova tarefa (IA preenche o resto)…"
+              disabled={generating}
+              className="h-8 text-xs bg-background/70 border-primary/30"
+            />
+            <Button
+              size="sm"
+              onClick={handleAiAdd}
+              disabled={generating || !newTask.trim()}
+              className="h-8 px-2"
+            >
+              {generating ? <span className="animate-pulse">…</span> : <Check className="w-4 h-4" />}
             </Button>
-          </div>
+            <button
+              onClick={() => { setShowAdd(false); setNewTask(''); }}
+              disabled={generating}
+              className="h-8 w-8 inline-flex items-center justify-center text-foreground/60 hover:text-foreground disabled:opacity-40"
+              aria-label="Cancelar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        ) : (
+          <button
+            onClick={() => setShowAdd(true)}
+            className="mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-primary/40 text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/70 transition-colors font-display tracking-widest text-xs"
+          >
+            <Plus className="w-4 h-4" /> ADICIONAR TAREFA
+          </button>
         )}
       </div>
 
