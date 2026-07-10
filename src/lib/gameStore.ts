@@ -1591,6 +1591,42 @@ export function useGameStore() {
     });
   }, []);
 
+  // === Perfect Day — reivindicar loot ===
+  const claimPerfectDayLoot = useCallback(() => {
+    setState(prev => {
+      const loot = prev.pendingLoot;
+      if (!loot) return prev;
+      const goldDelta = loot.gold || 0;
+      const xpDelta = loot.xp || 0;
+      const ownedThemes = prev.ownedThemes || ['neon-purple'];
+      const ownedFrames = prev.ownedFrames || ['iniciante'];
+      const nextThemes = loot.theme && !ownedThemes.includes(loot.theme)
+        ? [...ownedThemes, loot.theme] : ownedThemes;
+      const nextFrames = loot.frame && !ownedFrames.includes(loot.frame)
+        ? [...ownedFrames, loot.frame] : ownedFrames;
+      const prog = xpDelta > 0
+        ? processLevelUp(prev.xp + xpDelta, prev.level, prev.rank, prev.difficultyDivisor || 1)
+        : { xp: prev.xp, level: prev.level, rank: prev.rank, xpToNext: prev.xpToNext };
+      const parts: string[] = [];
+      if (goldDelta) parts.push(`+${goldDelta} ouro`);
+      if (xpDelta) parts.push(`+${xpDelta} XP`);
+      if (loot.theme) parts.push(`tema ${loot.theme}`);
+      if (loot.frame) parts.push(`moldura ${loot.frame}`);
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + goldDelta,
+        ownedThemes: nextThemes,
+        ownedFrames: nextFrames,
+        pendingLoot: null,
+        log: [
+          { date: new Date().toISOString(), action: `🎁 Dia Perfeito: ${loot.title} — ${parts.join(', ') || 'recompensa recebida'}`, xp: xpDelta, gold: goldDelta },
+          ...prev.log,
+        ].slice(0, 100),
+      };
+    });
+  }, []);
+
   const updateAwakening = useCallback((field: 'become' | 'reject' | 'pain', value: string) => {
     setState(prev => ({
       ...prev,
