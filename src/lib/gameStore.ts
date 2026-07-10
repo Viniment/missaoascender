@@ -1658,10 +1658,7 @@ export function useGameStore() {
 
   // === Baús — abrir e rolar loot ===
   const openChest = useCallback((chestId: string): { ok: boolean; error?: string; loot?: { gold: number; itemKind?: 'theme'|'frame'|'title'|'pet'; itemId?: string; itemName?: string; rarity?: string } } => {
-    // imports locais lazy pra manter escopo
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { SHOP_CHESTS, SHOP_THEMES, SHOP_FRAMES, SHOP_TITLES, SHOP_PETS } = require('./shopCatalog');
-    const chest = SHOP_CHESTS.find((c: { id: string }) => c.id === chestId);
+    const chest = SHOP_CHESTS.find(c => c.id === chestId);
     if (!chest) return { ok: false, error: 'Baú inválido' };
     let outcome: { ok: boolean; error?: string; loot?: { gold: number; itemKind?: 'theme'|'frame'|'title'|'pet'; itemId?: string; itemName?: string; rarity?: string } } = { ok: true };
     setState(prev => {
@@ -1686,18 +1683,17 @@ export function useGameStore() {
       const ownedPets = prev.ownedPets || [];
       type Candidate = { kind: 'theme'|'frame'|'title'|'pet'; id: string; name: string; rarity: string };
       const pool: Candidate[] = [];
-      const rarityMap: Record<string, string> = {}; // themes/frames sem rarity → categorizar por cost
       const costToRarity = (cost: number): string => cost >= 2000 ? 'lendario' : cost >= 1000 ? 'epico' : cost >= 400 ? 'raro' : 'comum';
-      SHOP_THEMES.forEach((t: { id: string; name: string; cost: number }) => {
+      SHOP_THEMES.forEach(t => {
         if (t.cost > 0 && !ownedThemes.includes(t.id)) pool.push({ kind: 'theme', id: t.id, name: t.name, rarity: costToRarity(t.cost) });
       });
-      SHOP_FRAMES.forEach((f: { id: string; name: string; cost: number }) => {
+      SHOP_FRAMES.forEach(f => {
         if (f.cost > 0 && !ownedFrames.includes(f.id)) pool.push({ kind: 'frame', id: f.id, name: f.name, rarity: costToRarity(f.cost) });
       });
-      SHOP_TITLES.forEach((t: { id: string; name: string; rarity: string }) => {
+      SHOP_TITLES.forEach(t => {
         if (!ownedTitles.includes(t.id)) pool.push({ kind: 'title', id: t.id, name: t.name, rarity: t.rarity });
       });
-      SHOP_PETS.forEach((p: { id: string; name: string; rarity: string }) => {
+      SHOP_PETS.forEach(p => {
         if (!ownedPets.includes(p.id)) pool.push({ kind: 'pet', id: p.id, name: p.name, rarity: p.rarity });
       });
       const filtered = pool.filter(c => chest.itemRarities.includes(c.rarity));
