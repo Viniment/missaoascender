@@ -5,6 +5,7 @@ import { defaultAttributes, applyAttributeXp, attributeForCategory, type Attribu
 import { classXpMultiplier, type ChosenClass, type ClassId } from './classes';
 import { rollLoot, type LootItem, type ActiveBuff } from './loot';
 import { rollDungeonChallenges } from './dungeon';
+import { rollPerfectDayLoot, type PerfectDayLoot } from './perfectDay';
 // Types
 export type MissionType = 'Tempo' | 'Diária' | 'Contagem';
 export type MissionCategory = 'Estudo' | 'Trabalho' | 'Treino' | 'Leitura' | 'Espiritual' | 'Social' | 'Saúde' | 'Mental' | 'Financeiro' | 'Criatividade';
@@ -382,6 +383,9 @@ export interface PlayerState {
   ownedThemes?: string[];
   ownedFrames?: string[];
   activeFrame?: string;
+  // === Perfect Day / Loot Chest ===
+  lastPerfectDay?: string;          // YYYY-MM-DD
+  pendingLoot?: PerfectDayLoot | null;
 }
 
 
@@ -757,6 +761,8 @@ export const defaultState: PlayerState = {
   ownedThemes: ['neon-purple'],
   ownedFrames: ['iniciante'],
   activeFrame: 'iniciante',
+  lastPerfectDay: undefined,
+  pendingLoot: null,
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
@@ -1419,15 +1425,32 @@ export function useGameStore() {
       const dateLabel = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'ontem' : 'anteontem';
       const actionPrefix = previous ? 'Hábito corrigido' : 'Hábito';
 
+      // === Perfect Day detection (só para hoje) ===
+      const nextHabits = prev.habits.map(h =>
+        h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
+      );
+      let pendingLoot = prev.pendingLoot ?? null;
+      let lastPerfectDay = prev.lastPerfectDay;
+      if (
+        diffDays === 0 &&
+        status === 'done' &&
+        nextHabits.length > 0 &&
+        prev.lastPerfectDay !== today &&
+        nextHabits.every(h => h.history?.[today] === 'done')
+      ) {
+        pendingLoot = rollPerfectDayLoot(prev.ownedThemes || [], prev.ownedFrames || []);
+        lastPerfectDay = today;
+      }
+
       return {
         ...prev,
         ...prog,
         gold: Math.max(0, prev.gold + goldDelta),
         monster: applyMonsterDelta(prev, monsterDelta, `${actionPrefix} (${dateLabel}): ${habit.name}`),
-        habits: prev.habits.map(h =>
-          h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
-        ),
+        habits: nextHabits,
         failureProtocols: newProtocols,
+        pendingLoot,
+        lastPerfectDay,
         log: [
           ...(cancelledProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }] : []),
           ...(activatedProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha ativado: ${habit.name}`, xp: 0, gold: 0 }] : []),
@@ -1565,6 +1588,42 @@ export function useGameStore() {
       const owned = prev.ownedFrames || ['iniciante'];
       if (!owned.includes(frameId)) return prev;
       return { ...prev, activeFrame: frameId };
+    });
+  }, []);
+
+  // === Perfect Day — reivindicar loot ===
+  const claimPerfectDayLoot = useCallback(() => {
+    setState(prev => {
+      const loot = prev.pendingLoot;
+      if (!loot) return prev;
+      const goldDelta = loot.gold || 0;
+      const xpDelta = loot.xp || 0;
+      const ownedThemes = prev.ownedThemes || ['neon-purple'];
+      const ownedFrames = prev.ownedFrames || ['iniciante'];
+      const nextThemes = loot.theme && !ownedThemes.includes(loot.theme)
+        ? [...ownedThemes, loot.theme] : ownedThemes;
+      const nextFrames = loot.frame && !ownedFrames.includes(loot.frame)
+        ? [...ownedFrames, loot.frame] : ownedFrames;
+      const prog = xpDelta > 0
+        ? processLevelUp(prev.xp + xpDelta, prev.level, prev.rank, prev.difficultyDivisor || 1)
+        : { xp: prev.xp, level: prev.level, rank: prev.rank, xpToNext: prev.xpToNext };
+      const parts: string[] = [];
+      if (goldDelta) parts.push(`+${goldDelta} ouro`);
+      if (xpDelta) parts.push(`+${xpDelta} XP`);
+      if (loot.theme) parts.push(`tema ${loot.theme}`);
+      if (loot.frame) parts.push(`moldura ${loot.frame}`);
+      return {
+        ...prev,
+        ...prog,
+        gold: prev.gold + goldDelta,
+        ownedThemes: nextThemes,
+        ownedFrames: nextFrames,
+        pendingLoot: null,
+        log: [
+          { date: new Date().toISOString(), action: `🎁 Dia Perfeito: ${loot.title} — ${parts.join(', ') || 'recompensa recebida'}`, xp: xpDelta, gold: goldDelta },
+          ...prev.log,
+        ].slice(0, 100),
+      };
     });
   }, []);
 
