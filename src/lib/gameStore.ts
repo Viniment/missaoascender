@@ -1602,6 +1602,126 @@ export function useGameStore() {
     });
   }, []);
 
+  // === Loja de Títulos ===
+  const buyTitle = useCallback((titleId: string, cost: number): { ok: boolean; error?: string } => {
+    let result: { ok: boolean; error?: string } = { ok: true };
+    setState(prev => {
+      const owned = prev.ownedTitles || ['aprendiz'];
+      if (owned.includes(titleId)) { result = { ok: false, error: 'Já desbloqueado' }; return prev; }
+      if (prev.gold < cost) { result = { ok: false, error: 'Ouro insuficiente' }; return prev; }
+      return {
+        ...prev,
+        gold: prev.gold - cost,
+        ownedTitles: [...owned, titleId],
+        activeTitle: titleId,
+        log: [{ date: new Date().toISOString(), action: `Loja: título ${titleId}`, xp: 0, gold: -cost }, ...prev.log].slice(0, 100),
+      };
+    });
+    return result;
+  }, []);
+
+  const setActiveTitle = useCallback((titleId: string) => {
+    setState(prev => {
+      const owned = prev.ownedTitles || ['aprendiz'];
+      if (!owned.includes(titleId)) return prev;
+      return { ...prev, activeTitle: titleId };
+    });
+  }, []);
+
+  // === Loja de Pets ===
+  const buyPet = useCallback((petId: string, cost: number): { ok: boolean; error?: string } => {
+    let result: { ok: boolean; error?: string } = { ok: true };
+    setState(prev => {
+      const owned = prev.ownedPets || [];
+      if (owned.includes(petId)) { result = { ok: false, error: 'Já desbloqueado' }; return prev; }
+      if (prev.gold < cost) { result = { ok: false, error: 'Ouro insuficiente' }; return prev; }
+      return {
+        ...prev,
+        gold: prev.gold - cost,
+        ownedPets: [...owned, petId],
+        activePet: petId,
+        log: [{ date: new Date().toISOString(), action: `Loja: pet ${petId}`, xp: 0, gold: -cost }, ...prev.log].slice(0, 100),
+      };
+    });
+    return result;
+  }, []);
+
+  const setActivePet = useCallback((petId: string | null) => {
+    setState(prev => {
+      if (petId === null) return { ...prev, activePet: undefined };
+      const owned = prev.ownedPets || [];
+      if (!owned.includes(petId)) return prev;
+      return { ...prev, activePet: petId };
+    });
+  }, []);
+
+  // === Baús — abrir e rolar loot ===
+  const openChest = useCallback((chestId: string): { ok: boolean; error?: string; loot?: { gold: number; itemKind?: 'theme'|'frame'|'title'|'pet'; itemId?: string; itemName?: string; rarity?: string } } => {
+    // imports locais lazy pra manter escopo
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { SHOP_CHESTS, SHOP_THEMES, SHOP_FRAMES, SHOP_TITLES, SHOP_PETS } = require('./shopCatalog');
+    const chest = SHOP_CHESTS.find((c: { id: string }) => c.id === chestId);
+    if (!chest) return { ok: false, error: 'Baú inválido' };
+    let outcome: { ok: boolean; error?: string; loot?: { gold: number; itemKind?: 'theme'|'frame'|'title'|'pet'; itemId?: string; itemName?: string; rarity?: string } } = { ok: true };
+    setState(prev => {
+      if (prev.gold < chest.cost) { outcome = { ok: false, error: 'Ouro insuficiente' }; return prev; }
+      const cd = prev.chestCooldowns || {};
+      const last = cd[chestId];
+      if (last) {
+        const readyAt = new Date(last).getTime() + chest.cooldownHours * 3600 * 1000;
+        if (Date.now() < readyAt) {
+          const mins = Math.ceil((readyAt - Date.now()) / 60000);
+          outcome = { ok: false, error: `Em recarga (${mins} min)` };
+          return prev;
+        }
+      }
+      // Roll gold
+      const [gMin, gMax] = chest.goldRange;
+      const goldRoll = Math.floor(gMin + Math.random() * (gMax - gMin + 1));
+      // Try item
+      const ownedThemes = prev.ownedThemes || [];
+      const ownedFrames = prev.ownedFrames || [];
+      const ownedTitles = prev.ownedTitles || [];
+      const ownedPets = prev.ownedPets || [];
+      type Candidate = { kind: 'theme'|'frame'|'title'|'pet'; id: string; name: string; rarity: string };
+      const pool: Candidate[] = [];
+      const rarityMap: Record<string, string> = {}; // themes/frames sem rarity → categorizar por cost
+      const costToRarity = (cost: number): string => cost >= 2000 ? 'lendario' : cost >= 1000 ? 'epico' : cost >= 400 ? 'raro' : 'comum';
+      SHOP_THEMES.forEach((t: { id: string; name: string; cost: number }) => {
+        if (t.cost > 0 && !ownedThemes.includes(t.id)) pool.push({ kind: 'theme', id: t.id, name: t.name, rarity: costToRarity(t.cost) });
+      });
+      SHOP_FRAMES.forEach((f: { id: string; name: string; cost: number }) => {
+        if (f.cost > 0 && !ownedFrames.includes(f.id)) pool.push({ kind: 'frame', id: f.id, name: f.name, rarity: costToRarity(f.cost) });
+      });
+      SHOP_TITLES.forEach((t: { id: string; name: string; rarity: string }) => {
+        if (!ownedTitles.includes(t.id)) pool.push({ kind: 'title', id: t.id, name: t.name, rarity: t.rarity });
+      });
+      SHOP_PETS.forEach((p: { id: string; name: string; rarity: string }) => {
+        if (!ownedPets.includes(p.id)) pool.push({ kind: 'pet', id: p.id, name: p.name, rarity: p.rarity });
+      });
+      const filtered = pool.filter(c => chest.itemRarities.includes(c.rarity));
+      let item: Candidate | undefined;
+      if (filtered.length > 0 && Math.random() < chest.itemChance) {
+        item = filtered[Math.floor(Math.random() * filtered.length)];
+      }
+      const next = { ...prev, gold: prev.gold - chest.cost + goldRoll };
+      next.chestCooldowns = { ...cd, [chestId]: new Date().toISOString() };
+      if (item) {
+        if (item.kind === 'theme') next.ownedThemes = [...ownedThemes, item.id];
+        if (item.kind === 'frame') next.ownedFrames = [...ownedFrames, item.id];
+        if (item.kind === 'title') next.ownedTitles = [...ownedTitles, item.id];
+        if (item.kind === 'pet')   next.ownedPets   = [...ownedPets,   item.id];
+      }
+      next.log = [
+        { date: new Date().toISOString(), action: `📦 ${chest.name}: +${goldRoll} ouro${item ? ` + ${item.name}` : ''}`, xp: 0, gold: goldRoll - chest.cost },
+        ...prev.log,
+      ].slice(0, 100);
+      outcome = { ok: true, loot: { gold: goldRoll, itemKind: item?.kind, itemId: item?.id, itemName: item?.name, rarity: item?.rarity } };
+      return next;
+    });
+    return outcome;
+  }, []);
+
   // === Perfect Day — reivindicar loot ===
   const claimPerfectDayLoot = useCallback(() => {
     setState(prev => {
