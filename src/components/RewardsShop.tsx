@@ -1,17 +1,17 @@
 import { useState, useRef } from 'react';
 import { useGame } from '@/lib/GameContext';
 import { motion } from 'framer-motion';
-import { Gift, Coins, Plus, Trash2, Check, Palette, Sparkles, Lock } from 'lucide-react';
+import { Gift, Coins, Plus, Trash2, Check, Palette, Sparkles, Lock, Crown, PawPrint, Package, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { SHOP_THEMES, SHOP_FRAMES } from '@/lib/shopCatalog';
+import { SHOP_THEMES, SHOP_FRAMES, SHOP_TITLES, SHOP_PETS, SHOP_CHESTS, RARITY_LABEL, RARITY_CLASS } from '@/lib/shopCatalog';
 import type { ThemeId } from '@/components/ThemeSelector';
 
-type Tab = 'personais' | 'temas' | 'molduras';
+type Tab = 'personais' | 'temas' | 'molduras' | 'titulos' | 'pets' | 'baus';
 
 export default function RewardsShop() {
-  const { state, addReward, redeemReward, deleteReward, buyTheme, setTheme, buyFrame, setActiveFrame } = useGame();
+  const { state, addReward, redeemReward, deleteReward, buyTheme, setTheme, buyFrame, setActiveFrame, buyTitle, setActiveTitle, buyPet, setActivePet, openChest } = useGame();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [cost, setCost] = useState(50);
@@ -21,6 +21,11 @@ export default function RewardsShop() {
 
   const ownedThemes = state.ownedThemes || ['neon-purple'];
   const ownedFrames = state.ownedFrames || ['iniciante'];
+  const ownedTitles = state.ownedTitles || ['aprendiz'];
+  const ownedPets = state.ownedPets || [];
+  const activeTitle = state.activeTitle || 'aprendiz';
+  const activePet = state.activePet;
+  const cooldowns = state.chestCooldowns || {};
   const currentTheme = state.theme || 'neon-purple';
   const currentFrame = state.activeFrame || 'iniciante';
 
@@ -72,10 +77,13 @@ export default function RewardsShop() {
         <Coins className="w-4 h-4" /> {state.gold} ouro disponível
       </div>
 
-      <div className="flex gap-1 p-1 rounded-lg bg-secondary/50 border border-border">
+      <div className="flex gap-1 p-1 rounded-lg bg-secondary/50 border border-border overflow-x-auto">
         <TabButton active={tab==='personais'} onClick={() => setTab('personais')} icon={<Gift className="w-3.5 h-3.5" />} label="Pessoais" />
         <TabButton active={tab==='temas'} onClick={() => setTab('temas')} icon={<Palette className="w-3.5 h-3.5" />} label="Temas" />
         <TabButton active={tab==='molduras'} onClick={() => setTab('molduras')} icon={<Sparkles className="w-3.5 h-3.5" />} label="Molduras" />
+        <TabButton active={tab==='titulos'} onClick={() => setTab('titulos')} icon={<Crown className="w-3.5 h-3.5" />} label="Títulos" />
+        <TabButton active={tab==='pets'} onClick={() => setTab('pets')} icon={<PawPrint className="w-3.5 h-3.5" />} label="Pets" />
+        <TabButton active={tab==='baus'} onClick={() => setTab('baus')} icon={<Package className="w-3.5 h-3.5" />} label="Baús" />
       </div>
 
       {tab === 'personais' && (
@@ -201,6 +209,130 @@ export default function RewardsShop() {
           })}
         </div>
       )}
+
+      {tab === 'titulos' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {SHOP_TITLES.map(t => {
+            const owned = ownedTitles.includes(t.id);
+            const isActive = activeTitle === t.id;
+            const canBuy = !owned && state.gold >= t.cost;
+            return (
+              <div key={t.id} className={`rpg-panel space-y-2 border ${RARITY_CLASS[t.rarity]} ${isActive ? 'ring-1 ring-primary' : ''}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-sm ${t.className}`}>« {t.name} »</span>
+                  <span className="text-[10px] uppercase tracking-wider opacity-70">{RARITY_LABEL[t.rarity]}</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">{t.description}</p>
+                {owned ? (
+                  <Button size="sm" className="w-full" variant={isActive ? 'default' : 'secondary'} onClick={() => setActiveTitle(t.id)} disabled={isActive}>
+                    {isActive ? <><Check className="w-3 h-3 mr-1" /> Equipado</> : 'Equipar'}
+                  </Button>
+                ) : (
+                  <Button size="sm" className="w-full" variant={canBuy ? 'default' : 'secondary'} disabled={!canBuy} onClick={() => {
+                    const r = buyTitle(t.id, t.cost);
+                    if (r.ok) toast.success(`👑 Título "${t.name}" desbloqueado!`);
+                    else toast.error(r.error || 'Não foi possível comprar');
+                  }}>
+                    {canBuy ? <>Comprar · {t.cost} 🪙</> : <><Lock className="w-3 h-3 mr-1" /> {t.cost} 🪙</>}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === 'pets' && (
+        <div className="space-y-3">
+          {activePet && (
+            <button
+              onClick={() => setActivePet(null)}
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+            >
+              Desequipar pet atual
+            </button>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {SHOP_PETS.map(p => {
+            const owned = ownedPets.includes(p.id);
+            const isActive = activePet === p.id;
+            const canBuy = !owned && state.gold >= p.cost;
+            return (
+              <div key={p.id} className={`rpg-panel space-y-2 text-center border ${RARITY_CLASS[p.rarity]} ${isActive ? 'ring-1 ring-primary' : ''}`}>
+                <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center border-2 ${p.auraClass} bg-secondary`}>
+                  <span className="text-2xl">{p.emoji}</span>
+                </div>
+                <div>
+                  <div className="font-display text-xs text-foreground truncate">{p.name}</div>
+                  <div className="text-[10px] uppercase tracking-wider opacity-70">{RARITY_LABEL[p.rarity]}</div>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-1">{p.description}</p>
+                </div>
+                {owned ? (
+                  <Button size="sm" className="w-full" variant={isActive ? 'default' : 'secondary'} onClick={() => setActivePet(p.id)} disabled={isActive}>
+                    {isActive ? <><Check className="w-3 h-3 mr-1" /> Equipado</> : 'Equipar'}
+                  </Button>
+                ) : (
+                  <Button size="sm" className="w-full text-xs" variant={canBuy ? 'default' : 'secondary'} disabled={!canBuy} onClick={() => {
+                    const r = buyPet(p.id, p.cost);
+                    if (r.ok) toast.success(`🐾 ${p.name} adotado!`);
+                    else toast.error(r.error || 'Não foi possível comprar');
+                  }}>
+                    {canBuy ? <>{p.cost} 🪙</> : <><Lock className="w-3 h-3 mr-1" /> {p.cost} 🪙</>}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+          </div>
+        </div>
+      )}
+
+      {tab === 'baus' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {SHOP_CHESTS.map(c => {
+            const last = cooldowns[c.id];
+            const readyAt = last ? new Date(last).getTime() + c.cooldownHours * 3600 * 1000 : 0;
+            const remainingMs = Math.max(0, readyAt - Date.now());
+            const onCooldown = remainingMs > 0;
+            const canBuy = !onCooldown && state.gold >= c.cost;
+            const hrs = Math.floor(remainingMs / 3600000);
+            const mins = Math.ceil((remainingMs % 3600000) / 60000);
+            return (
+              <div key={c.id} className={`rpg-panel space-y-2 border ${RARITY_CLASS[c.rarity]}`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl" style={{ filter: `drop-shadow(0 0 6px ${c.color}88)` }}>{c.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-sm text-foreground truncate">{c.name}</div>
+                    <div className="text-[10px] uppercase tracking-wider opacity-70">{RARITY_LABEL[c.rarity]} · recarga {c.cooldownHours}h</div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">{c.description}</p>
+                <div className="text-[10px] text-muted-foreground">
+                  Ouro: {c.goldRange[0]}–{c.goldRange[1]} · Item: {Math.round(c.itemChance * 100)}%
+                </div>
+                {onCooldown ? (
+                  <Button size="sm" className="w-full" variant="secondary" disabled>
+                    <Clock className="w-3 h-3 mr-1" /> {hrs > 0 ? `${hrs}h ` : ''}{mins}m
+                  </Button>
+                ) : (
+                  <Button size="sm" className="w-full" variant={canBuy ? 'default' : 'secondary'} disabled={!canBuy} onClick={() => {
+                    const r = openChest(c.id);
+                    if (r.ok && r.loot) {
+                      const parts = [`+${r.loot.gold} ouro`];
+                      if (r.loot.itemName) parts.push(`${r.loot.itemName} (${r.loot.rarity})`);
+                      toast.success(`📦 ${c.name}: ${parts.join(' + ')}`);
+                    } else {
+                      toast.error(r.error || 'Não foi possível abrir');
+                    }
+                  }}>
+                    {canBuy ? <>Abrir · {c.cost} 🪙</> : <><Lock className="w-3 h-3 mr-1" /> {c.cost} 🪙</>}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -209,7 +341,7 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-display tracking-wider transition-all ${
+      className={`shrink-0 flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-display tracking-wider transition-all whitespace-nowrap ${
         active ? 'bg-primary text-primary-foreground shadow' : 'text-muted-foreground hover:text-foreground'
       }`}
     >
