@@ -767,6 +767,11 @@ export const defaultState: PlayerState = {
   ownedThemes: ['neon-purple'],
   ownedFrames: ['iniciante'],
   activeFrame: 'iniciante',
+  ownedTitles: ['aprendiz'],
+  activeTitle: 'aprendiz',
+  ownedPets: [],
+  activePet: undefined,
+  chestCooldowns: {},
   lastPerfectDay: undefined,
   pendingLoot: null,
 };
