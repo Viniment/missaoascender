@@ -231,7 +231,7 @@ export default function BossPanel() {
                   onComplete={(taskId, combo, date) => onCompleteAt(b, taskId, combo, date)}
                   onUncomplete={(taskId, date) => uncompleteBossTask(b.id, taskId, date)}
                   onFail={(taskId, date) => failBossTask(b.id, taskId, date)}
-                  onAddTask={(title) => addBossTask(b.id, title)}
+                  onAddTask={(title, patch) => addBossTask(b.id, title, patch)}
                   onEditTask={(taskId, title) => editBossTask(b.id, taskId, title)}
                   onRemoveTask={(taskId) => removeBossTask(b.id, taskId)}
                   onUpdateTask={(taskId, patch) => updateBossTask(b.id, taskId, patch)}
@@ -559,7 +559,7 @@ function BossCard({
   onComplete: (taskId: string, combo: number, date: string) => void;
   onUncomplete: (taskId: string, date: string) => void;
   onFail: (taskId: string, date: string) => void;
-  onAddTask: (title: string) => void;
+  onAddTask: (title: string, patch?: Partial<BossTask>) => void;
   onEditTask: (taskId: string, title: string) => void;
   onRemoveTask: (taskId: string) => void;
   onUpdateTask: (taskId: string, patch: Partial<BossTask>) => void;
@@ -585,6 +585,42 @@ function BossCard({
   const [editVal, setEditVal] = useState('');
   const [newTask, setNewTask] = useState('');
   const [showEdit, setShowEdit] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const handleAiAdd = async () => {
+    const seed = newTask.trim();
+    if (!seed || generating) return;
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('boss-task-generator', {
+        body: {
+          seed,
+          boss: {
+            nome: boss.name, emoji: boss.emoji, descricao: boss.description,
+            fraqueza: boss.weakness, dificuldade: boss.difficulty,
+          },
+        },
+      });
+      if (error) throw error;
+      const patch: Partial<BossTask> = {
+        impact: (data?.impact as BossTask['impact']) || 'medio',
+        resistance: (data?.resistance as BossTask['resistance']) || 'as_vezes',
+        priority: (Math.min(5, Math.max(1, Number(data?.priority) || 3)) as BossTask['priority']),
+      };
+      if (data?.description) patch.description = String(data.description);
+      if (data?.videoUrl) patch.videoUrl = String(data.videoUrl);
+      onAddTask(String(data?.title || seed), patch);
+      toast.success('⚔ Tarefa forjada pela IA');
+    } catch (e) {
+      console.error(e);
+      onAddTask(seed);
+      toast.info('Tarefa criada (IA indisponível — ajuste manualmente)');
+    } finally {
+      setNewTask('');
+      setShowAdd(false);
+      setGenerating(false);
+    }
+  };
   const lowHp = pct <= 25;
   const [selectedDate, setSelectedDate] = useState(today);
   const isToday = selectedDate === today;
