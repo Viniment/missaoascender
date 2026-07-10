@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Coins, Trophy, Heart } from 'lucide-react';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 import { formatEmotionalStreak } from '@/lib/affirmations';
+import { getFrame } from '@/lib/shopCatalog';
 
 const rankColors: Record<string, string> = {
   E: 'text-muted-foreground',
@@ -18,6 +19,8 @@ export default function PlayerCard() {
   const { state } = useGame();
   const xpPercent = Math.min(100, (state.xp / state.xpToNext) * 100);
   const streakInfo = formatEmotionalStreak(state.streak);
+  const frame = getFrame(state.activeFrame);
+  const isPrismatic = frame.id === 'prismatico';
 
   return (
     <motion.div
@@ -26,12 +29,16 @@ export default function PlayerCard() {
       className="rpg-panel neon-glow"
     >
       <div className="flex items-start gap-3 sm:gap-4">
-        <div className="relative w-16 h-16 rounded-full border-2 border-primary overflow-hidden glow-purple flex-shrink-0 bg-secondary flex items-center justify-center">
-          {state.avatar ? (
-            <img src={state.avatar} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-2xl font-display text-primary">{state.name[0]}</span>
-          )}
+        <div className={`relative w-16 h-16 rounded-full flex-shrink-0 ${isPrismatic ? frame.ringClass : ''}`}>
+          <div
+            className={`relative w-full h-full rounded-full overflow-hidden bg-secondary flex items-center justify-center ${isPrismatic ? '' : frame.ringClass}`}
+          >
+            {state.avatar ? (
+              <img src={state.avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl font-display text-primary">{state.name[0]}</span>
+            )}
+          </div>
         </div>
 
         <div className="flex-1 min-w-0">

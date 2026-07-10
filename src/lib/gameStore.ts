@@ -378,6 +378,10 @@ export interface PlayerState {
   redemptionQuests?: RedemptionQuest[];
   // === Áreas de Vida ===
   lifeAreas?: LifeArea[];
+  // === Loja: temas e molduras compráveis com ouro ===
+  ownedThemes?: string[];
+  ownedFrames?: string[];
+  activeFrame?: string;
 }
 
 
@@ -750,7 +754,9 @@ export const defaultState: PlayerState = {
   activeBuffs: [],
   redemptionQuests: [],
   lifeAreas: buildDefaultLifeAreas(),
-
+  ownedThemes: ['neon-purple'],
+  ownedFrames: ['iniciante'],
+  activeFrame: 'iniciante',
 };
 
 function clampHp(n: number) { return Math.max(0, Math.min(100, n)); }
@@ -1508,6 +1514,58 @@ export function useGameStore() {
       ...prev,
       rewards: prev.rewards.filter(r => r.id !== id),
     }));
+  }, []);
+
+  // === Loja de Temas ===
+  const buyTheme = useCallback((themeId: string, cost: number): { ok: boolean; error?: string } => {
+    let result: { ok: boolean; error?: string } = { ok: true };
+    setState(prev => {
+      const owned = prev.ownedThemes || ['neon-purple'];
+      if (owned.includes(themeId)) { result = { ok: false, error: 'Já desbloqueado' }; return prev; }
+      if (prev.gold < cost) { result = { ok: false, error: 'Ouro insuficiente' }; return prev; }
+      return {
+        ...prev,
+        gold: prev.gold - cost,
+        ownedThemes: [...owned, themeId],
+        theme: themeId,
+        log: [{ date: new Date().toISOString(), action: `Loja: tema ${themeId}`, xp: 0, gold: -cost }, ...prev.log].slice(0, 100),
+      };
+    });
+    return result;
+  }, []);
+
+  const setTheme = useCallback((themeId: string) => {
+    setState(prev => {
+      const owned = prev.ownedThemes || ['neon-purple'];
+      if (!owned.includes(themeId)) return prev;
+      return { ...prev, theme: themeId };
+    });
+  }, []);
+
+  // === Loja de Molduras ===
+  const buyFrame = useCallback((frameId: string, cost: number): { ok: boolean; error?: string } => {
+    let result: { ok: boolean; error?: string } = { ok: true };
+    setState(prev => {
+      const owned = prev.ownedFrames || ['iniciante'];
+      if (owned.includes(frameId)) { result = { ok: false, error: 'Já desbloqueado' }; return prev; }
+      if (prev.gold < cost) { result = { ok: false, error: 'Ouro insuficiente' }; return prev; }
+      return {
+        ...prev,
+        gold: prev.gold - cost,
+        ownedFrames: [...owned, frameId],
+        activeFrame: frameId,
+        log: [{ date: new Date().toISOString(), action: `Loja: moldura ${frameId}`, xp: 0, gold: -cost }, ...prev.log].slice(0, 100),
+      };
+    });
+    return result;
+  }, []);
+
+  const setActiveFrame = useCallback((frameId: string) => {
+    setState(prev => {
+      const owned = prev.ownedFrames || ['iniciante'];
+      if (!owned.includes(frameId)) return prev;
+      return { ...prev, activeFrame: frameId };
+    });
   }, []);
 
   const updateAwakening = useCallback((field: 'become' | 'reject' | 'pain', value: string) => {
@@ -3070,6 +3128,10 @@ export function useGameStore() {
     addReward,
     redeemReward,
     deleteReward,
+    buyTheme,
+    setTheme,
+    buyFrame,
+    setActiveFrame,
     updateAwakening,
     updateProfile,
     addChallenge,
