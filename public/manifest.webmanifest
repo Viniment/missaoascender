@@ -1,0 +1,14 @@
+{
+  "name": "Ascensão",
+  "short_name": "Ascensão",
+  "description": "Life RPG de desenvolvimento pessoal — forje sua ascensão diária.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#7B2FF7",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+  ]
+}
