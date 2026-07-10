@@ -1,4 +1,4 @@
-import { Swords, Sparkles, BookOpen, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Heart, Circle, type LucideIcon } from 'lucide-react';
+import { Swords, Sparkles, BookOpen, Gift, Trophy, ScrollText, Compass, MessageCircleHeart, Skull, Heart, Circle, Code2, type LucideIcon } from 'lucide-react';
 
 export type TabId =
   | 'missions' | 'habits' | 'achievements'
@@ -6,7 +6,8 @@ export type TabId =
   | 'awakening' | 'zazen'
   | 'mentor' | 'cbt'
   | 'areas' | 'dungeon' | 'bosses'
-  | 'rewards';
+  | 'rewards'
+  | 'projectPrompt';
 
 
 export interface TabDef {
@@ -57,6 +58,13 @@ export const TAB_GROUPS: TabGroup[] = [
     label: 'Loja',
     tabs: [
       { id: 'rewards', label: 'Loja', icon: Gift, description: 'Troque ouro por recompensas' },
+    ],
+  },
+  {
+    id: 'dev',
+    label: 'Dev',
+    tabs: [
+      { id: 'projectPrompt', label: 'Prompt do Projeto', icon: Code2, description: 'Especificação completa do Ascensão' },
     ],
   },
 ];

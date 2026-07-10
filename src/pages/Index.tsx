@@ -22,6 +22,9 @@ import ClassSelectionDialog from '@/components/ClassSelectionDialog';
 import AchievementUnlockOverlay from '@/components/AchievementUnlockOverlay';
 import AppSidebar from '@/components/AppSidebar';
 import IdentityOnboarding from '@/components/IdentityOnboarding';
+import PerfectDayChestOverlay from '@/components/PerfectDayChestOverlay';
+import InstallPrompt from '@/components/InstallPrompt';
+import ProjectPromptPanel from '@/components/ProjectPromptPanel';
 import { useGame } from '@/lib/GameContext';
 import { Menu, Settings, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -62,6 +65,7 @@ export default function Index() {
       case 'areas': return <LifeAreasPanel />;
       case 'bosses': return <BossPanel />;
       case 'rewards': return <RewardsShop />;
+      case 'projectPrompt': return <ProjectPromptPanel />;
     }
   };
 
@@ -206,6 +210,8 @@ export default function Index() {
         <LevelUpOverlay />
         <RedemptionQuestDialog />
         <ClassSelectionDialog open={!!state.pendingClassChoice && !state.chosenClass} onClose={dismissClassChoice} />
+        <PerfectDayChestOverlay />
+        <InstallPrompt />
 
         {/* EVOLUX — Identity onboarding (first run) */}
         <IdentityOnboarding open={identityOpen} onClose={() => setIdentityOpen(false)} />
