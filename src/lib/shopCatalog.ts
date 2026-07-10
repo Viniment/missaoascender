@@ -110,11 +110,11 @@ export interface ShopTitle {
 export const SHOP_TITLES: ShopTitle[] = [
   { id: 'aprendiz',    name: 'O Aprendiz',      description: 'Todo mestre começou aqui.',           cost: 0,    rarity: 'comum',    className: 'text-muted-foreground' },
   { id: 'disciplinado',name: 'O Disciplinado',  description: 'Consistência é sua arma.',            cost: 300,  rarity: 'comum',    className: 'text-primary' },
-  { id: 'imparavel',   name: 'O Imparável',     description: 'Ninguém te para. Nem você mesmo.',    cost: 800,  rarity: 'raro',     className: 'text-neon-blue glow-text-blue' },
+  { id: 'imparavel',   name: 'O Imparável',     description: 'Ninguém te para. Nem você mesmo.',    cost: 800,  rarity: 'raro',     className: 'text-neon-blue' },
   { id: 'cacador',     name: 'Caçador de Monstros', description: 'Vive para a caçada.',             cost: 1200, rarity: 'raro',     className: 'text-success' },
   { id: 'sombra',      name: 'A Sombra',        description: 'Age no silêncio, colhe no ruído.',    cost: 2000, rarity: 'epico',    className: 'text-primary glow-text-purple' },
-  { id: 'ascendente',  name: 'O Ascendente',    description: 'Sobe onde outros desistem.',          cost: 3000, rarity: 'epico',    className: 'text-gold glow-text-gold' },
-  { id: 'monarca',     name: 'Monarca da Ascensão', description: 'O topo. E ainda em movimento.',   cost: 5000, rarity: 'lendario', className: 'text-gold glow-text-gold font-display uppercase tracking-widest' },
+  { id: 'ascendente',  name: 'O Ascendente',    description: 'Sobe onde outros desistem.',          cost: 3000, rarity: 'epico',    className: 'text-gold' },
+  { id: 'monarca',     name: 'Monarca da Ascensão', description: 'O topo. E ainda em movimento.',   cost: 5000, rarity: 'lendario', className: 'text-gold font-display uppercase tracking-widest' },
 ];
 
 // ============================================================
@@ -132,10 +132,10 @@ export interface ShopPet {
 
 export const SHOP_PETS: ShopPet[] = [
   { id: 'lobinho',   name: 'Lobinho da Alvorada',  description: 'Uiva quando você acorda cedo.',        cost: 500,  rarity: 'comum',    emoji: '🐺', auraClass: 'border-primary/60' },
-  { id: 'coruja',    name: 'Coruja Estrategista',  description: 'Vê no escuro. Planeja no claro.',      cost: 800,  rarity: 'raro',     emoji: '🦉', auraClass: 'border-neon-blue glow-blue' },
+  { id: 'coruja',    name: 'Coruja Estrategista',  description: 'Vê no escuro. Planeja no claro.',      cost: 800,  rarity: 'raro',     emoji: '🦉', auraClass: 'border-neon-blue' },
   { id: 'fenix',     name: 'Fênix Renascida',      description: 'Renasce toda vez que você recomeça.',  cost: 1500, rarity: 'raro',     emoji: '🔥', auraClass: 'border-primary glow-purple' },
   { id: 'dragao',    name: 'Dragãozinho Sombrio',  description: 'Cospe fogo em cada tarefa concluída.', cost: 2500, rarity: 'epico',    emoji: '🐉', auraClass: 'border-primary glow-purple-strong animate-pulse-glow' },
-  { id: 'unicornio', name: 'Unicórnio Prismático', description: 'Raro. Impossível de replicar.',        cost: 4000, rarity: 'lendario', emoji: '🦄', auraClass: 'border-gold glow-gold animate-pulse-glow' },
+  { id: 'unicornio', name: 'Unicórnio Prismático', description: 'Raro. Impossível de replicar.',        cost: 4000, rarity: 'lendario', emoji: '🦄', auraClass: 'border-gold animate-pulse-glow' },
 ];
 
 // ============================================================
@@ -171,9 +171,9 @@ export const RARITY_LABEL: Record<Rarity, string> = {
 
 export const RARITY_CLASS: Record<Rarity, string> = {
   comum:    'text-muted-foreground border-border',
-  raro:     'text-neon-blue border-neon-blue/50',
+  raro:     'text-neon-blue border-neon-blue/60',
   epico:    'text-primary border-primary/60 glow-purple',
-  lendario: 'text-gold border-gold/70 glow-gold',
+  lendario: 'text-gold border-gold/70',
 };
 
 export function getTitle(id: string | undefined): ShopTitle | undefined {
