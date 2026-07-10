@@ -1425,15 +1425,32 @@ export function useGameStore() {
       const dateLabel = diffDays === 0 ? 'hoje' : diffDays === 1 ? 'ontem' : 'anteontem';
       const actionPrefix = previous ? 'Hábito corrigido' : 'Hábito';
 
+      // === Perfect Day detection (só para hoje) ===
+      const nextHabits = prev.habits.map(h =>
+        h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
+      );
+      let pendingLoot = prev.pendingLoot ?? null;
+      let lastPerfectDay = prev.lastPerfectDay;
+      if (
+        diffDays === 0 &&
+        status === 'done' &&
+        nextHabits.length > 0 &&
+        prev.lastPerfectDay !== today &&
+        nextHabits.every(h => h.history?.[today] === 'done')
+      ) {
+        pendingLoot = rollPerfectDayLoot(prev.ownedThemes || [], prev.ownedFrames || []);
+        lastPerfectDay = today;
+      }
+
       return {
         ...prev,
         ...prog,
         gold: Math.max(0, prev.gold + goldDelta),
         monster: applyMonsterDelta(prev, monsterDelta, `${actionPrefix} (${dateLabel}): ${habit.name}`),
-        habits: prev.habits.map(h =>
-          h.id === id ? { ...h, history: { ...h.history, [targetDate]: status } } : h
-        ),
+        habits: nextHabits,
         failureProtocols: newProtocols,
+        pendingLoot,
+        lastPerfectDay,
         log: [
           ...(cancelledProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha cancelado: ${habit.name}`, xp: 0, gold: 0 }] : []),
           ...(activatedProtocol ? [{ date: new Date().toISOString(), action: `Protocolo de falha ativado: ${habit.name}`, xp: 0, gold: 0 }] : []),
