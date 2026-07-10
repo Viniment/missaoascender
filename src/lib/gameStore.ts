@@ -2482,11 +2482,18 @@ export function useGameStore() {
   }, []);
 
   // CRUD tarefas
-  const addBossTask = useCallback((bossId: string, title: string) => {
+  const addBossTask = useCallback((bossId: string, title: string, patch?: Partial<BossTask>) => {
     setState(prev => ({
       ...prev,
       bosses: (prev.bosses || []).map(b => b.id === bossId && b.tasks
-        ? { ...b, tasks: [...b.tasks, { id: crypto.randomUUID(), title, doneDates: [] }], tasksPerDay: (b.tasks.length + 1) }
+        ? {
+            ...b,
+            tasks: [
+              ...b.tasks,
+              { id: crypto.randomUUID(), title, doneDates: [], ...(patch || {}), title },
+            ],
+            tasksPerDay: (b.tasks.length + 1),
+          }
         : b),
     }));
   }, []);
