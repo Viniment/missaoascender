@@ -6,12 +6,12 @@ import Shell from "@/components/Shell";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchHeroi, fetchInimigoAtivo, fetchHabitos, fetchLogsHoje, fetchOnboarding,
-  toggleHabito, abrirBauDiario, fetchConquistas,
+  toggleHabito, abrirBauDiario, fetchConquistas, fetchLogsData, recalcularHpMaxInimigo,
 } from "@/lib/api";
-import { todayISO } from "@/lib/utils";
+import { todayISO, shiftISO, formatBRDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil } from "lucide-react";
+import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
@@ -44,8 +44,15 @@ export default function Dashboard() {
   const { data: heroi } = useQuery({ queryKey: ["heroi", uid], queryFn: () => fetchHeroi(uid!), enabled: !!uid });
   const { data: inimigo } = useQuery({ queryKey: ["inimigo", uid], queryFn: () => fetchInimigoAtivo(uid!), enabled: !!uid });
   const { data: habitos } = useQuery({ queryKey: ["habitos", uid], queryFn: () => fetchHabitos(uid!), enabled: !!uid });
-  const { data: logs } = useQuery({ queryKey: ["logs", uid, todayISO()], queryFn: () => fetchLogsHoje(uid!), enabled: !!uid });
   const { data: conquistas } = useQuery({ queryKey: ["conq", uid], queryFn: () => fetchConquistas(uid!), enabled: !!uid });
+
+  const [dataSelecionada, setDataSelecionada] = useState<string>(todayISO());
+  const isHoje = dataSelecionada === todayISO();
+  const { data: logs } = useQuery({
+    queryKey: ["logs", uid, dataSelecionada],
+    queryFn: () => fetchLogsData(uid!, dataSelecionada),
+    enabled: !!uid,
+  });
 
   const [msg, setMsg] = useState<string>("");
   const [novoHabito, setNovoHabito] = useState({ nome: "", tipo: "positivo" as "positivo" | "negativo" });
@@ -94,7 +101,7 @@ export default function Dashboard() {
     const marcado = logs?.has(habitoId) ?? false;
     const positivo = h.tipo === "positivo";
     try {
-      await toggleHabito({ heroi, inimigo: inimigo ?? null, habito: h, marcado });
+      await toggleHabito({ heroi, inimigo: inimigo ?? null, habito: h, marcado, data: dataSelecionada });
       await qc.invalidateQueries();
 
       // Só abre popup ao MARCAR (não ao desmarcar)
@@ -171,6 +178,10 @@ export default function Dashboard() {
       if (error) throw error;
       setNovoHabito({ nome: "", tipo: "positivo" });
       setShowForm(false);
+      if (novoHabito.tipo === "positivo") {
+        await recalcularHpMaxInimigo(uid);
+        await qc.invalidateQueries({ queryKey: ["inimigo", uid] });
+      }
       await qc.invalidateQueries({ queryKey: ["habitos", uid] });
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao criar hábito");
@@ -181,6 +192,10 @@ export default function Dashboard() {
 
   const excluirHabito = async (id: string) => {
     await supabase.from("habitos").update({ ativo: false }).eq("id", id);
+    if (uid) {
+      await recalcularHpMaxInimigo(uid);
+      await qc.invalidateQueries({ queryKey: ["inimigo", uid] });
+    }
     await qc.invalidateQueries({ queryKey: ["habitos", uid] });
   };
 
