@@ -6,16 +6,16 @@ import { fetchOnboarding } from "@/lib/api";
 import { toast } from "sonner";
 
 const PERGUNTAS = [
-  { key: "sonhos", label: "1) Quais são seus maiores sonhos?", placeholder: "Ex: viver de música, ter um corpo forte, criar meu negócio..." },
-  { key: "sabotagem", label: "2) O que costuma te impedir de realizá-los?", placeholder: "Ex: preguiça, procrastinação, medo de fracassar..." },
-  { key: "vitorias", label: "3) Que hábitos ou vitórias diárias você quer construir?", placeholder: "Ex: acordar cedo, treinar, estudar 1h, meditar..." },
-  { key: "gatilhos", label: "4) O que costuma te tirar do foco?", placeholder: "Ex: celular à noite, TikTok, ansiedade, tédio..." },
+  { key: "sonho", label: "1) Qual é o seu maior sonho?", placeholder: "Ex: viver de música, ter um corpo forte, criar meu negócio..." },
+  { key: "funcao_protetora", label: "2) O que a procrastinação te protege de sentir?", placeholder: "Ex: medo de fracassar, medo de julgamento, exposição..." },
+  { key: "desculpas", label: "3) Quais desculpas você mais repete pra si mesmo? (uma por linha)", placeholder: "estou cansado\namanhã eu começo\nnão é a hora certa" },
+  { key: "custo_procrastinacao", label: "4) O que a procrastinação já te custou?", placeholder: "Ex: oportunidades, relacionamentos, dinheiro, tempo..." },
 ];
 
 export default function Onboarding() {
   const { user } = useAuth();
   const nav = useNavigate();
-  const [answers, setAnswers] = useState<Record<string, string>>({ sonhos: "", sabotagem: "", vitorias: "", gatilhos: "" });
+  const [answers, setAnswers] = useState<Record<string, string>>({ sonho: "", funcao_protetora: "", desculpas: "", custo_procrastinacao: "" });
   const [i, setI] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -30,8 +30,13 @@ export default function Onboarding() {
     if (!user) return;
     setSaving(true);
     try {
+      const desculpas = answers.desculpas.split("\n").map(s => s.trim()).filter(Boolean);
       const { error } = await supabase.from("onboarding_respostas").insert({
-        user_id: user.id, ...answers,
+        user_id: user.id,
+        sonho: answers.sonho,
+        funcao_protetora: answers.funcao_protetora,
+        desculpas,
+        custo_procrastinacao: answers.custo_procrastinacao,
       });
       if (error) throw error;
       nav("/criar-inimigo");
