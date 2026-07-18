@@ -1,0 +1,1 @@
+ALTER TABLE public.habitos ADD COLUMN IF NOT EXISTS peso_ouro integer NOT NULL DEFAULT 2;
