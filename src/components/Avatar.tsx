@@ -35,9 +35,11 @@ function BaseBody() {
       {px(24, 4, 1, 16, OUTLINE)}
       {/* skin fill */}
       {px(8, 5, 16, 15, SKIN)}
-      {/* clip bottom face corners for round chin */}
-      {px(8, 19, 1, 1, SKIN_DEEP)}
-      {px(23, 19, 1, 1, SKIN_DEEP)}
+      {/* clip bottom face corners for round jaw */}
+      {px(8, 18, 1, 2, OUTLINE)}
+      {px(23, 18, 1, 2, OUTLINE)}
+      {px(9, 19, 1, 1, SKIN_DEEP)}
+      {px(22, 19, 1, 1, SKIN_DEEP)}
       {/* face highlight (cheek) */}
       {px(9, 14, 2, 1, SKIN_LIGHT)}
       {px(21, 14, 2, 1, SKIN_LIGHT)}
