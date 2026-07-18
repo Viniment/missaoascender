@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import RewardBurstLayer from "@/components/fx/RewardBurst";
 import ParticleBackground from "@/components/fx/ParticleBackground";
+import InstallPWAPrompt from "@/components/InstallPWAPrompt";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       <RewardBurstLayer />
+      <InstallPWAPrompt />
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="font-display text-lg tracking-widest text-primary glow-text-purple">
