@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Megaphone, X } from "lucide-react";
+import { Megaphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Aviso = { id: string; titulo: string; mensagem: string; tipo: string };
@@ -26,11 +27,20 @@ export default function AvisosBanner() {
     refetchInterval: 60_000,
   });
 
-  const marcarLido = async (id: string) => {
-    if (!uid) return;
-    await supabase.from("avisos_lidos").insert({ aviso_id: id, user_id: uid });
-    await qc.invalidateQueries({ queryKey: ["avisos", uid] });
-  };
+  // Auto-mark as read on display — só aparece uma vez.
+  useEffect(() => {
+    if (!uid || !avisos?.length) return;
+    (async () => {
+      await Promise.all(avisos.map(a =>
+        supabase.from("avisos_lidos").insert({ aviso_id: a.id, user_id: uid })
+      ));
+      // Refetch depois de alguns segundos, para o usuário conseguir ler.
+      setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["avisos", uid] });
+      }, 15000);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uid, avisos?.map(a => a.id).join(",")]);
 
   if (!avisos?.length) return null;
 
@@ -48,7 +58,7 @@ export default function AvisosBanner() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: 40 }}
-            className={`relative rounded-lg border-2 p-3 pr-9 ${tipoCor(a.tipo)}`}
+            className={`relative rounded-lg border-2 p-3 ${tipoCor(a.tipo)}`}
           >
             <div className="flex items-start gap-2">
               <Megaphone className="w-4 h-4 mt-0.5 shrink-0" />
@@ -57,13 +67,6 @@ export default function AvisosBanner() {
                 <p className="text-sm text-foreground/90 mt-1">{a.mensagem}</p>
               </div>
             </div>
-            <button
-              onClick={() => marcarLido(a.id)}
-              aria-label="Fechar aviso"
-              className="absolute top-2 right-2 p-1 rounded hover:bg-foreground/10"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </motion.div>
         ))}
       </AnimatePresence>

@@ -161,7 +161,8 @@ export default function Dashboard() {
 
   const abrirBau = async () => {
     if (!heroi) return;
-    if (heroi.ultimo_bau_data === todayISO()) { toast.info("Baú de hoje já aberto."); return; }
+    const infinito = typeof window !== "undefined" && localStorage.getItem("dev_bau_infinito") === "1";
+    if (!infinito && heroi.ultimo_bau_data === todayISO()) { toast.info("Baú de hoje já aberto."); return; }
     setChestGold(null);
     setChestOpen(true);
   };
@@ -172,6 +173,11 @@ export default function Dashboard() {
     setChestGold(g);
     fireReward(`+${g} ouro`, "#facc15");
     await qc.invalidateQueries();
+    const infinito = typeof window !== "undefined" && localStorage.getItem("dev_bau_infinito") === "1";
+    if (infinito) {
+      await supabase.from("users").update({ ultimo_bau_data: null }).eq("id", heroi.id);
+      await qc.invalidateQueries();
+    }
   };
 
   const criarHabito = async () => {
