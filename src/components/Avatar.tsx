@@ -1028,8 +1028,8 @@ function PetSprite({ id, cor, size }: { id: string; cor?: string; size: number }
     <div
       className="absolute pointer-events-none"
       style={{
-        right: -Math.round(petSize * 0.35),
-        bottom: Math.round(size * 0.28),
+        left: -Math.round(petSize * 0.35),
+        bottom: Math.round(size * 0.05),
         width: petSize,
         height: petSize,
         animation: "petBob 2.4s ease-in-out infinite",
