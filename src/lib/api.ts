@@ -8,6 +8,7 @@ export type Habito = {
   tipo: "positivo" | "negativo";
   peso_dano_cura: number;
   peso_xp: number;
+  peso_ouro: number;
   ativo: boolean;
 };
 
@@ -234,12 +235,23 @@ export async function toggleHabito(opts: {
   // Hero XP + vida
   const xpDelta = sign * (positivo ? habito.peso_xp : -habito.peso_xp);
   const vidaDelta = sign * (positivo ? 0 : -Math.max(2, Math.round(habito.peso_dano_cura / 3)));
+  const ouroDelta = sign * (positivo ? (habito.peso_ouro ?? 0) : 0);
   const { xp_atual, nivel, xp_proximo_nivel, conquistas } = applyXp(heroi, xpDelta);
   const vida_atual = clamp(heroi.vida_atual + vidaDelta, 0, heroi.vida_max);
+  const ouro = Math.max(0, (heroi.ouro ?? 0) + ouroDelta);
 
   await supabase.from("users").update({
-    xp_atual, nivel, xp_proximo_nivel, vida_atual,
+    xp_atual, nivel, xp_proximo_nivel, vida_atual, ouro,
   }).eq("id", heroi.id);
+
+  if (ouroDelta !== 0) {
+    await supabase.from("transacoes_ouro").insert({
+      user_id: heroi.id,
+      valor: ouroDelta,
+      origem: "habito",
+      descricao: habito.nome,
+    });
+  }
 
   // Enemy HP
   if (inimigo) {
@@ -250,7 +262,7 @@ export async function toggleHabito(opts: {
 
   if (conquistas.length) await checkConquistas(heroi.id, conquistas);
 
-  return { xpDelta, positivo };
+  return { xpDelta, positivo, ouroDelta };
 }
 
 /** Roll the daily chest. Returns gold amount. */
