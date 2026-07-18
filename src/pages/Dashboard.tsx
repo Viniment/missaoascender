@@ -19,6 +19,7 @@ import AnimatedCounter from "@/components/fx/AnimatedCounter";
 import LevelUpOverlay from "@/components/fx/LevelUpOverlay";
 import VictoryScreen from "@/components/fx/VictoryScreen";
 import AvisosBanner from "@/components/AvisosBanner";
+import ChestOverlay from "@/components/fx/ChestOverlay";
 
 type Battle = {
   positivo: boolean;
@@ -51,6 +52,8 @@ export default function Dashboard() {
   const [shakeEnemy, setShakeEnemy] = useState(false);
   const [levelUp, setLevelUp] = useState<number | null>(null);
   const [victory, setVictory] = useState<string | null>(null);
+  const [chestOpen, setChestOpen] = useState(false);
+  const [chestGold, setChestGold] = useState<number | null>(null);
   const prevNivel = useRef<number | null>(null);
   const prevEnemyHp = useRef<number | null>(null);
 
@@ -120,8 +123,15 @@ export default function Dashboard() {
   const abrirBau = async () => {
     if (!heroi) return;
     if (heroi.ultimo_bau_data === todayISO()) { toast.info("Baú de hoje já aberto."); return; }
+    setChestGold(null);
+    setChestOpen(true);
+  };
+
+  const executarAberturaBau = async () => {
+    if (!heroi) return;
     const g = await abrirBauDiario(heroi.id, heroi);
-    toast.success(`Baú aberto: +${g} de ouro`);
+    setChestGold(g);
+    fireReward(`+${g} ouro`, "#facc15");
     await qc.invalidateQueries();
   };
 
@@ -346,6 +356,12 @@ export default function Dashboard() {
           <span className="text-xs text-gold font-display">1-10 🪙</span>
         </button>
       </div>
+      <ChestOverlay
+        open={chestOpen}
+        gold={chestGold}
+        onOpen={executarAberturaBau}
+        onClose={() => setChestOpen(false)}
+      />
     </Shell>
   );
 }
