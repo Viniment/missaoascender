@@ -1,6 +1,6 @@
 export type ItemCategoria =
   | "hat" | "armor" | "aura"
-  | "wings" | "mask" | "pet" | "frame"
+  | "mask" | "pet" | "frame"
   | "card_bg" | "app_bg";
 export type ItemRaridade = "comum" | "raro" | "epico" | "lendario" | "mitico";
 
@@ -66,14 +66,6 @@ export const ITENS: Item[] = [
   { id: "aura_chama",   categoria: "aura", nome: "Aura de Chamas",     emoji: "🔥", raridade: "epico",    preco: 500, cor: "#f97316", descricao: "Fúria acesa contra o inimigo." },
   { id: "aura_divina",  categoria: "aura", nome: "Aura Divina",        emoji: "✨", raridade: "lendario", preco: null, unlock: "streak_7", descricao: "Desbloqueada ao manter 7 dias de streak." },
   { id: "aura_vitoria", categoria: "aura", nome: "Aura da Vitória",    emoji: "🏆", raridade: "lendario", preco: null, unlock: "inimigo_derrotado", descricao: "Ao derrotar seu primeiro Inimigo." },
-
-  // ---------- ASAS / CAPAS ----------
-  { id: "wg_capa",       categoria: "wings", nome: "Capa de Viajante",  emoji: "🧣", raridade: "comum",    preco: 90,  cor: "#78350f", descricao: "Para a longa jornada." },
-  { id: "wg_manto",      categoria: "wings", nome: "Manto do Rei",       emoji: "🎽", raridade: "raro",    preco: 340, cor: "#dc2626", descricao: "Púrpura real, peso de responsabilidade." },
-  { id: "wg_corvo",      categoria: "wings", nome: "Asas de Corvo",      emoji: "🖤", raridade: "raro",    preco: 420, cor: "#0f172a", descricao: "Sombra e velocidade." },
-  { id: "wg_anjo",       categoria: "wings", nome: "Asas Angelicais",    emoji: "😇", raridade: "lendario", preco: 1500, cor: "#fef9c3", descricao: "Luz que empurra o Inimigo para trás." },
-  { id: "wg_demonio",    categoria: "wings", nome: "Asas Demoníacas",    emoji: "👿", raridade: "lendario", preco: 1500, cor: "#7f1d1d", descricao: "Você usa a própria escuridão como combustível." },
-  { id: "wg_fenix",      categoria: "wings", nome: "Cauda de Fênix",     emoji: "🔥", raridade: "mitico",  preco: 3200, cor: "#f97316", descricao: "Renasce com você a cada dia." },
 
   // ---------- MÁSCARAS ----------
   { id: "mk_bandana",    categoria: "mask", nome: "Bandana Ninja",       emoji: "🥷", raridade: "comum",   preco: 70,  cor: "#0f172a", descricao: "Silêncio antes do golpe." },
@@ -188,7 +180,6 @@ export type AvatarEquipado = {
   hat?: string | null;
   armor?: string | null;
   aura?: string | null;
-  wings?: string | null;
   mask?: string | null;
   pet?: string | null;
   frame?: string | null;
