@@ -80,34 +80,13 @@ function renderFace(shape: FaceShape, skin: (typeof SKIN_TONES)[number]) {
   // bottom outline
   const [bl, br] = rows[rows.length - 1];
   nodes.push(px(bl, 20, br - bl + 1, 1, OUTLINE));
-  // soft shading — apenas alguns pixels laterais, sem formar linhas retas
-  const shadeYs = [7, 9, 12, 15, 17];
-  shadeYs.forEach(y => {
-    const row = rows[y - 4];
-    if (row) nodes.push(<rect key={`sh-${y}`} x={row[1]} y={y} width={1} height={1} fill={skin.shade} opacity={0.7} />);
-  });
-  // toque neon quebrado (rim light) — 2 pontos apenas
-  const rimYs = [8, 13];
-  rimYs.forEach(y => {
-    const row = rows[y - 4];
-    if (row) nodes.push(<rect key={`rim-${y}`} x={row[0]} y={y} width={1} height={1} fill={NEON} opacity={0.35} />);
-  });
-  // cheek highlight
+  // pele limpa — sem sombreamentos que virem linhas. Apenas um leve toque
+  // de brilho na bochecha esquerda para dar vida, sem cruzar o rosto.
   const cheekRow = rows.find((_, i) => 4 + i === 14);
   if (cheekRow) {
-    nodes.push(px(cheekRow[0] + 1, 14, 2, 1, skin.light));
-    nodes.push(px(cheekRow[1] - 2, 14, 2, 1, skin.light));
+    nodes.push(<rect key="cheek-l" x={cheekRow[0] + 1} y={14} width={1} height={1} fill={skin.light} opacity={0.55} />);
+    nodes.push(<rect key="cheek-r" x={cheekRow[1] - 1} y={14} width={1} height={1} fill={skin.light} opacity={0.55} />);
   }
-  // jaw shadow suavizada (só cantos da penúltima linha)
-  const preLast = rows[rows.length - 2];
-  if (preLast) {
-    nodes.push(px(preLast[0], 4 + rows.length - 2, 2, 1, skin.shade));
-    nodes.push(px(preLast[1] - 1, 4 + rows.length - 2, 2, 1, skin.shade));
-  }
-  // deep chin apenas no centro
-  const last = rows[rows.length - 1];
-  const centerL = last[0] + Math.floor((last[1] - last[0] - 1) / 2);
-  nodes.push(px(centerL, 19, 2, 1, skin.deep));
   return <g>{nodes}</g>;
 }
 
