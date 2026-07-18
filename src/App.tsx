@@ -1,69 +1,44 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { GameProvider } from "@/lib/GameContext";
-import Index from "./pages/Index.tsx";
-import Auth from "./pages/Auth.tsx";
-import Settings from "./pages/Settings.tsx";
-import Help from "./pages/Help.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
+import Onboarding from "@/pages/Onboarding";
+import CriarInimigo from "@/pages/CriarInimigo";
+import InimigoPage from "@/pages/Inimigo";
+import MiniVitoriasPage from "@/pages/MiniVitorias";
+import ConquistasPage from "@/pages/Conquistas";
+import PerfilPage from "@/pages/Perfil";
 
-const queryClient = new QueryClient();
+const qc = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function Protected({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse-glow text-primary font-display text-xl">⟐ ASCENSÃO</div>
-      </div>
-    );
-  }
-  
+  if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-  return <>{children}</>;
+  return children;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+export default function App() {
+  return (
+    <QueryClientProvider client={qc}>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
+          <Toaster theme="dark" position="top-center" richColors />
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <GameProvider>
-                  <Index />
-                </GameProvider>
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <GameProvider>
-                  <Settings />
-                </GameProvider>
-              </ProtectedRoute>
-            } />
-            <Route path="/help" element={
-              <ProtectedRoute>
-                <GameProvider>
-                  <Help />
-                </GameProvider>
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
+            <Route path="/criar-inimigo" element={<Protected><CriarInimigo /></Protected>} />
+            <Route path="/" element={<Protected><Dashboard /></Protected>} />
+            <Route path="/inimigo" element={<Protected><InimigoPage /></Protected>} />
+            <Route path="/mini-vitorias" element={<Protected><MiniVitoriasPage /></Protected>} />
+            <Route path="/conquistas" element={<Protected><ConquistasPage /></Protected>} />
+            <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+    </QueryClientProvider>
+  );
+}

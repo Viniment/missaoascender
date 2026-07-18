@@ -1,153 +1,86 @@
-import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
-import { Swords, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function Auth() {
-  const { user, loading, signIn, signUp } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [nome, setNome] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const nav = useNavigate();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse-glow text-primary font-display text-xl">⟐ ASCENSÃO</div>
-      </div>
-    );
-  }
+  useEffect(() => { if (user) nav("/"); }, [user, nav]);
 
-  if (user) return <Navigate to="/" replace />;
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      toast.error('Preencha todos os campos.');
-      return;
-    }
-    if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-
-    setSubmitting(true);
+    setLoading(true);
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          toast.error(error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
-        } else {
-          toast.success('Bem-vindo de volta!');
-        }
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email, password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { nome: nome || "Herói" },
+          },
+        });
+        if (error) throw error;
+        toast.success("Conta criada. Entre no jogo.");
       } else {
-        const { error } = await signUp(email, password, displayName || 'Jogador');
-        if (error) {
-          toast.error(error.message);
-        } else {
-          toast.success('Conta criada! Verifique seu email para confirmar.');
-        }
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
       }
+    } catch (err: any) {
+      toast.error(err.message ?? "Erro");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm space-y-6"
-      >
-        {/* Logo */}
+    <div className="min-h-screen grid place-items-center bg-background px-4">
+      <div className="w-full max-w-md rpg-panel space-y-6 p-8 neon-glow">
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <Swords className="w-8 h-8 text-primary" />
-            <h1 className="font-display text-3xl tracking-widest text-primary glow-text-purple">
-              ASCENSÃO
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground font-body">
-            {isLogin ? 'Entre para continuar sua jornada' : 'Comece sua jornada de ascensão'}
-          </p>
+          <h1 className="font-display text-3xl tracking-widest text-primary glow-text-purple">NEW LIFEUP</h1>
+          <p className="text-sm text-muted-foreground">Derrote o inimigo que sabota seus sonhos.</p>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="rpg-panel space-y-4">
-          {!isLogin && (
-            <div>
-              <label className="text-xs text-muted-foreground font-body">Nome do Jogador</label>
-              <Input
-                placeholder="Seu nome"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                className="bg-secondary border-border"
-              />
-            </div>
-          )}
-
-          <div>
-            <label className="text-xs text-muted-foreground font-body">Email</label>
-            <Input
-              type="email"
-              placeholder="email@exemplo.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="bg-secondary border-border"
-              required
+        <form onSubmit={submit} className="space-y-3">
+          {mode === "signup" && (
+            <input
+              className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm"
+              placeholder="Seu nome de herói"
+              value={nome} onChange={e => setNome(e.target.value)}
             />
-          </div>
-
-          <div>
-            <label className="text-xs text-muted-foreground font-body">Senha</label>
-            <div className="relative">
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="bg-secondary border-border pr-10"
-                required
-                minLength={6}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full" disabled={submitting}>
-            {submitting ? (
-              <span className="animate-pulse">Processando...</span>
-            ) : isLogin ? (
-              <><LogIn className="w-4 h-4 mr-2" /> Entrar</>
-            ) : (
-              <><UserPlus className="w-4 h-4 mr-2" /> Criar Conta</>
-            )}
-          </Button>
-        </form>
-
-        {/* Toggle */}
-        <div className="text-center">
+          )}
+          <input
+            type="email" required
+            className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm"
+            placeholder="Email"
+            value={email} onChange={e => setEmail(e.target.value)}
+          />
+          <input
+            type="password" required minLength={6}
+            className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm"
+            placeholder="Senha (mín 6)"
+            value={password} onChange={e => setPassword(e.target.value)}
+          />
           <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors font-body"
+            type="submit" disabled={loading}
+            className="w-full bg-primary text-primary-foreground font-display tracking-wider py-2.5 rounded-md hover:opacity-90 disabled:opacity-50"
           >
-            {isLogin ? 'Não tem conta? Criar uma' : 'Já tem conta? Entrar'}
+            {loading ? "..." : mode === "signup" ? "CRIAR CONTA" : "ENTRAR"}
           </button>
-        </div>
-      </motion.div>
+        </form>
+        <button
+          onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+          className="w-full text-xs text-muted-foreground hover:text-primary"
+        >
+          {mode === "signup" ? "Já tem conta? Entrar" : "Novo aqui? Criar conta"}
+        </button>
+      </div>
     </div>
   );
 }
