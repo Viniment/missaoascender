@@ -23,6 +23,7 @@ import ChestOverlay from "@/components/fx/ChestOverlay";
 import EditHabitoDialog from "@/components/EditHabitoDialog";
 import EditInimigoDialog from "@/components/EditInimigoDialog";
 import type { Habito } from "@/lib/api";
+import { CARD_BACKGROUNDS } from "@/lib/itens";
 
 type Battle = {
   positivo: boolean;
@@ -227,10 +228,7 @@ export default function Dashboard() {
         >
           {(() => {
             const cardBgId = (heroi.avatar_equipado as any)?.cardBg as string | undefined;
-            if (!cardBgId) return null;
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { CARD_BACKGROUNDS } = require("@/lib/itens");
-            const bg = CARD_BACKGROUNDS[cardBgId];
+            const bg = cardBgId ? CARD_BACKGROUNDS[cardBgId] : null;
             return bg ? <div className={`card-bg-layer ${bg.className}`} /> : null;
           })()}
           <div className="flex items-center gap-4">
