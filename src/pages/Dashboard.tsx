@@ -15,6 +15,7 @@ import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sp
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
+import HabitFX, { fireHabitFX } from "@/components/fx/HabitFX";
 import AnimatedCounter from "@/components/fx/AnimatedCounter";
 import LevelUpOverlay from "@/components/fx/LevelUpOverlay";
 import VictoryScreen from "@/components/fx/VictoryScreen";
@@ -115,6 +116,8 @@ export default function Dashboard() {
 
       // Só abre popup ao MARCAR (não ao desmarcar)
       if (marcado) return;
+
+      fireHabitFX(positivo ? "positive" : "negative");
 
       const vidaDelta = positivo ? 0 : -Math.max(2, Math.round(h.peso_dano_cura / 3));
       setBattle({
