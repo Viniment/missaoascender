@@ -1,4 +1,4 @@
-import { getItem, AvatarEquipado, SKIN_TONES, APARENCIA_PADRAO, FaceShape, HairStyle, FaceMark, SkinTone } from "@/lib/itens";
+import { getItem, AvatarEquipado, SKIN_TONES, APARENCIA_PADRAO, FaceShape, HairStyle, FaceMark, SkinTone, BeardStyle } from "@/lib/itens";
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md" | "lg" | "xl";
@@ -284,6 +284,89 @@ function renderMark(mark: FaceMark, skin: (typeof SKIN_TONES)[number]) {
         {px(19, 15, 4, 1, "#7a1010")}
       </g>
     );
+  }
+  return null;
+}
+
+/* ---------- BEARD ----------
+ * Usa a cor do cabelo. Fica sobre a região da boca/queixo (y 17–20).
+ */
+function renderBeard(style: BeardStyle, base: string, light: string, shape: FaceShape) {
+  if (style === "none") return null;
+  const rows = faceRows(shape);
+  const rowAt = (y: number) => rows[y - 4] ?? rows[rows.length - 1];
+  const els: JSX.Element[] = [];
+  const push = (x: number, y: number, w = 1, h = 1, fill = base) => els.push(px(x, y, w, h, fill));
+
+  if (style === "stubble") {
+    // pontos esparsos ao redor da boca/queixo
+    const dots: Array<[number, number]> = [
+      [11, 17], [13, 17], [15, 17], [17, 17], [19, 17], [21, 17],
+      [12, 19], [14, 19], [18, 19], [20, 19],
+      [13, 20], [16, 20], [19, 20],
+    ];
+    dots.forEach(([x, y]) => {
+      const [l, r] = rowAt(y);
+      if (x >= l && x <= r) push(x, y, 1, 1, base);
+    });
+    return <g shapeRendering="crispEdges" opacity={0.75}>{els}</g>;
+  }
+
+  if (style === "mustache") {
+    // bigode acima da boca (y=17)
+    push(12, 17, 8, 1, base);
+    push(11, 17, 1, 1, base);
+    push(20, 17, 1, 1, base);
+    push(13, 18, 1, 1, base);
+    push(19, 18, 1, 1, base);
+    push(14, 17, 4, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "goatee") {
+    // pequeno tufo no queixo + bigode fino
+    push(12, 17, 8, 1, base);
+    push(14, 19, 4, 1, base);
+    push(15, 20, 2, 1, base);
+    push(13, 20, 1, 1, base);
+    push(18, 20, 1, 1, base);
+    push(15, 19, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "full") {
+    // barba cheia cobrindo queixo e laterais até y=20
+    for (let y = 17; y <= 20; y++) {
+      const [l, r] = rowAt(y);
+      push(l, y, r - l + 1, 1, base);
+    }
+    // recorta boca
+    push(14, 18, 4, 1, "#7a2828");
+    // highlight superior
+    push(11, 17, 2, 1, light);
+    push(19, 17, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "viking") {
+    // barba cheia + comprida descendo pelo pescoço
+    for (let y = 16; y <= 20; y++) {
+      const [l, r] = rowAt(y);
+      push(l, y, r - l + 1, 1, base);
+    }
+    // recorta boca
+    push(14, 18, 4, 1, "#7a2828");
+    // trança/queixo pontudo descendo
+    push(13, 21, 6, 1, base);
+    push(14, 22, 4, 1, base);
+    push(15, 23, 2, 1, base);
+    // tranças laterais
+    push(11, 21, 1, 2, base);
+    push(20, 21, 1, 2, base);
+    // highlight
+    push(12, 17, 2, 1, light);
+    push(18, 17, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
   }
   return null;
 }
@@ -605,6 +688,7 @@ export default function Avatar({
   const hairLight = lighten(hairBase, 0.25);
   const eyes = equipado?.eyes ?? APARENCIA_PADRAO.eyes;
   const mark = (equipado?.mark ?? APARENCIA_PADRAO.mark) as FaceMark;
+  const beard = (equipado?.beard ?? APARENCIA_PADRAO.beard) as BeardStyle;
 
   return (
     <div
@@ -622,6 +706,7 @@ export default function Avatar({
         {renderFace(face, skin)}
         {renderFeatures(eyes, skin, hairBase)}
         {renderMark(mark, skin)}
+        {renderBeard(beard, hairBase, hairLight, face)}
         {renderHair(hair, hairBase, hairLight, face)}
         {renderNeckTorso(skin)}
         {armor && <ArmorLayer id={armor.id} cor={armor.cor} />}
