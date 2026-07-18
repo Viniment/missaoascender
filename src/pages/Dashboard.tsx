@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
+import { fireReward } from "@/components/fx/RewardBurst";
 
 type Battle = {
   positivo: boolean;
@@ -76,6 +77,8 @@ export default function Dashboard() {
       if (positivo) {
         setShakeEnemy(true);
         setTimeout(() => setShakeEnemy(false), 400);
+        fireReward(`+${h.peso_xp} XP`, "#a855f7");
+        setTimeout(() => fireReward(`-${h.peso_dano_cura} HP`, "#ef4444"), 180);
         supabase.functions.invoke("mensagem-reforco", {
           body: { heroi_nome: heroi.nome, inimigo_nome: inimigo?.nome, hp_atual: (inimigo?.hp_atual ?? 100) - h.peso_dano_cura, hp_max: inimigo?.hp_max ?? 100 },
         }).then(r => setBattle(b => b ? { ...b, msg: r.data?.msg ?? "Golpe certeiro. Continue.", loading: false } : null))
