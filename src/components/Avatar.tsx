@@ -1200,6 +1200,38 @@ function FrameRing({ id, cor, size }: { id: string; cor?: string; size: number }
       </>
     );
   }
+  if (id === "fr_plasma") {
+    return (
+      <>
+        <div style={{ ...base, border: `${Math.max(2, size * 0.03)}px solid ${c}`, ["--frame-c" as any]: c, animation: "framePulse 1.6s ease-in-out infinite" }} />
+        <div style={{ ...base, background: `conic-gradient(from 0deg, transparent 0%, ${c} 30%, transparent 60%, ${c} 90%, transparent 100%)`, padding: 2, WebkitMask: "radial-gradient(circle, transparent 62%, black 64%)", mask: "radial-gradient(circle, transparent 62%, black 64%)", animation: "spin 3s linear infinite", opacity: 0.9 }} />
+      </>
+    );
+  }
+  if (id === "fr_flama") {
+    return (
+      <>
+        <div style={{ ...base, background: `conic-gradient(from 0deg, #f97316, #fde047, #dc2626, #f97316, #7f1d1d, #f97316)`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 2.4s linear infinite", boxShadow: "0 0 22px #f97316aa" }} />
+        <div style={{ ...base, boxShadow: "0 0 30px #dc262677", animation: "frameFlicker 0.9s ease-in-out infinite" }} />
+      </>
+    );
+  }
+  if (id === "fr_etereo") {
+    return (
+      <>
+        <div style={{ ...base, border: `${Math.max(2, size * 0.025)}px dashed ${c}`, animation: "spin 8s linear infinite", boxShadow: `0 0 16px ${c}aa` }} />
+        <div style={{ ...base, border: `1px solid ${c}66`, transform: "scale(1.08)", animation: "spin-rev 12s linear infinite" }} />
+      </>
+    );
+  }
+  if (id === "fr_dragao") {
+    return (
+      <>
+        <div style={{ ...base, background: `conic-gradient(from 0deg, #7f1d1d, ${c}, #facc15, ${c}, #7f1d1d, ${c})`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 5s linear infinite", boxShadow: `0 0 22px ${c}cc` }} />
+        <div style={{ ...base, background: `repeating-conic-gradient(#0f172a 0deg 12deg, transparent 12deg 24deg)`, padding: 1, WebkitMask: "radial-gradient(circle, transparent 66%, black 68%)", mask: "radial-gradient(circle, transparent 66%, black 68%)", animation: "spin-rev 9s linear infinite", opacity: 0.6 }} />
+      </>
+    );
+  }
   return null;
 }
 
