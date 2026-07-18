@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,9 @@ import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sp
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
+import AnimatedCounter from "@/components/fx/AnimatedCounter";
+import LevelUpOverlay from "@/components/fx/LevelUpOverlay";
+import VictoryScreen from "@/components/fx/VictoryScreen";
 
 type Battle = {
   positivo: boolean;
@@ -44,6 +47,26 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [battle, setBattle] = useState<Battle | null>(null);
   const [shakeEnemy, setShakeEnemy] = useState(false);
+  const [levelUp, setLevelUp] = useState<number | null>(null);
+  const [victory, setVictory] = useState<string | null>(null);
+  const prevNivel = useRef<number | null>(null);
+  const prevEnemyHp = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!heroi) return;
+    if (prevNivel.current !== null && heroi.nivel > prevNivel.current) {
+      setLevelUp(heroi.nivel);
+    }
+    prevNivel.current = heroi.nivel;
+  }, [heroi?.nivel]);
+
+  useEffect(() => {
+    if (!inimigo) return;
+    if (prevEnemyHp.current !== null && prevEnemyHp.current > 0 && inimigo.hp_atual <= 0) {
+      setVictory(inimigo.nome);
+    }
+    prevEnemyHp.current = inimigo.hp_atual;
+  }, [inimigo?.hp_atual]);
 
   useEffect(() => { if (ob === null) nav("/onboarding"); }, [ob, nav]);
   useEffect(() => { if (ob && inimigo === null) nav("/criar-inimigo"); }, [ob, inimigo, nav]);
@@ -156,6 +179,8 @@ export default function Dashboard() {
     <Shell>
       {/* Combat popup */}
       <BattleOverlay battle={battle} onClose={() => setBattle(null)} inimigo={inimigo} />
+      <LevelUpOverlay nivel={levelUp} onClose={() => setLevelUp(null)} />
+      <VictoryScreen inimigoNome={victory} onClose={() => setVictory(null)} />
 
       <div className="space-y-6">
         {/* Hero card */}
@@ -169,7 +194,7 @@ export default function Dashboard() {
               <h2 className="font-display text-2xl tracking-widest text-foreground glow-text-purple truncate">{heroi.nome}</h2>
               {heroi.titulo && <p className="text-[10px] uppercase tracking-widest text-gold">{heroi.titulo}</p>}
               <div className="flex items-center gap-3 text-xs mt-1">
-                <span className="flex items-center gap-1 text-gold font-display"><Coins className="w-3 h-3" /> {heroi.ouro}</span>
+                <span className="flex items-center gap-1 text-gold font-display"><Coins className="w-3 h-3" /> <AnimatedCounter value={heroi.ouro} /></span>
                 <span className="flex items-center gap-1 text-destructive font-display"><Flame className="w-3 h-3" /> {heroi.streak_atual}d</span>
               </div>
             </div>
