@@ -6,12 +6,12 @@ import Shell from "@/components/Shell";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchHeroi, fetchInimigoAtivo, fetchHabitos, fetchLogsHoje, fetchOnboarding,
-  toggleHabito, abrirBauDiario,
+  toggleHabito, abrirBauDiario, fetchConquistas,
 } from "@/lib/api";
 import { todayISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X } from "lucide-react";
+import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
@@ -40,6 +40,7 @@ export default function Dashboard() {
   const { data: inimigo } = useQuery({ queryKey: ["inimigo", uid], queryFn: () => fetchInimigoAtivo(uid!), enabled: !!uid });
   const { data: habitos } = useQuery({ queryKey: ["habitos", uid], queryFn: () => fetchHabitos(uid!), enabled: !!uid });
   const { data: logs } = useQuery({ queryKey: ["logs", uid, todayISO()], queryFn: () => fetchLogsHoje(uid!), enabled: !!uid });
+  const { data: conquistas } = useQuery({ queryKey: ["conq", uid], queryFn: () => fetchConquistas(uid!), enabled: !!uid });
 
   const [msg, setMsg] = useState<string>("");
   const [novoHabito, setNovoHabito] = useState({ nome: "", tipo: "positivo" as "positivo" | "negativo" });
@@ -188,13 +189,8 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="player-card scanlines p-5 pt-6"
+          className="player-card scanlines p-5"
         >
-          <span className="corner-deco tl" />
-          <span className="corner-deco tr" />
-          <span className="corner-deco bl" />
-          <span className="corner-deco br" />
-
           <div className="flex items-center gap-4">
             <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative">
               <div className="avatar-ring">
@@ -229,6 +225,9 @@ export default function Dashboard() {
                 <span className="stat-chip streak">
                   <Flame className="w-3 h-3" /> {heroi.streak_atual}d
                 </span>
+                <Link to="/conquistas" className="stat-chip trophy hover:brightness-125 transition">
+                  <Trophy className="w-3 h-3" /> {conquistas?.length ?? 0}
+                </Link>
               </div>
             </div>
           </div>
@@ -357,14 +356,17 @@ function Bar({ label, pct, value, fillClass, icon }: { label: string; pct: numbe
         <span className="font-display">{value}</span>
       </div>
       <div className="bar-track">
-        <motion.div
-          className={`h-full ${fillClass}`}
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        />
-        <div className="bar-segments" />
-        <div className="bar-shine" />
+        <div className="bar-fill-wrap">
+          <motion.div
+            className={`relative h-full ${fillClass}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="bar-shine" />
+            <div className="bar-sheen" />
+          </motion.div>
+        </div>
       </div>
     </div>
   );
