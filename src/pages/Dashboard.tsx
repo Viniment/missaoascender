@@ -317,6 +317,46 @@ export default function Dashboard() {
             </button>
           </div>
 
+          {/* Seletor de dia — permite marcar hábitos retroativos */}
+          <div className="rpg-panel p-2 flex items-center gap-2">
+            <button
+              onClick={() => setDataSelecionada(shiftISO(dataSelecionada, -1))}
+              className="p-1.5 rounded-md border border-border hover:border-primary/60 hover:text-primary"
+              title="Dia anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="flex-1 text-center">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground flex items-center justify-center gap-1">
+                <Calendar className="w-3 h-3" /> {isHoje ? "Hoje" : "Registro retroativo"}
+              </p>
+              <p className="font-display text-sm tracking-widest capitalize">
+                {formatBRDate(dataSelecionada)}
+              </p>
+            </div>
+            <button
+              onClick={() => setDataSelecionada(shiftISO(dataSelecionada, 1))}
+              disabled={isHoje}
+              className="p-1.5 rounded-md border border-border hover:border-primary/60 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Próximo dia"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            {!isHoje && (
+              <button
+                onClick={() => setDataSelecionada(todayISO())}
+                className="text-[10px] px-2 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-widest"
+              >
+                Hoje
+              </button>
+            )}
+          </div>
+          {!isHoje && (
+            <p className="text-[10px] text-center text-muted-foreground italic -mt-2">
+              Marcando hábitos de um dia anterior — recompensas e dano são aplicados normalmente.
+            </p>
+          )}
+
           {showForm && (
             <div className="rpg-panel p-4 space-y-3">
               <input
@@ -398,7 +438,13 @@ export default function Dashboard() {
         inimigo={inimigo ?? null}
         onboarding={ob}
         onClose={() => setEditHabito(null)}
-        onSaved={() => qc.invalidateQueries({ queryKey: ["habitos", uid] })}
+        onSaved={async () => {
+          if (uid) {
+            await recalcularHpMaxInimigo(uid);
+            await qc.invalidateQueries({ queryKey: ["inimigo", uid] });
+          }
+          qc.invalidateQueries({ queryKey: ["habitos", uid] });
+        }}
       />
       <EditInimigoDialog
         inimigo={inimigo ?? null}
