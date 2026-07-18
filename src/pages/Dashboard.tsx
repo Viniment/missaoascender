@@ -309,11 +309,11 @@ export default function Dashboard() {
             className="rpg-panel danger-glow scanlines border-destructive/40 p-4 sm:p-5 space-y-3 overflow-hidden"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="text-3xl sm:text-4xl drop-shadow-[0_0_10px_rgba(255,0,0,0.6)] shrink-0">{(inimigo.avatar_config as any)?.emoji ?? "😈"}</div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> BOSS</p>
-                  <h3 className="font-display text-base sm:text-xl tracking-widest text-foreground truncate">{inimigo.nome}</h3>
+                  <h3 className="font-display text-sm sm:text-xl tracking-widest sm:tracking-widest text-foreground break-words leading-tight">{inimigo.nome}</h3>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -328,12 +328,6 @@ export default function Dashboard() {
               </div>
             </div>
             <Bar label="HP" pct={enemyPct} value={`${inimigo.hp_atual}/${inimigo.hp_max}`} fillClass="hp-bar-fill" icon={<Swords className="w-3 h-3" />} />
-            {msg && (
-              <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 p-3">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-primary mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> Mentor</p>
-                <p className="text-sm italic text-foreground/90">"{msg}"</p>
-              </div>
-            )}
           </motion.div>
         )}
 
