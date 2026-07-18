@@ -503,7 +503,6 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
           {px(14, 23, 4, 9, "#1c1917")}
           {px(14, 23, 4, 1, OUTLINE)}
           {/* costuras laterais (tracejado) */}
-          {[26, 28, 30].forEach(() => {})}
           {px(6, 26, 1, 1, "#78350f")}{px(6, 28, 1, 1, "#78350f")}{px(6, 30, 1, 1, "#78350f")}
           {px(25, 26, 1, 1, "#78350f")}{px(25, 28, 1, 1, "#78350f")}{px(25, 30, 1, 1, "#78350f")}
           {/* cinto */}
