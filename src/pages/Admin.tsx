@@ -12,7 +12,7 @@ import { ITENS } from "@/lib/itens";
 import {
   Shield, Heart, Coins, Zap, RefreshCw, Skull, Sparkles, Trash2, Flame,
   Trophy, Gift, Megaphone, Send, User, Search, Package, Infinity as InfinityIcon,
-  Wand2, Users,
+  Wand2, Users, Swords,
 } from "lucide-react";
 
 export default function Admin() {
@@ -98,6 +98,12 @@ export default function Admin() {
 
   const restaurarVida = () => patch({ vida_atual: heroi.vida_max }, "Vida restaurada");
 
+  const dano50Heroi = () =>
+    patch(
+      { vida_atual: Math.max(1, Math.floor(heroi.vida_atual - heroi.vida_max * 0.5)) },
+      "-50% da vida do herói"
+    );
+
   const addOuro = (v: number) => patch({ ouro: heroi.ouro + v }, `+${v} de ouro`);
 
   const zerarConta = async () => {
@@ -118,6 +124,15 @@ export default function Admin() {
     setBusy(true);
     supabase.from("inimigo").update({ hp_atual: 0, ativo: false, derrotado_em: new Date().toISOString() }).eq("id", inimigo.id)
       .then(() => { toast.success("Inimigo derrotado"); qc.invalidateQueries(); })
+      .then(() => setBusy(false));
+  };
+
+  const dano50Inimigo = () => {
+    if (!inimigo) return;
+    setBusy(true);
+    const novo = Math.max(1, Math.floor(inimigo.hp_atual - inimigo.hp_max * 0.5));
+    supabase.from("inimigo").update({ hp_atual: novo }).eq("id", inimigo.id)
+      .then(() => { toast.success("-50% do HP do inimigo"); qc.invalidateQueries(); })
       .then(() => setBusy(false));
   };
 
@@ -172,6 +187,28 @@ export default function Admin() {
     const { error } = await supabase.from("users").update({ itens_desbloqueados: todos }).eq("id", uid);
     if (error) toast.error(error.message);
     else toast.success(`${todos.length} itens desbloqueados`);
+    await qc.invalidateQueries();
+    setBusy(false);
+  };
+
+  const limparInventario = async () => {
+    if (!uid) return;
+    if (!confirm("Remover TODOS os itens obtidos (loja/admin) do herói? Slots equipados com itens da loja voltarão ao padrão.")) return;
+    setBusy(true);
+    const shopIds = new Set(ITENS.map(i => i.id));
+    const eqAtual: any = heroi.avatar_equipado ?? {};
+    const eqLimpo = { ...eqAtual };
+    for (const key of ["hat", "armor", "aura", "mask", "pet", "frame", "card_bg", "app_bg"] as const) {
+      if (eqAtual[key] && shopIds.has(eqAtual[key])) {
+        eqLimpo[key] = null;
+      }
+    }
+    const { error } = await supabase
+      .from("users")
+      .update({ itens_desbloqueados: [], avatar_equipado: eqLimpo })
+      .eq("id", uid);
+    if (error) toast.error(error.message);
+    else toast.success("Inventário limpo — só restam itens padrão");
     await qc.invalidateQueries();
     setBusy(false);
   };
@@ -299,6 +336,7 @@ export default function Admin() {
             <Group title="Vida">
               <AdminBtn onClick={restaurarVida} disabled={busy} icon={<Heart className="w-4 h-4" />}>Restaurar vida</AdminBtn>
               <AdminBtn onClick={() => patch({ vida_max: heroi.vida_max + 50, vida_atual: heroi.vida_atual + 50 }, "+50 vida máx.")} disabled={busy} icon={<Heart className="w-4 h-4" />}>+50 vida máx</AdminBtn>
+              <AdminBtn onClick={dano50Heroi} disabled={busy} danger icon={<Swords className="w-4 h-4" />}>-50% da vida</AdminBtn>
             </Group>
 
             <Group title="Ouro">
@@ -343,6 +381,7 @@ export default function Admin() {
             {inimigo && (
               <Group title="Ações">
                 <AdminBtn onClick={curarInimigo} disabled={busy} icon={<Heart className="w-4 h-4" />}>Curar HP total</AdminBtn>
+                <AdminBtn onClick={dano50Inimigo} disabled={busy} danger icon={<Swords className="w-4 h-4" />}>-50% do HP</AdminBtn>
                 <AdminBtn onClick={derrotarInimigo} disabled={busy} danger icon={<Skull className="w-4 h-4" />}>Derrotar agora</AdminBtn>
               </Group>
             )}
@@ -385,6 +424,7 @@ export default function Admin() {
             </div>
             <Group title="Atalhos">
               <AdminBtn onClick={liberarTodosItens} disabled={busy} icon={<Package className="w-4 h-4" />}>Liberar todos itens</AdminBtn>
+              <AdminBtn onClick={limparInventario} disabled={busy} danger icon={<Trash2 className="w-4 h-4" />}>Limpar inventário</AdminBtn>
               <AdminBtn onClick={xpMeioNivel} disabled={busy} icon={<Zap className="w-4 h-4" />}>50% XP máximo</AdminBtn>
               <AdminBtn onClick={() => addOuro(10000)} disabled={busy} icon={<Coins className="w-4 h-4" />}>+10.000 ouro</AdminBtn>
               <AdminBtn onClick={() => setNivel(heroi.nivel + 10)} disabled={busy} icon={<Zap className="w-4 h-4" />}>+10 níveis</AdminBtn>
