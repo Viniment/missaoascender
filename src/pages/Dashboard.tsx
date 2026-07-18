@@ -272,7 +272,16 @@ export default function Dashboard() {
                   <h3 className="font-display text-xl tracking-widest text-foreground">{inimigo.nome}</h3>
                 </div>
               </div>
-              <button onClick={() => nav("/inimigo")} className="text-xs text-muted-foreground hover:text-primary">detalhes →</button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setEditInimigoOpen(true)}
+                  className="p-1.5 rounded-md border border-destructive/30 hover:border-destructive/60 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  title="Editar inimigo"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => nav("/inimigo")} className="text-xs text-muted-foreground hover:text-primary px-2">detalhes →</button>
+              </div>
             </div>
             <Bar label="HP" pct={enemyPct} value={`${inimigo.hp_atual}/${inimigo.hp_max}`} fillClass="hp-bar-fill" icon={<Swords className="w-3 h-3" />} />
             {msg && (
@@ -331,7 +340,7 @@ export default function Dashboard() {
             <div className="space-y-2">
               <p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Swords className="w-3 h-3" /> Ataques ao inimigo</p>
               {positivos.map(h => (
-                <HabitoRow key={h.id} h={h} marcado={logs?.has(h.id) ?? false} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} />
+                <HabitoRow key={h.id} h={h} marcado={logs?.has(h.id) ?? false} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} onEdit={() => setEditHabito(h)} />
               ))}
             </div>
           )}
@@ -341,7 +350,7 @@ export default function Dashboard() {
             <div className="space-y-2">
               <p className="text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> Armadilhas do inimigo</p>
               {negativos.map(h => (
-                <HabitoRow key={h.id} h={h} marcado={logs?.has(h.id) ?? false} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} negativo />
+                <HabitoRow key={h.id} h={h} marcado={logs?.has(h.id) ?? false} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} onEdit={() => setEditHabito(h)} negativo />
               ))}
             </div>
           )}
@@ -368,6 +377,19 @@ export default function Dashboard() {
         gold={chestGold}
         onOpen={executarAberturaBau}
         onClose={() => setChestOpen(false)}
+      />
+      <EditHabitoDialog
+        habito={editHabito}
+        inimigo={inimigo ?? null}
+        onboarding={ob}
+        onClose={() => setEditHabito(null)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["habitos", uid] })}
+      />
+      <EditInimigoDialog
+        inimigo={inimigo ?? null}
+        open={editInimigoOpen}
+        onClose={() => setEditInimigoOpen(false)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["inimigo", uid] })}
       />
     </Shell>
   );
@@ -397,7 +419,7 @@ function Bar({ label, pct, value, fillClass, icon }: { label: string; pct: numbe
   );
 }
 
-function HabitoRow({ h, marcado, onToggle, onDelete, negativo }: any) {
+function HabitoRow({ h, marcado, onToggle, onDelete, onEdit, negativo }: any) {
   return (
     <div className={`rpg-panel p-3 flex items-center gap-3 transition-all ${marcado ? "opacity-60" : "hover:border-primary/50"}`}>
       <button
@@ -415,9 +437,14 @@ function HabitoRow({ h, marcado, onToggle, onDelete, negativo }: any) {
         <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-display">
           {negativo
             ? <>−{h.peso_xp} XP · +{h.peso_dano_cura} HP inim.</>
-            : <>+{h.peso_xp} XP · −{h.peso_dano_cura} HP inim.</>}
+            : <>+{h.peso_xp} XP · −{h.peso_dano_cura} HP · +{h.peso_ouro ?? 0}<span className="text-gold">🪙</span></>}
         </p>
       </div>
+      {onEdit && (
+        <button onClick={onEdit} className="text-muted-foreground hover:text-primary p-1" title="Editar">
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+      )}
       <button onClick={onDelete} className="text-muted-foreground hover:text-destructive p-1">
         <Trash2 className="w-3.5 h-3.5" />
       </button>
