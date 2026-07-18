@@ -299,27 +299,38 @@ function renderBeard(style: BeardStyle, base: string, light: string, shape: Face
   const push = (x: number, y: number, w = 1, h = 1, fill = base) => els.push(px(x, y, w, h, fill));
 
   if (style === "stubble") {
-    // pontos esparsos ao redor da boca/queixo
-    const dots: Array<[number, number]> = [
-      [11, 17], [13, 17], [15, 17], [17, 17], [19, 17], [21, 17],
-      [12, 19], [14, 19], [18, 19], [20, 19],
-      [13, 20], [16, 20], [19, 20],
-    ];
-    dots.forEach(([x, y]) => {
+    // sombra difusa ao longo do maxilar e área do bigode — sem pontos aleatórios.
+    // Duas camadas de opacidade baixa criam a sensação de barba por fazer.
+    const shade: JSX.Element[] = [];
+    const pushShade = (x: number, y: number, w = 1, h = 1, op = 0.35) => {
       const [l, r] = rowAt(y);
-      if (x >= l && x <= r) push(x, y, 1, 1, base);
-    });
-    return <g shapeRendering="crispEdges" opacity={0.75}>{els}</g>;
+      const nx = Math.max(l, x);
+      const nw = Math.min(r, x + w - 1) - nx + 1;
+      if (nw > 0) shade.push(<rect key={`sb-${x}-${y}-${w}`} x={nx} y={y} width={nw} height={h} fill={base} opacity={op} />);
+    };
+    // bigode leve (acima da boca)
+    pushShade(11, 17, 10, 1, 0.30);
+    // laterais do queixo
+    pushShade(9, 18, 4, 1, 0.30);
+    pushShade(19, 18, 4, 1, 0.30);
+    // queixo (abaixo da boca)
+    pushShade(9, 19, 14, 1, 0.35);
+    // segunda camada mais escura no centro do queixo p/ profundidade
+    pushShade(12, 19, 8, 1, 0.25);
+    return <g shapeRendering="crispEdges">{shade}</g>;
   }
 
   if (style === "mustache") {
-    // bigode acima da boca (y=17)
-    push(12, 17, 8, 1, base);
-    push(11, 17, 1, 1, base);
-    push(20, 17, 1, 1, base);
-    push(13, 18, 1, 1, base);
-    push(19, 18, 1, 1, base);
-    push(14, 17, 4, 1, light);
+    // Bigode "handlebar" clássico em pixel, todo na linha y=17 (entre nariz e boca).
+    // Base espessa no centro + pontas afiladas para cima nos lados.
+    push(12, 17, 8, 1, base);   // corpo do bigode
+    push(11, 17, 1, 1, base);   // ponta esquerda
+    push(20, 17, 1, 1, base);   // ponta direita
+    // "arco" central sob o nariz (fica mais fino no meio, mostrando o filtrum)
+    push(15, 17, 2, 1, "#7a2828");
+    // brilho superior sutil nas asas
+    push(12, 17, 2, 1, light);
+    push(18, 17, 2, 1, light);
     return <g shapeRendering="crispEdges">{els}</g>;
   }
 
