@@ -1146,9 +1146,10 @@ export default function Avatar({
   return (
     <div
       className={cn("relative shrink-0 pixel-avatar", className)}
-      style={{ width: s, height: s }}
+      style={{ width: s, height: s, overflow: "visible" }}
     >
       {frame && <FrameRing id={frame.id} cor={frame.cor} size={s} />}
+      {wings && <WingsOverlay id={wings.id} cor={wings.cor} size={s} />}
       {glow && !aura && (
         <div
           className="absolute inset-0 pointer-events-none rounded-full"
@@ -1157,7 +1158,6 @@ export default function Avatar({
       )}
       <svg viewBox="0 0 32 32" width={s} height={s} shapeRendering="crispEdges" className="relative block" style={{ imageRendering: "pixelated" }}>
         {aura && <AuraLayer cor={auraColor} />}
-        {wings && <WingsLayer id={wings.id} cor={wings.cor} />}
         {renderFace(face, skin)}
         {renderFeatures(eyes, skin, hairBase)}
         {renderMark(mark, skin)}
