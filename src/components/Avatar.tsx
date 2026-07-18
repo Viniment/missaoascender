@@ -671,6 +671,113 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
         </g>
       );
     }
+    case "arm_cristal": {
+      const crys = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(crys, "#0e7490")}
+          {px(5, 24, 22, 1, "#a5f3fc")}
+          {/* facetas de cristal */}
+          {px(6, 26, 3, 3, "#a5f3fc")}
+          {px(23, 26, 3, 3, "#a5f3fc")}
+          {px(6, 26, 3, 1, "#ecfeff")}
+          {px(23, 26, 3, 1, "#ecfeff")}
+          {/* placa central */}
+          {px(12, 25, 8, 6, "#0891b2")}
+          {px(12, 25, 8, 1, "#67e8f9")}
+          {px(13, 27, 6, 1, "#a5f3fc")}
+          {px(14, 29, 4, 1, "#ecfeff")}
+          {/* gema */}
+          {px(15, 28, 2, 2, "#0e7490")}
+          {px(15, 28, 1, 1, "#ecfeff")}
+        </g>
+      );
+    }
+    case "arm_lich": {
+      const lich = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(lich, "#3b0764")}
+          {/* costelas */}
+          {px(6, 26, 3, 1, "#a78bfa")}
+          {px(6, 28, 3, 1, "#a78bfa")}
+          {px(6, 30, 3, 1, "#a78bfa")}
+          {px(23, 26, 3, 1, "#a78bfa")}
+          {px(23, 28, 3, 1, "#a78bfa")}
+          {px(23, 30, 3, 1, "#a78bfa")}
+          {/* peitoral rúnico */}
+          {px(13, 24, 6, 1, "#4c1d95")}
+          {px(12, 25, 8, 5, "#4c1d95")}
+          {px(13, 25, 6, 1, "#8b5cf6")}
+          {/* runa em X */}
+          {px(14, 26, 1, 1, "#22d3ee")}
+          {px(17, 26, 1, 1, "#22d3ee")}
+          {px(15, 27, 2, 1, "#22d3ee")}
+          {px(14, 28, 1, 1, "#22d3ee")}
+          {px(17, 28, 1, 1, "#22d3ee")}
+          {/* aura frontal */}
+          {px(3, 31, 26, 1, "#22d3ee")}
+        </g>
+      );
+    }
+    case "arm_dragao": {
+      const scale = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(scale, "#450a0a")}
+          {/* pauldrons cravados */}
+          {px(2, 22, 6, 1, "#7f1d1d")}
+          {px(1, 23, 8, 4, "#7f1d1d")}
+          {px(24, 22, 6, 1, "#7f1d1d")}
+          {px(23, 23, 8, 4, "#7f1d1d")}
+          {px(2, 22, 6, 1, OUTLINE)}
+          {px(24, 22, 6, 1, OUTLINE)}
+          {px(1, 27, 8, 1, OUTLINE)}
+          {px(23, 27, 8, 1, OUTLINE)}
+          {/* espinhos */}
+          {px(3, 21, 1, 1, "#f97316")}
+          {px(6, 21, 1, 1, "#f97316")}
+          {px(25, 21, 1, 1, "#f97316")}
+          {px(28, 21, 1, 1, "#f97316")}
+          {/* escamas em fileiras */}
+          {px(5, 25, 22, 1, "#991b1b")}
+          {px(5, 27, 22, 1, "#991b1b")}
+          {px(5, 29, 22, 1, "#991b1b")}
+          {px(7, 26, 2, 1, "#f97316")}
+          {px(15, 26, 2, 1, "#f97316")}
+          {px(23, 26, 2, 1, "#f97316")}
+          {/* garra central */}
+          {px(15, 24, 2, 4, "#0f172a")}
+          {px(15, 24, 2, 1, "#facc15")}
+        </g>
+      );
+    }
+    case "arm_divina": {
+      const div = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(div, "#a16207")}
+          {px(5, 24, 22, 1, "#fef9c3")}
+          {/* asas peitorais douradas */}
+          {px(6, 26, 4, 1, "#fbbf24")}
+          {px(5, 27, 5, 1, "#fbbf24")}
+          {px(22, 26, 4, 1, "#fbbf24")}
+          {px(22, 27, 5, 1, "#fbbf24")}
+          {px(6, 26, 4, 1, "#fef9c3")}
+          {px(22, 26, 4, 1, "#fef9c3")}
+          {/* peitoral com sol */}
+          {px(13, 25, 6, 6, "#fbbf24")}
+          {px(13, 25, 6, 1, OUTLINE)}
+          {px(14, 26, 4, 4, "#fef9c3")}
+          {px(15, 27, 2, 2, "#f59e0b")}
+          {/* raios */}
+          {px(12, 27, 1, 1, "#fde68a")}
+          {px(19, 27, 1, 1, "#fde68a")}
+          {px(15, 24, 2, 1, "#fde68a")}
+          {px(15, 31, 2, 1, "#fde68a")}
+        </g>
+      );
+    }
     default:
       return null;
   }
