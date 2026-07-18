@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
-import Avatar from "@/components/Avatar";
 import { fetchHeroi, fetchConquistas, comprarItem, sincronizarItensDesbloqueados } from "@/lib/api";
 import { ITENS, ItemCategoria, RARIDADE_COR, Item } from "@/lib/itens";
 import { Coins, Lock, Sparkles, Check } from "lucide-react";
