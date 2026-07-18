@@ -86,7 +86,7 @@ export async function comprarItem(userId: string, heroi: Heroi, itemId: string) 
   });
 }
 
-export async function equiparItem(userId: string, heroi: Heroi, itemId: string | null, categoria: "hat" | "armor" | "aura" | "weapon" | "wings" | "mask" | "pet" | "frame") {
+export async function equiparItem(userId: string, heroi: Heroi, itemId: string | null, categoria: "hat" | "armor" | "aura" | "wings" | "mask" | "pet" | "frame") {
   const equipado = { ...(heroi.avatar_equipado ?? {}), [categoria]: itemId };
   await supabase.from("users").update({ avatar_equipado: equipado as any }).eq("id", userId);
 }

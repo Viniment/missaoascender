@@ -944,7 +944,6 @@ export default function Avatar({
   const hat = getItem(equipado?.hat);
   const armor = getItem(equipado?.armor);
   const aura = getItem(equipado?.aura);
-  const weapon = getItem(equipado?.weapon);
   const wings  = getItem(equipado?.wings);
   const mask   = getItem(equipado?.mask);
   const pet    = getItem(equipado?.pet);
@@ -983,7 +982,6 @@ export default function Avatar({
         {renderHair(hair, hairBase, hairLight, face)}
         {renderNeckTorso(skin)}
         {armor && <ArmorLayer id={armor.id} cor={armor.cor} />}
-        {weapon && <WeaponLayer id={weapon.id} cor={weapon.cor} />}
         {mask && <MaskLayer id={mask.id} cor={mask.cor} />}
         {hat && <HatLayer id={hat.id} />}
       </svg>

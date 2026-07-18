@@ -1,6 +1,6 @@
 export type ItemCategoria =
   | "hat" | "armor" | "aura"
-  | "weapon" | "wings" | "mask" | "pet" | "frame";
+  | "wings" | "mask" | "pet" | "frame";
 export type ItemRaridade = "comum" | "raro" | "epico" | "lendario" | "mitico";
 
 export type Item = {
@@ -61,17 +61,6 @@ export const ITENS: Item[] = [
   { id: "aura_chama",   categoria: "aura", nome: "Aura de Chamas",     emoji: "🔥", raridade: "epico",    preco: 500, cor: "#f97316", descricao: "Fúria acesa contra o inimigo." },
   { id: "aura_divina",  categoria: "aura", nome: "Aura Divina",        emoji: "✨", raridade: "lendario", preco: null, unlock: "streak_7", descricao: "Desbloqueada ao manter 7 dias de streak." },
   { id: "aura_vitoria", categoria: "aura", nome: "Aura da Vitória",    emoji: "🏆", raridade: "lendario", preco: null, unlock: "inimigo_derrotado", descricao: "Ao derrotar seu primeiro Inimigo." },
-
-  // ---------- ARMAS ----------
-  { id: "wp_adaga",      categoria: "weapon", nome: "Adaga do Novato",   emoji: "🗡️", raridade: "comum",    preco: 60,  cor: "#94a3b8", descricao: "Rápida e discreta." },
-  { id: "wp_espada",     categoria: "weapon", nome: "Espada de Ferro",   emoji: "⚔️", raridade: "comum",    preco: 120, cor: "#cbd5e1", descricao: "Confiável em qualquer duelo." },
-  { id: "wp_machado",    categoria: "weapon", nome: "Machado do Berserker", emoji: "🪓", raridade: "raro",  preco: 260, cor: "#b45309", descricao: "Corta desculpas ao meio." },
-  { id: "wp_katana",     categoria: "weapon", nome: "Katana Neon",       emoji: "🗡️", raridade: "raro",    preco: 320, cor: "#22d3ee", descricao: "Precisão cirúrgica com brilho neon." },
-  { id: "wp_cajado",     categoria: "weapon", nome: "Cajado Rúnico",     emoji: "🪄", raridade: "epico",   preco: 520, cor: "#a855f7", descricao: "Canaliza foco e disciplina." },
-  { id: "wp_arco",       categoria: "weapon", nome: "Arco Élfico",       emoji: "🏹", raridade: "epico",   preco: 620, cor: "#4ade80", descricao: "Mira à longa distância — o hábito certo, no instante certo." },
-  { id: "wp_foice",      categoria: "weapon", nome: "Foice Sombria",     emoji: "☠️", raridade: "epico",   preco: 780, cor: "#7c3aed", descricao: "Colhe os padrões que te derrubam." },
-  { id: "wp_martelo",    categoria: "weapon", nome: "Martelo do Trovão", emoji: "🔨", raridade: "lendario", preco: 1200, cor: "#facc15", descricao: "Cada golpe é um decreto." },
-  { id: "wp_lamina",     categoria: "weapon", nome: "Lâmina Mítica",     emoji: "🌟", raridade: "mitico",  preco: 2600, cor: "#f472b6", descricao: "Forjada em batalhas ganhas contra si mesmo." },
 
   // ---------- ASAS / CAPAS ----------
   { id: "wg_capa",       categoria: "wings", nome: "Capa de Viajante",  emoji: "🧣", raridade: "comum",    preco: 90,  cor: "#78350f", descricao: "Para a longa jornada." },
@@ -149,7 +138,6 @@ export type AvatarEquipado = {
   hat?: string | null;
   armor?: string | null;
   aura?: string | null;
-  weapon?: string | null;
   wings?: string | null;
   mask?: string | null;
   pet?: string | null;
