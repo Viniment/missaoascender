@@ -321,16 +321,32 @@ function renderBeard(style: BeardStyle, base: string, light: string, shape: Face
   }
 
   if (style === "mustache") {
-    // Bigode "handlebar" clássico em pixel, todo na linha y=17 (entre nariz e boca).
-    // Base espessa no centro + pontas afiladas para cima nos lados.
-    push(12, 17, 8, 1, base);   // corpo do bigode
-    push(11, 17, 1, 1, base);   // ponta esquerda
-    push(20, 17, 1, 1, base);   // ponta direita
-    // "arco" central sob o nariz (fica mais fino no meio, mostrando o filtrum)
-    push(15, 17, 2, 1, "#7a2828");
-    // brilho superior sutil nas asas
-    push(12, 17, 2, 1, light);
-    push(18, 17, 2, 1, light);
+    // Bigode denso em 2 linhas, com asas descendo pelas laterais da boca.
+    // Layout (relativo ao rosto):
+    //   y=17  ..XXXXXXXX..    (corpo cheio, 8px, base 12..19)
+    //   y=18  X..........X    (pontas descendo, x=11 e x=20 — fora da boca)
+    // A boca (x 13..18 em y=18) fica intacta entre as pontas.
+    const drawIf = (x: number, y: number, w = 1, h = 1, fill = base) => {
+      const [l, r] = rowAt(y);
+      const nx = Math.max(l, x);
+      const nw = Math.min(r, x + w - 1) - nx + 1;
+      if (nw > 0) push(nx, y, nw, h, fill);
+    };
+    // corpo
+    drawIf(12, 17, 8, 1, base);
+    // outline inferior sutil no corpo p/ separar da pele
+    drawIf(12, 17, 8, 1, base); // reforço
+    // pontas laterais descendo ao lado da boca
+    drawIf(11, 18, 1, 1, base);
+    drawIf(20, 18, 1, 1, base);
+    drawIf(12, 18, 1, 1, base);
+    drawIf(19, 18, 1, 1, base);
+    // brilho nas asas superiores
+    drawIf(13, 17, 2, 1, light);
+    drawIf(17, 17, 2, 1, light);
+    // sombra fina embaixo do corpo, nas extremidades (dá profundidade)
+    drawIf(12, 17, 1, 1, OUTLINE);
+    drawIf(19, 17, 1, 1, OUTLINE);
     return <g shapeRendering="crispEdges">{els}</g>;
   }
 
