@@ -1,6 +1,6 @@
 export type ItemCategoria =
   | "hat" | "armor" | "aura"
-  | "wings" | "mask" | "pet" | "frame"
+  | "mask" | "pet" | "frame"
   | "card_bg" | "app_bg";
 export type ItemRaridade = "comum" | "raro" | "epico" | "lendario" | "mitico";
 
@@ -188,7 +188,6 @@ export type AvatarEquipado = {
   hat?: string | null;
   armor?: string | null;
   aura?: string | null;
-  wings?: string | null;
   mask?: string | null;
   pet?: string | null;
   frame?: string | null;
