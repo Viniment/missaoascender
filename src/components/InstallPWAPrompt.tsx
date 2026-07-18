@@ -85,7 +85,7 @@ export default function InstallPWAPrompt() {
               <Download className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-display text-sm text-foreground">Instalar New LifeUp</div>
+              <div className="font-display text-sm text-foreground">Instalar New LifeUP</div>
               <div className="text-[11px] text-muted-foreground">Adicione ao início e jogue como app.</div>
             </div>
             <button
