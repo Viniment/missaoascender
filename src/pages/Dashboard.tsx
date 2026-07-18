@@ -224,33 +224,33 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="player-card scanlines p-5"
+          className="player-card scanlines p-3.5 sm:p-5"
         >
           {(() => {
             const cardBgId = (heroi.avatar_equipado as any)?.cardBg as string | undefined;
             const bg = cardBgId ? CARD_BACKGROUNDS[cardBgId] : null;
             return bg ? <div className={`card-bg-layer ${bg.className}`} /> : null;
           })()}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative">
               <div className="avatar-ring">
                 <div className="avatar-inner">
-                  <Avatar equipado={heroi.avatar_equipado} size="lg" />
+                  <Avatar equipado={heroi.avatar_equipado} size="md" />
                 </div>
               </div>
-              <div className="level-badge absolute -bottom-2 -right-2 shadow-lg">
+              <div className="level-badge level-badge-sm absolute -bottom-2 -right-2 shadow-lg">
                 <div className="flex flex-col items-center justify-center px-1">
                   <small>LVL</small>
-                  <span className="text-base leading-none">{heroi.nivel}</span>
+                  <span className="text-sm sm:text-base leading-none">{heroi.nivel}</span>
                 </div>
               </div>
             </Link>
 
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <p className="text-[10px] text-primary/80 uppercase tracking-[0.3em] flex items-center gap-1.5">
+            <div className="flex-1 min-w-0 space-y-1">
+              <p className="text-[9px] sm:text-[10px] text-primary/80 uppercase tracking-[0.3em] flex items-center gap-1.5">
                 <Shield className="w-3 h-3" /> HERÓI
               </p>
-              <h2 className="font-display text-2xl tracking-widest text-foreground glow-text-purple truncate leading-tight">
+              <h2 className="font-display text-lg sm:text-2xl tracking-widest text-foreground glow-text-purple truncate leading-tight">
                 {heroi.nome}
               </h2>
               {heroi.titulo && (
@@ -258,21 +258,21 @@ export default function Dashboard() {
                   <Sparkles className="w-3 h-3" /> {heroi.titulo}
                 </div>
               )}
-              <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1">
                 <span className="stat-chip gold">
-                  <Coins className="w-3.5 h-3.5" /> <AnimatedCounter value={heroi.ouro} />
+                  <Coins className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <AnimatedCounter value={heroi.ouro} />
                 </span>
                 <span className="stat-chip streak">
-                  <Flame className="w-3.5 h-3.5" /> {heroi.streak_atual}d
+                  <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {heroi.streak_atual}d
                 </span>
                 <Link to="/conquistas" className="stat-chip trophy hover:brightness-125 transition">
-                  <Trophy className="w-3.5 h-3.5" /> {conquistas?.length ?? 0}
+                  <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {conquistas?.length ?? 0}
                 </Link>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 space-y-4">
+          <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
             <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3.5 h-3.5" />} />
             <Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3.5 h-3.5" />} />
           </div>
@@ -283,14 +283,14 @@ export default function Dashboard() {
           <motion.div
             animate={shakeEnemy ? { x: [0, -6, 6, -4, 4, 0] } : {}}
             transition={{ duration: 0.4 }}
-            className="rpg-panel danger-glow scanlines border-destructive/40 p-5 space-y-3 overflow-hidden"
+            className="rpg-panel danger-glow scanlines border-destructive/40 p-4 sm:p-5 space-y-3 overflow-hidden"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl drop-shadow-[0_0_10px_rgba(255,0,0,0.6)]">{(inimigo.avatar_config as any)?.emoji ?? "😈"}</div>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="text-3xl sm:text-4xl drop-shadow-[0_0_10px_rgba(255,0,0,0.6)] shrink-0">{(inimigo.avatar_config as any)?.emoji ?? "😈"}</div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> BOSS</p>
-                  <h3 className="font-display text-xl tracking-widest text-foreground">{inimigo.nome}</h3>
+                  <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> BOSS</p>
+                  <h3 className="font-display text-base sm:text-xl tracking-widest text-foreground truncate">{inimigo.nome}</h3>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -465,9 +465,9 @@ export default function Dashboard() {
 function Bar({ label, pct, value, fillClass, icon }: { label: string; pct: number; value: string; fillClass: string; icon: React.ReactNode }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-1">
-        <span className="flex items-center gap-1">{icon}{label}</span>
-        <span className="font-display">{value}</span>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="bar-label">{icon}{label}</span>
+        <span className="bar-value">{value}</span>
       </div>
       <div className="bar-track">
         <div className="bar-fill-wrap">
