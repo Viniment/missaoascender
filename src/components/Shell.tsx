@@ -64,7 +64,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="max-w-4xl mx-auto px-4 py-6">{children}</main>
+      <main className="relative z-10 max-w-4xl mx-auto px-4 py-6">{children}</main>
       <nav className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto max-w-md px-3 pb-3 pt-2">
           <div className="relative flex items-center justify-between gap-1 rounded-2xl border border-primary/25 bg-background/85 backdrop-blur-xl px-2 py-2 shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.5),0_0_0_1px_hsl(var(--primary)/0.08)_inset]">
