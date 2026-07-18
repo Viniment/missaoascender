@@ -55,6 +55,10 @@ export const ITENS: Item[] = [
   { id: "arm_manto",    categoria: "armor", nome: "Manto Sombrio",     emoji: "🧥", raridade: "epico",    preco: 400, cor: "#4c1d95", descricao: "Manto do caçador de demônios internos." },
   { id: "arm_dourada",  categoria: "armor", nome: "Armadura Dourada",  emoji: "🛡️", raridade: "lendario", preco: 1000, cor: "#eab308", descricao: "Reservada aos disciplinados." },
   { id: "arm_iniciante", categoria: "armor", nome: "Traje do Iniciante", emoji: "👕", raridade: "comum", preco: null, unlock: "nivel_1", descricao: "Concedido no início da jornada." },
+  { id: "arm_cristal",  categoria: "armor", nome: "Armadura de Cristal", emoji: "💎", raridade: "raro",    preco: 320, cor: "#67e8f9", descricao: "Placas geladas que refletem a luz do sistema." },
+  { id: "arm_lich",     categoria: "armor", nome: "Placas do Lich",     emoji: "☠️", raridade: "epico",   preco: 720, cor: "#6d28d9", descricao: "Runas necróticas gravadas em ébano." },
+  { id: "arm_dragao",   categoria: "armor", nome: "Escamas do Dragão",  emoji: "🐲", raridade: "lendario", preco: 1600, cor: "#b91c1c", descricao: "Cada escama forjada em fúria disciplinada." },
+  { id: "arm_divina",   categoria: "armor", nome: "Vestes Divinas",     emoji: "🕊️", raridade: "mitico",  preco: 3800, cor: "#fde68a", descricao: "Tecidas de pura vontade — irradiam ascensão." },
 
   // ---------- AURA ----------
   { id: "aura_sombra",  categoria: "aura", nome: "Aura das Sombras",   emoji: "🌑", raridade: "comum",    preco: 60,  cor: "#7B2FF7", descricao: "Halo roxo neon." },
@@ -92,6 +96,10 @@ export const ITENS: Item[] = [
   { id: "fr_ouro",       categoria: "frame", nome: "Moldura de Ouro",    emoji: "🟨", raridade: "epico",   preco: 900, cor: "#eab308", descricao: "Ostentação merecida." },
   { id: "fr_runica",     categoria: "frame", nome: "Moldura Rúnica",     emoji: "🔷", raridade: "lendario", preco: 1900, cor: "#a855f7", descricao: "Runas giram ao redor do seu retrato." },
   { id: "fr_mitica",     categoria: "frame", nome: "Moldura Mítica",     emoji: "🌈", raridade: "mitico",  preco: 4000, cor: "#f472b6", descricao: "Halo iridescente. Só para lendas." },
+  { id: "fr_plasma",     categoria: "frame", nome: "Moldura de Plasma",  emoji: "⚡", raridade: "raro",    preco: 520, cor: "#22d3ee", descricao: "Anel de plasma girando em pulso ciano." },
+  { id: "fr_flama",      categoria: "frame", nome: "Moldura Flamejante", emoji: "🔥", raridade: "epico",   preco: 1100, cor: "#f97316", descricao: "Chamas orbitam seu retrato sem cessar." },
+  { id: "fr_etereo",     categoria: "frame", nome: "Moldura Etérea",     emoji: "🌀", raridade: "epico",   preco: 1300, cor: "#c084fc", descricao: "Fantasmas violeta orbitando o herói." },
+  { id: "fr_dragao",     categoria: "frame", nome: "Coroa do Dragão",    emoji: "🐉", raridade: "lendario", preco: 2400, cor: "#dc2626", descricao: "Duplo anel escamado em rotação contrária." },
 
   // ---------- FUNDO DO PLAYER CARD ----------
   { id: "cbg_void",     categoria: "card_bg", nome: "Vazio Neon",        emoji: "🌌", raridade: "comum",   preco: 120, cor: "#7B2FF7", descricao: "Grade neon roxa sobre o vazio." },
