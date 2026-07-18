@@ -71,6 +71,54 @@
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
     padding: 1rem;
+    position: relative;
+  }
+
+  .rpg-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.4), transparent 40%, transparent 60%, hsl(var(--neon-cyan) / 0.25));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .rpg-panel.no-frame::before { display: none; }
+
+  .hp-bar-fill {
+    background: linear-gradient(90deg, hsl(0 80% 50%), hsl(0 90% 65%));
+    box-shadow: 0 0 10px hsl(0 90% 55% / 0.6);
+  }
+
+  .life-bar-fill {
+    background: linear-gradient(90deg, hsl(142 71% 45%), hsl(142 80% 60%));
+    box-shadow: 0 0 10px hsl(142 80% 55% / 0.5);
+  }
+
+  .game-bg {
+    background:
+      radial-gradient(1200px 600px at 20% -10%, hsl(var(--primary) / 0.15), transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, hsl(var(--neon-cyan) / 0.08), transparent 60%),
+      linear-gradient(hsl(var(--background)), hsl(var(--background)));
+  }
+
+  .scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      hsl(0 0% 100% / 0.02) 2px,
+      hsl(0 0% 100% / 0.02) 3px
+    );
+    pointer-events: none;
+    border-radius: inherit;
   }
 
   .glow-text-purple {
@@ -107,7 +155,42 @@
                 0 0 20px hsl(var(--glow-color) / 0.3),
                 0 0 45px hsl(var(--glow-color) / 0.15);
   }
+
+  .danger-glow {
+    box-shadow: 0 0 8px hsl(0 90% 55% / 0.5),
+                0 0 22px hsl(0 90% 55% / 0.28),
+                0 0 50px hsl(0 90% 55% / 0.15);
+  }
+
+  .btn-pixel {
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid hsl(var(--primary) / 0.6);
+    background: linear-gradient(180deg, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05));
+    color: hsl(var(--foreground));
+    box-shadow: inset 0 0 0 1px hsl(var(--background)), 0 0 12px hsl(var(--primary) / 0.35);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .btn-pixel:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px hsl(var(--background)), 0 0 22px hsl(var(--primary) / 0.6); }
+  .btn-pixel:active { transform: translateY(1px); }
 }
+
+@keyframes shake-hit {
+  0%, 100% { transform: translate(0,0); }
+  20% { transform: translate(-4px, 2px); }
+  40% { transform: translate(5px, -2px); }
+  60% { transform: translate(-3px, 3px); }
+  80% { transform: translate(3px, 1px); }
+}
+.animate-shake { animation: shake-hit 350ms ease-in-out; }
+
+@keyframes damage-pop {
+  0% { opacity: 0; transform: scale(0.4) translateY(20px); }
+  40% { opacity: 1; transform: scale(1.15) translateY(-6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-damage-pop { animation: damage-pop 380ms cubic-bezier(.2,.9,.2,1.2); }
 
 /* ─── Prose / Rich content overrides ─── */
 .prose {

@@ -93,10 +93,12 @@ export default function CriarInimigo() {
             />
             <input
               className="flex-1 bg-secondary border border-border rounded-md px-3 py-2 text-sm font-display tracking-wide"
-              placeholder="Nome do inimigo"
-              value={nome} onChange={e => setNome(e.target.value)}
+              placeholder="Nome curto (ex: O Sabotador)"
+              maxLength={22}
+              value={nome} onChange={e => setNome(e.target.value.slice(0, 22))}
             />
           </div>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground -mt-2">Máx. 22 caracteres · 1 a 3 palavras</p>
 
           <div>
             <label className="text-xs uppercase tracking-wider text-muted-foreground">Mentiras que ele te conta</label>
