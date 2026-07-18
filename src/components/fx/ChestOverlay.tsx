@@ -17,6 +17,18 @@ export default function ChestOverlay({
 }) {
   const [stage, setStage] = useState<Stage>("closed");
   const [busy, setBusy] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const particleCount = isMobile ? 8 : 18;
+  const coinCount = isMobile ? 4 : 8;
 
   useEffect(() => {
     if (open) {
@@ -53,26 +65,27 @@ export default function ChestOverlay({
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(circle at 50% 50%, hsl(45 100% 55% / 0.35), transparent 55%)",
+                "radial-gradient(circle at 50% 50%, hsl(45 100% 55% / 0.22), transparent 60%)",
             }}
-            animate={{ opacity: stage === "closed" ? 0.5 : 1, scale: stage === "reveal" ? 1.2 : 1 }}
-            transition={{ duration: 0.8 }}
+            animate={{ opacity: stage === "closed" ? 0.4 : 0.75, scale: stage === "reveal" ? 1.1 : 1 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
           />
           {/* Rotating light rays on reveal */}
-          {stage === "reveal" && (
+          {stage === "reveal" && !isMobile && (
             <motion.div
               className="absolute inset-0 pointer-events-none flex items-center justify-center"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 0.55 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             >
               <motion.div
-                className="w-[900px] h-[900px]"
+                className="w-[700px] h-[700px]"
                 style={{
                   background:
-                    "conic-gradient(from 0deg, transparent 0deg, hsl(45 100% 60% / 0.25) 20deg, transparent 40deg, transparent 90deg, hsl(45 100% 60% / 0.25) 110deg, transparent 130deg, transparent 180deg, hsl(45 100% 60% / 0.25) 200deg, transparent 220deg, transparent 270deg, hsl(45 100% 60% / 0.25) 290deg, transparent 310deg)",
-                  filter: "blur(2px)",
+                    "conic-gradient(from 0deg, transparent 0deg, hsl(45 100% 60% / 0.12) 30deg, transparent 60deg, transparent 120deg, hsl(45 100% 60% / 0.12) 150deg, transparent 180deg, transparent 240deg, hsl(45 100% 60% / 0.12) 270deg, transparent 300deg)",
+                  filter: "blur(6px)",
                 }}
                 animate={{ rotate: 360 }}
-                transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
               />
             </motion.div>
           )}
@@ -124,8 +137,8 @@ export default function ChestOverlay({
 
               {/* Burst particles on reveal */}
               {stage === "reveal" &&
-                Array.from({ length: 18 }).map((_, i) => {
-                  const angle = (i / 18) * Math.PI * 2;
+                Array.from({ length: particleCount }).map((_, i) => {
+                  const angle = (i / particleCount) * Math.PI * 2;
                   const dist = 120 + Math.random() * 60;
                   return (
                     <motion.div
@@ -146,7 +159,7 @@ export default function ChestOverlay({
 
               {/* Floating coins on reveal */}
               {stage === "reveal" &&
-                Array.from({ length: 8 }).map((_, i) => (
+                Array.from({ length: coinCount }).map((_, i) => (
                   <motion.div
                     key={`c${i}`}
                     className="absolute top-1/2 left-1/2"
