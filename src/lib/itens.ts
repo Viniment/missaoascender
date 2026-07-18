@@ -75,7 +75,6 @@ export const FACE_SHAPES: { id: FaceShape; nome: string }[] = [
   { id: "round",   nome: "Arredondado" },
   { id: "oval",    nome: "Oval" },
   { id: "angular", nome: "Angular" },
-  { id: "diamond", nome: "Diamante" },
 ];
 
 export const SKIN_TONES: { id: SkinTone; nome: string; base: string; light: string; shade: string; deep: string }[] = [
