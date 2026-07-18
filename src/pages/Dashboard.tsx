@@ -465,9 +465,9 @@ export default function Dashboard() {
 function Bar({ label, pct, value, fillClass, icon }: { label: string; pct: number; value: string; fillClass: string; icon: React.ReactNode }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-1">
-        <span className="flex items-center gap-1">{icon}{label}</span>
-        <span className="font-display">{value}</span>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="bar-label">{icon}{label}</span>
+        <span className="bar-value">{value}</span>
       </div>
       <div className="bar-track">
         <div className="bar-fill-wrap">
