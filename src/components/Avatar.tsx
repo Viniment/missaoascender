@@ -28,13 +28,16 @@ function BaseBody() {
   return (
     <g shapeRendering="crispEdges">
       {/* --- HEAD (16x16 block at 8,4) --- */}
-      {/* outline */}
+      {/* outline (top square, bottom chamfered/rounded) */}
       {px(7, 4, 18, 1, OUTLINE)}
-      {px(7, 20, 18, 1, OUTLINE)}
-      {px(7, 4, 1, 17, OUTLINE)}
-      {px(24, 4, 1, 17, OUTLINE)}
+      {px(8, 20, 16, 1, OUTLINE)}
+      {px(7, 4, 1, 16, OUTLINE)}
+      {px(24, 4, 1, 16, OUTLINE)}
       {/* skin fill */}
       {px(8, 5, 16, 15, SKIN)}
+      {/* clip bottom face corners for round chin */}
+      {px(8, 19, 1, 1, SKIN_DEEP)}
+      {px(23, 19, 1, 1, SKIN_DEEP)}
       {/* face highlight (cheek) */}
       {px(9, 14, 2, 1, SKIN_LIGHT)}
       {px(21, 14, 2, 1, SKIN_LIGHT)}
@@ -72,10 +75,11 @@ function BaseBody() {
       {px(13, 21, 6, 2, SKIN_SHADE)}
       {px(13, 21, 6, 1, SKIN_DEEP)}
       {/* --- SHOULDERS / TORSO TOP (base tunic) --- */}
-      {px(3, 23, 26, 9, "#3f4756")}
-      {px(3, 23, 26, 1, OUTLINE)}
-      {px(3, 23, 1, 9, OUTLINE)}
-      {px(28, 23, 1, 9, OUTLINE)}
+      {px(4, 23, 24, 1, "#3f4756")}
+      {px(3, 24, 26, 8, "#3f4756")}
+      {px(4, 23, 24, 1, OUTLINE)}
+      {px(3, 24, 1, 8, OUTLINE)}
+      {px(28, 24, 1, 8, OUTLINE)}
       {/* collar */}
       {px(13, 23, 6, 2, "#2b3140")}
       {px(14, 23, 4, 1, OUTLINE)}
@@ -194,10 +198,11 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
     case "arm_iniciante":
       return (
         <g shapeRendering="crispEdges">
-          {px(3, 23, 26, 9, c)}
-          {px(3, 23, 26, 1, OUTLINE)}
-          {px(3, 23, 1, 9, OUTLINE)}
-          {px(28, 23, 1, 9, OUTLINE)}
+          {px(4, 23, 24, 1, c)}
+          {px(3, 24, 26, 8, c)}
+          {px(4, 23, 24, 1, OUTLINE)}
+          {px(3, 24, 1, 8, OUTLINE)}
+          {px(28, 24, 1, 8, OUTLINE)}
           {/* V-neck */}
           {px(13, 23, 6, 3, "#f1f5f9")}
           {px(14, 23, 4, 1, OUTLINE)}
@@ -208,13 +213,16 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
     case "arm_couro":
       return (
         <g shapeRendering="crispEdges">
-          {px(3, 23, 26, 9, c)}
-          {px(3, 23, 26, 1, OUTLINE)}
-          {px(3, 23, 1, 9, OUTLINE)}
-          {px(28, 23, 1, 9, OUTLINE)}
-          {/* pauldrons */}
-          {px(3, 23, 5, 4, "#78350f")}
-          {px(24, 23, 5, 4, "#78350f")}
+          {px(4, 23, 24, 1, c)}
+          {px(3, 24, 26, 8, c)}
+          {px(4, 23, 24, 1, OUTLINE)}
+          {px(3, 24, 1, 8, OUTLINE)}
+          {px(28, 24, 1, 8, OUTLINE)}
+          {/* pauldrons (rounded top) */}
+          {px(4, 23, 4, 1, "#78350f")}
+          {px(3, 24, 5, 3, "#78350f")}
+          {px(24, 23, 4, 1, "#78350f")}
+          {px(24, 24, 5, 3, "#78350f")}
           {px(3, 26, 5, 1, OUTLINE)}
           {px(24, 26, 5, 1, OUTLINE)}
           {/* strap */}
@@ -227,14 +235,17 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
     case "arm_manto":
       return (
         <g shapeRendering="crispEdges">
-          {/* cape behind shoulders */}
-          {px(1, 22, 30, 2, "#2e1065")}
-          {px(1, 22, 1, 10, OUTLINE)}
-          {px(30, 22, 1, 10, OUTLINE)}
-          {px(1, 24, 30, 8, "#2e1065")}
+          {/* cape behind shoulders (rounded top) */}
+          {px(2, 22, 28, 1, "#2e1065")}
+          {px(1, 23, 30, 9, "#2e1065")}
+          {px(1, 23, 1, 9, OUTLINE)}
+          {px(30, 23, 1, 9, OUTLINE)}
           {/* body */}
-          {px(3, 23, 26, 9, c)}
-          {px(3, 23, 26, 1, OUTLINE)}
+          {px(4, 23, 24, 1, c)}
+          {px(3, 24, 26, 8, c)}
+          {px(4, 23, 24, 1, OUTLINE)}
+          {px(3, 24, 1, 8, OUTLINE)}
+          {px(28, 24, 1, 8, OUTLINE)}
           {/* front panel */}
           {px(13, 23, 6, 9, "#1e1b4b")}
           {px(14, 23, 4, 1, OUTLINE)}
@@ -245,16 +256,19 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
     case "arm_dourada":
       return (
         <g shapeRendering="crispEdges">
-          {/* base plate */}
-          {px(3, 23, 26, 9, c)}
-          {px(3, 23, 26, 1, OUTLINE)}
-          {px(3, 23, 1, 9, "#854d0e")}
-          {px(28, 23, 1, 9, "#854d0e")}
-          {/* pauldrons */}
-          {px(2, 22, 6, 5, "#facc15")}
-          {px(24, 22, 6, 5, "#facc15")}
-          {px(2, 22, 6, 1, OUTLINE)}
-          {px(24, 22, 6, 1, OUTLINE)}
+          {/* base plate (rounded top) */}
+          {px(4, 23, 24, 1, c)}
+          {px(3, 24, 26, 8, c)}
+          {px(4, 23, 24, 1, OUTLINE)}
+          {px(3, 24, 1, 8, "#854d0e")}
+          {px(28, 24, 1, 8, "#854d0e")}
+          {/* pauldrons (rounded top) */}
+          {px(3, 22, 4, 1, "#facc15")}
+          {px(2, 23, 6, 4, "#facc15")}
+          {px(25, 22, 4, 1, "#facc15")}
+          {px(24, 23, 6, 4, "#facc15")}
+          {px(3, 22, 4, 1, OUTLINE)}
+          {px(25, 22, 4, 1, OUTLINE)}
           {px(2, 27, 6, 1, OUTLINE)}
           {px(24, 27, 6, 1, OUTLINE)}
           {/* highlight */}
