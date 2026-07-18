@@ -59,6 +59,7 @@ export type AvatarEquipado = {
   hairColor?: string;
   eyes?: string;
   mark?: FaceMark;
+  beard?: BeardStyle;
   hat?: string | null;
   armor?: string | null;
   aura?: string | null;
@@ -69,6 +70,7 @@ export type FaceShape = "round" | "square" | "oval" | "angular" | "diamond";
 export type SkinTone  = "porcelana" | "clara" | "dourada" | "oliva" | "cobre" | "bronze" | "cacau" | "ebano";
 export type HairStyle = "none" | "buzz" | "short" | "spiky" | "mohawk" | "long" | "topknot" | "curly";
 export type FaceMark  = "none" | "scar" | "freckles" | "tattoo" | "warpaint";
+export type BeardStyle = "none" | "stubble" | "mustache" | "goatee" | "full" | "viking";
 
 export const FACE_SHAPES: { id: FaceShape; nome: string }[] = [
   { id: "square",  nome: "Quadrado" },
@@ -128,6 +130,15 @@ export const FACE_MARKS: { id: FaceMark; nome: string }[] = [
   { id: "warpaint", nome: "Pintura" },
 ];
 
+export const BEARD_STYLES: { id: BeardStyle; nome: string }[] = [
+  { id: "none",     nome: "Sem Barba" },
+  { id: "stubble",  nome: "Por Fazer" },
+  { id: "mustache", nome: "Bigode" },
+  { id: "goatee",   nome: "Cavanhaque" },
+  { id: "full",     nome: "Cheia" },
+  { id: "viking",   nome: "Viking" },
+];
+
 export const APARENCIA_PADRAO = {
   face: "square" as FaceShape,
   skin: "clara" as SkinTone,
@@ -135,4 +146,5 @@ export const APARENCIA_PADRAO = {
   hairColor: "#2a1a10",
   eyes: "#2563eb",
   mark: "none" as FaceMark,
+  beard: "none" as BeardStyle,
 };
