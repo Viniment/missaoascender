@@ -348,8 +348,16 @@ function ChestSVG({ stage }: { stage: Stage }) {
         </>
       )}
 
-      {/* Lid group - rotates on open */}
-      <g style={{ transformOrigin: "90px 82px", transform: opened ? "rotate(-58deg)" : "rotate(0deg)", transition: "transform 0.9s cubic-bezier(.34,1.56,.64,1)" }}>
+      {/* Lid group - opens back with perspective compression */}
+      <g
+        style={{
+          transformOrigin: "90px 82px",
+          transform: opened
+            ? "translateY(-4px) scaleY(-0.45)"
+            : "translateY(0) scaleY(1)",
+          transition: "transform 0.7s cubic-bezier(.34,1.4,.64,1)",
+        }}
+      >
         <path d="M22 82 Q22 38 90 38 Q158 38 158 82 Z" fill="url(#woodTop)" stroke="#120802" strokeWidth="2" />
         {/* Lid plank lines */}
         <path d="M55 82 Q55 48 65 42" stroke="#120802" strokeWidth="1.2" opacity="0.55" fill="none" />
