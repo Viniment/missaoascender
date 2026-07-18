@@ -184,24 +184,60 @@ export default function Dashboard() {
 
       <div className="space-y-6">
         {/* Hero card */}
-        <div className="rpg-panel neon-glow scanlines p-5 space-y-3 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="player-card scanlines p-5 pt-6"
+        >
+          <span className="corner-deco tl" />
+          <span className="corner-deco tr" />
+          <span className="corner-deco bl" />
+          <span className="corner-deco br" />
+
           <div className="flex items-center gap-4">
-            <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform">
-              <Avatar equipado={heroi.avatar_equipado} size="lg" />
+            <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative">
+              <div className="avatar-ring">
+                <div className="avatar-inner">
+                  <Avatar equipado={heroi.avatar_equipado} size="lg" />
+                </div>
+              </div>
+              <div className="level-badge absolute -bottom-2 -right-2 shadow-lg">
+                <div className="flex flex-col items-center justify-center px-1">
+                  <small>LVL</small>
+                  <span className="text-base leading-none">{heroi.nivel}</span>
+                </div>
+              </div>
             </Link>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-primary uppercase tracking-[0.3em] flex items-center gap-1"><Shield className="w-3 h-3" /> HERÓI · NÍVEL {heroi.nivel}</p>
-              <h2 className="font-display text-2xl tracking-widest text-foreground glow-text-purple truncate">{heroi.nome}</h2>
-              {heroi.titulo && <p className="text-[10px] uppercase tracking-widest text-gold">{heroi.titulo}</p>}
-              <div className="flex items-center gap-3 text-xs mt-1">
-                <span className="flex items-center gap-1 text-gold font-display"><Coins className="w-3 h-3" /> <AnimatedCounter value={heroi.ouro} /></span>
-                <span className="flex items-center gap-1 text-destructive font-display"><Flame className="w-3 h-3" /> {heroi.streak_atual}d</span>
+
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <p className="text-[10px] text-primary/80 uppercase tracking-[0.3em] flex items-center gap-1.5">
+                <Shield className="w-3 h-3" /> HERÓI
+              </p>
+              <h2 className="font-display text-2xl tracking-widest text-foreground glow-text-purple truncate leading-tight">
+                {heroi.nome}
+              </h2>
+              {heroi.titulo && (
+                <div className="stat-chip title">
+                  <Sparkles className="w-3 h-3" /> {heroi.titulo}
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="stat-chip gold">
+                  <Coins className="w-3 h-3" /> <AnimatedCounter value={heroi.ouro} />
+                </span>
+                <span className="stat-chip streak">
+                  <Flame className="w-3 h-3" /> {heroi.streak_atual}d
+                </span>
               </div>
             </div>
           </div>
-          <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3 h-3" />} />
-          <Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3 h-3" />} />
-        </div>
+
+          <div className="mt-5 space-y-3">
+            <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3 h-3" />} />
+            <Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3 h-3" />} />
+          </div>
+        </motion.div>
 
         {/* Enemy card */}
         {inimigo && (
@@ -320,8 +356,15 @@ function Bar({ label, pct, value, fillClass, icon }: { label: string; pct: numbe
         <span className="flex items-center gap-1">{icon}{label}</span>
         <span className="font-display">{value}</span>
       </div>
-      <div className="h-2.5 rounded-sm bg-secondary/80 border border-border overflow-hidden">
-        <motion.div className={`h-full ${fillClass}`} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, ease: "easeOut" }} />
+      <div className="bar-track">
+        <motion.div
+          className={`h-full ${fillClass}`}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        />
+        <div className="bar-segments" />
+        <div className="bar-shine" />
       </div>
     </div>
   );
