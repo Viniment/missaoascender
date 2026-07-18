@@ -51,18 +51,15 @@ export default function HabitFX() {
             transition={{ duration: 0.7, times: [0, 0.2, 1] }}
           />
           {Array.from({ length: confettiCount }).map((_, i) => {
-            // Keep confetti on the left/right side strips so it doesn't cover popup text
-            const side = i % 2 === 0 ? "left" : "right";
-            const left = side === "left"
-              ? Math.random() * 22           // 0% – 22%
-              : 78 + Math.random() * 22;     // 78% – 100%
+            // Confetti across the entire screen width
+            const left = Math.random() * 100;
             const delay = Math.random() * 0.5;
             const duration = 2.0 + Math.random() * 1.8;
             const w = 7 + Math.random() * 7;
             const h = i % 3 === 0 ? w : w * 0.45;
             const color = POSITIVE_COLORS[i % POSITIVE_COLORS.length];
             const rot = Math.random() * 360;
-            const drift = (side === "left" ? -1 : 1) * (20 + Math.random() * 80);
+            const drift = (Math.random() - 0.5) * 200;
             const rounded = i % 4 === 0;
             return (
               <motion.div
