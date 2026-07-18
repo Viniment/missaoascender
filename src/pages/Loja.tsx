@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
 import { fetchHeroi, fetchConquistas, comprarItem, sincronizarItensDesbloqueados } from "@/lib/api";
 import { ITENS, ItemCategoria, RARIDADE_COR, RARIDADE_LABEL, RARIDADE_BG, Item, ItemRaridade } from "@/lib/itens";
+import { CARD_BACKGROUNDS, APP_BACKGROUNDS } from "@/lib/itens";
 import Avatar from "@/components/Avatar";
 import { Coins, Lock, Sparkles, Check, X, Star } from "lucide-react";
 import { toast } from "sonner";
@@ -19,6 +20,8 @@ const TABS: { id: ItemCategoria; label: string; icon: string }[] = [
   { id: "aura",   label: "Auras",     icon: "✨" },
   { id: "pet",    label: "Pets",      icon: "🐺" },
   { id: "frame",  label: "Molduras",  icon: "🖼️" },
+  { id: "card_bg", label: "Fundo Card", icon: "🎴" },
+  { id: "app_bg",  label: "Fundo App",  icon: "🌌" },
 ];
 
 const RARITY_CLASS: Record<ItemRaridade, string> = {
