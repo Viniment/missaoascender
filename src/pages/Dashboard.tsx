@@ -92,9 +92,17 @@ export default function Dashboard() {
   useEffect(() => {
     if (!heroi || !inimigo) return;
     supabase.functions.invoke("mensagem-reforco", {
-      body: { heroi_nome: heroi.nome, inimigo_nome: inimigo.nome, hp_atual: inimigo.hp_atual, hp_max: inimigo.hp_max },
+      body: {
+        heroi_nome: heroi.nome,
+        inimigo_nome: inimigo.nome,
+        sonho: (ob as any)?.sonho ?? null,
+        streak: heroi.streak_atual,
+        habito_nome: null,
+        hp_atual: inimigo.hp_atual,
+        hp_max: inimigo.hp_max,
+      },
     }).then(r => { if (r.data?.msg) setMsg(r.data.msg); });
-  }, [heroi?.id, inimigo?.id]);
+  }, [heroi?.id, inimigo?.id, (ob as any)?.sonho]);
 
   const onToggle = async (habitoId: string) => {
     if (!heroi || !habitos) return;
@@ -121,12 +129,27 @@ export default function Dashboard() {
         fireReward(`+${h.peso_xp} XP`, "#a855f7");
         setTimeout(() => fireReward(`-${h.peso_dano_cura} HP`, "#ef4444"), 180);
         supabase.functions.invoke("mensagem-reforco", {
-          body: { heroi_nome: heroi.nome, inimigo_nome: inimigo?.nome, hp_atual: (inimigo?.hp_atual ?? 100) - h.peso_dano_cura, hp_max: inimigo?.hp_max ?? 100 },
+          body: {
+            heroi_nome: heroi.nome,
+            inimigo_nome: inimigo?.nome,
+            sonho: (ob as any)?.sonho ?? null,
+            streak: heroi.streak_atual,
+            habito_nome: h.nome,
+            hp_atual: (inimigo?.hp_atual ?? 100) - h.peso_dano_cura,
+            hp_max: inimigo?.hp_max ?? 100,
+          },
         }).then(r => setBattle(b => b ? { ...b, msg: r.data?.msg ?? "Golpe certeiro. Continue.", loading: false } : null))
           .catch(() => setBattle(b => b ? { ...b, msg: "Golpe certeiro. Continue.", loading: false } : null));
       } else {
         supabase.functions.invoke("mensagem-inimigo", {
-          body: { inimigo_nome: inimigo?.nome, habito: h.nome, mentiras: inimigo?.mentiras ?? [] },
+          body: {
+            heroi_nome: heroi.nome,
+            inimigo_nome: inimigo?.nome,
+            sonho: (ob as any)?.sonho ?? null,
+            streak: heroi.streak_atual,
+            habito: h.nome,
+            mentiras: inimigo?.mentiras ?? [],
+          },
         }).then(r => setBattle(b => b ? { ...b, msg: r.data?.msg ?? "Você recuou.", loading: false } : null))
           .catch(() => setBattle(b => b ? { ...b, msg: "Você recuou.", loading: false } : null));
       }
