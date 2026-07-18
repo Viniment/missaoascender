@@ -423,6 +423,23 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+@keyframes spin-rev { to { transform: rotate(-360deg); } }
+
+@keyframes wingsFloat {
+  0%, 100% { transform: translateY(0) scaleX(1); }
+  50%      { transform: translateY(-3px) scaleX(1.03); }
+}
+
+@keyframes framePulse {
+  0%, 100% { box-shadow: 0 0 10px var(--frame-c, #22d3ee), inset 0 0 6px var(--frame-c, #22d3ee); opacity: 0.9; }
+  50%      { box-shadow: 0 0 26px var(--frame-c, #22d3ee), inset 0 0 12px var(--frame-c, #22d3ee); opacity: 1; }
+}
+
+@keyframes frameFlicker {
+  0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+  50%      { filter: hue-rotate(20deg) brightness(1.35); }
+}
+
 .game-panel {
   position: relative;
   background:

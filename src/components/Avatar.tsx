@@ -671,6 +671,113 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
         </g>
       );
     }
+    case "arm_cristal": {
+      const crys = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(crys, "#0e7490")}
+          {px(5, 24, 22, 1, "#a5f3fc")}
+          {/* facetas de cristal */}
+          {px(6, 26, 3, 3, "#a5f3fc")}
+          {px(23, 26, 3, 3, "#a5f3fc")}
+          {px(6, 26, 3, 1, "#ecfeff")}
+          {px(23, 26, 3, 1, "#ecfeff")}
+          {/* placa central */}
+          {px(12, 25, 8, 6, "#0891b2")}
+          {px(12, 25, 8, 1, "#67e8f9")}
+          {px(13, 27, 6, 1, "#a5f3fc")}
+          {px(14, 29, 4, 1, "#ecfeff")}
+          {/* gema */}
+          {px(15, 28, 2, 2, "#0e7490")}
+          {px(15, 28, 1, 1, "#ecfeff")}
+        </g>
+      );
+    }
+    case "arm_lich": {
+      const lich = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(lich, "#3b0764")}
+          {/* costelas */}
+          {px(6, 26, 3, 1, "#a78bfa")}
+          {px(6, 28, 3, 1, "#a78bfa")}
+          {px(6, 30, 3, 1, "#a78bfa")}
+          {px(23, 26, 3, 1, "#a78bfa")}
+          {px(23, 28, 3, 1, "#a78bfa")}
+          {px(23, 30, 3, 1, "#a78bfa")}
+          {/* peitoral rúnico */}
+          {px(13, 24, 6, 1, "#4c1d95")}
+          {px(12, 25, 8, 5, "#4c1d95")}
+          {px(13, 25, 6, 1, "#8b5cf6")}
+          {/* runa em X */}
+          {px(14, 26, 1, 1, "#22d3ee")}
+          {px(17, 26, 1, 1, "#22d3ee")}
+          {px(15, 27, 2, 1, "#22d3ee")}
+          {px(14, 28, 1, 1, "#22d3ee")}
+          {px(17, 28, 1, 1, "#22d3ee")}
+          {/* aura frontal */}
+          {px(3, 31, 26, 1, "#22d3ee")}
+        </g>
+      );
+    }
+    case "arm_dragao": {
+      const scale = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(scale, "#450a0a")}
+          {/* pauldrons cravados */}
+          {px(2, 22, 6, 1, "#7f1d1d")}
+          {px(1, 23, 8, 4, "#7f1d1d")}
+          {px(24, 22, 6, 1, "#7f1d1d")}
+          {px(23, 23, 8, 4, "#7f1d1d")}
+          {px(2, 22, 6, 1, OUTLINE)}
+          {px(24, 22, 6, 1, OUTLINE)}
+          {px(1, 27, 8, 1, OUTLINE)}
+          {px(23, 27, 8, 1, OUTLINE)}
+          {/* espinhos */}
+          {px(3, 21, 1, 1, "#f97316")}
+          {px(6, 21, 1, 1, "#f97316")}
+          {px(25, 21, 1, 1, "#f97316")}
+          {px(28, 21, 1, 1, "#f97316")}
+          {/* escamas em fileiras */}
+          {px(5, 25, 22, 1, "#991b1b")}
+          {px(5, 27, 22, 1, "#991b1b")}
+          {px(5, 29, 22, 1, "#991b1b")}
+          {px(7, 26, 2, 1, "#f97316")}
+          {px(15, 26, 2, 1, "#f97316")}
+          {px(23, 26, 2, 1, "#f97316")}
+          {/* garra central */}
+          {px(15, 24, 2, 4, "#0f172a")}
+          {px(15, 24, 2, 1, "#facc15")}
+        </g>
+      );
+    }
+    case "arm_divina": {
+      const div = c;
+      return (
+        <g shapeRendering="crispEdges">
+          {base(div, "#a16207")}
+          {px(5, 24, 22, 1, "#fef9c3")}
+          {/* asas peitorais douradas */}
+          {px(6, 26, 4, 1, "#fbbf24")}
+          {px(5, 27, 5, 1, "#fbbf24")}
+          {px(22, 26, 4, 1, "#fbbf24")}
+          {px(22, 27, 5, 1, "#fbbf24")}
+          {px(6, 26, 4, 1, "#fef9c3")}
+          {px(22, 26, 4, 1, "#fef9c3")}
+          {/* peitoral com sol */}
+          {px(13, 25, 6, 6, "#fbbf24")}
+          {px(13, 25, 6, 1, OUTLINE)}
+          {px(14, 26, 4, 4, "#fef9c3")}
+          {px(15, 27, 2, 2, "#f59e0b")}
+          {/* raios */}
+          {px(12, 27, 1, 1, "#fde68a")}
+          {px(19, 27, 1, 1, "#fde68a")}
+          {px(15, 24, 2, 1, "#fde68a")}
+          {px(15, 31, 2, 1, "#fde68a")}
+        </g>
+      );
+    }
     default:
       return null;
   }
@@ -784,62 +891,138 @@ function WeaponLayer({ id, cor }: { id: string; cor?: string }) {
 }
 
 /* ---------- WINGS / CAPE LAYER (behind bust) ---------- */
-function WingsLayer({ id, cor }: { id: string; cor?: string }) {
+/* Renderizado como OVERLAY grande atrás do avatar. viewBox 64x32.
+ * Centro do avatar corresponde a x=32 no overlay.
+ */
+function WingsOverlay({ id, cor, size }: { id: string; cor?: string; size: number }) {
   const c = cor ?? "#7c3aed";
   const shade = "#0f172a";
-  switch (id) {
-    case "wg_capa":
-    case "wg_manto":
-      return (
-        <g shapeRendering="crispEdges">
-          {/* cape flowing behind torso */}
-          {px(2, 22, 28, 2, c)}
-          {px(1, 24, 30, 6, c)}
-          {px(2, 30, 28, 1, shade)}
-          {px(1, 24, 1, 6, shade)}
-          {px(30, 24, 1, 6, shade)}
-          {px(4, 25, 24, 1, id === "wg_manto" ? "#7f1d1d" : "#5c2b0d")}
-        </g>
-      );
-    case "wg_corvo":
-    case "wg_anjo":
-    case "wg_demonio":
-    case "wg_fenix": {
-      const light = id === "wg_anjo" ? "#fef9c3" : id === "wg_fenix" ? "#fde047" : id === "wg_demonio" ? "#ef4444" : "#334155";
-      return (
-        <g shapeRendering="crispEdges">
-          {/* left wing */}
-          {px(0, 18, 6, 1, c)}
-          {px(0, 19, 8, 2, c)}
-          {px(1, 21, 8, 2, c)}
-          {px(2, 23, 7, 2, c)}
-          {px(3, 25, 5, 2, c)}
-          {px(1, 20, 3, 1, light)}
-          {px(2, 23, 3, 1, light)}
-          {/* right wing */}
-          {px(26, 18, 6, 1, c)}
-          {px(24, 19, 8, 2, c)}
-          {px(23, 21, 8, 2, c)}
-          {px(23, 23, 7, 2, c)}
-          {px(24, 25, 5, 2, c)}
-          {px(28, 20, 3, 1, light)}
-          {px(27, 23, 3, 1, light)}
-          {id === "wg_fenix" && (
-            <>
-              <rect x="0" y="18" width="8" height="8" fill="#fb923c" opacity="0.4">
-                <animate attributeName="opacity" values="0.2;0.7;0.2" dur="1.8s" repeatCount="indefinite" />
-              </rect>
-              <rect x="24" y="18" width="8" height="8" fill="#fb923c" opacity="0.4">
-                <animate attributeName="opacity" values="0.2;0.7;0.2" dur="1.8s" repeatCount="indefinite" />
-              </rect>
-            </>
-          )}
-        </g>
-      );
-    }
-    default:
-      return null;
+  const w = Math.round(size * 1.9);
+  const h = Math.round(size * 1.05);
+  const light =
+    id === "wg_anjo" ? "#fef9c3" :
+    id === "wg_fenix" ? "#fde047" :
+    id === "wg_demonio" ? "#ef4444" :
+    id === "wg_corvo" ? "#334155" :
+    "#e9d5ff";
+
+  // Capa/Manto — cortina larga descendo atrás do busto
+  if (id === "wg_capa" || id === "wg_manto") {
+    const cw = Math.round(size * 1.35);
+    const ch = Math.round(size * 0.9);
+    return (
+      <div className="absolute pointer-events-none" style={{
+        left: (size - cw) / 2, top: Math.round(size * 0.4), width: cw, height: ch,
+        filter: `drop-shadow(0 0 8px ${c}66)`,
+      }}>
+        <svg viewBox="0 0 48 24" width={cw} height={ch} shapeRendering="crispEdges" style={{ imageRendering: "pixelated" }}>
+          <g>
+            {/* corpo da capa */}
+            <rect x="2"  y="0" width="44" height="2" fill={c} />
+            <rect x="1"  y="2" width="46" height="18" fill={c} />
+            <rect x="0"  y="6" width="1"  height="14" fill={c} />
+            <rect x="47" y="6" width="1"  height="14" fill={c} />
+            {/* barra escura inferior */}
+            <rect x="1"  y="20" width="46" height="2" fill={shade} />
+            <rect x="3"  y="22" width="42" height="1" fill={shade} opacity="0.6" />
+            {/* forro central */}
+            <rect x="6"  y="3"  width="36" height="16" fill={id === "wg_manto" ? "#7f1d1d" : "#5c2b0d"} opacity="0.9" />
+            {/* dobras verticais */}
+            <rect x="10" y="3"  width="1"  height="17" fill={shade} opacity="0.5" />
+            <rect x="20" y="3"  width="1"  height="17" fill={shade} opacity="0.5" />
+            <rect x="27" y="3"  width="1"  height="17" fill={shade} opacity="0.5" />
+            <rect x="37" y="3"  width="1"  height="17" fill={shade} opacity="0.5" />
+          </g>
+        </svg>
+      </div>
+    );
   }
+
+  // Asas — desenho simétrico em SVG 64x32, animação flutuar
+  return (
+    <div className="absolute pointer-events-none" style={{
+      left: (size - w) / 2, top: Math.round(size * 0.05), width: w, height: h,
+      animation: "wingsFloat 3.4s ease-in-out infinite",
+      filter: `drop-shadow(0 0 14px ${c}aa) drop-shadow(0 0 4px ${light}55)`,
+    }}>
+      <svg viewBox="0 0 64 32" width={w} height={h} shapeRendering="crispEdges" style={{ imageRendering: "pixelated", overflow: "visible" }}>
+        {/* LEFT WING (mirrored on right below) */}
+        <g>
+          {/* upper arch */}
+          <rect x="22" y="6"  width="6"  height="1" fill={c} />
+          <rect x="18" y="7"  width="10" height="1" fill={c} />
+          <rect x="14" y="8"  width="14" height="1" fill={c} />
+          <rect x="10" y="9"  width="18" height="1" fill={c} />
+          {/* mid feather rows */}
+          <rect x="6"  y="10" width="22" height="2" fill={c} />
+          <rect x="3"  y="12" width="25" height="2" fill={c} />
+          <rect x="1"  y="14" width="27" height="2" fill={c} />
+          <rect x="0"  y="16" width="28" height="2" fill={c} />
+          {/* lower feathers stepped */}
+          <rect x="2"  y="18" width="26" height="1" fill={c} />
+          <rect x="4"  y="19" width="24" height="1" fill={c} />
+          <rect x="6"  y="20" width="22" height="1" fill={c} />
+          <rect x="9"  y="21" width="19" height="1" fill={c} />
+          <rect x="12" y="22" width="16" height="1" fill={c} />
+          <rect x="16" y="23" width="12" height="1" fill={c} />
+          <rect x="20" y="24" width="8"  height="1" fill={c} />
+          {/* feather tip highlights */}
+          <rect x="1"  y="15" width="4"  height="1" fill={light} opacity="0.85" />
+          <rect x="4"  y="12" width="4"  height="1" fill={light} opacity="0.8" />
+          <rect x="9"  y="10" width="4"  height="1" fill={light} opacity="0.7" />
+          <rect x="2"  y="18" width="3"  height="1" fill={light} opacity="0.6" />
+          <rect x="6"  y="20" width="3"  height="1" fill={light} opacity="0.6" />
+          {/* deep shade near body */}
+          <rect x="24" y="10" width="4"  height="14" fill={shade} opacity="0.35" />
+        </g>
+        {/* RIGHT WING — mirror via transform */}
+        <g transform="translate(64,0) scale(-1,1)">
+          <rect x="22" y="6"  width="6"  height="1" fill={c} />
+          <rect x="18" y="7"  width="10" height="1" fill={c} />
+          <rect x="14" y="8"  width="14" height="1" fill={c} />
+          <rect x="10" y="9"  width="18" height="1" fill={c} />
+          <rect x="6"  y="10" width="22" height="2" fill={c} />
+          <rect x="3"  y="12" width="25" height="2" fill={c} />
+          <rect x="1"  y="14" width="27" height="2" fill={c} />
+          <rect x="0"  y="16" width="28" height="2" fill={c} />
+          <rect x="2"  y="18" width="26" height="1" fill={c} />
+          <rect x="4"  y="19" width="24" height="1" fill={c} />
+          <rect x="6"  y="20" width="22" height="1" fill={c} />
+          <rect x="9"  y="21" width="19" height="1" fill={c} />
+          <rect x="12" y="22" width="16" height="1" fill={c} />
+          <rect x="16" y="23" width="12" height="1" fill={c} />
+          <rect x="20" y="24" width="8"  height="1" fill={c} />
+          <rect x="1"  y="15" width="4"  height="1" fill={light} opacity="0.85" />
+          <rect x="4"  y="12" width="4"  height="1" fill={light} opacity="0.8" />
+          <rect x="9"  y="10" width="4"  height="1" fill={light} opacity="0.7" />
+          <rect x="2"  y="18" width="3"  height="1" fill={light} opacity="0.6" />
+          <rect x="6"  y="20" width="3"  height="1" fill={light} opacity="0.6" />
+          <rect x="24" y="10" width="4"  height="14" fill={shade} opacity="0.35" />
+        </g>
+        {/* Fênix — brasas ondulando sobre as asas */}
+        {id === "wg_fenix" && (
+          <>
+            <rect x="0"  y="10" width="28" height="14" fill="#fb923c" opacity="0.28">
+              <animate attributeName="opacity" values="0.15;0.55;0.15" dur="1.6s" repeatCount="indefinite" />
+            </rect>
+            <rect x="36" y="10" width="28" height="14" fill="#fb923c" opacity="0.28">
+              <animate attributeName="opacity" values="0.15;0.55;0.15" dur="1.6s" repeatCount="indefinite" />
+            </rect>
+          </>
+        )}
+        {id === "wg_anjo" && (
+          <>
+            <rect x="0"  y="10" width="28" height="14" fill="#fef9c3" opacity="0.18">
+              <animate attributeName="opacity" values="0.1;0.35;0.1" dur="2.2s" repeatCount="indefinite" />
+            </rect>
+            <rect x="36" y="10" width="28" height="14" fill="#fef9c3" opacity="0.18">
+              <animate attributeName="opacity" values="0.1;0.35;0.1" dur="2.2s" repeatCount="indefinite" />
+            </rect>
+          </>
+        )}
+      </svg>
+    </div>
+  );
 }
 
 /* ---------- MASK LAYER (over face) ---------- */
@@ -963,9 +1146,10 @@ export default function Avatar({
   return (
     <div
       className={cn("relative shrink-0 pixel-avatar", className)}
-      style={{ width: s, height: s }}
+      style={{ width: s, height: s, overflow: "visible" }}
     >
       {frame && <FrameRing id={frame.id} cor={frame.cor} size={s} />}
+      {wings && <WingsOverlay id={wings.id} cor={wings.cor} size={s} />}
       {glow && !aura && (
         <div
           className="absolute inset-0 pointer-events-none rounded-full"
@@ -974,7 +1158,6 @@ export default function Avatar({
       )}
       <svg viewBox="0 0 32 32" width={s} height={s} shapeRendering="crispEdges" className="relative block" style={{ imageRendering: "pixelated" }}>
         {aura && <AuraLayer cor={auraColor} />}
-        {wings && <WingsLayer id={wings.id} cor={wings.cor} />}
         {renderFace(face, skin)}
         {renderFeatures(eyes, skin, hairBase)}
         {renderMark(mark, skin)}
@@ -1014,6 +1197,38 @@ function FrameRing({ id, cor, size }: { id: string; cor?: string; size: number }
       <>
         <div style={{ ...base, background: `conic-gradient(from 0deg, #f472b6, #a855f7, #22d3ee, #4ade80, #facc15, #f472b6)`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 4s linear infinite", boxShadow: "0 0 25px #f472b6aa" }} />
         <div style={{ ...base, boxShadow: "0 0 40px #a855f766" }} />
+      </>
+    );
+  }
+  if (id === "fr_plasma") {
+    return (
+      <>
+        <div style={{ ...base, border: `${Math.max(2, size * 0.03)}px solid ${c}`, ["--frame-c" as any]: c, animation: "framePulse 1.6s ease-in-out infinite" }} />
+        <div style={{ ...base, background: `conic-gradient(from 0deg, transparent 0%, ${c} 30%, transparent 60%, ${c} 90%, transparent 100%)`, padding: 2, WebkitMask: "radial-gradient(circle, transparent 62%, black 64%)", mask: "radial-gradient(circle, transparent 62%, black 64%)", animation: "spin 3s linear infinite", opacity: 0.9 }} />
+      </>
+    );
+  }
+  if (id === "fr_flama") {
+    return (
+      <>
+        <div style={{ ...base, background: `conic-gradient(from 0deg, #f97316, #fde047, #dc2626, #f97316, #7f1d1d, #f97316)`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 2.4s linear infinite", boxShadow: "0 0 22px #f97316aa" }} />
+        <div style={{ ...base, boxShadow: "0 0 30px #dc262677", animation: "frameFlicker 0.9s ease-in-out infinite" }} />
+      </>
+    );
+  }
+  if (id === "fr_etereo") {
+    return (
+      <>
+        <div style={{ ...base, border: `${Math.max(2, size * 0.025)}px dashed ${c}`, animation: "spin 8s linear infinite", boxShadow: `0 0 16px ${c}aa` }} />
+        <div style={{ ...base, border: `1px solid ${c}66`, transform: "scale(1.08)", animation: "spin-rev 12s linear infinite" }} />
+      </>
+    );
+  }
+  if (id === "fr_dragao") {
+    return (
+      <>
+        <div style={{ ...base, background: `conic-gradient(from 0deg, #7f1d1d, ${c}, #facc15, ${c}, #7f1d1d, ${c})`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 5s linear infinite", boxShadow: `0 0 22px ${c}cc` }} />
+        <div style={{ ...base, background: `repeating-conic-gradient(#0f172a 0deg 12deg, transparent 12deg 24deg)`, padding: 1, WebkitMask: "radial-gradient(circle, transparent 66%, black 68%)", mask: "radial-gradient(circle, transparent 66%, black 68%)", animation: "spin-rev 9s linear infinite", opacity: 0.6 }} />
       </>
     );
   }
