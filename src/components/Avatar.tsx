@@ -435,7 +435,6 @@ function HatLayer({ id }: { id: string }) {
 /* ---------- ARMOR LAYER (torso y 23–32) ---------- */
 function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
   const c = cor ?? "#64748b";
-  switch (id) {
   // base torso comum (rounded top)
   const base = (fill: string, outline = OUTLINE) => [
     px(5, 23, 22, 1, fill),
