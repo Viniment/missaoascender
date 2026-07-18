@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt } from "lucide-react";
+import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const NAV = [
   { to: "/", label: "Base", Icon: Home },
@@ -16,6 +17,7 @@ const NAV = [
 export default function Shell({ children }: { children: React.ReactNode }) {
   const loc = useLocation();
   const nav = useNavigate();
+  const isAdmin = useIsAdmin();
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
@@ -23,6 +25,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <Link to="/" className="font-display text-lg tracking-widest text-primary glow-text-purple">
             ⚔ NEW LIFEUP
           </Link>
+          <div className="flex items-center gap-1">
+          {isAdmin && (
+            <Link to="/admin" className="text-primary hover:text-primary/80 p-2" aria-label="Admin" title="Admin">
+              <Shield className="w-5 h-5" />
+            </Link>
+          )}
           <button
             onClick={async () => { await supabase.auth.signOut(); nav("/auth"); }}
             className="text-muted-foreground hover:text-primary p-2"
@@ -30,6 +38,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           >
             <LogOut className="w-5 h-5" />
           </button>
+          </div>
         </div>
       </header>
       <main className="max-w-4xl mx-auto px-4 py-6">{children}</main>
