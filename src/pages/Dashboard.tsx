@@ -225,6 +225,14 @@ export default function Dashboard() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="player-card scanlines p-5"
         >
+          {(() => {
+            const cardBgId = (heroi.avatar_equipado as any)?.cardBg as string | undefined;
+            if (!cardBgId) return null;
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const { CARD_BACKGROUNDS } = require("@/lib/itens");
+            const bg = CARD_BACKGROUNDS[cardBgId];
+            return bg ? <div className={`card-bg-layer ${bg.className}`} /> : null;
+          })()}
           <div className="flex items-center gap-4">
             <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative">
               <div className="avatar-ring">
