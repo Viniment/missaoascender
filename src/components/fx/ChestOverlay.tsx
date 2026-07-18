@@ -273,21 +273,27 @@ export default function ChestOverlay({
 function ChestSVG({ stage }: { stage: Stage }) {
   const opened = stage === "reveal";
   return (
-    <svg width="180" height="180" viewBox="0 0 180 180" className="drop-shadow-[0_10px_25px_rgba(0,0,0,0.7)]">
+    <svg width="200" height="200" viewBox="0 0 180 180" className="drop-shadow-[0_14px_28px_rgba(0,0,0,0.75)]">
       <defs>
         <linearGradient id="wood" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#6b3a1a" />
-          <stop offset="50%" stopColor="#4a2410" />
-          <stop offset="100%" stopColor="#2a1408" />
+          <stop offset="0%" stopColor="#7a4320" />
+          <stop offset="45%" stopColor="#4d2611" />
+          <stop offset="100%" stopColor="#1e0d05" />
         </linearGradient>
         <linearGradient id="woodTop" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#8a4a20" />
-          <stop offset="100%" stopColor="#5a2c14" />
+          <stop offset="0%" stopColor="#9a5426" />
+          <stop offset="60%" stopColor="#5e2f15" />
+          <stop offset="100%" stopColor="#33170a" />
         </linearGradient>
         <linearGradient id="goldGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#ffe27a" />
-          <stop offset="50%" stopColor="#f4c430" />
-          <stop offset="100%" stopColor="#a67611" />
+          <stop offset="0%" stopColor="#fff2ae" />
+          <stop offset="45%" stopColor="#f4c430" />
+          <stop offset="100%" stopColor="#8a5e0a" />
+        </linearGradient>
+        <linearGradient id="jewel" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#ff9db3" />
+          <stop offset="60%" stopColor="#e11d48" />
+          <stop offset="100%" stopColor="#6b0a1f" />
         </linearGradient>
         <radialGradient id="innerGlow" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0%" stopColor="#fff6c2" />
@@ -297,41 +303,68 @@ function ChestSVG({ stage }: { stage: Stage }) {
       </defs>
 
       {/* Chest body (base) */}
-      <rect x="25" y="80" width="130" height="70" rx="6" fill="url(#wood)" stroke="#1a0a04" strokeWidth="2" />
-      {/* Wood planks */}
-      <line x1="60" y1="80" x2="60" y2="150" stroke="#1a0a04" strokeWidth="1.5" opacity="0.6" />
-      <line x1="120" y1="80" x2="120" y2="150" stroke="#1a0a04" strokeWidth="1.5" opacity="0.6" />
+      <rect x="22" y="80" width="136" height="72" rx="7" fill="url(#wood)" stroke="#120802" strokeWidth="2" />
+      {/* Wood plank divisions */}
+      <line x1="55" y1="82" x2="55" y2="150" stroke="#120802" strokeWidth="1.4" opacity="0.7" />
+      <line x1="90" y1="82" x2="90" y2="150" stroke="#120802" strokeWidth="1.4" opacity="0.7" />
+      <line x1="125" y1="82" x2="125" y2="150" stroke="#120802" strokeWidth="1.4" opacity="0.7" />
+      {/* Wood grain highlights */}
+      <path d="M28 92 Q45 95 55 92" stroke="#8a4a20" strokeWidth="0.8" opacity="0.35" fill="none" />
+      <path d="M60 110 Q75 113 88 110" stroke="#8a4a20" strokeWidth="0.8" opacity="0.35" fill="none" />
+      <path d="M95 130 Q110 133 122 130" stroke="#8a4a20" strokeWidth="0.8" opacity="0.35" fill="none" />
+      <path d="M128 100 Q142 103 152 100" stroke="#8a4a20" strokeWidth="0.8" opacity="0.35" fill="none" />
       {/* Metal bands */}
-      <rect x="25" y="95" width="130" height="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="1" />
-      <rect x="25" y="135" width="130" height="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="1" />
+      <rect x="22" y="96" width="136" height="7" fill="url(#goldGrad)" stroke="#4a3208" strokeWidth="1" />
+      <rect x="22" y="136" width="136" height="7" fill="url(#goldGrad)" stroke="#4a3208" strokeWidth="1" />
+      <line x1="22" y1="99.5" x2="158" y2="99.5" stroke="#fff3b0" strokeWidth="0.6" opacity="0.7" />
+      <line x1="22" y1="139.5" x2="158" y2="139.5" stroke="#fff3b0" strokeWidth="0.6" opacity="0.7" />
       {/* Corner studs */}
       {[
-        [32, 88], [148, 88], [32, 144], [148, 144],
+        [30, 88], [150, 88], [30, 146], [150, 146],
+        [30, 117], [150, 117],
       ].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.8" />
+        <g key={i}>
+          <circle cx={x} cy={y} r="3.2" fill="url(#goldGrad)" stroke="#4a3208" strokeWidth="0.8" />
+          <circle cx={x - 0.8} cy={y - 0.8} r="0.9" fill="#fff6c2" opacity="0.9" />
+        </g>
       ))}
+      {/* Base shadow strip */}
+      <rect x="22" y="147" width="136" height="5" fill="#000" opacity="0.35" />
 
       {/* Inner glow when open */}
       {opened && (
-        <ellipse cx="90" cy="90" rx="55" ry="12" fill="url(#innerGlow)" opacity="0.95" />
+        <ellipse cx="90" cy="88" rx="58" ry="14" fill="url(#innerGlow)" opacity="0.95" />
       )}
       {opened && (
         <>
-          <circle cx="70" cy="90" r="5" fill="url(#goldGrad)" />
-          <circle cx="90" cy="94" r="6" fill="url(#goldGrad)" />
-          <circle cx="110" cy="90" r="5" fill="url(#goldGrad)" />
-          <circle cx="82" cy="88" r="3" fill="#fff6c2" />
-          <circle cx="100" cy="88" r="3" fill="#fff6c2" />
+          <circle cx="66" cy="90" r="5.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="80" cy="94" r="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="95" cy="92" r="6.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="112" cy="94" r="5.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="72" cy="86" r="2.2" fill="#fff6c2" />
+          <circle cx="102" cy="86" r="2.4" fill="#fff6c2" />
         </>
       )}
 
       {/* Lid group - rotates on open */}
-      <g style={{ transformOrigin: "90px 82px", transform: opened ? "rotate(-55deg)" : "rotate(0deg)", transition: "transform 0.9s cubic-bezier(.34,1.56,.64,1)" }}>
-        <path d="M25 82 Q25 40 90 40 Q155 40 155 82 Z" fill="url(#woodTop)" stroke="#1a0a04" strokeWidth="2" />
-        <path d="M25 82 Q25 40 90 40 Q155 40 155 82" fill="none" stroke="url(#goldGrad)" strokeWidth="3" />
-        {/* Lock */}
-        <rect x="80" y="72" width="20" height="18" rx="2" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="1" />
-        <circle cx="90" cy="80" r="3" fill="#2a1408" />
+      <g style={{ transformOrigin: "90px 82px", transform: opened ? "rotate(-58deg)" : "rotate(0deg)", transition: "transform 0.9s cubic-bezier(.34,1.56,.64,1)" }}>
+        <path d="M22 82 Q22 38 90 38 Q158 38 158 82 Z" fill="url(#woodTop)" stroke="#120802" strokeWidth="2" />
+        {/* Lid plank lines */}
+        <path d="M55 82 Q55 48 65 42" stroke="#120802" strokeWidth="1.2" opacity="0.55" fill="none" />
+        <path d="M125 82 Q125 48 115 42" stroke="#120802" strokeWidth="1.2" opacity="0.55" fill="none" />
+        {/* Gold arc trim */}
+        <path d="M22 82 Q22 38 90 38 Q158 38 158 82" fill="none" stroke="url(#goldGrad)" strokeWidth="3.5" />
+        {/* Highlight on lid */}
+        <path d="M32 68 Q60 46 90 44" stroke="#c78853" strokeWidth="1.6" opacity="0.55" fill="none" />
+        {/* Side gold bands on lid */}
+        <path d="M40 80 Q40 52 55 44" stroke="url(#goldGrad)" strokeWidth="2" fill="none" opacity="0.85" />
+        <path d="M140 80 Q140 52 125 44" stroke="url(#goldGrad)" strokeWidth="2" fill="none" opacity="0.85" />
+        {/* Lock plate */}
+        <rect x="78" y="70" width="24" height="22" rx="3" fill="url(#goldGrad)" stroke="#4a3208" strokeWidth="1" />
+        <rect x="80" y="72" width="20" height="18" rx="2" fill="none" stroke="#fff3b0" strokeWidth="0.5" opacity="0.7" />
+        {/* Jewel */}
+        <circle cx="90" cy="81" r="4.2" fill="url(#jewel)" stroke="#4a0512" strokeWidth="0.8" />
+        <circle cx="88.5" cy="79.5" r="1.2" fill="#fff" opacity="0.85" />
       </g>
     </svg>
   );
