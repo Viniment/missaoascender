@@ -80,15 +80,17 @@ function renderFace(shape: FaceShape, skin: (typeof SKIN_TONES)[number]) {
   // bottom outline
   const [bl, br] = rows[rows.length - 1];
   nodes.push(px(bl, 20, br - bl + 1, 1, OUTLINE));
-  // shading strip on right (form)
-  rows.forEach(([l, r], i) => {
-    const y = 4 + i;
-    if (y >= 6 && y <= 18) nodes.push(px(r, y, 1, 1, skin.shade));
+  // soft shading — apenas alguns pixels laterais, sem formar linhas retas
+  const shadeYs = [7, 9, 12, 15, 17];
+  shadeYs.forEach(y => {
+    const row = rows[y - 4];
+    if (row) nodes.push(<rect key={`sh-${y}`} x={row[1]} y={y} width={1} height={1} fill={skin.shade} opacity={0.7} />);
   });
-  // rim light (neon) — signature toque de estilo
-  rows.forEach(([l], i) => {
-    const y = 4 + i;
-    if (y >= 6 && y <= 17) nodes.push(<rect key={`rim-${y}`} x={l} y={y} width={1} height={1} fill={NEON} opacity={0.35} />);
+  // toque neon quebrado (rim light) — 2 pontos apenas
+  const rimYs = [8, 13];
+  rimYs.forEach(y => {
+    const row = rows[y - 4];
+    if (row) nodes.push(<rect key={`rim-${y}`} x={row[0]} y={y} width={1} height={1} fill={NEON} opacity={0.35} />);
   });
   // cheek highlight
   const cheekRow = rows.find((_, i) => 4 + i === 14);
@@ -96,14 +98,16 @@ function renderFace(shape: FaceShape, skin: (typeof SKIN_TONES)[number]) {
     nodes.push(px(cheekRow[0] + 1, 14, 2, 1, skin.light));
     nodes.push(px(cheekRow[1] - 2, 14, 2, 1, skin.light));
   }
-  // jaw shadow (bottom 2 rows)
-  for (let i = rows.length - 2; i < rows.length; i++) {
-    const [l, r] = rows[i];
-    nodes.push(px(l, 4 + i, r - l + 1, 1, skin.shade));
+  // jaw shadow suavizada (só cantos da penúltima linha)
+  const preLast = rows[rows.length - 2];
+  if (preLast) {
+    nodes.push(px(preLast[0], 4 + rows.length - 2, 2, 1, skin.shade));
+    nodes.push(px(preLast[1] - 1, 4 + rows.length - 2, 2, 1, skin.shade));
   }
-  // deep chin
+  // deep chin apenas no centro
   const last = rows[rows.length - 1];
-  nodes.push(px(last[0], 19, last[1] - last[0] + 1, 1, skin.deep));
+  const centerL = last[0] + Math.floor((last[1] - last[0] - 1) / 2);
+  nodes.push(px(centerL, 19, 2, 1, skin.deep));
   return <g>{nodes}</g>;
 }
 
