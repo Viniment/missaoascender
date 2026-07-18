@@ -302,6 +302,25 @@ function ChestSVG({ stage }: { stage: Stage }) {
           <stop offset="60%" stopColor="#f4c430" />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
+        <linearGradient id="innerWall" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#1a0a03" />
+          <stop offset="100%" stopColor="#3a1c08" />
+        </linearGradient>
+        <linearGradient id="gemBlue" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#b6e6ff" />
+          <stop offset="60%" stopColor="#3aa0ff" />
+          <stop offset="100%" stopColor="#0b3a7a" />
+        </linearGradient>
+        <linearGradient id="gemGreen" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#c8ffd6" />
+          <stop offset="60%" stopColor="#22c55e" />
+          <stop offset="100%" stopColor="#0a4a24" />
+        </linearGradient>
+        <linearGradient id="gemPurple" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="#e8ccff" />
+          <stop offset="60%" stopColor="#a855f7" />
+          <stop offset="100%" stopColor="#3a0d6b" />
+        </linearGradient>
       </defs>
 
       {/* Chest body (base) */}
@@ -335,16 +354,48 @@ function ChestSVG({ stage }: { stage: Stage }) {
 
       {/* Inner glow when open */}
       {opened && (
-        <ellipse cx="90" cy="88" rx="58" ry="14" fill="url(#innerGlow)" opacity="0.95" />
-      )}
-      {opened && (
         <>
-          <circle cx="66" cy="90" r="5.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
-          <circle cx="80" cy="94" r="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
-          <circle cx="95" cy="92" r="6.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
-          <circle cx="112" cy="94" r="5.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
-          <circle cx="72" cy="86" r="2.2" fill="#fff6c2" />
-          <circle cx="102" cy="86" r="2.4" fill="#fff6c2" />
+          {/* Inside back wall of chest */}
+          <path d="M26 84 Q26 60 90 60 Q154 60 154 84 L154 96 L26 96 Z" fill="url(#innerWall)" />
+          {/* Soft glow spilling out */}
+          <ellipse cx="90" cy="82" rx="66" ry="20" fill="url(#innerGlow)" opacity="0.85" />
+
+          {/* Treasure pile - back row (smaller, darker) */}
+          <circle cx="42" cy="92" r="4" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" opacity="0.85" />
+          <circle cx="52" cy="90" r="4.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" opacity="0.85" />
+          <circle cx="62" cy="88" r="4" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" opacity="0.9" />
+          <circle cx="120" cy="88" r="4" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" opacity="0.9" />
+          <circle cx="132" cy="90" r="4.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" opacity="0.85" />
+          <circle cx="142" cy="92" r="4" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" opacity="0.85" />
+
+          {/* Gems nestled in the pile */}
+          <polygon points="72,84 76,80 80,84 76,90" fill="url(#gemBlue)" stroke="#082a5c" strokeWidth="0.6" />
+          <circle cx="75" cy="83" r="0.9" fill="#ffffff" opacity="0.9" />
+          <polygon points="104,82 108,78 112,82 108,88" fill="url(#gemGreen)" stroke="#0a3a1c" strokeWidth="0.6" />
+          <circle cx="107" cy="81" r="0.9" fill="#ffffff" opacity="0.9" />
+          <polygon points="88,86 92,82 96,86 92,92" fill="url(#gemPurple)" stroke="#2c0854" strokeWidth="0.6" />
+          <circle cx="91" cy="85" r="0.9" fill="#ffffff" opacity="0.9" />
+
+          {/* Front row of coins spilling over the edge */}
+          <ellipse cx="90" cy="98" rx="60" ry="6" fill="#1a0a03" opacity="0.6" />
+          <circle cx="46" cy="98" r="5.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="58" cy="100" r="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="72" cy="99" r="6.2" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="86" cy="101" r="6.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="100" cy="100" r="6.3" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="114" cy="101" r="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="128" cy="99" r="6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+          <circle cx="140" cy="98" r="5.5" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.6" />
+
+          {/* Coin highlights */}
+          <circle cx="70" cy="97" r="1.4" fill="#fff6c2" opacity="0.9" />
+          <circle cx="84" cy="99" r="1.4" fill="#fff6c2" opacity="0.9" />
+          <circle cx="98" cy="98" r="1.4" fill="#fff6c2" opacity="0.9" />
+          <circle cx="112" cy="99" r="1.4" fill="#fff6c2" opacity="0.9" />
+
+          {/* Coin spilled out in front */}
+          <ellipse cx="60" cy="150" rx="6" ry="1.8" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" />
+          <ellipse cx="120" cy="151" rx="5.5" ry="1.6" fill="url(#goldGrad)" stroke="#5a3d0a" strokeWidth="0.5" />
         </>
       )}
 
