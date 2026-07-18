@@ -18,6 +18,7 @@ import { fireReward } from "@/components/fx/RewardBurst";
 import AnimatedCounter from "@/components/fx/AnimatedCounter";
 import LevelUpOverlay from "@/components/fx/LevelUpOverlay";
 import VictoryScreen from "@/components/fx/VictoryScreen";
+import AvisosBanner from "@/components/AvisosBanner";
 
 type Battle = {
   positivo: boolean;
@@ -184,6 +185,7 @@ export default function Dashboard() {
       <VictoryScreen inimigoNome={victory} onClose={() => setVictory(null)} />
 
       <div className="space-y-6">
+        <AvisosBanner />
         {/* Hero card */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -220,21 +222,21 @@ export default function Dashboard() {
               )}
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <span className="stat-chip gold">
-                  <Coins className="w-3 h-3" /> <AnimatedCounter value={heroi.ouro} />
+                  <Coins className="w-3.5 h-3.5" /> <AnimatedCounter value={heroi.ouro} />
                 </span>
                 <span className="stat-chip streak">
-                  <Flame className="w-3 h-3" /> {heroi.streak_atual}d
+                  <Flame className="w-3.5 h-3.5" /> {heroi.streak_atual}d
                 </span>
                 <Link to="/conquistas" className="stat-chip trophy hover:brightness-125 transition">
-                  <Trophy className="w-3 h-3" /> {conquistas?.length ?? 0}
+                  <Trophy className="w-3.5 h-3.5" /> {conquistas?.length ?? 0}
                 </Link>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 space-y-3">
-            <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3 h-3" />} />
-            <Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3 h-3" />} />
+          <div className="mt-5 space-y-4">
+            <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3.5 h-3.5" />} />
+            <Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3.5 h-3.5" />} />
           </div>
         </motion.div>
 
