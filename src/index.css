@@ -722,6 +722,7 @@ div[style*="Edit with Lovable"],
 .app-bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; isolation: isolate; }
 .app-bg-layer::before, .app-bg-layer::after, .app-bg-depth { content: ""; position: absolute; display: block; will-change: transform, opacity; }
 .app-bg-vignette { position: absolute; inset: 0; z-index: 9; background: radial-gradient(ellipse at 50% 35%, transparent 20%, hsl(var(--background) / .2) 62%, hsl(var(--background) / .82) 100%); }
+.app-bg-scrim { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, hsl(var(--background) / .45) 0%, hsl(var(--background) / .62) 55%, hsl(var(--background) / .78) 100%); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 
 /* Partículas Neon — poeira energética com profundidade e núcleo fluido. */
 .abg-particles { background: radial-gradient(ellipse at 50% 30%, hsl(266 75% 13%), hsl(222 60% 2%) 72%); }
