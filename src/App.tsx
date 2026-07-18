@@ -1,0 +1,44 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
+import Onboarding from "@/pages/Onboarding";
+import CriarInimigo from "@/pages/CriarInimigo";
+import InimigoPage from "@/pages/Inimigo";
+import MiniVitoriasPage from "@/pages/MiniVitorias";
+import ConquistasPage from "@/pages/Conquistas";
+import PerfilPage from "@/pages/Perfil";
+
+const qc = new QueryClient();
+
+function Protected({ children }: { children: JSX.Element }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  return children;
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={qc}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Toaster theme="dark" position="top-center" richColors />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
+            <Route path="/criar-inimigo" element={<Protected><CriarInimigo /></Protected>} />
+            <Route path="/" element={<Protected><Dashboard /></Protected>} />
+            <Route path="/inimigo" element={<Protected><InimigoPage /></Protected>} />
+            <Route path="/mini-vitorias" element={<Protected><MiniVitoriasPage /></Protected>} />
+            <Route path="/conquistas" element={<Protected><ConquistasPage /></Protected>} />
+            <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
