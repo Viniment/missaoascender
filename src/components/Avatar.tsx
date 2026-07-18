@@ -2,7 +2,8 @@ import { getItem, AvatarEquipado, SKIN_TONES, APARENCIA_PADRAO, FaceShape, HairS
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md" | "lg" | "xl";
-const SIZE_PX: Record<Size, number> = { sm: 56, md: 96, lg: 128, xl: 176 };
+// Sempre múltiplos de 32 (viewBox) para evitar anti-aliasing entre pixels da pele.
+const SIZE_PX: Record<Size, number> = { sm: 64, md: 96, lg: 128, xl: 192 };
 
 // Bust-only pixel avatar. 32x32 viewBox, com formatos e cores parametrizados.
 // Head bounding box: x 8–23, y 4–19 (16x16 face grid) — recortado por FACE_ROWS.
@@ -616,7 +617,7 @@ export default function Avatar({
           style={{ background: "radial-gradient(circle, hsl(var(--primary)/0.28) 0%, transparent 65%)" }}
         />
       )}
-      <svg viewBox="0 0 32 32" width={s} height={s} className="relative block" style={{ imageRendering: "pixelated" }}>
+      <svg viewBox="0 0 32 32" width={s} height={s} shapeRendering="crispEdges" className="relative block" style={{ imageRendering: "pixelated" }}>
         {aura && <AuraLayer cor={auraColor} />}
         {renderFace(face, skin)}
         {renderFeatures(eyes, skin, hairBase)}
