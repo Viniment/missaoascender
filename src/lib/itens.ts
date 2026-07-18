@@ -1,6 +1,7 @@
 export type ItemCategoria =
   | "hat" | "armor" | "aura"
-  | "wings" | "mask" | "pet" | "frame";
+  | "wings" | "mask" | "pet" | "frame"
+  | "card_bg" | "app_bg";
 export type ItemRaridade = "comum" | "raro" | "epico" | "lendario" | "mitico";
 
 export type Item = {
@@ -91,9 +92,50 @@ export const ITENS: Item[] = [
   { id: "fr_ouro",       categoria: "frame", nome: "Moldura de Ouro",    emoji: "🟨", raridade: "epico",   preco: 900, cor: "#eab308", descricao: "Ostentação merecida." },
   { id: "fr_runica",     categoria: "frame", nome: "Moldura Rúnica",     emoji: "🔷", raridade: "lendario", preco: 1900, cor: "#a855f7", descricao: "Runas giram ao redor do seu retrato." },
   { id: "fr_mitica",     categoria: "frame", nome: "Moldura Mítica",     emoji: "🌈", raridade: "mitico",  preco: 4000, cor: "#f472b6", descricao: "Halo iridescente. Só para lendas." },
+
+  // ---------- FUNDO DO PLAYER CARD ----------
+  { id: "cbg_void",     categoria: "card_bg", nome: "Vazio Neon",        emoji: "🌌", raridade: "comum",   preco: 120, cor: "#7B2FF7", descricao: "Grade neon roxa sobre o vazio." },
+  { id: "cbg_cyber",    categoria: "card_bg", nome: "Grid Cyber",         emoji: "🟦", raridade: "raro",    preco: 320, cor: "#22d3ee", descricao: "Linhas ciano em perspectiva infinita." },
+  { id: "cbg_ember",    categoria: "card_bg", nome: "Brasa Viva",         emoji: "🔥", raridade: "raro",    preco: 380, cor: "#f97316", descricao: "Brasas quentes pulsando ao fundo." },
+  { id: "cbg_nebula",   categoria: "card_bg", nome: "Nebulosa",          emoji: "🪐", raridade: "epico",   preco: 720, cor: "#a855f7", descricao: "Nuvens cósmicas se movendo lentamente." },
+  { id: "cbg_matrix",   categoria: "card_bg", nome: "Código Matrix",     emoji: "🟩", raridade: "epico",   preco: 780, cor: "#22c55e", descricao: "Chuva verde do sistema." },
+  { id: "cbg_holo",     categoria: "card_bg", nome: "Holograma",         emoji: "💠", raridade: "lendario", preco: 1600, cor: "#c084fc", descricao: "Reflexos iridescentes em varredura." },
+  { id: "cbg_prisma",   categoria: "card_bg", nome: "Prisma Mítico",     emoji: "🌈", raridade: "mitico",  preco: 3200, cor: "#f472b6", descricao: "Arco prismático em rotação eterna." },
+
+  // ---------- FUNDO DO APP (animado) ----------
+  { id: "abg_particles", categoria: "app_bg", nome: "Partículas Neon",   emoji: "✨", raridade: "comum",   preco: 0,   cor: "#7B2FF7", descricao: "O fundo padrão do sistema — partículas roxas flutuantes.", unlock: "nivel_1" },
+  { id: "abg_stars",     categoria: "app_bg", nome: "Céu Estrelado",     emoji: "⭐", raridade: "raro",    preco: 400, cor: "#e0e7ff", descricao: "Milhares de estrelas cintilando na noite." },
+  { id: "abg_aurora",    categoria: "app_bg", nome: "Aurora Boreal",     emoji: "🌠", raridade: "epico",   preco: 900, cor: "#22d3ee", descricao: "Cortinas de luz ondulando no céu." },
+  { id: "abg_embers",    categoria: "app_bg", nome: "Chuva de Brasas",   emoji: "🔥", raridade: "epico",   preco: 950, cor: "#f97316", descricao: "Brasas quentes subindo pelo ambiente." },
+  { id: "abg_rain",      categoria: "app_bg", nome: "Chuva Digital",     emoji: "💚", raridade: "lendario", preco: 1800, cor: "#22c55e", descricao: "Código verde despencando do topo." },
+  { id: "abg_void",      categoria: "app_bg", nome: "Vórtice Sombrio",   emoji: "🌀", raridade: "mitico",  preco: 3600, cor: "#a855f7", descricao: "Portal roxo pulsando com energia mítica." },
 ];
 
 export const ITENS_INICIAIS = ["arm_iniciante"];
+
+/* -------- Fundos (Player Card + App) ----------
+ * Renderizados por classes CSS animadas em index.css (.bg-<id>).
+ */
+export type FundoDef = { className: string; label: string };
+
+export const CARD_BACKGROUNDS: Record<string, FundoDef> = {
+  cbg_void:   { className: "cbg-void",   label: "Vazio Neon" },
+  cbg_cyber:  { className: "cbg-cyber",  label: "Grid Cyber" },
+  cbg_ember:  { className: "cbg-ember",  label: "Brasa Viva" },
+  cbg_nebula: { className: "cbg-nebula", label: "Nebulosa" },
+  cbg_matrix: { className: "cbg-matrix", label: "Código Matrix" },
+  cbg_holo:   { className: "cbg-holo",   label: "Holograma" },
+  cbg_prisma: { className: "cbg-prisma", label: "Prisma Mítico" },
+};
+
+export const APP_BACKGROUNDS: Record<string, FundoDef> = {
+  abg_particles: { className: "abg-particles", label: "Partículas Neon" },
+  abg_stars:     { className: "abg-stars",     label: "Céu Estrelado" },
+  abg_aurora:    { className: "abg-aurora",    label: "Aurora Boreal" },
+  abg_embers:    { className: "abg-embers",    label: "Chuva de Brasas" },
+  abg_rain:      { className: "abg-rain",      label: "Chuva Digital" },
+  abg_void:      { className: "abg-void",      label: "Vórtice Sombrio" },
+};
 
 export function getItem(id?: string | null) {
   if (!id) return null;
@@ -142,6 +184,8 @@ export type AvatarEquipado = {
   mask?: string | null;
   pet?: string | null;
   frame?: string | null;
+  cardBg?: string | null;
+  appBg?: string | null;
 };
 
 /* -------- Aparência customizável (grátis, não é item de loja) -------- */

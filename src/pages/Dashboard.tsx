@@ -23,6 +23,7 @@ import ChestOverlay from "@/components/fx/ChestOverlay";
 import EditHabitoDialog from "@/components/EditHabitoDialog";
 import EditInimigoDialog from "@/components/EditInimigoDialog";
 import type { Habito } from "@/lib/api";
+import { CARD_BACKGROUNDS } from "@/lib/itens";
 
 type Battle = {
   positivo: boolean;
@@ -225,6 +226,11 @@ export default function Dashboard() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="player-card scanlines p-5"
         >
+          {(() => {
+            const cardBgId = (heroi.avatar_equipado as any)?.cardBg as string | undefined;
+            const bg = cardBgId ? CARD_BACKGROUNDS[cardBgId] : null;
+            return bg ? <div className={`card-bg-layer ${bg.className}`} /> : null;
+          })()}
           <div className="flex items-center gap-4">
             <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative">
               <div className="avatar-ring">

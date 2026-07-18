@@ -6,6 +6,10 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import RewardBurstLayer from "@/components/fx/RewardBurst";
 import ParticleBackground from "@/components/fx/ParticleBackground";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { fetchHeroi } from "@/lib/api";
+import { APP_BACKGROUNDS } from "@/lib/itens";
 
 const NAV = [
   { to: "/", label: "Base", Icon: Home },
@@ -21,11 +25,23 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const loc = useLocation();
   const nav = useNavigate();
   const isAdmin = useIsAdmin();
+  const { user } = useAuth();
+  const { data: heroi } = useQuery({
+    queryKey: ["heroi", user?.id],
+    queryFn: () => fetchHeroi(user!.id),
+    enabled: !!user,
+  });
+  const appBgId = (heroi?.avatar_equipado as any)?.appBg as string | undefined;
+  const appBg = appBgId ? APP_BACKGROUNDS[appBgId] : null;
   return (
     <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none opacity-70">
-        <ParticleBackground density={35} />
-      </div>
+      {appBg ? (
+        <div className={cn("app-bg-layer", appBg.className)} />
+      ) : (
+        <div className="fixed inset-0 pointer-events-none opacity-70">
+          <ParticleBackground density={35} />
+        </div>
+      )}
       <RewardBurstLayer />
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
