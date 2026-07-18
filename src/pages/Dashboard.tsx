@@ -242,6 +242,7 @@ export default function Dashboard() {
       <BattleOverlay battle={battle} onClose={() => setBattle(null)} inimigo={inimigo} />
       <LevelUpOverlay nivel={levelUp} onClose={() => setLevelUp(null)} />
       <VictoryScreen inimigoNome={victory} onClose={() => setVictory(null)} />
+      <HabitFX />
 
       <div className="space-y-6">
         <AvisosBanner />
