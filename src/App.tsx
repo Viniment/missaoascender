@@ -12,6 +12,7 @@ import ConquistasPage from "@/pages/Conquistas";
 import PerfilPage from "@/pages/Perfil";
 import LojaPage from "@/pages/Loja";
 import PersonalizarPage from "@/pages/Personalizar";
+import AdminPage from "@/pages/Admin";
 
 const qc = new QueryClient();
 
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/loja" element={<Protected><LojaPage /></Protected>} />
             <Route path="/personalizar" element={<Protected><PersonalizarPage /></Protected>} />
             <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
+            <Route path="/admin" element={<Protected><AdminPage /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
