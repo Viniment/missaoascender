@@ -8,11 +8,12 @@ import {
   ITENS, ItemCategoria, RARIDADE_COR,
   FACE_SHAPES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, FACE_MARKS, BEARD_STYLES,
   APARENCIA_PADRAO,
+  CARD_BACKGROUNDS, APP_BACKGROUNDS,
 } from "@/lib/itens";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-type TabId = "face" | "skin" | "hair" | "beard" | "eyes" | "mark" | "hat" | "armor" | "aura" | "wings" | "mask" | "pet" | "frame";
+type TabId = "face" | "skin" | "hair" | "beard" | "eyes" | "mark" | "hat" | "armor" | "aura" | "wings" | "mask" | "pet" | "frame" | "card_bg" | "app_bg";
 const TABS: { id: TabId; label: string; group: "aparencia" | "equip" }[] = [
   { id: "face",  label: "Rosto",    group: "aparencia" },
   { id: "skin",  label: "Pele",     group: "aparencia" },
@@ -27,6 +28,8 @@ const TABS: { id: TabId; label: string; group: "aparencia" | "equip" }[] = [
   { id: "mask",   label: "Máscara", group: "equip" },
   { id: "pet",    label: "Pet",    group: "equip" },
   { id: "frame",  label: "Moldura", group: "equip" },
+  { id: "card_bg", label: "Fundo Card", group: "equip" },
+  { id: "app_bg",  label: "Fundo App",  group: "equip" },
 ];
 
 export default function Personalizar() {
@@ -51,11 +54,12 @@ export default function Personalizar() {
     await qc.invalidateQueries({ queryKey: ["heroi", uid] });
   };
 
-  const isEquipTab = ["hat","armor","aura","wings","mask","pet","frame"].includes(tab);
+  const isEquipTab = ["hat","armor","aura","wings","mask","pet","frame","card_bg","app_bg"].includes(tab);
   const owned = isEquipTab
     ? ITENS.filter(i => i.categoria === tab && heroi.itens_desbloqueados.includes(i.id))
     : [];
-  const equippedId = isEquipTab ? (eq[tab] ?? null) : null;
+  const equipKey = tab === "card_bg" ? "cardBg" : tab === "app_bg" ? "appBg" : tab;
+  const equippedId = isEquipTab ? (eq[equipKey] ?? null) : null;
 
   return (
     <Shell>
