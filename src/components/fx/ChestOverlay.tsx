@@ -29,6 +29,11 @@ export default function ChestOverlay({
 
   const particleCount = isMobile ? 8 : 18;
   const coinCount = isMobile ? 4 : 8;
+  const confettiCount = isMobile ? 40 : 90;
+  const confettiColors = [
+    "#f4c430", "#ffe27a", "#ff5f6d", "#7b2ff7",
+    "#22d3ee", "#34d399", "#fb923c", "#ffffff",
+  ];
 
   useEffect(() => {
     if (open) {
@@ -60,34 +65,43 @@ export default function ChestOverlay({
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
-          {/* Radial glow */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 50%, hsl(45 100% 55% / 0.22), transparent 60%)",
-            }}
-            animate={{ opacity: stage === "closed" ? 0.4 : 0.75, scale: stage === "reveal" ? 1.1 : 1 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-          />
-          {/* Rotating light rays on reveal */}
-          {stage === "reveal" && !isMobile && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none flex items-center justify-center"
-              initial={{ opacity: 0 }} animate={{ opacity: 0.55 }}
-              transition={{ duration: 1.2, ease: "easeOut" }}
-            >
-              <motion.div
-                className="w-[700px] h-[700px]"
-                style={{
-                  background:
-                    "conic-gradient(from 0deg, transparent 0deg, hsl(45 100% 60% / 0.12) 30deg, transparent 60deg, transparent 120deg, hsl(45 100% 60% / 0.12) 150deg, transparent 180deg, transparent 240deg, hsl(45 100% 60% / 0.12) 270deg, transparent 300deg)",
-                  filter: "blur(6px)",
-                }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-              />
-            </motion.div>
+          {/* Confetti (replaces background glow) */}
+          {stage === "reveal" && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {Array.from({ length: confettiCount }).map((_, i) => {
+                const left = Math.random() * 100;
+                const delay = Math.random() * 0.4;
+                const duration = 1.8 + Math.random() * 1.6;
+                const size = 6 + Math.random() * 6;
+                const color = confettiColors[i % confettiColors.length];
+                const rot = Math.random() * 360;
+                const drift = (Math.random() - 0.5) * 120;
+                const rounded = i % 3 === 0;
+                return (
+                  <motion.span
+                    key={`cf${i}`}
+                    className="absolute"
+                    style={{
+                      left: `${left}%`,
+                      top: -20,
+                      width: size,
+                      height: size * (rounded ? 1 : 0.5),
+                      background: color,
+                      borderRadius: rounded ? "9999px" : "2px",
+                      transform: `rotate(${rot}deg)`,
+                    }}
+                    initial={{ y: -40, opacity: 0, rotate: rot }}
+                    animate={{
+                      y: "110vh",
+                      x: drift,
+                      opacity: [0, 1, 1, 0.9, 0],
+                      rotate: rot + 540,
+                    }}
+                    transition={{ duration, delay, ease: "easeIn" }}
+                  />
+                );
+              })}
+            </div>
           )}
 
           {/* Content */}
