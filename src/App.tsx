@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { LowPowerProvider } from "@/hooks/useLowPower";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Onboarding from "@/pages/Onboarding";
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <QueryClientProvider client={qc}>
       <AuthProvider>
+        <LowPowerProvider>
         <BrowserRouter>
           <Toaster theme="dark" position="top-center" richColors />
           <Routes>
@@ -44,6 +46,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
+        </LowPowerProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
