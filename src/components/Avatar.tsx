@@ -1127,7 +1127,6 @@ export default function Avatar({
   const hat = getItem(equipado?.hat);
   const armor = getItem(equipado?.armor);
   const aura = getItem(equipado?.aura);
-  const wings  = getItem(equipado?.wings);
   const mask   = getItem(equipado?.mask);
   const pet    = getItem(equipado?.pet);
   const frame  = getItem(equipado?.frame);
@@ -1149,7 +1148,6 @@ export default function Avatar({
       style={{ width: s, height: s, overflow: "visible" }}
     >
       {frame && <FrameRing id={frame.id} cor={frame.cor} size={s} />}
-      {wings && <WingsOverlay id={wings.id} cor={wings.cor} size={s} />}
       {glow && !aura && (
         <div
           className="absolute inset-0 pointer-events-none rounded-full"
