@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
 import { fetchHeroi, fetchConquistas, comprarItem, sincronizarItensDesbloqueados } from "@/lib/api";
 import { ITENS, ItemCategoria, RARIDADE_COR, Item } from "@/lib/itens";
+import Avatar from "@/components/Avatar";
 import { Coins, Lock, Sparkles, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
@@ -87,8 +88,12 @@ export default function Loja() {
                   </span>
                   {owned && <Check className="w-3.5 h-3.5 text-primary" />}
                 </div>
-                <div className="text-5xl text-center py-2" style={{ filter: `drop-shadow(0 0 8px ${borda}88)` }}>
-                  {item.emoji}
+                <div className="flex justify-center py-1" style={{ filter: `drop-shadow(0 0 8px ${borda}88)` }}>
+                  <Avatar
+                    equipado={{ [item.categoria]: item.id } as any}
+                    size="md"
+                    glow={false}
+                  />
                 </div>
                 <p className="text-sm font-display tracking-wider text-center truncate">{item.nome}</p>
                 <p className="text-[10px] text-muted-foreground text-center min-h-[28px]">{item.descricao}</p>
