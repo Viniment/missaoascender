@@ -89,6 +89,12 @@ export async function equiparItem(userId: string, heroi: Heroi, itemId: string |
   await supabase.from("users").update({ avatar_equipado: equipado as any }).eq("id", userId);
 }
 
+/** Atualiza um patch da aparência (rosto, pele, cabelo, olhos, marca). */
+export async function salvarAparencia(userId: string, heroi: Heroi, patch: Partial<AvatarEquipado>) {
+  const equipado = { ...(heroi.avatar_equipado ?? {}), ...patch };
+  await supabase.from("users").update({ avatar_equipado: equipado as any }).eq("id", userId);
+}
+
 /** Garante itens iniciais + itens ligados a conquistas do usuário. */
 export async function sincronizarItensDesbloqueados(userId: string, heroi: Heroi, conquistasTipos: string[]) {
   const atuais = new Set(heroi.itens_desbloqueados ?? []);
