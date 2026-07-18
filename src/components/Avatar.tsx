@@ -80,15 +80,17 @@ function renderFace(shape: FaceShape, skin: (typeof SKIN_TONES)[number]) {
   // bottom outline
   const [bl, br] = rows[rows.length - 1];
   nodes.push(px(bl, 20, br - bl + 1, 1, OUTLINE));
-  // shading strip on right (form)
-  rows.forEach(([l, r], i) => {
-    const y = 4 + i;
-    if (y >= 6 && y <= 18) nodes.push(px(r, y, 1, 1, skin.shade));
+  // soft shading — apenas alguns pixels laterais, sem formar linhas retas
+  const shadeYs = [7, 9, 12, 15, 17];
+  shadeYs.forEach(y => {
+    const row = rows[y - 4];
+    if (row) nodes.push(<rect key={`sh-${y}`} x={row[1]} y={y} width={1} height={1} fill={skin.shade} opacity={0.7} />);
   });
-  // rim light (neon) — signature toque de estilo
-  rows.forEach(([l], i) => {
-    const y = 4 + i;
-    if (y >= 6 && y <= 17) nodes.push(<rect key={`rim-${y}`} x={l} y={y} width={1} height={1} fill={NEON} opacity={0.35} />);
+  // toque neon quebrado (rim light) — 2 pontos apenas
+  const rimYs = [8, 13];
+  rimYs.forEach(y => {
+    const row = rows[y - 4];
+    if (row) nodes.push(<rect key={`rim-${y}`} x={row[0]} y={y} width={1} height={1} fill={NEON} opacity={0.35} />);
   });
   // cheek highlight
   const cheekRow = rows.find((_, i) => 4 + i === 14);
@@ -96,14 +98,16 @@ function renderFace(shape: FaceShape, skin: (typeof SKIN_TONES)[number]) {
     nodes.push(px(cheekRow[0] + 1, 14, 2, 1, skin.light));
     nodes.push(px(cheekRow[1] - 2, 14, 2, 1, skin.light));
   }
-  // jaw shadow (bottom 2 rows)
-  for (let i = rows.length - 2; i < rows.length; i++) {
-    const [l, r] = rows[i];
-    nodes.push(px(l, 4 + i, r - l + 1, 1, skin.shade));
+  // jaw shadow suavizada (só cantos da penúltima linha)
+  const preLast = rows[rows.length - 2];
+  if (preLast) {
+    nodes.push(px(preLast[0], 4 + rows.length - 2, 2, 1, skin.shade));
+    nodes.push(px(preLast[1] - 1, 4 + rows.length - 2, 2, 1, skin.shade));
   }
-  // deep chin
+  // deep chin apenas no centro
   const last = rows[rows.length - 1];
-  nodes.push(px(last[0], 19, last[1] - last[0] + 1, 1, skin.deep));
+  const centerL = last[0] + Math.floor((last[1] - last[0] - 1) / 2);
+  nodes.push(px(centerL, 19, 2, 1, skin.deep));
   return <g>{nodes}</g>;
 }
 
@@ -431,75 +435,124 @@ function HatLayer({ id }: { id: string }) {
 /* ---------- ARMOR LAYER (torso y 23–32) ---------- */
 function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
   const c = cor ?? "#64748b";
+  // base torso comum (rounded top)
+  const base = (fill: string, outline = OUTLINE) => [
+    px(5, 23, 22, 1, fill),
+    px(4, 24, 24, 1, fill),
+    px(3, 25, 26, 7, fill),
+    px(5, 22, 22, 1, outline),
+    px(4, 23, 1, 1, outline),
+    px(27, 23, 1, 1, outline),
+    px(3, 24, 1, 1, outline),
+    px(28, 24, 1, 1, outline),
+    px(3, 25, 1, 7, outline),
+    px(28, 25, 1, 7, outline),
+  ];
   switch (id) {
-    case "arm_tunica":
-    case "arm_iniciante":
+    case "arm_iniciante": {
+      // 👕 camiseta simples
+      const shirt = "#64748b";
       return (
         <g shapeRendering="crispEdges">
-          {px(4, 23, 24, 1, c)}
-          {px(3, 24, 26, 8, c)}
-          {px(4, 23, 24, 1, OUTLINE)}
-          {px(3, 24, 1, 8, OUTLINE)}
-          {px(28, 24, 1, 8, OUTLINE)}
-          {/* V-neck */}
-          {px(13, 23, 6, 3, "#f1f5f9")}
+          {base(shirt)}
+          {/* mangas curtas */}
+          {px(3, 25, 4, 3, "#475569")}
+          {px(25, 25, 4, 3, "#475569")}
+          {/* gola redonda */}
+          {px(14, 23, 4, 2, "#334155")}
+          {px(15, 23, 2, 1, OUTLINE)}
+          {/* leve highlight */}
+          {px(6, 25, 2, 1, "#94a3b8")}
+          {px(24, 25, 2, 1, "#94a3b8")}
+        </g>
+      );
+    }
+    case "arm_tunica": {
+      // 🥋 gi de treino: creme + faixa preta cruzada
+      const gi = "#e5e7eb";
+      return (
+        <g shapeRendering="crispEdges">
+          {base(gi)}
+          {/* sombras laterais */}
+          {px(4, 26, 1, 5, "#94a3b8")}
+          {px(27, 26, 1, 5, "#94a3b8")}
+          {/* colarinho cruzado */}
+          {px(13, 23, 3, 4, "#f8fafc")}
+          {px(16, 23, 3, 4, "#f8fafc")}
+          {px(15, 23, 2, 6, "#cbd5e1")}
+          {px(13, 23, 1, 4, OUTLINE)}
+          {px(18, 23, 1, 4, OUTLINE)}
+          {/* faixa preta */}
+          {px(3, 29, 26, 2, "#0f172a")}
+          {px(3, 29, 26, 1, OUTLINE)}
+          {/* nó da faixa */}
+          {px(14, 28, 4, 3, "#0f172a")}
+          {px(15, 30, 2, 2, "#1e293b")}
+        </g>
+      );
+    }
+    case "arm_couro": {
+      // 🦺 colete de couro: marrom + costuras + fivela
+      const leather = "#a16207";
+      return (
+        <g shapeRendering="crispEdges">
+          {base(leather)}
+          {/* highlight superior */}
+          {px(5, 24, 22, 1, "#ca8a04")}
+          {/* abertura frontal (undershirt) */}
+          {px(14, 23, 4, 9, "#1c1917")}
           {px(14, 23, 4, 1, OUTLINE)}
-          {/* seam highlight */}
-          {px(4, 24, 24, 1, "#94a3b8")}
+          {/* costuras laterais (tracejado) */}
+          {px(6, 26, 1, 1, "#78350f")}{px(6, 28, 1, 1, "#78350f")}{px(6, 30, 1, 1, "#78350f")}
+          {px(25, 26, 1, 1, "#78350f")}{px(25, 28, 1, 1, "#78350f")}{px(25, 30, 1, 1, "#78350f")}
+          {/* cinto */}
+          {px(3, 29, 26, 1, "#3f2410")}
+          {/* fivela dourada */}
+          {px(15, 28, 2, 3, "#eab308")}
+          {px(15, 28, 2, 1, OUTLINE)}
+          {px(15, 30, 2, 1, "#a16207")}
         </g>
       );
-    case "arm_couro":
+    }
+    case "arm_manto": {
+      // 🧥 sobretudo com gola alta e botões
+      const coat = c;
       return (
         <g shapeRendering="crispEdges">
-          {px(4, 23, 24, 1, c)}
-          {px(3, 24, 26, 8, c)}
-          {px(4, 23, 24, 1, OUTLINE)}
-          {px(3, 24, 1, 8, OUTLINE)}
-          {px(28, 24, 1, 8, OUTLINE)}
-          {/* pauldrons (rounded top) */}
-          {px(4, 23, 4, 1, "#78350f")}
-          {px(3, 24, 5, 3, "#78350f")}
-          {px(24, 23, 4, 1, "#78350f")}
-          {px(24, 24, 5, 3, "#78350f")}
-          {px(3, 26, 5, 1, OUTLINE)}
-          {px(24, 26, 5, 1, OUTLINE)}
-          {/* strap */}
-          {px(3, 28, 26, 1, "#3f2410")}
-          {/* buckle */}
-          {px(15, 27, 2, 3, "#eab308")}
-          {px(15, 27, 2, 1, OUTLINE)}
+          {/* capa por trás */}
+          {px(2, 24, 28, 1, "#1e1b4b")}
+          {px(1, 25, 30, 7, "#1e1b4b")}
+          {px(1, 25, 1, 7, OUTLINE)}
+          {px(30, 25, 1, 7, OUTLINE)}
+          {/* corpo */}
+          {base(coat)}
+          {/* gola alta levantada */}
+          {px(11, 22, 3, 4, coat)}
+          {px(18, 22, 3, 4, coat)}
+          {px(11, 21, 3, 1, OUTLINE)}
+          {px(18, 21, 3, 1, OUTLINE)}
+          {px(10, 22, 1, 4, OUTLINE)}
+          {px(21, 22, 1, 4, OUTLINE)}
+          {px(11, 22, 3, 1, "#a78bfa")}
+          {px(18, 22, 3, 1, "#a78bfa")}
+          {/* abertura central */}
+          {px(15, 23, 2, 9, "#1e1b4b")}
+          {/* botões dourados */}
+          {px(15, 26, 2, 1, "#eab308")}
+          {px(15, 29, 2, 1, "#eab308")}
+          {/* runa */}
+          {px(15, 31, 2, 1, "#a855f7")}
         </g>
       );
-    case "arm_manto":
+    }
+    case "arm_dourada": {
+      // 🛡️ armadura de placas dourada com emblema de escudo
+      const gold = "#eab308";
       return (
         <g shapeRendering="crispEdges">
-          {/* cape behind shoulders (rounded top) */}
-          {px(2, 22, 28, 1, "#2e1065")}
-          {px(1, 23, 30, 9, "#2e1065")}
-          {px(1, 23, 1, 9, OUTLINE)}
-          {px(30, 23, 1, 9, OUTLINE)}
-          {/* body */}
-          {px(4, 23, 24, 1, c)}
-          {px(3, 24, 26, 8, c)}
-          {px(4, 23, 24, 1, OUTLINE)}
-          {px(3, 24, 1, 8, OUTLINE)}
-          {px(28, 24, 1, 8, OUTLINE)}
-          {/* front panel */}
-          {px(13, 23, 6, 9, "#1e1b4b")}
-          {px(14, 23, 4, 1, OUTLINE)}
-          {/* rune */}
-          {px(15, 27, 2, 2, "#a855f7")}
-        </g>
-      );
-    case "arm_dourada":
-      return (
-        <g shapeRendering="crispEdges">
-          {/* base plate (rounded top) */}
-          {px(4, 23, 24, 1, c)}
-          {px(3, 24, 26, 8, c)}
-          {px(4, 23, 24, 1, OUTLINE)}
-          {px(3, 24, 1, 8, "#854d0e")}
-          {px(28, 24, 1, 8, "#854d0e")}
+          {base(gold, "#854d0e")}
+          {/* highlight superior */}
+          {px(5, 24, 22, 1, "#fde047")}
           {/* pauldrons (rounded top) */}
           {px(3, 22, 4, 1, "#facc15")}
           {px(2, 23, 6, 4, "#facc15")}
@@ -509,16 +562,25 @@ function ArmorLayer({ id, cor }: { id: string; cor?: string }) {
           {px(25, 22, 4, 1, OUTLINE)}
           {px(2, 27, 6, 1, OUTLINE)}
           {px(24, 27, 6, 1, OUTLINE)}
-          {/* highlight */}
-          {px(3, 23, 4, 1, "#fef08a")}
-          {px(25, 23, 4, 1, "#fef08a")}
-          {/* chest emblem */}
-          {px(14, 26, 4, 4, "#dc2626")}
-          {px(15, 27, 2, 2, "#fef2f2")}
-          {/* seams */}
+          {px(3, 23, 3, 1, "#fef08a")}
+          {px(25, 23, 3, 1, "#fef08a")}
+          {/* emblema em forma de escudo */}
+          {px(13, 25, 6, 1, "#7f1d1d")}
+          {px(12, 26, 8, 3, "#dc2626")}
+          {px(13, 29, 6, 1, "#dc2626")}
+          {px(14, 30, 4, 1, "#dc2626")}
+          {px(15, 31, 2, 1, "#dc2626")}
+          {px(12, 26, 1, 3, OUTLINE)}
+          {px(19, 26, 1, 3, OUTLINE)}
+          {px(13, 25, 6, 1, OUTLINE)}
+          {/* cruz branca no escudo */}
+          {px(15, 26, 2, 4, "#fef2f2")}
+          {px(13, 27, 6, 1, "#fef2f2")}
+          {/* linha de placas */}
           {px(3, 28, 26, 1, "#854d0e")}
         </g>
       );
+    }
     default:
       return null;
   }
