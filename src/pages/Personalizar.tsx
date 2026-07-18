@@ -197,7 +197,13 @@ export default function Personalizar() {
                 style={active ? undefined : { borderColor: borda }}
               >
                 <div style={{ filter: `drop-shadow(0 0 6px ${borda})` }}>
-                  <Avatar equipado={{ [item.categoria]: item.id } as any} size="sm" glow={false} />
+                  {item.categoria === "card_bg" || item.categoria === "app_bg" ? (
+                    <div className={`w-14 h-14 rounded-md overflow-hidden relative border border-white/10 ${
+                      (item.categoria === "card_bg" ? CARD_BACKGROUNDS : APP_BACKGROUNDS)[item.id]?.className ?? ""
+                    }`} />
+                  ) : (
+                    <Avatar equipado={{ [item.categoria]: item.id } as any} size="sm" glow={false} />
+                  )}
                 </div>
                 <span className="text-[10px] uppercase tracking-widest text-center truncate w-full">{item.nome}</span>
                 {active && <span className="text-[9px] text-primary uppercase tracking-widest">equipado</span>}
