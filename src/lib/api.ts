@@ -143,6 +143,39 @@ export async function fetchLogsHoje(userId: string): Promise<Set<string>> {
   return new Set((data ?? []).map((r: any) => r.habito_id));
 }
 
+/** Logs for a specific ISO date. */
+export async function fetchLogsData(userId: string, data: string): Promise<Set<string>> {
+  const { data: rows } = await supabase
+    .from("habito_logs")
+    .select("habito_id")
+    .eq("user_id", userId)
+    .eq("data", data);
+  return new Set((rows ?? []).map((r: any) => r.habito_id));
+}
+
+/**
+ * Recalcula o HP máximo do inimigo com base no potencial diário de dano do usuário.
+ * Regra: hp_max = soma(dano dos hábitos positivos) * 21 dias (mínimo de 21 dias
+ * de consistência para derrotar o inimigo). Preserva o dano já causado.
+ */
+export async function recalcularHpMaxInimigo(userId: string): Promise<void> {
+  const [inimigo, habitos] = await Promise.all([
+    fetchInimigoAtivo(userId),
+    fetchHabitos(userId),
+  ]);
+  if (!inimigo) return;
+  const positivos = habitos.filter(h => h.tipo === "positivo");
+  const danoDiario = positivos.reduce((s, h) => s + (h.peso_dano_cura || 0), 0);
+  const DIAS_MIN = 21;
+  const novoMax = Math.max(50, danoDiario * DIAS_MIN);
+  if (novoMax === inimigo.hp_max) return;
+  const danoJaCausado = Math.max(0, inimigo.hp_max - inimigo.hp_atual);
+  const novoAtual = clamp(novoMax - danoJaCausado, 0, novoMax);
+  await supabase.from("inimigo")
+    .update({ hp_max: novoMax, hp_atual: novoAtual })
+    .eq("id", inimigo.id);
+}
+
 export async function fetchOnboarding(userId: string) {
   const { data } = await supabase
     .from("onboarding_respostas")
@@ -224,20 +257,21 @@ export async function toggleHabito(opts: {
   inimigo: Inimigo | null;
   habito: Habito;
   marcado: boolean; // current state
+  data?: string;    // ISO date; defaults to today
 }) {
   const { heroi, inimigo, habito, marcado } = opts;
-  const today = todayISO();
+  const dia = opts.data ?? todayISO();
   const sign = marcado ? -1 : 1; // if already marked, we're undoing
   const positivo = habito.tipo === "positivo";
 
   // Habit log
   if (marcado) {
-    await supabase.from("habito_logs").delete().eq("habito_id", habito.id).eq("data", today);
+    await supabase.from("habito_logs").delete().eq("habito_id", habito.id).eq("data", dia);
   } else {
     await supabase.from("habito_logs").insert({
       user_id: heroi.id,
       habito_id: habito.id,
-      data: today,
+      data: dia,
       completado: true,
     });
   }
