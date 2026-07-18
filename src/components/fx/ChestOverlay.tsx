@@ -65,39 +65,41 @@ export default function ChestOverlay({
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" />
-          {/* Confetti (replaces background glow) */}
+          {/* Confetti */}
           {stage === "reveal" && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="pointer-events-none fixed inset-0 z-[110] overflow-hidden">
               {Array.from({ length: confettiCount }).map((_, i) => {
                 const left = Math.random() * 100;
-                const delay = Math.random() * 0.4;
-                const duration = 1.8 + Math.random() * 1.6;
-                const size = 6 + Math.random() * 6;
+                const delay = Math.random() * 0.6;
+                const duration = 2.4 + Math.random() * 2.2;
+                const w = 8 + Math.random() * 6;
+                const h = i % 3 === 0 ? w : w * 0.45;
                 const color = confettiColors[i % confettiColors.length];
                 const rot = Math.random() * 360;
-                const drift = (Math.random() - 0.5) * 120;
-                const rounded = i % 3 === 0;
+                const drift = (Math.random() - 0.5) * 220;
+                const rounded = i % 4 === 0;
                 return (
-                  <motion.span
+                  <motion.div
                     key={`cf${i}`}
-                    className="absolute"
                     style={{
+                      position: "absolute",
                       left: `${left}%`,
-                      top: -20,
-                      width: size,
-                      height: size * (rounded ? 1 : 0.5),
+                      top: "-24px",
+                      width: w,
+                      height: h,
                       background: color,
-                      borderRadius: rounded ? "9999px" : "2px",
-                      transform: `rotate(${rot}deg)`,
+                      borderRadius: rounded ? 9999 : 2,
+                      boxShadow: `0 0 6px ${color}80`,
+                      willChange: "transform, opacity",
                     }}
-                    initial={{ y: -40, opacity: 0, rotate: rot }}
+                    initial={{ y: -40, x: 0, opacity: 0, rotate: rot }}
                     animate={{
-                      y: "110vh",
+                      y: typeof window !== "undefined" ? window.innerHeight + 60 : 900,
                       x: drift,
-                      opacity: [0, 1, 1, 0.9, 0],
-                      rotate: rot + 540,
+                      opacity: [0, 1, 1, 1, 0],
+                      rotate: rot + 720,
                     }}
-                    transition={{ duration, delay, ease: "easeIn" }}
+                    transition={{ duration, delay, ease: "easeIn", times: [0, 0.1, 0.5, 0.85, 1] }}
                   />
                 );
               })}
