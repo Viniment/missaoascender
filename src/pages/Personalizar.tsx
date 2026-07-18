@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-type TabId = "face" | "skin" | "hair" | "beard" | "eyes" | "mark" | "hat" | "armor" | "aura";
+type TabId = "face" | "skin" | "hair" | "beard" | "eyes" | "mark" | "hat" | "armor" | "aura" | "weapon" | "wings" | "mask" | "pet" | "frame";
 const TABS: { id: TabId; label: string; group: "aparencia" | "equip" }[] = [
   { id: "face",  label: "Rosto",    group: "aparencia" },
   { id: "skin",  label: "Pele",     group: "aparencia" },
@@ -23,6 +23,11 @@ const TABS: { id: TabId; label: string; group: "aparencia" | "equip" }[] = [
   { id: "hat",   label: "Chapéu",   group: "equip" },
   { id: "armor", label: "Armadura", group: "equip" },
   { id: "aura",  label: "Aura",     group: "equip" },
+  { id: "weapon", label: "Arma",   group: "equip" },
+  { id: "wings",  label: "Asas",   group: "equip" },
+  { id: "mask",   label: "Máscara", group: "equip" },
+  { id: "pet",    label: "Pet",    group: "equip" },
+  { id: "frame",  label: "Moldura", group: "equip" },
 ];
 
 export default function Personalizar() {
@@ -47,7 +52,7 @@ export default function Personalizar() {
     await qc.invalidateQueries({ queryKey: ["heroi", uid] });
   };
 
-  const isEquipTab = tab === "hat" || tab === "armor" || tab === "aura";
+  const isEquipTab = ["hat","armor","aura","weapon","wings","mask","pet","frame"].includes(tab);
   const owned = isEquipTab
     ? ITENS.filter(i => i.categoria === tab && heroi.itens_desbloqueados.includes(i.id))
     : [];
