@@ -11,7 +11,7 @@ import {
 import { todayISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy } from "lucide-react";
+import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
@@ -20,6 +20,9 @@ import LevelUpOverlay from "@/components/fx/LevelUpOverlay";
 import VictoryScreen from "@/components/fx/VictoryScreen";
 import AvisosBanner from "@/components/AvisosBanner";
 import ChestOverlay from "@/components/fx/ChestOverlay";
+import EditHabitoDialog from "@/components/EditHabitoDialog";
+import EditInimigoDialog from "@/components/EditInimigoDialog";
+import type { Habito } from "@/lib/api";
 
 type Battle = {
   positivo: boolean;
@@ -54,6 +57,8 @@ export default function Dashboard() {
   const [victory, setVictory] = useState<string | null>(null);
   const [chestOpen, setChestOpen] = useState(false);
   const [chestGold, setChestGold] = useState<number | null>(null);
+  const [editHabito, setEditHabito] = useState<Habito | null>(null);
+  const [editInimigoOpen, setEditInimigoOpen] = useState(false);
   const prevNivel = useRef<number | null>(null);
   const prevEnemyHp = useRef<number | null>(null);
 
@@ -140,7 +145,7 @@ export default function Dashboard() {
     setCreating(true);
     try {
       // IA mede o peso baseado no contexto
-      let peso_dano_cura = 8, peso_xp = 12;
+      let peso_dano_cura = 8, peso_xp = 12, peso_ouro = 2;
       try {
         const { data } = await supabase.functions.invoke("sugerir-pesos-habito", {
           body: {
@@ -152,6 +157,7 @@ export default function Dashboard() {
         });
         if (data?.peso_dano_cura) peso_dano_cura = data.peso_dano_cura;
         if (data?.peso_xp) peso_xp = data.peso_xp;
+        if (data?.peso_ouro) peso_ouro = data.peso_ouro;
       } catch {}
 
       const { error } = await supabase.from("habitos").insert({
@@ -160,6 +166,7 @@ export default function Dashboard() {
         tipo: novoHabito.tipo,
         peso_dano_cura,
         peso_xp,
+        peso_ouro,
       });
       if (error) throw error;
       setNovoHabito({ nome: "", tipo: "positivo" });
