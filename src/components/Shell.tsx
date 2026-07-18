@@ -36,12 +36,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
       {appBg ? (
-        <div className={cn("app-bg-layer", appBg.className)} aria-hidden="true">
-          <span className="app-bg-depth app-bg-depth-one" />
-          <span className="app-bg-depth app-bg-depth-two" />
-          <span className="app-bg-depth app-bg-depth-three" />
-          <span className="app-bg-vignette" />
-        </div>
+        <>
+          <div className={cn("app-bg-layer", appBg.className)} aria-hidden="true">
+            <span className="app-bg-depth app-bg-depth-one" />
+            <span className="app-bg-depth app-bg-depth-two" />
+            <span className="app-bg-depth app-bg-depth-three" />
+            <span className="app-bg-vignette" />
+          </div>
+          <div className="app-bg-scrim" aria-hidden="true" />
+        </>
       ) : (
         <div className="fixed inset-0 pointer-events-none opacity-70">
           <ParticleBackground density={35} />
