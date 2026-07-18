@@ -15,7 +15,6 @@ import AnimatedCounter from "@/components/fx/AnimatedCounter";
 const TABS: { id: ItemCategoria; label: string; icon: string }[] = [
   { id: "hat",    label: "Chapéus",   icon: "👑" },
   { id: "armor",  label: "Armaduras", icon: "🛡️" },
-  { id: "wings",  label: "Asas",      icon: "🪽" },
   { id: "mask",   label: "Máscaras",  icon: "🎭" },
   { id: "aura",   label: "Auras",     icon: "✨" },
   { id: "pet",    label: "Pets",      icon: "🐺" },
