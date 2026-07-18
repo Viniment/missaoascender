@@ -1023,17 +1023,17 @@ function FrameRing({ id, cor, size }: { id: string; cor?: string; size: number }
 /* ---------- PET SPRITE (floats next to avatar) ---------- */
 function PetSprite({ id, cor, size }: { id: string; cor?: string; size: number }) {
   const c = cor ?? "#c084fc";
-  const petSize = Math.max(20, Math.round(size * 0.4));
+  const petSize = Math.max(26, Math.round(size * 0.48));
   return (
     <div
       className="absolute pointer-events-none"
       style={{
-        right: -Math.round(petSize * 0.4),
+        right: -Math.round(petSize * 0.35),
         bottom: Math.round(size * 0.05),
         width: petSize,
         height: petSize,
         animation: "petBob 2.4s ease-in-out infinite",
-        filter: `drop-shadow(0 0 8px ${c})`,
+        filter: `drop-shadow(0 0 10px ${c}) drop-shadow(0 2px 3px rgba(0,0,0,0.6))`,
       }}
     >
       <svg viewBox="0 0 16 16" width={petSize} height={petSize} shapeRendering="crispEdges" style={{ imageRendering: "pixelated" }}>
@@ -1063,40 +1063,148 @@ function PetBody({ id, cor }: { id: string; cor: string }) {
     case "pet_lobo":
       return (
         <g>
-          <rect x="3" y="7" width="10" height="5" fill={cor} />
-          <rect x="4" y="6" width="3" height="1" fill={cor} />
-          <rect x="9" y="6" width="3" height="1" fill={cor} />
-          <rect x="3" y="12" width="2" height="2" fill={cor} />
-          <rect x="11" y="12" width="2" height="2" fill={cor} />
-          <rect x="5" y="9" width="1" height="1" fill="#facc15" />
-          <rect x="10" y="9" width="1" height="1" fill="#facc15" />
-          <rect x="7" y="10" width="2" height="1" fill={O} />
+          {/* cauda peluda */}
+          <rect x="1" y="8"  width="2" height="1" fill={cor} />
+          <rect x="0" y="9"  width="3" height="2" fill={cor} />
+          <rect x="1" y="11" width="2" height="1" fill={O} opacity="0.35" />
+          {/* corpo */}
+          <rect x="3" y="8"  width="7" height="5" fill={cor} />
+          <rect x="3" y="13" width="1" height="1" fill={O} opacity="0.35" />
+          <rect x="9" y="13" width="1" height="1" fill={O} opacity="0.35" />
+          {/* patas */}
+          <rect x="3" y="13" width="2" height="2" fill={cor} />
+          <rect x="7" y="13" width="2" height="2" fill={cor} />
+          <rect x="3" y="15" width="2" height="1" fill={O} />
+          <rect x="7" y="15" width="2" height="1" fill={O} />
+          {/* peito claro */}
+          <rect x="5" y="10" width="3" height="2" fill="#94a3b8" opacity="0.4" />
+          {/* cabeça */}
+          <rect x="8" y="5" width="6" height="6" fill={cor} />
+          {/* orelhas triangulares */}
+          <rect x="8"  y="3" width="2" height="2" fill={cor} />
+          <rect x="9"  y="2" width="1" height="1" fill={cor} />
+          <rect x="12" y="3" width="2" height="2" fill={cor} />
+          <rect x="12" y="2" width="1" height="1" fill={cor} />
+          <rect x="9"  y="4" width="1" height="1" fill="#dc2626" opacity="0.6" />
+          <rect x="12" y="4" width="1" height="1" fill="#dc2626" opacity="0.6" />
+          {/* focinho */}
+          <rect x="13" y="7" width="2" height="3" fill={cor} />
+          <rect x="14" y="8" width="1" height="1" fill={O} />
+          {/* olhos brilhantes */}
+          <rect x="10" y="6" width="2" height="2" fill="#facc15">
+            <animate attributeName="fill" values="#facc15;#fef08a;#facc15" dur="2.4s" repeatCount="indefinite" />
+          </rect>
+          <rect x="10" y="6" width="1" height="1" fill="#fff" opacity="0.8" />
+          {/* presas */}
+          <rect x="13" y="9" width="1" height="1" fill="#fff" />
+          <rect x="14" y="9" width="1" height="1" fill="#fff" />
         </g>
       );
     case "pet_coruja":
       return (
         <g>
-          <rect x="4" y="5" width="8" height="9" fill={cor} />
-          <rect x="4" y="4" width="2" height="1" fill={cor} />
-          <rect x="10" y="4" width="2" height="1" fill={cor} />
-          <rect x="5" y="7" width="2" height="2" fill="#fff" />
-          <rect x="9" y="7" width="2" height="2" fill="#fff" />
-          <rect x="6" y="8" width="1" height="1" fill={O} />
-          <rect x="10" y="8" width="1" height="1" fill={O} />
-          <rect x="7" y="9" width="2" height="1" fill="#facc15" />
+          {/* tufos de orelha */}
+          <rect x="3" y="3" width="2" height="2" fill={cor} />
+          <rect x="4" y="2" width="1" height="1" fill={cor} />
+          <rect x="11" y="3" width="2" height="2" fill={cor} />
+          <rect x="11" y="2" width="1" height="1" fill={cor} />
+          {/* cabeça / corpo redondo */}
+          <rect x="3" y="5"  width="10" height="8" fill={cor} />
+          <rect x="2" y="6"  width="1"  height="6" fill={cor} />
+          <rect x="13" y="6" width="1"  height="6" fill={cor} />
+          <rect x="4" y="13" width="8"  height="1" fill={cor} />
+          {/* peito manchado */}
+          <rect x="6"  y="10" width="4" height="3" fill="#e9d5ff" opacity="0.55" />
+          <rect x="7"  y="10" width="1" height="1" fill={cor} opacity="0.5" />
+          <rect x="9"  y="11" width="1" height="1" fill={cor} opacity="0.5" />
+          <rect x="7"  y="12" width="1" height="1" fill={cor} opacity="0.5" />
+          {/* disco facial */}
+          <rect x="4" y="6" width="4" height="4" fill="#fff" opacity="0.15" />
+          <rect x="8" y="6" width="4" height="4" fill="#fff" opacity="0.15" />
+          {/* olhos grandes */}
+          <rect x="4" y="6" width="3" height="3" fill="#fff" />
+          <rect x="9" y="6" width="3" height="3" fill="#fff" />
+          <rect x="5" y="7" width="2" height="2" fill="#facc15" />
+          <rect x="10" y="7" width="2" height="2" fill="#facc15" />
+          <rect x="5" y="7" width="1" height="1" fill={O}>
+            <animate attributeName="height" values="1;0.3;1" dur="3.6s" repeatCount="indefinite" />
+          </rect>
+          <rect x="10" y="7" width="1" height="1" fill={O}>
+            <animate attributeName="height" values="1;0.3;1" dur="3.6s" repeatCount="indefinite" />
+          </rect>
+          <rect x="6" y="7" width="1" height="1" fill="#fff" opacity="0.9" />
+          <rect x="11" y="7" width="1" height="1" fill="#fff" opacity="0.9" />
+          {/* bico */}
+          <rect x="7" y="9"  width="2" height="1" fill="#f97316" />
+          <rect x="7" y="10" width="2" height="1" fill="#c2410c" />
+          {/* garras */}
+          <rect x="5" y="14" width="1" height="1" fill="#fbbf24" />
+          <rect x="7" y="14" width="1" height="1" fill="#fbbf24" />
+          <rect x="10" y="14" width="1" height="1" fill="#fbbf24" />
         </g>
       );
     case "pet_dragao":
       return (
         <g>
-          <rect x="3" y="7" width="9" height="5" fill={cor} />
-          <rect x="2" y="8" width="1" height="3" fill={cor} />
-          <rect x="12" y="6" width="2" height="4" fill={cor} />
-          <rect x="6" y="6" width="1" height="1" fill={cor} />
-          <rect x="9" y="6" width="1" height="1" fill={cor} />
-          <rect x="4" y="9" width="1" height="1" fill="#facc15" />
-          <rect x="7" y="9" width="1" height="1" fill="#facc15" />
-          <rect x="13" y="7" width="1" height="1" fill="#dc2626" />
+          {(() => {
+            const belly = "#bbf7d0";
+            const dark = "#052e16";
+            return (
+              <g>
+                {/* asa traseira */}
+                <g style={{ transformOrigin: "5px 8px", animation: "petWing 1.2s ease-in-out infinite" }}>
+                  <rect x="1" y="5" width="4" height="4" fill={cor} opacity="0.85" />
+                  <rect x="0" y="6" width="1" height="2" fill={cor} opacity="0.6" />
+                  <rect x="2" y="4" width="1" height="1" fill={cor} opacity="0.7" />
+                  <rect x="4" y="4" width="1" height="1" fill={cor} opacity="0.7" />
+                </g>
+                {/* cauda ondulada */}
+                <rect x="0" y="11" width="2" height="1" fill={cor} />
+                <rect x="1" y="12" width="2" height="1" fill={cor} />
+                <rect x="2" y="11" width="2" height="1" fill={cor} />
+                <rect x="0" y="10" width="1" height="1" fill="#facc15" />
+                {/* corpo */}
+                <rect x="3" y="8"  width="7" height="5" fill={cor} />
+                <rect x="3" y="13" width="6" height="1" fill={dark} opacity="0.4" />
+                {/* barriga clara */}
+                <rect x="4" y="10" width="5" height="3" fill={belly} opacity="0.7" />
+                {/* espinhos dorsais */}
+                <rect x="4" y="7" width="1" height="1" fill="#facc15" />
+                <rect x="6" y="7" width="1" height="1" fill="#facc15" />
+                <rect x="8" y="7" width="1" height="1" fill="#facc15" />
+                {/* patas */}
+                <rect x="3" y="14" width="2" height="1" fill={cor} />
+                <rect x="7" y="14" width="2" height="1" fill={cor} />
+                <rect x="3" y="15" width="1" height="1" fill="#facc15" />
+                <rect x="4" y="15" width="1" height="1" fill="#facc15" />
+                <rect x="7" y="15" width="1" height="1" fill="#facc15" />
+                <rect x="8" y="15" width="1" height="1" fill="#facc15" />
+                {/* pescoço + cabeça */}
+                <rect x="9"  y="6" width="4" height="5" fill={cor} />
+                <rect x="12" y="7" width="2" height="3" fill={cor} />
+                {/* chifres */}
+                <rect x="9"  y="4" width="1" height="2" fill="#fef3c7" />
+                <rect x="11" y="4" width="1" height="2" fill="#fef3c7" />
+                <rect x="9"  y="3" width="1" height="1" fill="#facc15" />
+                <rect x="11" y="3" width="1" height="1" fill="#facc15" />
+                {/* olho */}
+                <rect x="10" y="7" width="2" height="2" fill="#fff" />
+                <rect x="11" y="7" width="1" height="2" fill="#dc2626">
+                  <animate attributeName="fill" values="#dc2626;#f97316;#dc2626" dur="1.8s" repeatCount="indefinite" />
+                </rect>
+                {/* sopro de fogo */}
+                <rect x="14" y="8" width="1" height="1" fill="#facc15">
+                  <animate attributeName="opacity" values="0.4;1;0.4" dur="0.6s" repeatCount="indefinite" />
+                </rect>
+                <rect x="15" y="8" width="1" height="1" fill="#f97316">
+                  <animate attributeName="opacity" values="0.2;1;0.2" dur="0.7s" repeatCount="indefinite" />
+                </rect>
+                <rect x="14" y="9" width="1" height="1" fill="#dc2626" opacity="0.7">
+                  <animate attributeName="opacity" values="0.2;0.8;0.2" dur="0.9s" repeatCount="indefinite" />
+                </rect>
+              </g>
+            );
+          })()}
         </g>
       );
     case "pet_orb":
@@ -1113,16 +1221,56 @@ function PetBody({ id, cor }: { id: string; cor: string }) {
     case "pet_fenix":
       return (
         <g>
-          <rect x="4" y="7" width="8" height="6" fill={cor} />
-          <rect x="3" y="8" width="1" height="4" fill={cor} />
-          <rect x="12" y="8" width="1" height="4" fill={cor} />
-          <rect x="6" y="5" width="4" height="2" fill="#fde047" />
-          <rect x="7" y="4" width="2" height="1" fill="#fde047" />
-          <rect x="5" y="9" width="1" height="1" fill={O} />
-          <rect x="10" y="9" width="1" height="1" fill={O} />
-          <rect x="6" y="11" width="4" height="1" fill="#dc2626" />
-          <rect x="0" y="7" width="16" height="6" fill="#f97316" opacity="0.35">
-            <animate attributeName="opacity" values="0.2;0.6;0.2" dur="1.6s" repeatCount="indefinite" />
+          {/* aura de fogo pulsante */}
+          <rect x="0" y="4" width="16" height="12" fill="#f97316" opacity="0.25">
+            <animate attributeName="opacity" values="0.15;0.55;0.15" dur="1.4s" repeatCount="indefinite" />
+          </rect>
+          {/* asas em chamas */}
+          <g style={{ transformOrigin: "8px 9px", animation: "petWing 0.9s ease-in-out infinite" }}>
+            <rect x="0" y="7" width="3" height="4" fill="#f97316" />
+            <rect x="1" y="6" width="2" height="1" fill="#fde047" />
+            <rect x="0" y="11" width="2" height="1" fill="#dc2626" />
+            <rect x="13" y="7" width="3" height="4" fill="#f97316" />
+            <rect x="13" y="6" width="2" height="1" fill="#fde047" />
+            <rect x="14" y="11" width="2" height="1" fill="#dc2626" />
+          </g>
+          {/* cauda de chamas longa */}
+          <rect x="5" y="13" width="6" height="1" fill="#f97316" />
+          <rect x="6" y="14" width="4" height="1" fill="#dc2626" />
+          <rect x="7" y="15" width="2" height="1" fill="#facc15">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="0.7s" repeatCount="indefinite" />
+          </rect>
+          {/* corpo laranja-ouro */}
+          <rect x="5" y="7" width="6" height="6" fill="#fb923c" />
+          <rect x="4" y="8" width="1" height="4" fill="#fb923c" />
+          <rect x="11" y="8" width="1" height="4" fill="#fb923c" />
+          {/* peito dourado */}
+          <rect x="6" y="9" width="4" height="3" fill="#fde047" opacity="0.85" />
+          {/* crista alta */}
+          <rect x="7" y="3" width="2" height="2" fill="#fde047" />
+          <rect x="6" y="4" width="1" height="1" fill="#f97316" />
+          <rect x="9" y="4" width="1" height="1" fill="#f97316" />
+          <rect x="7" y="2" width="1" height="1" fill="#f97316" />
+          {/* cabeça */}
+          <rect x="6" y="5" width="4" height="3" fill="#fb923c" />
+          {/* olhos brilhantes */}
+          <rect x="6" y="6" width="1" height="1" fill="#fff" />
+          <rect x="9" y="6" width="1" height="1" fill="#fff" />
+          <rect x="6" y="6" width="1" height="1" fill={O}>
+            <animate attributeName="opacity" values="1;0;1" dur="4s" repeatCount="indefinite" />
+          </rect>
+          {/* bico */}
+          <rect x="7" y="7" width="2" height="1" fill="#fef3c7" />
+          <rect x="7" y="8" width="1" height="1" fill="#facc15" />
+          {/* faíscas ao redor */}
+          <rect x="2" y="4" width="1" height="1" fill="#fde047">
+            <animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" />
+          </rect>
+          <rect x="13" y="3" width="1" height="1" fill="#fde047">
+            <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <rect x="1" y="12" width="1" height="1" fill="#facc15">
+            <animate attributeName="opacity" values="0;1;0" dur="1.8s" repeatCount="indefinite" />
           </rect>
         </g>
       );
