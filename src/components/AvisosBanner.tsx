@@ -27,11 +27,6 @@ export default function AvisosBanner() {
     refetchInterval: 60_000,
   });
 
-  const marcarLido = async (id: string) => {
-    if (!uid) return;
-    await supabase.from("avisos_lidos").insert({ aviso_id: id, user_id: uid });
-  };
-
   // Auto-mark as read on display — só aparece uma vez.
   useEffect(() => {
     if (!uid || !avisos?.length) return;
