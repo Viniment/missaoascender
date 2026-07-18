@@ -1,4 +1,4 @@
-import { getItem, AvatarEquipado, SKIN_TONES, APARENCIA_PADRAO, FaceShape, HairStyle, FaceMark, SkinTone, BeardStyle } from "@/lib/itens";
+import { getItem, AvatarEquipado, SKIN_TONES, APARENCIA_PADRAO, FaceShape, HairStyle, FaceMark, SkinTone, BeardStyle, RARIDADE_COR } from "@/lib/itens";
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md" | "lg" | "xl";
@@ -690,6 +690,245 @@ function AuraLayer({ cor }: { cor: string }) {
   );
 }
 
+/* ---------- WEAPON LAYER (right shoulder, over torso) ---------- */
+function WeaponLayer({ id, cor }: { id: string; cor?: string }) {
+  const c = cor ?? "#cbd5e1";
+  switch (id) {
+    case "wp_adaga":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 20, 1, 5, c)}
+          {px(26, 25, 3, 1, "#78350f")}
+          {px(27, 26, 1, 1, "#eab308")}
+        </g>
+      );
+    case "wp_espada":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 17, 1, 10, c)}
+          {px(28, 18, 1, 8, "#f8fafc")}
+          {px(26, 26, 3, 1, "#78350f")}
+          {px(27, 27, 1, 2, "#0f172a")}
+          {px(27, 16, 1, 1, "#f8fafc")}
+        </g>
+      );
+    case "wp_machado":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 20, 1, 10, "#78350f")}
+          {px(25, 18, 4, 4, c)}
+          {px(24, 19, 1, 2, c)}
+          {px(25, 18, 4, 1, "#f8fafc")}
+        </g>
+      );
+    case "wp_katana":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 15, 1, 12, c)}
+          {px(28, 16, 1, 10, "#a5f3fc")}
+          {px(26, 27, 3, 1, "#0f172a")}
+          {px(27, 28, 1, 2, "#7B2FF7")}
+        </g>
+      );
+    case "wp_cajado":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 16, 1, 14, "#78350f")}
+          {px(26, 14, 3, 3, c)}
+          {px(27, 13, 1, 1, "#f0abfc")}
+          {px(26, 14, 3, 1, "#f0abfc")}
+        </g>
+      );
+    case "wp_arco":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(28, 16, 1, 12, "#78350f")}
+          {px(27, 15, 1, 1, "#78350f")}{px(27, 28, 1, 1, "#78350f")}
+          {px(26, 22, 1, 1, "#78350f")}
+          {px(27, 22, 3, 1, c)}
+        </g>
+      );
+    case "wp_foice":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 17, 1, 12, "#0f172a")}
+          {px(24, 17, 4, 1, c)}
+          {px(23, 18, 1, 2, c)}
+          {px(24, 20, 2, 1, c)}
+        </g>
+      );
+    case "wp_martelo":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(27, 20, 1, 10, "#78350f")}
+          {px(25, 17, 5, 4, c)}
+          {px(25, 17, 5, 1, "#fef08a")}
+          {px(29, 18, 1, 2, "#a16207")}
+          {px(25, 18, 1, 2, "#a16207")}
+        </g>
+      );
+    case "wp_lamina":
+      return (
+        <g>
+          <rect x="27" y="14" width="1" height="14" fill={c}>
+            <animate attributeName="fill" values="#f472b6;#a855f7;#22d3ee;#f472b6" dur="3s" repeatCount="indefinite" />
+          </rect>
+          <rect x="28" y="15" width="1" height="12" fill="#fff" opacity="0.8" />
+          <rect x="26" y="28" width="3" height="1" fill="#0f172a" />
+          <rect x="27" y="29" width="1" height="2" fill="#facc15" />
+        </g>
+      );
+    default:
+      return null;
+  }
+}
+
+/* ---------- WINGS / CAPE LAYER (behind bust) ---------- */
+function WingsLayer({ id, cor }: { id: string; cor?: string }) {
+  const c = cor ?? "#7c3aed";
+  const shade = "#0f172a";
+  switch (id) {
+    case "wg_capa":
+    case "wg_manto":
+      return (
+        <g shapeRendering="crispEdges">
+          {/* cape flowing behind torso */}
+          {px(2, 22, 28, 2, c)}
+          {px(1, 24, 30, 6, c)}
+          {px(2, 30, 28, 1, shade)}
+          {px(1, 24, 1, 6, shade)}
+          {px(30, 24, 1, 6, shade)}
+          {px(4, 25, 24, 1, id === "wg_manto" ? "#7f1d1d" : "#5c2b0d")}
+        </g>
+      );
+    case "wg_corvo":
+    case "wg_anjo":
+    case "wg_demonio":
+    case "wg_fenix": {
+      const light = id === "wg_anjo" ? "#fef9c3" : id === "wg_fenix" ? "#fde047" : id === "wg_demonio" ? "#ef4444" : "#334155";
+      return (
+        <g shapeRendering="crispEdges">
+          {/* left wing */}
+          {px(0, 18, 6, 1, c)}
+          {px(0, 19, 8, 2, c)}
+          {px(1, 21, 8, 2, c)}
+          {px(2, 23, 7, 2, c)}
+          {px(3, 25, 5, 2, c)}
+          {px(1, 20, 3, 1, light)}
+          {px(2, 23, 3, 1, light)}
+          {/* right wing */}
+          {px(26, 18, 6, 1, c)}
+          {px(24, 19, 8, 2, c)}
+          {px(23, 21, 8, 2, c)}
+          {px(23, 23, 7, 2, c)}
+          {px(24, 25, 5, 2, c)}
+          {px(28, 20, 3, 1, light)}
+          {px(27, 23, 3, 1, light)}
+          {id === "wg_fenix" && (
+            <>
+              <rect x="0" y="18" width="8" height="8" fill="#fb923c" opacity="0.4">
+                <animate attributeName="opacity" values="0.2;0.7;0.2" dur="1.8s" repeatCount="indefinite" />
+              </rect>
+              <rect x="24" y="18" width="8" height="8" fill="#fb923c" opacity="0.4">
+                <animate attributeName="opacity" values="0.2;0.7;0.2" dur="1.8s" repeatCount="indefinite" />
+              </rect>
+            </>
+          )}
+        </g>
+      );
+    }
+    default:
+      return null;
+  }
+}
+
+/* ---------- MASK LAYER (over face) ---------- */
+function MaskLayer({ id, cor }: { id: string; cor?: string }) {
+  const c = cor ?? "#0f172a";
+  switch (id) {
+    case "mk_bandana":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(8, 15, 16, 3, c)}
+          {px(8, 15, 16, 1, OUTLINE)}
+          {px(8, 18, 16, 1, OUTLINE)}
+          {/* eye slits */}
+          {px(11, 16, 2, 1, "#f8fafc")}
+          {px(19, 16, 2, 1, "#f8fafc")}
+        </g>
+      );
+    case "mk_visor":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(9, 11, 14, 3, "#0f172a")}
+          {px(9, 11, 14, 1, OUTLINE)}
+          {px(9, 14, 14, 1, OUTLINE)}
+          <rect x="10" y="12" width="12" height="1" fill={c}>
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="1.6s" repeatCount="indefinite" />
+          </rect>
+          {px(11, 13, 3, 1, c)}
+          {px(18, 13, 3, 1, c)}
+        </g>
+      );
+    case "mk_oni":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(8, 10, 16, 10, c)}
+          {px(8, 10, 16, 1, OUTLINE)}
+          {px(8, 20, 16, 1, OUTLINE)}
+          {/* white teeth */}
+          {px(12, 18, 8, 1, "#f8fafc")}
+          {px(13, 18, 1, 1, OUTLINE)}
+          {px(15, 18, 1, 1, OUTLINE)}
+          {px(17, 18, 1, 1, OUTLINE)}
+          {px(19, 18, 1, 1, OUTLINE)}
+          {/* horns */}
+          {px(7, 8, 2, 3, "#f8fafc")}
+          {px(23, 8, 2, 3, "#f8fafc")}
+          {/* eye holes */}
+          {px(11, 13, 3, 2, "#facc15")}
+          {px(19, 13, 3, 2, "#facc15")}
+          {px(11, 13, 3, 1, OUTLINE)}
+          {px(19, 13, 3, 1, OUTLINE)}
+        </g>
+      );
+    case "mk_anbu":
+      return (
+        <g shapeRendering="crispEdges">
+          {px(8, 10, 16, 10, c)}
+          {px(8, 10, 16, 1, OUTLINE)}
+          {px(8, 20, 16, 1, OUTLINE)}
+          {/* red swirls */}
+          {px(11, 12, 3, 1, "#dc2626")}
+          {px(19, 12, 3, 1, "#dc2626")}
+          {px(14, 17, 5, 1, "#dc2626")}
+          {/* eyes */}
+          {px(12, 14, 1, 1, "#0f172a")}
+          {px(20, 14, 1, 1, "#0f172a")}
+        </g>
+      );
+    case "mk_skull":
+      return (
+        <g shapeRendering="crispEdges">
+          {/* lower half skull */}
+          {px(9, 15, 14, 5, c)}
+          {px(9, 15, 14, 1, OUTLINE)}
+          {px(9, 20, 14, 1, OUTLINE)}
+          {/* nose hole */}
+          {px(15, 16, 2, 2, OUTLINE)}
+          {/* teeth */}
+          {px(11, 18, 10, 1, "#0f172a")}
+          {px(12, 19, 1, 1, "#f8fafc")}
+          {px(14, 19, 1, 1, "#f8fafc")}
+          {px(16, 19, 1, 1, "#f8fafc")}
+          {px(18, 19, 1, 1, "#f8fafc")}
+        </g>
+      );
+    default:
+      return null;
+  }
+}
+
 export default function Avatar({
   equipado,
   size = "md",
@@ -705,6 +944,11 @@ export default function Avatar({
   const hat = getItem(equipado?.hat);
   const armor = getItem(equipado?.armor);
   const aura = getItem(equipado?.aura);
+  const weapon = getItem(equipado?.weapon);
+  const wings  = getItem(equipado?.wings);
+  const mask   = getItem(equipado?.mask);
+  const pet    = getItem(equipado?.pet);
+  const frame  = getItem(equipado?.frame);
   const auraColor = aura?.cor ?? "#7B2FF7";
   const face  = (equipado?.face ?? APARENCIA_PADRAO.face) as FaceShape;
   const skinId = (equipado?.skin ?? APARENCIA_PADRAO.skin) as SkinTone;
@@ -722,6 +966,7 @@ export default function Avatar({
       className={cn("relative shrink-0 pixel-avatar", className)}
       style={{ width: s, height: s }}
     >
+      {frame && <FrameRing id={frame.id} cor={frame.cor} size={s} />}
       {glow && !aura && (
         <div
           className="absolute inset-0 pointer-events-none rounded-full"
@@ -730,6 +975,7 @@ export default function Avatar({
       )}
       <svg viewBox="0 0 32 32" width={s} height={s} shapeRendering="crispEdges" className="relative block" style={{ imageRendering: "pixelated" }}>
         {aura && <AuraLayer cor={auraColor} />}
+        {wings && <WingsLayer id={wings.id} cor={wings.cor} />}
         {renderFace(face, skin)}
         {renderFeatures(eyes, skin, hairBase)}
         {renderMark(mark, skin)}
@@ -737,10 +983,154 @@ export default function Avatar({
         {renderHair(hair, hairBase, hairLight, face)}
         {renderNeckTorso(skin)}
         {armor && <ArmorLayer id={armor.id} cor={armor.cor} />}
+        {weapon && <WeaponLayer id={weapon.id} cor={weapon.cor} />}
+        {mask && <MaskLayer id={mask.id} cor={mask.cor} />}
         {hat && <HatLayer id={hat.id} />}
+      </svg>
+      {pet && <PetSprite id={pet.id} cor={pet.cor} size={s} />}
+    </div>
+  );
+}
+
+/* ---------- FRAME (border ring around avatar) ---------- */
+function FrameRing({ id, cor, size }: { id: string; cor?: string; size: number }) {
+  const c = cor ?? "#eab308";
+  const base: React.CSSProperties = {
+    position: "absolute",
+    inset: -Math.round(size * 0.09),
+    borderRadius: "50%",
+    pointerEvents: "none",
+  };
+  if (id === "fr_bronze" || id === "fr_prata" || id === "fr_ouro") {
+    return (
+      <div style={{ ...base, border: `${Math.max(2, size * 0.03)}px solid ${c}`, boxShadow: `0 0 12px ${c}88, inset 0 0 8px ${c}66` }} />
+    );
+  }
+  if (id === "fr_runica") {
+    return (
+      <div style={{ ...base, background: `conic-gradient(from 0deg, ${c}, transparent 25%, ${c} 50%, transparent 75%, ${c})`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 6s linear infinite", boxShadow: `0 0 18px ${c}aa` }} />
+    );
+  }
+  if (id === "fr_mitica") {
+    return (
+      <>
+        <div style={{ ...base, background: `conic-gradient(from 0deg, #f472b6, #a855f7, #22d3ee, #4ade80, #facc15, #f472b6)`, padding: 3, WebkitMask: "radial-gradient(circle, transparent 60%, black 62%)", mask: "radial-gradient(circle, transparent 60%, black 62%)", animation: "spin 4s linear infinite", boxShadow: "0 0 25px #f472b6aa" }} />
+        <div style={{ ...base, boxShadow: "0 0 40px #a855f766" }} />
+      </>
+    );
+  }
+  return null;
+}
+
+/* ---------- PET SPRITE (floats next to avatar) ---------- */
+function PetSprite({ id, cor, size }: { id: string; cor?: string; size: number }) {
+  const c = cor ?? "#c084fc";
+  const petSize = Math.max(20, Math.round(size * 0.4));
+  return (
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        right: -Math.round(petSize * 0.4),
+        bottom: Math.round(size * 0.05),
+        width: petSize,
+        height: petSize,
+        animation: "petBob 2.4s ease-in-out infinite",
+        filter: `drop-shadow(0 0 8px ${c})`,
+      }}
+    >
+      <svg viewBox="0 0 16 16" width={petSize} height={petSize} shapeRendering="crispEdges" style={{ imageRendering: "pixelated" }}>
+        <PetBody id={id} cor={c} />
       </svg>
     </div>
   );
+}
+
+function PetBody({ id, cor }: { id: string; cor: string }) {
+  const O = "#0a0a0f";
+  switch (id) {
+    case "pet_slime":
+      return (
+        <g>
+          <rect x="3" y="6" width="10" height="7" fill={cor} />
+          <rect x="4" y="5" width="8" height="1" fill={cor} />
+          <rect x="2" y="7" width="1" height="5" fill={cor} />
+          <rect x="13" y="7" width="1" height="5" fill={cor} />
+          <rect x="3" y="13" width="10" height="1" fill={O} />
+          <rect x="5" y="8" width="2" height="2" fill={O} />
+          <rect x="9" y="8" width="2" height="2" fill={O} />
+          <rect x="6" y="8" width="1" height="1" fill="#fff" />
+          <rect x="10" y="8" width="1" height="1" fill="#fff" />
+        </g>
+      );
+    case "pet_lobo":
+      return (
+        <g>
+          <rect x="3" y="7" width="10" height="5" fill={cor} />
+          <rect x="4" y="6" width="3" height="1" fill={cor} />
+          <rect x="9" y="6" width="3" height="1" fill={cor} />
+          <rect x="3" y="12" width="2" height="2" fill={cor} />
+          <rect x="11" y="12" width="2" height="2" fill={cor} />
+          <rect x="5" y="9" width="1" height="1" fill="#facc15" />
+          <rect x="10" y="9" width="1" height="1" fill="#facc15" />
+          <rect x="7" y="10" width="2" height="1" fill={O} />
+        </g>
+      );
+    case "pet_coruja":
+      return (
+        <g>
+          <rect x="4" y="5" width="8" height="9" fill={cor} />
+          <rect x="4" y="4" width="2" height="1" fill={cor} />
+          <rect x="10" y="4" width="2" height="1" fill={cor} />
+          <rect x="5" y="7" width="2" height="2" fill="#fff" />
+          <rect x="9" y="7" width="2" height="2" fill="#fff" />
+          <rect x="6" y="8" width="1" height="1" fill={O} />
+          <rect x="10" y="8" width="1" height="1" fill={O} />
+          <rect x="7" y="9" width="2" height="1" fill="#facc15" />
+        </g>
+      );
+    case "pet_dragao":
+      return (
+        <g>
+          <rect x="3" y="7" width="9" height="5" fill={cor} />
+          <rect x="2" y="8" width="1" height="3" fill={cor} />
+          <rect x="12" y="6" width="2" height="4" fill={cor} />
+          <rect x="6" y="6" width="1" height="1" fill={cor} />
+          <rect x="9" y="6" width="1" height="1" fill={cor} />
+          <rect x="4" y="9" width="1" height="1" fill="#facc15" />
+          <rect x="7" y="9" width="1" height="1" fill="#facc15" />
+          <rect x="13" y="7" width="1" height="1" fill="#dc2626" />
+        </g>
+      );
+    case "pet_orb":
+      return (
+        <g>
+          <circle cx="8" cy="8" r="5" fill={cor} opacity="0.9" />
+          <circle cx="8" cy="8" r="3" fill="#fff" opacity="0.4" />
+          <circle cx="6" cy="6" r="1" fill="#fff" />
+          <circle cx="8" cy="8" r="6" fill="none" stroke={cor} strokeOpacity="0.6" strokeWidth="0.5">
+            <animate attributeName="r" values="5;7;5" dur="1.8s" repeatCount="indefinite" />
+          </circle>
+        </g>
+      );
+    case "pet_fenix":
+      return (
+        <g>
+          <rect x="4" y="7" width="8" height="6" fill={cor} />
+          <rect x="3" y="8" width="1" height="4" fill={cor} />
+          <rect x="12" y="8" width="1" height="4" fill={cor} />
+          <rect x="6" y="5" width="4" height="2" fill="#fde047" />
+          <rect x="7" y="4" width="2" height="1" fill="#fde047" />
+          <rect x="5" y="9" width="1" height="1" fill={O} />
+          <rect x="10" y="9" width="1" height="1" fill={O} />
+          <rect x="6" y="11" width="4" height="1" fill="#dc2626" />
+          <rect x="0" y="7" width="16" height="6" fill="#f97316" opacity="0.35">
+            <animate attributeName="opacity" values="0.2;0.6;0.2" dur="1.6s" repeatCount="indefinite" />
+          </rect>
+        </g>
+      );
+    default:
+      return <circle cx="8" cy="8" r="5" fill={cor} />;
+  }
 }
 
 /* ---------- utils ---------- */

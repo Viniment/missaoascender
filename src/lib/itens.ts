@@ -1,5 +1,7 @@
-export type ItemCategoria = "hat" | "armor" | "aura";
-export type ItemRaridade = "comum" | "raro" | "epico" | "lendario";
+export type ItemCategoria =
+  | "hat" | "armor" | "aura"
+  | "weapon" | "wings" | "mask" | "pet" | "frame";
+export type ItemRaridade = "comum" | "raro" | "epico" | "lendario" | "mitico";
 
 export type Item = {
   id: string;
@@ -18,6 +20,23 @@ export const RARIDADE_COR: Record<ItemRaridade, string> = {
   raro: "hsl(210 90% 60%)",
   epico: "hsl(280 90% 65%)",
   lendario: "hsl(45 95% 55%)",
+  mitico: "hsl(320 95% 65%)",
+};
+
+export const RARIDADE_LABEL: Record<ItemRaridade, string> = {
+  comum: "COMUM",
+  raro: "RARO",
+  epico: "ÉPICO",
+  lendario: "LENDÁRIO",
+  mitico: "MÍTICO",
+};
+
+export const RARIDADE_BG: Record<ItemRaridade, string> = {
+  comum: "linear-gradient(135deg, hsl(220 15% 25% / 0.6), hsl(220 20% 12% / 0.7))",
+  raro:  "linear-gradient(135deg, hsl(210 90% 35% / 0.55), hsl(220 40% 10% / 0.75))",
+  epico: "linear-gradient(135deg, hsl(280 90% 40% / 0.55), hsl(260 40% 8% / 0.8))",
+  lendario: "linear-gradient(135deg, hsl(45 95% 45% / 0.55), hsl(30 60% 8% / 0.85))",
+  mitico: "linear-gradient(135deg, hsl(320 95% 55% / 0.55), hsl(260 90% 45% / 0.55), hsl(190 95% 45% / 0.55))",
 };
 
 export const ITENS: Item[] = [
@@ -42,6 +61,47 @@ export const ITENS: Item[] = [
   { id: "aura_chama",   categoria: "aura", nome: "Aura de Chamas",     emoji: "🔥", raridade: "epico",    preco: 500, cor: "#f97316", descricao: "Fúria acesa contra o inimigo." },
   { id: "aura_divina",  categoria: "aura", nome: "Aura Divina",        emoji: "✨", raridade: "lendario", preco: null, unlock: "streak_7", descricao: "Desbloqueada ao manter 7 dias de streak." },
   { id: "aura_vitoria", categoria: "aura", nome: "Aura da Vitória",    emoji: "🏆", raridade: "lendario", preco: null, unlock: "inimigo_derrotado", descricao: "Ao derrotar seu primeiro Inimigo." },
+
+  // ---------- ARMAS ----------
+  { id: "wp_adaga",      categoria: "weapon", nome: "Adaga do Novato",   emoji: "🗡️", raridade: "comum",    preco: 60,  cor: "#94a3b8", descricao: "Rápida e discreta." },
+  { id: "wp_espada",     categoria: "weapon", nome: "Espada de Ferro",   emoji: "⚔️", raridade: "comum",    preco: 120, cor: "#cbd5e1", descricao: "Confiável em qualquer duelo." },
+  { id: "wp_machado",    categoria: "weapon", nome: "Machado do Berserker", emoji: "🪓", raridade: "raro",  preco: 260, cor: "#b45309", descricao: "Corta desculpas ao meio." },
+  { id: "wp_katana",     categoria: "weapon", nome: "Katana Neon",       emoji: "🗡️", raridade: "raro",    preco: 320, cor: "#22d3ee", descricao: "Precisão cirúrgica com brilho neon." },
+  { id: "wp_cajado",     categoria: "weapon", nome: "Cajado Rúnico",     emoji: "🪄", raridade: "epico",   preco: 520, cor: "#a855f7", descricao: "Canaliza foco e disciplina." },
+  { id: "wp_arco",       categoria: "weapon", nome: "Arco Élfico",       emoji: "🏹", raridade: "epico",   preco: 620, cor: "#4ade80", descricao: "Mira à longa distância — o hábito certo, no instante certo." },
+  { id: "wp_foice",      categoria: "weapon", nome: "Foice Sombria",     emoji: "☠️", raridade: "epico",   preco: 780, cor: "#7c3aed", descricao: "Colhe os padrões que te derrubam." },
+  { id: "wp_martelo",    categoria: "weapon", nome: "Martelo do Trovão", emoji: "🔨", raridade: "lendario", preco: 1200, cor: "#facc15", descricao: "Cada golpe é um decreto." },
+  { id: "wp_lamina",     categoria: "weapon", nome: "Lâmina Mítica",     emoji: "🌟", raridade: "mitico",  preco: 2600, cor: "#f472b6", descricao: "Forjada em batalhas ganhas contra si mesmo." },
+
+  // ---------- ASAS / CAPAS ----------
+  { id: "wg_capa",       categoria: "wings", nome: "Capa de Viajante",  emoji: "🧣", raridade: "comum",    preco: 90,  cor: "#78350f", descricao: "Para a longa jornada." },
+  { id: "wg_manto",      categoria: "wings", nome: "Manto do Rei",       emoji: "🎽", raridade: "raro",    preco: 340, cor: "#dc2626", descricao: "Púrpura real, peso de responsabilidade." },
+  { id: "wg_corvo",      categoria: "wings", nome: "Asas de Corvo",      emoji: "🖤", raridade: "raro",    preco: 420, cor: "#0f172a", descricao: "Sombra e velocidade." },
+  { id: "wg_anjo",       categoria: "wings", nome: "Asas Angelicais",    emoji: "😇", raridade: "lendario", preco: 1500, cor: "#fef9c3", descricao: "Luz que empurra o Inimigo para trás." },
+  { id: "wg_demonio",    categoria: "wings", nome: "Asas Demoníacas",    emoji: "👿", raridade: "lendario", preco: 1500, cor: "#7f1d1d", descricao: "Você usa a própria escuridão como combustível." },
+  { id: "wg_fenix",      categoria: "wings", nome: "Cauda de Fênix",     emoji: "🔥", raridade: "mitico",  preco: 3200, cor: "#f97316", descricao: "Renasce com você a cada dia." },
+
+  // ---------- MÁSCARAS ----------
+  { id: "mk_bandana",    categoria: "mask", nome: "Bandana Ninja",       emoji: "🥷", raridade: "comum",   preco: 70,  cor: "#0f172a", descricao: "Silêncio antes do golpe." },
+  { id: "mk_visor",      categoria: "mask", nome: "Visor Cyber",         emoji: "🕶️", raridade: "raro",    preco: 300, cor: "#22d3ee", descricao: "HUD tático permanente." },
+  { id: "mk_oni",        categoria: "mask", nome: "Máscara de Oni",      emoji: "👹", raridade: "epico",   preco: 720, cor: "#dc2626", descricao: "O demônio que você domou." },
+  { id: "mk_anbu",       categoria: "mask", nome: "Máscara Anbu",        emoji: "🎭", raridade: "epico",   preco: 780, cor: "#e5e7eb", descricao: "Anônimo, letal, sem hesitação." },
+  { id: "mk_skull",      categoria: "mask", nome: "Half-Skull",          emoji: "💀", raridade: "lendario", preco: 1400, cor: "#f8fafc", descricao: "Metade morto para o Inimigo. Todo vivo para o sonho." },
+
+  // ---------- PETS / FAMILIARES ----------
+  { id: "pet_slime",     categoria: "pet", nome: "Slime Roxo",           emoji: "🟣", raridade: "comum",    preco: 100, cor: "#7B2FF7", descricao: "Grudento e leal. Boa companhia." },
+  { id: "pet_lobo",      categoria: "pet", nome: "Lobo Sombra",          emoji: "🐺", raridade: "raro",    preco: 380, cor: "#334155", descricao: "Instinto e alerta constantes." },
+  { id: "pet_coruja",    categoria: "pet", nome: "Coruja Mística",       emoji: "🦉", raridade: "raro",    preco: 420, cor: "#a78bfa", descricao: "Vê no escuro o que você ainda evita." },
+  { id: "pet_dragao",    categoria: "pet", nome: "Filhote de Dragão",    emoji: "🐉", raridade: "epico",   preco: 900, cor: "#16a34a", descricao: "Pequeno, mas cospe fogo em seus limites." },
+  { id: "pet_orb",       categoria: "pet", nome: "Orb do Sistema",       emoji: "🔮", raridade: "lendario", preco: 1800, cor: "#c084fc", descricao: "Uma IA orbital te acompanhando." },
+  { id: "pet_fenix",     categoria: "pet", nome: "Fênix Bebê",           emoji: "🐣", raridade: "mitico",  preco: 3400, cor: "#f97316", descricao: "Renasce toda vez que você recomeça." },
+
+  // ---------- MOLDURAS ----------
+  { id: "fr_bronze",     categoria: "frame", nome: "Moldura de Bronze",  emoji: "🟫", raridade: "comum",   preco: 150, cor: "#b45309", descricao: "Primeira placa do herói." },
+  { id: "fr_prata",      categoria: "frame", nome: "Moldura de Prata",   emoji: "⬜", raridade: "raro",    preco: 400, cor: "#cbd5e1", descricao: "Reflexo do próprio esforço." },
+  { id: "fr_ouro",       categoria: "frame", nome: "Moldura de Ouro",    emoji: "🟨", raridade: "epico",   preco: 900, cor: "#eab308", descricao: "Ostentação merecida." },
+  { id: "fr_runica",     categoria: "frame", nome: "Moldura Rúnica",     emoji: "🔷", raridade: "lendario", preco: 1900, cor: "#a855f7", descricao: "Runas giram ao redor do seu retrato." },
+  { id: "fr_mitica",     categoria: "frame", nome: "Moldura Mítica",     emoji: "🌈", raridade: "mitico",  preco: 4000, cor: "#f472b6", descricao: "Halo iridescente. Só para lendas." },
 ];
 
 export const ITENS_INICIAIS = ["arm_iniciante"];
@@ -63,6 +123,11 @@ export type AvatarEquipado = {
   hat?: string | null;
   armor?: string | null;
   aura?: string | null;
+  weapon?: string | null;
+  wings?: string | null;
+  mask?: string | null;
+  pet?: string | null;
+  frame?: string | null;
 };
 
 /* -------- Aparência customizável (grátis, não é item de loja) -------- */
