@@ -89,12 +89,12 @@ export const ITENS: Item[] = [
   { id: "mk_skull",      categoria: "mask", nome: "Half-Skull",          emoji: "💀", raridade: "lendario", preco: 1400, cor: "#f8fafc", descricao: "Metade morto para o Inimigo. Todo vivo para o sonho." },
 
   // ---------- PETS / FAMILIARES ----------
-  { id: "pet_slime",     categoria: "pet", nome: "Slime Roxo",           emoji: "🟣", raridade: "comum",    preco: 100, cor: "#7B2FF7", descricao: "Grudento e leal. Boa companhia." },
-  { id: "pet_lobo",      categoria: "pet", nome: "Lobo Sombra",          emoji: "🐺", raridade: "raro",    preco: 380, cor: "#334155", descricao: "Instinto e alerta constantes." },
-  { id: "pet_coruja",    categoria: "pet", nome: "Coruja Mística",       emoji: "🦉", raridade: "raro",    preco: 420, cor: "#a78bfa", descricao: "Vê no escuro o que você ainda evita." },
-  { id: "pet_dragao",    categoria: "pet", nome: "Filhote de Dragão",    emoji: "🐉", raridade: "epico",   preco: 900, cor: "#16a34a", descricao: "Pequeno, mas cospe fogo em seus limites." },
-  { id: "pet_orb",       categoria: "pet", nome: "Orb do Sistema",       emoji: "🔮", raridade: "lendario", preco: 1800, cor: "#c084fc", descricao: "Uma IA orbital te acompanhando." },
-  { id: "pet_fenix",     categoria: "pet", nome: "Fênix Bebê",           emoji: "🐣", raridade: "mitico",  preco: 3400, cor: "#f97316", descricao: "Renasce toda vez que você recomeça." },
+  { id: "pet_slime",     categoria: "pet", nome: "Slime Roxo",           emoji: "🟣", raridade: "comum",    preco: 100, cor: "#7B2FF7", descricao: "Grudento e leal. ✦ Habilidade: Faro de Ouro — +10% de ouro em cada ação positiva." },
+  { id: "pet_lobo",      categoria: "pet", nome: "Lobo Sombra",          emoji: "🐺", raridade: "raro",    preco: 380, cor: "#334155", descricao: "Instinto e alerta constantes. ✦ Habilidade: Uivo de Foco — +10% de XP em cada ação positiva." },
+  { id: "pet_coruja",    categoria: "pet", nome: "Coruja Mística",       emoji: "🦉", raridade: "raro",    preco: 420, cor: "#a78bfa", descricao: "Vê no escuro o que você ainda evita. ✦ Habilidade: Visão Noturna — reduz em 25% a vida perdida ao registrar hábitos negativos." },
+  { id: "pet_dragao",    categoria: "pet", nome: "Filhote de Dragão",    emoji: "🐉", raridade: "epico",   preco: 900, cor: "#16a34a", descricao: "Pequeno, mas cospe fogo em seus limites. ✦ Habilidade: Sopro de Brasa — +20% de ouro em ações positivas e no baú diário." },
+  { id: "pet_orb",       categoria: "pet", nome: "Orb do Sistema",       emoji: "🔮", raridade: "lendario", preco: 1800, cor: "#c084fc", descricao: "Uma IA orbital te acompanhando. ✦ Habilidade: Análise do Sistema — +15% de XP em todas as ações positivas." },
+  { id: "pet_fenix",     categoria: "pet", nome: "Fênix Bebê",           emoji: "🐣", raridade: "mitico",  preco: 3400, cor: "#f97316", descricao: "Renasce toda vez que você recomeça. ✦ Habilidade: Chama Restauradora — cura +2 de vida a cada ação positiva concluída." },
 
   // ---------- MOLDURAS ----------
   { id: "fr_bronze",     categoria: "frame", nome: "Moldura de Bronze",  emoji: "🟫", raridade: "comum",   preco: 150, cor: "#b45309", descricao: "Primeira placa do herói." },
@@ -109,6 +109,32 @@ export const ITENS_INICIAIS = ["arm_iniciante"];
 export function getItem(id?: string | null) {
   if (!id) return null;
   return ITENS.find(i => i.id === id) ?? null;
+}
+
+/* -------- Habilidades dos Pets (efeitos sutis) --------
+ * Todos os bônus são determinísticos (sem aleatoriedade) para que
+ * marcar/desmarcar um hábito seja perfeitamente reversível.
+ * Apenas 1 pet pode estar equipado por vez.
+ */
+export type PetSkill = {
+  ouroBonusPct?: number;   // aplicado ao ouro de hábitos positivos e ao baú diário
+  xpBonusPct?: number;     // aplicado ao XP de hábitos positivos
+  danoReducaoPct?: number; // reduz vida perdida em hábitos negativos
+  curaPorHabito?: number;  // cura fixa somada ao completar hábito positivo
+};
+
+export const PET_SKILLS: Record<string, PetSkill> = {
+  pet_slime:  { ouroBonusPct: 0.10 },
+  pet_lobo:   { xpBonusPct:   0.10 },
+  pet_coruja: { danoReducaoPct: 0.25 },
+  pet_dragao: { ouroBonusPct: 0.20 },
+  pet_orb:    { xpBonusPct:   0.15 },
+  pet_fenix:  { curaPorHabito: 2 },
+};
+
+export function getPetSkill(petId?: string | null): PetSkill {
+  if (!petId) return {};
+  return PET_SKILLS[petId] ?? {};
 }
 
 export type AvatarEquipado = {
