@@ -14,54 +14,290 @@ export type Database = {
   }
   public: {
     Tables: {
-      player_data: {
+      conquistas: {
         Row: {
-          created_at: string
-          game_state: Json
+          desbloqueada_em: string
+          descricao: string | null
           id: string
+          tipo: string
+          titulo: string | null
+          user_id: string
+        }
+        Insert: {
+          desbloqueada_em?: string
+          descricao?: string | null
+          id?: string
+          tipo: string
+          titulo?: string | null
+          user_id: string
+        }
+        Update: {
+          desbloqueada_em?: string
+          descricao?: string | null
+          id?: string
+          tipo?: string
+          titulo?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      habito_logs: {
+        Row: {
+          completado: boolean
+          criado_em: string
+          data: string
+          habito_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          completado?: boolean
+          criado_em?: string
+          data?: string
+          habito_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          completado?: boolean
+          criado_em?: string
+          data?: string
+          habito_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habito_logs_habito_id_fkey"
+            columns: ["habito_id"]
+            isOneToOne: false
+            referencedRelation: "habitos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habitos: {
+        Row: {
+          ativo: boolean
+          criado_em: string
+          id: string
+          nome: string
+          peso_dano_cura: number
+          peso_xp: number
+          tipo: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          created_at?: string
-          game_state?: Json
+          ativo?: boolean
+          criado_em?: string
           id?: string
+          nome: string
+          peso_dano_cura?: number
+          peso_xp?: number
+          tipo: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          created_at?: string
-          game_state?: Json
+          ativo?: boolean
+          criado_em?: string
           id?: string
+          nome?: string
+          peso_dano_cura?: number
+          peso_xp?: number
+          tipo?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: []
       }
-      profiles: {
+      inimigo: {
         Row: {
-          avatar_url: string | null
-          created_at: string
-          display_name: string
+          ativo: boolean
+          avatar_config: Json | null
+          criado_em: string
+          derrotado_em: string | null
+          gatilho: string | null
+          hp_atual: number
+          hp_max: number
           id: string
+          mentiras: string[]
+          nome: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string
+          ativo?: boolean
+          avatar_config?: Json | null
+          criado_em?: string
+          derrotado_em?: string | null
+          gatilho?: string | null
+          hp_atual?: number
+          hp_max?: number
           id?: string
+          mentiras?: string[]
+          nome: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string
+          ativo?: boolean
+          avatar_config?: Json | null
+          criado_em?: string
+          derrotado_em?: string | null
+          gatilho?: string | null
+          hp_atual?: number
+          hp_max?: number
           id?: string
+          mentiras?: string[]
+          nome?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      mini_vitorias: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          criado_em: string
+          id: string
+          recompensa_ouro: number
+          recompensa_vida: number
+          recompensa_xp: number
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          criado_em?: string
+          id?: string
+          recompensa_ouro?: number
+          recompensa_vida?: number
+          recompensa_xp?: number
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          criado_em?: string
+          id?: string
+          recompensa_ouro?: number
+          recompensa_vida?: number
+          recompensa_xp?: number
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      onboarding_respostas: {
+        Row: {
+          criado_em: string
+          custo_procrastinacao: string | null
+          desculpas: string[] | null
+          funcao_protetora: string | null
+          id: string
+          sonho: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          custo_procrastinacao?: string | null
+          desculpas?: string[] | null
+          funcao_protetora?: string | null
+          id?: string
+          sonho?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          custo_procrastinacao?: string | null
+          desculpas?: string[] | null
+          funcao_protetora?: string | null
+          id?: string
+          sonho?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transacoes_ouro: {
+        Row: {
+          data: string
+          descricao: string | null
+          id: string
+          origem: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          data?: string
+          descricao?: string | null
+          id?: string
+          origem: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          data?: string
+          descricao?: string | null
+          id?: string
+          origem?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          criado_em: string
+          id: string
+          nivel: number
+          nome: string
+          ouro: number
+          streak_atual: number
+          ultimo_bau_data: string | null
+          updated_at: string
+          vida_atual: number
+          vida_max: number
+          xp_atual: number
+          xp_proximo_nivel: number
+        }
+        Insert: {
+          criado_em?: string
+          id: string
+          nivel?: number
+          nome?: string
+          ouro?: number
+          streak_atual?: number
+          ultimo_bau_data?: string | null
+          updated_at?: string
+          vida_atual?: number
+          vida_max?: number
+          xp_atual?: number
+          xp_proximo_nivel?: number
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nivel?: number
+          nome?: string
+          ouro?: number
+          streak_atual?: number
+          ultimo_bau_data?: string | null
+          updated_at?: string
+          vida_atual?: number
+          vida_max?: number
+          xp_atual?: number
+          xp_proximo_nivel?: number
         }
         Relationships: []
       }
