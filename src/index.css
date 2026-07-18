@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.pixel-avatar {
+  image-rendering: pixelated;
+}
+
 @layer base {
   :root {
     --background: 222 47% 3%;

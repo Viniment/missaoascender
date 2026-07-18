@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { todayISO, xpForLevel, clamp } from "./utils";
+import { AvatarEquipado, ITENS_INICIAIS, getItem } from "./itens";
 
 export type Habito = {
   id: string;
@@ -32,6 +33,9 @@ export type Heroi = {
   vida_max: number;
   streak_atual: number;
   ultimo_bau_data: string | null;
+  avatar_equipado: AvatarEquipado;
+  itens_desbloqueados: string[];
+  titulo: string | null;
 };
 
 export type MiniVitoria = {
@@ -54,7 +58,51 @@ export type Conquista = {
 
 export async function fetchHeroi(userId: string): Promise<Heroi | null> {
   const { data } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
-  return (data as Heroi) ?? null;
+  if (!data) return null;
+  return {
+    ...(data as any),
+    avatar_equipado: (data as any).avatar_equipado ?? { base: "warrior", hat: null, armor: null, aura: null },
+    itens_desbloqueados: (data as any).itens_desbloqueados ?? [],
+  } as Heroi;
+}
+
+/** Compra ou desbloqueia item; retorna lista atualizada. */
+export async function comprarItem(userId: string, heroi: Heroi, itemId: string) {
+  const item = getItem(itemId);
+  if (!item) throw new Error("Item inexistente");
+  if (heroi.itens_desbloqueados.includes(itemId)) throw new Error("Você já possui este item");
+  if (item.preco === null) throw new Error("Item só pode ser desbloqueado por conquista");
+  if (heroi.ouro < item.preco) throw new Error("Ouro insuficiente");
+
+  const novos = [...heroi.itens_desbloqueados, itemId];
+  await supabase.from("users").update({
+    ouro: heroi.ouro - item.preco,
+    itens_desbloqueados: novos,
+  }).eq("id", userId);
+  await supabase.from("transacoes_ouro").insert({
+    user_id: userId, valor: -item.preco, origem: "loja", descricao: item.nome,
+  });
+}
+
+export async function equiparItem(userId: string, heroi: Heroi, itemId: string | null, categoria: "hat" | "armor" | "aura") {
+  const equipado = { ...(heroi.avatar_equipado ?? {}), [categoria]: itemId };
+  await supabase.from("users").update({ avatar_equipado: equipado as any }).eq("id", userId);
+}
+
+/** Garante itens iniciais + itens ligados a conquistas do usuário. */
+export async function sincronizarItensDesbloqueados(userId: string, heroi: Heroi, conquistasTipos: string[]) {
+  const atuais = new Set(heroi.itens_desbloqueados ?? []);
+  const antes = atuais.size;
+  for (const id of ITENS_INICIAIS) atuais.add(id);
+  // itens com unlock atendido
+  const { ITENS } = await import("./itens");
+  for (const it of ITENS) {
+    if (it.unlock && conquistasTipos.includes(it.unlock)) atuais.add(it.id);
+  }
+  if (atuais.size !== antes) {
+    await supabase.from("users").update({ itens_desbloqueados: Array.from(atuais) }).eq("id", userId);
+  }
+  return Array.from(atuais);
 }
 
 export async function fetchInimigoAtivo(userId: string): Promise<Inimigo | null> {

@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Swords, Home, Trophy, ListChecks, User, LogOut } from "lucide-react";
+import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { to: "/", label: "Base", Icon: Home },
   { to: "/inimigo", label: "Inimigo", Icon: Swords },
-  { to: "/mini-vitorias", label: "Mini Vitórias", Icon: ListChecks },
+  { to: "/mini-vitorias", label: "Vitórias", Icon: ListChecks },
+  { to: "/loja", label: "Loja", Icon: Store },
+  { to: "/personalizar", label: "Avatar", Icon: Shirt },
   { to: "/conquistas", label: "Conquistas", Icon: Trophy },
   { to: "/perfil", label: "Perfil", Icon: User },
 ];
@@ -32,7 +34,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="max-w-4xl mx-auto px-4 py-6">{children}</main>
       <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur">
-        <div className="max-w-4xl mx-auto grid grid-cols-5">
+        <div className="max-w-4xl mx-auto grid grid-cols-7">
           {NAV.map(({ to, label, Icon }) => {
             const active = loc.pathname === to;
             return (

@@ -258,12 +258,15 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_equipado: Json
           criado_em: string
           id: string
+          itens_desbloqueados: string[]
           nivel: number
           nome: string
           ouro: number
           streak_atual: number
+          titulo: string | null
           ultimo_bau_data: string | null
           updated_at: string
           vida_atual: number
@@ -272,12 +275,15 @@ export type Database = {
           xp_proximo_nivel: number
         }
         Insert: {
+          avatar_equipado?: Json
           criado_em?: string
           id: string
+          itens_desbloqueados?: string[]
           nivel?: number
           nome?: string
           ouro?: number
           streak_atual?: number
+          titulo?: string | null
           ultimo_bau_data?: string | null
           updated_at?: string
           vida_atual?: number
@@ -286,12 +292,15 @@ export type Database = {
           xp_proximo_nivel?: number
         }
         Update: {
+          avatar_equipado?: Json
           criado_em?: string
           id?: string
+          itens_desbloqueados?: string[]
           nivel?: number
           nome?: string
           ouro?: number
           streak_atual?: number
+          titulo?: string | null
           ultimo_bau_data?: string | null
           updated_at?: string
           vida_atual?: number

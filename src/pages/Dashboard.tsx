@@ -12,6 +12,8 @@ import { todayISO } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X } from "lucide-react";
+import Avatar from "@/components/Avatar";
+import { Link } from "react-router-dom";
 
 type Battle = {
   positivo: boolean;
@@ -155,14 +157,18 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* Hero card */}
         <div className="rpg-panel neon-glow scanlines p-5 space-y-3 overflow-hidden">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-4">
+            <Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform">
+              <Avatar equipado={heroi.avatar_equipado} size="lg" />
+            </Link>
+            <div className="flex-1 min-w-0">
               <p className="text-[10px] text-primary uppercase tracking-[0.3em] flex items-center gap-1"><Shield className="w-3 h-3" /> HERÓI · NÍVEL {heroi.nivel}</p>
-              <h2 className="font-display text-2xl tracking-widest text-foreground glow-text-purple">{heroi.nome}</h2>
-            </div>
-            <div className="text-right text-xs space-y-1">
-              <div className="flex items-center justify-end gap-1 text-gold font-display"><Coins className="w-3 h-3" /> {heroi.ouro}</div>
-              <div className="flex items-center justify-end gap-1 text-destructive font-display"><Flame className="w-3 h-3" /> {heroi.streak_atual}d</div>
+              <h2 className="font-display text-2xl tracking-widest text-foreground glow-text-purple truncate">{heroi.nome}</h2>
+              {heroi.titulo && <p className="text-[10px] uppercase tracking-widest text-gold">{heroi.titulo}</p>}
+              <div className="flex items-center gap-3 text-xs mt-1">
+                <span className="flex items-center gap-1 text-gold font-display"><Coins className="w-3 h-3" /> {heroi.ouro}</span>
+                <span className="flex items-center gap-1 text-destructive font-display"><Flame className="w-3 h-3" /> {heroi.streak_atual}d</span>
+              </div>
             </div>
           </div>
           <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3 h-3" />} />
