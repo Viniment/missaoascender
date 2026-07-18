@@ -5,10 +5,13 @@ import Shell from "@/components/Shell";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchHeroi, fetchTransacoes } from "@/lib/api";
 import { toast } from "sonner";
+import { useLowPower } from "@/hooks/useLowPower";
+import { Zap, ZapOff } from "lucide-react";
 
 export default function PerfilPage() {
   const { user } = useAuth();
   const uid = user?.id;
+  const { lowPower, toggle } = useLowPower();
   const { data: h, refetch } = useQuery({ queryKey: ["heroi", uid], queryFn: () => fetchHeroi(uid!), enabled: !!uid });
   const { data: tx } = useQuery({ queryKey: ["tx", uid], queryFn: () => fetchTransacoes(uid!), enabled: !!uid });
   const [nome, setNome] = useState("");
@@ -50,6 +53,30 @@ export default function PerfilPage() {
           <button onClick={salvar} className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-display tracking-wide">
             Salvar
           </button>
+        </div>
+
+        <div className="rpg-panel p-5 space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="font-display text-sm tracking-widest text-primary flex items-center gap-2">
+                {lowPower ? <ZapOff className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+                DISPOSITIVO FRACO
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Desativa fundos animados, partículas, brilhos e transições pesadas. Mantém apenas os efeitos essenciais (baú, hábitos e conquistas).
+              </p>
+            </div>
+            <button
+              onClick={toggle}
+              role="switch"
+              aria-checked={lowPower}
+              className={`relative shrink-0 w-14 h-8 rounded-full border transition-colors ${lowPower ? "bg-primary border-primary" : "bg-secondary border-border"}`}
+            >
+              <span
+                className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-background transition-transform ${lowPower ? "translate-x-6" : ""}`}
+              />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">

@@ -27,7 +27,7 @@ export default function RewardBurstLayer() {
     return () => { listeners.delete(fn); };
   }, []);
   return (
-    <div className="fixed inset-0 pointer-events-none z-[60]">
+    <div className="fx-essential fixed inset-0 pointer-events-none z-[60]">
       {bursts.map((b) => (
         <div
           key={b.id}

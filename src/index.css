@@ -8,6 +8,33 @@
   image-rendering: pixelated;
 }
 
+/* ============ LOW POWER MODE ============
+   Reduz ao máximo animações/efeitos globais. Efeitos essenciais
+   (baú, hábito bom/ruim, conquista) usam .fx-essential e são preservados. */
+.low-power *:not(.fx-essential):not(.fx-essential *) {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 80ms !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.low-power .app-bg-layer,
+.low-power .app-bg-scrim,
+.low-power .app-bg-depth,
+.low-power .app-bg-vignette {
+  display: none !important;
+}
+.low-power .glow-text-purple,
+.low-power .neon-glow,
+.low-power .rarity-glow,
+.low-power .rarity-text {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+.low-power .holo-border::after,
+.low-power .rarity-border::before { display: none !important; }
+.low-power .pulse { animation: none !important; }
+
 @layer base {
   :root {
     --background: 222 47% 3%;

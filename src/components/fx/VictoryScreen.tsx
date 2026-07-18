@@ -6,7 +6,7 @@ export default function VictoryScreen({ inimigoNome, onClose }: { inimigoNome: s
       {inimigoNome && (
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-background/90 backdrop-blur-md p-4"
+          className="fx-essential fixed inset-0 z-[70] flex items-center justify-center bg-background/90 backdrop-blur-md p-4"
         >
           <motion.div
             initial={{ scale: 0.6, opacity: 0 }}

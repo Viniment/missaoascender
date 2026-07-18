@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchHeroi } from "@/lib/api";
 import { APP_BACKGROUNDS } from "@/lib/itens";
+import { useLowPower } from "@/hooks/useLowPower";
 
 const NAV = [
   { to: "/", label: "Base", Icon: Home },
@@ -27,13 +28,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const nav = useNavigate();
   const isAdmin = useIsAdmin();
   const { user } = useAuth();
+  const { lowPower } = useLowPower();
   const { data: heroi } = useQuery({
     queryKey: ["heroi", user?.id],
     queryFn: () => fetchHeroi(user!.id),
     enabled: !!user,
   });
   const appBgId = (heroi?.avatar_equipado as any)?.appBg as string | undefined;
-  const appBg = appBgId ? APP_BACKGROUNDS[appBgId] : null;
+  const appBg = !lowPower && appBgId ? APP_BACKGROUNDS[appBgId] : null;
   return (
     <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
       {appBg ? (
@@ -47,9 +49,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div className="app-bg-scrim" aria-hidden="true" />
         </>
       ) : (
-        <div className="fixed inset-0 pointer-events-none opacity-70">
-          <ParticleBackground density={35} />
-        </div>
+        !lowPower && (
+          <div className="fixed inset-0 pointer-events-none opacity-70">
+            <ParticleBackground density={35} />
+          </div>
+        )
       )}
       <RewardBurstLayer />
       <InstallPWAPrompt />
@@ -91,16 +95,19 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {active && (
+                  {active && !lowPower && (
                     <motion.span
                       layoutId="nav-active-pill"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       className="absolute inset-0 rounded-xl bg-gradient-to-b from-primary to-[hsl(263_90%_40%)] shadow-[0_0_16px_hsl(var(--primary)/0.7),inset_0_1px_0_hsl(0_0%_100%/0.2)]"
                     />
                   )}
+                  {active && lowPower && (
+                    <span className="absolute inset-0 rounded-xl bg-primary" />
+                  )}
                   <span className="relative z-10 flex items-center gap-1.5 px-2 py-1.5">
                     <Icon className={cn("w-5 h-5 shrink-0", !active && "drop-shadow-[0_0_4px_hsl(var(--primary)/0.4)]")} />
-                    {active && (
+                    {active && !lowPower && (
                       <motion.span
                         initial={{ opacity: 0, width: 0 }}
                         animate={{ opacity: 1, width: "auto" }}
@@ -109,6 +116,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       >
                         {label}
                       </motion.span>
+                    )}
+                    {active && lowPower && (
+                      <span className="relative z-10 font-display text-[10px] tracking-[0.2em] uppercase whitespace-nowrap">
+                        {label}
+                      </span>
                     )}
                   </span>
                   {active && (
