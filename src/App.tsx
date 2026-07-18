@@ -10,6 +10,8 @@ import InimigoPage from "@/pages/Inimigo";
 import MiniVitoriasPage from "@/pages/MiniVitorias";
 import ConquistasPage from "@/pages/Conquistas";
 import PerfilPage from "@/pages/Perfil";
+import LojaPage from "@/pages/Loja";
+import PersonalizarPage from "@/pages/Personalizar";
 
 const qc = new QueryClient();
 
@@ -34,6 +36,8 @@ export default function App() {
             <Route path="/inimigo" element={<Protected><InimigoPage /></Protected>} />
             <Route path="/mini-vitorias" element={<Protected><MiniVitoriasPage /></Protected>} />
             <Route path="/conquistas" element={<Protected><ConquistasPage /></Protected>} />
+            <Route path="/loja" element={<Protected><LojaPage /></Protected>} />
+            <Route path="/personalizar" element={<Protected><PersonalizarPage /></Protected>} />
             <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
