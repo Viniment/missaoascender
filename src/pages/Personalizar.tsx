@@ -6,17 +6,18 @@ import Avatar from "@/components/Avatar";
 import { fetchHeroi, equiparItem, salvarAparencia } from "@/lib/api";
 import {
   ITENS, ItemCategoria, RARIDADE_COR,
-  FACE_SHAPES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, FACE_MARKS,
+  FACE_SHAPES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, FACE_MARKS, BEARD_STYLES,
   APARENCIA_PADRAO,
 } from "@/lib/itens";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-type TabId = "face" | "skin" | "hair" | "eyes" | "mark" | "hat" | "armor" | "aura";
+type TabId = "face" | "skin" | "hair" | "beard" | "eyes" | "mark" | "hat" | "armor" | "aura";
 const TABS: { id: TabId; label: string; group: "aparencia" | "equip" }[] = [
   { id: "face",  label: "Rosto",    group: "aparencia" },
   { id: "skin",  label: "Pele",     group: "aparencia" },
   { id: "hair",  label: "Cabelo",   group: "aparencia" },
+  { id: "beard", label: "Barba",    group: "aparencia" },
   { id: "eyes",  label: "Olhos",    group: "aparencia" },
   { id: "mark",  label: "Marca",    group: "aparencia" },
   { id: "hat",   label: "Chapéu",   group: "equip" },
@@ -67,7 +68,7 @@ export default function Personalizar() {
         {/* Grupo APARÊNCIA */}
         <div>
           <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2">Aparência</p>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {TABS.filter(t => t.group === "aparencia").map(t => (
               <button
                 key={t.id}
@@ -147,6 +148,15 @@ export default function Personalizar() {
             activeId={eq.mark ?? APARENCIA_PADRAO.mark}
             onPick={(id) => patchAparencia({ mark: id })}
             preview={(id) => <Avatar equipado={{ ...eq, mark: id as any, hat: null, armor: null, aura: null }} size="sm" glow={false} />}
+          />
+        )}
+
+        {tab === "beard" && (
+          <PickerGrid
+            options={BEARD_STYLES.map(b => ({ id: b.id, label: b.nome }))}
+            activeId={eq.beard ?? APARENCIA_PADRAO.beard}
+            onPick={(id) => patchAparencia({ beard: id })}
+            preview={(id) => <Avatar equipado={{ ...eq, beard: id as any, hat: null, armor: null, aura: null }} size="sm" glow={false} />}
           />
         )}
 
