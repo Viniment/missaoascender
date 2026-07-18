@@ -3,34 +3,54 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
 import Avatar from "@/components/Avatar";
-import { fetchHeroi, equiparItem } from "@/lib/api";
-import { ITENS, ItemCategoria, RARIDADE_COR } from "@/lib/itens";
+import { fetchHeroi, equiparItem, salvarAparencia } from "@/lib/api";
+import {
+  ITENS, ItemCategoria, RARIDADE_COR,
+  FACE_SHAPES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, FACE_MARKS,
+  APARENCIA_PADRAO,
+} from "@/lib/itens";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-const TABS: { id: ItemCategoria; label: string }[] = [
-  { id: "hat", label: "Chapéu" },
-  { id: "armor", label: "Armadura" },
-  { id: "aura", label: "Aura" },
+type TabId = "face" | "skin" | "hair" | "eyes" | "mark" | "hat" | "armor" | "aura";
+const TABS: { id: TabId; label: string; group: "aparencia" | "equip" }[] = [
+  { id: "face",  label: "Rosto",    group: "aparencia" },
+  { id: "skin",  label: "Pele",     group: "aparencia" },
+  { id: "hair",  label: "Cabelo",   group: "aparencia" },
+  { id: "eyes",  label: "Olhos",    group: "aparencia" },
+  { id: "mark",  label: "Marca",    group: "aparencia" },
+  { id: "hat",   label: "Chapéu",   group: "equip" },
+  { id: "armor", label: "Armadura", group: "equip" },
+  { id: "aura",  label: "Aura",     group: "equip" },
 ];
 
 export default function Personalizar() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const uid = user!.id;
-  const [tab, setTab] = useState<ItemCategoria>("hat");
+  const [tab, setTab] = useState<TabId>("face");
   const { data: heroi } = useQuery({ queryKey: ["heroi", uid], queryFn: () => fetchHeroi(uid) });
 
   if (!heroi) return <Shell><p className="text-muted-foreground">Carregando...</p></Shell>;
 
+  const eq: any = heroi.avatar_equipado ?? {};
+
   const equipar = async (id: string | null) => {
-    await equiparItem(uid, heroi, id, tab);
+    await equiparItem(uid, heroi, id, tab as ItemCategoria);
     await qc.invalidateQueries({ queryKey: ["heroi", uid] });
     toast.success(id ? "Item equipado" : "Slot esvaziado");
   };
 
-  const owned = ITENS.filter(i => i.categoria === tab && heroi.itens_desbloqueados.includes(i.id));
-  const equippedId = (heroi.avatar_equipado as any)?.[tab] ?? null;
+  const patchAparencia = async (patch: Record<string, any>) => {
+    await salvarAparencia(uid, heroi, patch);
+    await qc.invalidateQueries({ queryKey: ["heroi", uid] });
+  };
+
+  const isEquipTab = tab === "hat" || tab === "armor" || tab === "aura";
+  const owned = isEquipTab
+    ? ITENS.filter(i => i.categoria === tab && heroi.itens_desbloqueados.includes(i.id))
+    : [];
+  const equippedId = isEquipTab ? (eq[tab] ?? null) : null;
 
   return (
     <Shell>
@@ -44,22 +64,99 @@ export default function Personalizar() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`rpg-panel p-3 text-[11px] font-display uppercase tracking-widest transition-all ${tab === t.id ? "border-primary neon-glow text-primary" : "opacity-60 hover:opacity-100"}`}
-            >{t.label}</button>
-          ))}
+        {/* Grupo APARÊNCIA */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2">Aparência</p>
+          <div className="grid grid-cols-5 gap-2">
+            {TABS.filter(t => t.group === "aparencia").map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`rpg-panel p-2 text-[10px] font-display uppercase tracking-widest transition-all ${tab === t.id ? "border-primary neon-glow text-primary" : "opacity-60 hover:opacity-100"}`}
+              >{t.label}</button>
+            ))}
+          </div>
         </div>
 
-        {owned.length === 0 && (
+        {/* Grupo EQUIPAMENTO */}
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2">Equipamento</p>
+          <div className="grid grid-cols-3 gap-2">
+            {TABS.filter(t => t.group === "equip").map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`rpg-panel p-3 text-[11px] font-display uppercase tracking-widest transition-all ${tab === t.id ? "border-primary neon-glow text-primary" : "opacity-60 hover:opacity-100"}`}
+              >{t.label}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* ------ RENDER POR ABA ------ */}
+
+        {tab === "face" && (
+          <PickerGrid
+            options={FACE_SHAPES.map(f => ({ id: f.id, label: f.nome }))}
+            activeId={eq.face ?? APARENCIA_PADRAO.face}
+            onPick={(id) => patchAparencia({ face: id })}
+            preview={(id) => <Avatar equipado={{ ...eq, face: id as any, hat: null, armor: null, aura: null }} size="sm" glow={false} />}
+          />
+        )}
+
+        {tab === "skin" && (
+          <PickerGrid
+            options={SKIN_TONES.map(s => ({ id: s.id, label: s.nome, swatch: s.base }))}
+            activeId={eq.skin ?? APARENCIA_PADRAO.skin}
+            onPick={(id) => patchAparencia({ skin: id })}
+          />
+        )}
+
+        {tab === "hair" && (
+          <div className="space-y-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Estilo</p>
+              <PickerGrid
+                options={HAIR_STYLES.map(h => ({ id: h.id, label: h.nome }))}
+                activeId={eq.hair ?? APARENCIA_PADRAO.hair}
+                onPick={(id) => patchAparencia({ hair: id })}
+                preview={(id) => <Avatar equipado={{ ...eq, hair: id as any, hat: null, armor: null, aura: null }} size="sm" glow={false} />}
+              />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Cor</p>
+              <PickerGrid
+                options={HAIR_COLORS.map(h => ({ id: h.base, label: h.nome, swatch: h.base }))}
+                activeId={eq.hairColor ?? APARENCIA_PADRAO.hairColor}
+                onPick={(id) => patchAparencia({ hairColor: id })}
+              />
+            </div>
+          </div>
+        )}
+
+        {tab === "eyes" && (
+          <PickerGrid
+            options={EYE_COLORS.map(e => ({ id: e.cor, label: e.nome, swatch: e.cor }))}
+            activeId={eq.eyes ?? APARENCIA_PADRAO.eyes}
+            onPick={(id) => patchAparencia({ eyes: id })}
+          />
+        )}
+
+        {tab === "mark" && (
+          <PickerGrid
+            options={FACE_MARKS.map(m => ({ id: m.id, label: m.nome }))}
+            activeId={eq.mark ?? APARENCIA_PADRAO.mark}
+            onPick={(id) => patchAparencia({ mark: id })}
+            preview={(id) => <Avatar equipado={{ ...eq, mark: id as any, hat: null, armor: null, aura: null }} size="sm" glow={false} />}
+          />
+        )}
+
+        {isEquipTab && owned.length === 0 && (
           <p className="text-xs text-muted-foreground text-center py-6">
             Nenhum item desta categoria ainda. Visite a <b>Loja</b> ou conquiste-os em batalha.
           </p>
         )}
 
+        {isEquipTab && (
         <div className="grid grid-cols-3 gap-3">
           {/* botão para desequipar */}
           {equippedId && (
@@ -88,7 +185,44 @@ export default function Personalizar() {
             );
           })}
         </div>
+        )}
       </div>
     </Shell>
+  );
+}
+
+/* ---------- Picker reutilizável ---------- */
+function PickerGrid({
+  options, activeId, onPick, preview,
+}: {
+  options: { id: string; label: string; swatch?: string }[];
+  activeId: string;
+  onPick: (id: string) => void;
+  preview?: (id: string) => JSX.Element;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {options.map(o => {
+        const active = activeId === o.id;
+        return (
+          <button
+            key={o.id}
+            onClick={() => onPick(o.id)}
+            className={`rpg-panel p-3 flex flex-col items-center gap-2 transition-all ${active ? "border-primary neon-glow" : "opacity-80 hover:opacity-100"}`}
+          >
+            {preview ? (
+              preview(o.id)
+            ) : o.swatch ? (
+              <span
+                className="w-10 h-10 rounded-full border-2 border-black/40"
+                style={{ background: o.swatch, boxShadow: active ? "0 0 12px hsl(var(--primary))" : undefined }}
+              />
+            ) : null}
+            <span className="text-[10px] uppercase tracking-widest text-center truncate w-full">{o.label}</span>
+            {active && <span className="text-[9px] text-primary uppercase tracking-widest">ativo</span>}
+          </button>
+        );
+      })}
+    </div>
   );
 }
