@@ -348,14 +348,12 @@ function ChestSVG({ stage }: { stage: Stage }) {
         </>
       )}
 
-      {/* Lid group - opens back with perspective compression */}
+      {/* Lid group - fades out on open */}
       <g
         style={{
-          transformOrigin: "90px 82px",
-          transform: opened
-            ? "translateY(-4px) scaleY(-0.45)"
-            : "translateY(0) scaleY(1)",
-          transition: "transform 0.7s cubic-bezier(.34,1.4,.64,1)",
+          opacity: opened ? 0 : 1,
+          transition: "opacity 0.5s ease-out",
+          pointerEvents: opened ? "none" : "auto",
         }}
       >
         <path d="M22 82 Q22 38 90 38 Q158 38 158 82 Z" fill="url(#woodTop)" stroke="#120802" strokeWidth="2" />
