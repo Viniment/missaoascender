@@ -139,6 +139,7 @@ export type Database = {
           id: string
           nome: string
           peso_dano_cura: number
+          peso_ouro: number
           peso_xp: number
           tipo: string
           updated_at: string
@@ -150,6 +151,7 @@ export type Database = {
           id?: string
           nome: string
           peso_dano_cura?: number
+          peso_ouro?: number
           peso_xp?: number
           tipo: string
           updated_at?: string
@@ -161,6 +163,7 @@ export type Database = {
           id?: string
           nome?: string
           peso_dano_cura?: number
+          peso_ouro?: number
           peso_xp?: number
           tipo?: string
           updated_at?: string
