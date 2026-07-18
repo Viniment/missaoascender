@@ -37,7 +37,7 @@ export default function Admin() {
 
   if (!heroi) return <Shell><p className="text-muted-foreground">Carregando...</p></Shell>;
 
-  const patch = async (fields: Record<string, any>, msg: string) => {
+  const patch = async (fields: any, msg: string) => {
     if (!uid) return;
     setBusy(true);
     try {
