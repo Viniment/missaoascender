@@ -112,11 +112,19 @@ export default function Loja() {
                   {owned && <Check className="w-3.5 h-3.5 text-primary" />}
                 </div>
                 <div className="flex justify-center py-2" style={{ filter: `drop-shadow(0 0 10px ${borda}aa)` }}>
-                  <Avatar
-                    equipado={{ [item.categoria]: item.id } as any}
-                    size="md"
-                    glow={false}
-                  />
+                  {item.categoria === "card_bg" || item.categoria === "app_bg" ? (
+                    <div
+                      className={`w-20 h-20 rounded-lg overflow-hidden relative border border-white/10 ${
+                        (item.categoria === "card_bg" ? CARD_BACKGROUNDS : APP_BACKGROUNDS)[item.id]?.className ?? ""
+                      }`}
+                    />
+                  ) : (
+                    <Avatar
+                      equipado={{ [item.categoria]: item.id } as any}
+                      size="md"
+                      glow={false}
+                    />
+                  )}
                 </div>
                 <p className="text-sm font-display tracking-wider text-center truncate">{item.nome}</p>
                 <div className="mt-2 flex items-center justify-center">
@@ -161,7 +169,15 @@ export default function Loja() {
                   <Star className="w-3 h-3 fill-current" /> {RARIDADE_LABEL[item.raridade]}
                 </span>
                 <div className="flex justify-center py-3" style={{ filter: `drop-shadow(0 0 16px ${borda})` }}>
-                  <Avatar equipado={{ ...(heroi.avatar_equipado ?? {}), [item.categoria]: item.id } as any} size="xl" glow={false} />
+                  {item.categoria === "card_bg" || item.categoria === "app_bg" ? (
+                    <div
+                      className={`w-48 h-32 rounded-xl overflow-hidden relative border border-white/10 ${
+                        (item.categoria === "card_bg" ? CARD_BACKGROUNDS : APP_BACKGROUNDS)[item.id]?.className ?? ""
+                      }`}
+                    />
+                  ) : (
+                    <Avatar equipado={{ ...(heroi.avatar_equipado ?? {}), [item.categoria]: item.id } as any} size="xl" glow={false} />
+                  )}
                 </div>
                 <h3 className="font-display text-xl tracking-widest text-foreground">{item.nome}</h3>
                 <p className="text-xs text-muted-foreground px-4">{item.descricao}</p>
