@@ -1,7 +1,7 @@
 {
-  "name": "Ascensão",
-  "short_name": "Ascensão",
-  "description": "Life RPG de desenvolvimento pessoal — forje sua ascensão diária.",
+  "name": "New LifeUP",
+  "short_name": "New LifeUP",
+  "description": "New LifeUP — RPG de hábitos: vença o sabotador e forje sua nova vida.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
