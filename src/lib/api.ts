@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { todayISO, xpForLevel, clamp } from "./utils";
 import { AvatarEquipado, ITENS_INICIAIS, getItem } from "./itens";
+import { getPetSkill } from "./itens";
 
 export type Habito = {
   id: string;
@@ -263,6 +264,7 @@ export async function toggleHabito(opts: {
   const dia = opts.data ?? todayISO();
   const sign = marcado ? -1 : 1; // if already marked, we're undoing
   const positivo = habito.tipo === "positivo";
+  const skill = getPetSkill(heroi.avatar_equipado?.pet);
 
   // Habit log
   if (marcado) {
@@ -277,9 +279,26 @@ export async function toggleHabito(opts: {
   }
 
   // Hero XP + vida
-  const xpDelta = sign * (positivo ? habito.peso_xp : -habito.peso_xp);
-  const vidaDelta = sign * (positivo ? 0 : -Math.max(2, Math.round(habito.peso_dano_cura / 3)));
-  const ouroDelta = sign * (positivo ? (habito.peso_ouro ?? 0) : 0);
+  let xpBase = positivo ? habito.peso_xp : -habito.peso_xp;
+  if (positivo && skill.xpBonusPct) xpBase = Math.round(xpBase * (1 + skill.xpBonusPct));
+  const xpDelta = sign * xpBase;
+
+  let vidaBase = 0;
+  if (positivo) {
+    vidaBase = skill.curaPorHabito ?? 0;
+  } else {
+    const perda = Math.max(2, Math.round(habito.peso_dano_cura / 3));
+    const reduzida = skill.danoReducaoPct ? Math.round(perda * (1 - skill.danoReducaoPct)) : perda;
+    vidaBase = -Math.max(1, reduzida);
+  }
+  const vidaDelta = sign * vidaBase;
+
+  let ouroBase = positivo ? (habito.peso_ouro ?? 0) : 0;
+  if (positivo && skill.ouroBonusPct && ouroBase > 0) {
+    const bonus = Math.max(1, Math.round(ouroBase * skill.ouroBonusPct));
+    ouroBase = ouroBase + bonus;
+  }
+  const ouroDelta = sign * ouroBase;
   const { xp_atual, nivel, xp_proximo_nivel, conquistas } = applyXp(heroi, xpDelta);
   const vida_atual = clamp(heroi.vida_atual + vidaDelta, 0, heroi.vida_max);
   const ouro = Math.max(0, (heroi.ouro ?? 0) + ouroDelta);
@@ -318,7 +337,10 @@ export function rollDailyChest(): number {
 }
 
 export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<number> {
-  const gold = rollDailyChest();
+  const base = rollDailyChest();
+  const skill = getPetSkill(heroi.avatar_equipado?.pet);
+  const bonus = skill.ouroBonusPct ? Math.max(1, Math.round(base * skill.ouroBonusPct)) : 0;
+  const gold = base + bonus;
   await supabase.from("users").update({
     ouro: heroi.ouro + gold,
     ultimo_bau_data: todayISO(),
@@ -327,7 +349,7 @@ export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<numb
     user_id: userId,
     valor: gold,
     origem: "bau_diario",
-    descricao: "Baú do dia",
+    descricao: bonus > 0 ? `Baú do dia (+${bonus} bônus de pet)` : "Baú do dia",
   });
   return gold;
 }
