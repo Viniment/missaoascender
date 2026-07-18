@@ -3,6 +3,8 @@ import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt, Shield } 
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import RewardBurstLayer from "@/components/fx/RewardBurst";
+import ParticleBackground from "@/components/fx/ParticleBackground";
 
 const NAV = [
   { to: "/", label: "Base", Icon: Home },
@@ -19,7 +21,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const nav = useNavigate();
   const isAdmin = useIsAdmin();
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24">
+    <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none opacity-70">
+        <ParticleBackground density={35} />
+      </div>
+      <RewardBurstLayer />
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="font-display text-lg tracking-widest text-primary glow-text-purple">
