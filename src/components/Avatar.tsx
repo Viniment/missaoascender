@@ -28,13 +28,16 @@ function BaseBody() {
   return (
     <g shapeRendering="crispEdges">
       {/* --- HEAD (16x16 block at 8,4) --- */}
-      {/* outline */}
+      {/* outline (top square, bottom chamfered/rounded) */}
       {px(7, 4, 18, 1, OUTLINE)}
-      {px(7, 20, 18, 1, OUTLINE)}
-      {px(7, 4, 1, 17, OUTLINE)}
-      {px(24, 4, 1, 17, OUTLINE)}
+      {px(8, 20, 16, 1, OUTLINE)}
+      {px(7, 4, 1, 16, OUTLINE)}
+      {px(24, 4, 1, 16, OUTLINE)}
       {/* skin fill */}
       {px(8, 5, 16, 15, SKIN)}
+      {/* clip bottom face corners for round chin */}
+      {px(8, 19, 1, 1, SKIN_DEEP)}
+      {px(23, 19, 1, 1, SKIN_DEEP)}
       {/* face highlight (cheek) */}
       {px(9, 14, 2, 1, SKIN_LIGHT)}
       {px(21, 14, 2, 1, SKIN_LIGHT)}
@@ -72,10 +75,11 @@ function BaseBody() {
       {px(13, 21, 6, 2, SKIN_SHADE)}
       {px(13, 21, 6, 1, SKIN_DEEP)}
       {/* --- SHOULDERS / TORSO TOP (base tunic) --- */}
-      {px(3, 23, 26, 9, "#3f4756")}
-      {px(3, 23, 26, 1, OUTLINE)}
-      {px(3, 23, 1, 9, OUTLINE)}
-      {px(28, 23, 1, 9, OUTLINE)}
+      {px(4, 23, 24, 1, "#3f4756")}
+      {px(3, 24, 26, 8, "#3f4756")}
+      {px(4, 23, 24, 1, OUTLINE)}
+      {px(3, 24, 1, 8, OUTLINE)}
+      {px(28, 24, 1, 8, OUTLINE)}
       {/* collar */}
       {px(13, 23, 6, 2, "#2b3140")}
       {px(14, 23, 4, 1, OUTLINE)}
