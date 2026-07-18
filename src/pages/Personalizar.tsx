@@ -178,7 +178,9 @@ export default function Personalizar() {
                 className={`rpg-panel p-3 flex flex-col items-center gap-1 transition-all ${active ? "border-primary neon-glow" : ""}`}
                 style={active ? undefined : { borderColor: borda }}
               >
-                <div className="text-3xl" style={{ filter: `drop-shadow(0 0 6px ${borda})` }}>{item.emoji}</div>
+                <div style={{ filter: `drop-shadow(0 0 6px ${borda})` }}>
+                  <Avatar equipado={{ [item.categoria]: item.id } as any} size="sm" glow={false} />
+                </div>
                 <span className="text-[10px] uppercase tracking-widest text-center truncate w-full">{item.nome}</span>
                 {active && <span className="text-[9px] text-primary uppercase tracking-widest">equipado</span>}
               </button>
