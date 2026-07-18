@@ -19,3 +19,20 @@ export function xpForLevel(level: number): number {
 export function clamp(n: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, n));
 }
+
+/** Shift an ISO date (YYYY-MM-DD) by N days. */
+export function shiftISO(iso: string, days: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
+
+/** Format ISO date as "qua, 22 jan" (pt-BR). */
+export function formatBRDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12));
+  return dt.toLocaleDateString("pt-BR", {
+    weekday: "short", day: "2-digit", month: "short", timeZone: "UTC",
+  });
+}

@@ -6,12 +6,12 @@ import Shell from "@/components/Shell";
 import { supabase } from "@/integrations/supabase/client";
 import {
   fetchHeroi, fetchInimigoAtivo, fetchHabitos, fetchLogsHoje, fetchOnboarding,
-  toggleHabito, abrirBauDiario, fetchConquistas,
+  toggleHabito, abrirBauDiario, fetchConquistas, fetchLogsData, recalcularHpMaxInimigo,
 } from "@/lib/api";
-import { todayISO } from "@/lib/utils";
+import { todayISO, shiftISO, formatBRDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil } from "lucide-react";
+import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
@@ -44,8 +44,15 @@ export default function Dashboard() {
   const { data: heroi } = useQuery({ queryKey: ["heroi", uid], queryFn: () => fetchHeroi(uid!), enabled: !!uid });
   const { data: inimigo } = useQuery({ queryKey: ["inimigo", uid], queryFn: () => fetchInimigoAtivo(uid!), enabled: !!uid });
   const { data: habitos } = useQuery({ queryKey: ["habitos", uid], queryFn: () => fetchHabitos(uid!), enabled: !!uid });
-  const { data: logs } = useQuery({ queryKey: ["logs", uid, todayISO()], queryFn: () => fetchLogsHoje(uid!), enabled: !!uid });
   const { data: conquistas } = useQuery({ queryKey: ["conq", uid], queryFn: () => fetchConquistas(uid!), enabled: !!uid });
+
+  const [dataSelecionada, setDataSelecionada] = useState<string>(todayISO());
+  const isHoje = dataSelecionada === todayISO();
+  const { data: logs } = useQuery({
+    queryKey: ["logs", uid, dataSelecionada],
+    queryFn: () => fetchLogsData(uid!, dataSelecionada),
+    enabled: !!uid,
+  });
 
   const [msg, setMsg] = useState<string>("");
   const [novoHabito, setNovoHabito] = useState({ nome: "", tipo: "positivo" as "positivo" | "negativo" });
@@ -94,7 +101,7 @@ export default function Dashboard() {
     const marcado = logs?.has(habitoId) ?? false;
     const positivo = h.tipo === "positivo";
     try {
-      await toggleHabito({ heroi, inimigo: inimigo ?? null, habito: h, marcado });
+      await toggleHabito({ heroi, inimigo: inimigo ?? null, habito: h, marcado, data: dataSelecionada });
       await qc.invalidateQueries();
 
       // Só abre popup ao MARCAR (não ao desmarcar)
@@ -171,6 +178,10 @@ export default function Dashboard() {
       if (error) throw error;
       setNovoHabito({ nome: "", tipo: "positivo" });
       setShowForm(false);
+      if (novoHabito.tipo === "positivo") {
+        await recalcularHpMaxInimigo(uid);
+        await qc.invalidateQueries({ queryKey: ["inimigo", uid] });
+      }
       await qc.invalidateQueries({ queryKey: ["habitos", uid] });
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao criar hábito");
@@ -181,6 +192,10 @@ export default function Dashboard() {
 
   const excluirHabito = async (id: string) => {
     await supabase.from("habitos").update({ ativo: false }).eq("id", id);
+    if (uid) {
+      await recalcularHpMaxInimigo(uid);
+      await qc.invalidateQueries({ queryKey: ["inimigo", uid] });
+    }
     await qc.invalidateQueries({ queryKey: ["habitos", uid] });
   };
 
@@ -302,6 +317,46 @@ export default function Dashboard() {
             </button>
           </div>
 
+          {/* Seletor de dia — permite marcar hábitos retroativos */}
+          <div className="rpg-panel p-2 flex items-center gap-2">
+            <button
+              onClick={() => setDataSelecionada(shiftISO(dataSelecionada, -1))}
+              className="p-1.5 rounded-md border border-border hover:border-primary/60 hover:text-primary"
+              title="Dia anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="flex-1 text-center">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-muted-foreground flex items-center justify-center gap-1">
+                <Calendar className="w-3 h-3" /> {isHoje ? "Hoje" : "Registro retroativo"}
+              </p>
+              <p className="font-display text-sm tracking-widest capitalize">
+                {formatBRDate(dataSelecionada)}
+              </p>
+            </div>
+            <button
+              onClick={() => setDataSelecionada(shiftISO(dataSelecionada, 1))}
+              disabled={isHoje}
+              className="p-1.5 rounded-md border border-border hover:border-primary/60 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Próximo dia"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            {!isHoje && (
+              <button
+                onClick={() => setDataSelecionada(todayISO())}
+                className="text-[10px] px-2 py-1 rounded-md border border-primary/40 text-primary hover:bg-primary/10 uppercase tracking-widest"
+              >
+                Hoje
+              </button>
+            )}
+          </div>
+          {!isHoje && (
+            <p className="text-[10px] text-center text-muted-foreground italic -mt-2">
+              Marcando hábitos de um dia anterior — recompensas e dano são aplicados normalmente.
+            </p>
+          )}
+
           {showForm && (
             <div className="rpg-panel p-4 space-y-3">
               <input
@@ -383,7 +438,13 @@ export default function Dashboard() {
         inimigo={inimigo ?? null}
         onboarding={ob}
         onClose={() => setEditHabito(null)}
-        onSaved={() => qc.invalidateQueries({ queryKey: ["habitos", uid] })}
+        onSaved={async () => {
+          if (uid) {
+            await recalcularHpMaxInimigo(uid);
+            await qc.invalidateQueries({ queryKey: ["inimigo", uid] });
+          }
+          qc.invalidateQueries({ queryKey: ["habitos", uid] });
+        }}
       />
       <EditInimigoDialog
         inimigo={inimigo ?? null}
