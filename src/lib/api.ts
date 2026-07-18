@@ -208,6 +208,16 @@ export async function checkConquistas(userId: string, novas: { tipo: string; tit
   );
 }
 
+export async function updateHabito(habitoId: string, patch: Partial<Pick<Habito, "nome" | "tipo" | "peso_dano_cura" | "peso_xp" | "peso_ouro">>) {
+  const { error } = await supabase.from("habitos").update(patch).eq("id", habitoId);
+  if (error) throw error;
+}
+
+export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimigo, "nome" | "gatilho" | "mentiras" | "hp_max">> & { hp_atual?: number }) {
+  const { error } = await supabase.from("inimigo").update(patch).eq("id", inimigoId);
+  if (error) throw error;
+}
+
 /** Mark a habit as done today (or undo). Updates hero + enemy + logs + gold tx. */
 export async function toggleHabito(opts: {
   heroi: Heroi;
