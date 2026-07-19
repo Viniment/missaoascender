@@ -64,8 +64,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="flex items-center gap-1">
           {isAdmin && (
-            <Link to="/admin" className="text-primary hover:text-primary/80 p-2" aria-label="Admin" title="Admin">
-              <Shield className="w-5 h-5" />
+            <Link
+              to="/admin"
+              aria-label="Painel Admin"
+              title="Painel Admin"
+              className="group relative inline-flex items-center gap-1.5 rounded-md border border-primary/50 bg-gradient-to-r from-primary/20 via-primary/10 to-[hsl(263_90%_40%)]/20 px-2 py-1 font-display text-[10px] tracking-[0.25em] uppercase text-primary shadow-[0_0_10px_hsl(var(--primary)/0.35),inset_0_1px_0_hsl(0_0%_100%/0.1)] hover:text-primary-foreground hover:bg-primary hover:shadow-[0_0_16px_hsl(var(--primary)/0.7)] transition-all"
+            >
+              <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(var(--primary))]" />
+              <Shield className="w-3.5 h-3.5" />
+              <span>Admin</span>
             </Link>
           )}
           <button
