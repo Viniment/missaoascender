@@ -97,7 +97,7 @@ export default function ConquistasPage() {
     items.push({
       tipo: "bau_lendario",
       titulo: "Baú aberto",
-      descricao: "Você abriu o baú diário pela primeira vez.",
+      descricao: "Abra o baú diário pela primeira vez.",
       como: "Toque no baú do dia na tela inicial e abra a recompensa.",
       unlocked: abriuBau,
       desbloqueada_em: abriuBau ? map.get("bau_lendario")?.desbloqueada_em ?? null : null,
@@ -107,7 +107,7 @@ export default function ConquistasPage() {
     items.push({
       tipo: "primeira_batalha",
       titulo: "Primeira batalha",
-      descricao: "Você encarou o seu primeiro inimigo interno.",
+      descricao: "Encare o seu primeiro inimigo interno.",
       como: "Cadastre um inimigo (padrão de sabotagem) para começar a batalha.",
       unlocked: teveInimigo,
       desbloqueada_em: teveInimigo ? map.get("primeira_batalha")?.desbloqueada_em ?? null : null,
