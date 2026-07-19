@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import Shell from "@/components/Shell";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchHeroi, fetchInimigoAtivo, fetchConquistas } from "@/lib/api";
+import { fetchHeroi, fetchInimigoAtivo, fetchConquistas, unlockLevelConquistas, unlockStreakConquistas } from "@/lib/api";
 import { xpForLevel } from "@/lib/utils";
 import { toast } from "sonner";
 import { ITENS } from "@/lib/itens";
@@ -89,11 +89,17 @@ export default function Admin() {
   const subirNivel = async () => {
     const nivel = heroi.nivel + 1;
     await patch({ nivel, xp_atual: 0, xp_proximo_nivel: xpForLevel(nivel), vida_max: heroi.vida_max + 10, vida_atual: heroi.vida_max + 10 }, `Nível ${nivel} concedido`);
+    await unlockLevelConquistas(uid!, heroi.nivel, nivel);
+    await qc.invalidateQueries();
   };
 
   const setNivel = async (n: number) => {
     if (n < 1) return;
     await patch({ nivel: n, xp_atual: 0, xp_proximo_nivel: xpForLevel(n) }, `Nível definido: ${n}`);
+    if (n > heroi.nivel) {
+      await unlockLevelConquistas(uid!, heroi.nivel, n);
+      await qc.invalidateQueries();
+    }
   };
 
   const restaurarVida = () => patch({ vida_atual: heroi.vida_max }, "Vida restaurada");
@@ -170,7 +176,12 @@ export default function Admin() {
     setBusy(false);
   };
 
-  const ganharStreak = (n: number) => patch({ streak_atual: (heroi.streak_atual ?? 0) + n }, `+${n} dias de streak`);
+  const ganharStreak = async (n: number) => {
+    const novo = (heroi.streak_atual ?? 0) + n;
+    await patch({ streak_atual: novo }, `+${n} dias de streak`);
+    await unlockStreakConquistas(uid!, novo);
+    await qc.invalidateQueries();
+  };
   const zerarStreak = () => patch({ streak_atual: 0 }, "Streak zerada");
 
   const xpMeioNivel = () => patch(
