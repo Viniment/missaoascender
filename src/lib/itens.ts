@@ -59,6 +59,11 @@ export const ITENS: Item[] = [
   { id: "arm_lich",     categoria: "armor", nome: "Placas do Lich",     emoji: "☠️", raridade: "epico",   preco: 720, cor: "#6d28d9", descricao: "Runas necróticas gravadas em ébano." },
   { id: "arm_dragao",   categoria: "armor", nome: "Escamas do Dragão",  emoji: "🐲", raridade: "lendario", preco: 1600, cor: "#b91c1c", descricao: "Cada escama forjada em fúria disciplinada." },
   { id: "arm_divina",   categoria: "armor", nome: "Vestes Divinas",     emoji: "🕊️", raridade: "mitico",  preco: 3800, cor: "#fde68a", descricao: "Tecidas de pura vontade — irradiam ascensão." },
+  { id: "arm_ferro",    categoria: "armor", nome: "Placas de Ferro",    emoji: "⚙️", raridade: "raro",    preco: 280, cor: "#94a3b8", descricao: "Aço rebitado — o padrão dos veteranos." },
+  { id: "arm_ninja",    categoria: "armor", nome: "Traje Shinobi",      emoji: "🥷", raridade: "raro",    preco: 340, cor: "#1e293b", descricao: "Tecido leve com faixas cruzadas — silêncio absoluto." },
+  { id: "arm_arcano",   categoria: "armor", nome: "Manto Arcano",       emoji: "🔯", raridade: "epico",   preco: 820, cor: "#3b82f6", descricao: "Tecido bordado com sigilos que reagem à intenção." },
+  { id: "arm_infernal", categoria: "armor", nome: "Armadura Infernal",  emoji: "😈", raridade: "lendario", preco: 1800, cor: "#ef4444", descricao: "Forjada em brasas — pulsa como coração de vulcão." },
+  { id: "arm_estelar",  categoria: "armor", nome: "Placas Estelares",   emoji: "🌟", raridade: "mitico",  preco: 4200, cor: "#a78bfa", descricao: "Metal caído de estrelas — carrega o próprio cosmos." },
 
   // ---------- AURA ----------
   { id: "aura_sombra",  categoria: "aura", nome: "Aura das Sombras",   emoji: "🌑", raridade: "comum",    preco: 60,  cor: "#7B2FF7", descricao: "Halo roxo neon." },
