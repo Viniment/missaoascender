@@ -67,7 +67,7 @@ export default function ConquistasPage() {
       items.push({
         tipo: `nivel_${n}`,
         titulo: `Nível ${n} alcançado`,
-        descricao: `Você evoluiu para o nível ${n}.`,
+        descricao: `Evolua para o nível ${n}.`,
         como: `Acumule XP marcando hábitos positivos até chegar ao nível ${n}.`,
         progresso: unlocked ? undefined : `Nível ${nivelAtual}/${n}`,
         unlocked,
