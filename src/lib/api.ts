@@ -243,6 +243,36 @@ export async function checkConquistas(userId: string, novas: { tipo: string; tit
   );
 }
 
+/** Garante conquistas de nível para todo n em (fromLevel, toLevel]. */
+export async function unlockLevelConquistas(userId: string, fromLevel: number, toLevel: number) {
+  const rows: { tipo: string; titulo: string; descricao: string }[] = [];
+  for (let n = Math.max(2, fromLevel + 1); n <= toLevel; n++) {
+    rows.push({
+      tipo: `nivel_${n}`,
+      titulo: `Nível ${n} alcançado`,
+      descricao: `Você evoluiu para o nível ${n}.`,
+    });
+  }
+  await checkConquistas(userId, rows);
+}
+
+/** Libera conquistas de streak baseadas no total atingido. */
+export async function unlockStreakConquistas(userId: string, streak: number) {
+  const rows: { tipo: string; titulo: string; descricao: string }[] = [];
+  if (streak >= 7)  rows.push({ tipo: "streak_7",  titulo: "7 dias de streak",  descricao: "Uma semana inteira de consistência." });
+  if (streak >= 30) rows.push({ tipo: "streak_30", titulo: "30 dias de streak", descricao: "Um mês de disciplina implacável." });
+  await checkConquistas(userId, rows);
+}
+
+/** Libera a conquista de baú (primeira vez que abre). */
+export async function unlockBauConquista(userId: string) {
+  await checkConquistas(userId, [{
+    tipo: "bau_lendario",
+    titulo: "Baú aberto",
+    descricao: "Você abriu o baú diário.",
+  }]);
+}
+
 export async function updateHabito(habitoId: string, patch: Partial<Pick<Habito, "nome" | "tipo" | "peso_dano_cura" | "peso_xp" | "peso_ouro">>) {
   const { error } = await supabase.from("habitos").update(patch).eq("id", habitoId);
   if (error) throw error;
@@ -352,6 +382,7 @@ export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<numb
     origem: "bau_diario",
     descricao: bonus > 0 ? `Baú do dia (+${bonus} bônus de pet)` : "Baú do dia",
   });
+  await unlockBauConquista(userId);
   return gold;
 }
 
