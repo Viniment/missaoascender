@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Coins, Sparkles, X } from "lucide-react";
+import chestOpenImg from "@/assets/chest-open.png";
 
 type Stage = "closed" | "opening" | "reveal";
 
@@ -148,7 +149,20 @@ export default function ChestOverlay({
                     : { duration: 2, repeat: Infinity, ease: "easeInOut" }
                 }
               >
-                <ChestSVG stage={stage} />
+                {stage === "reveal" ? (
+                  <motion.img
+                    src={chestOpenImg}
+                    alt="Baú aberto"
+                    width={220}
+                    height={220}
+                    className="w-[220px] h-[220px] object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.75)]"
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 240, damping: 18 }}
+                  />
+                ) : (
+                  <ChestSVG stage={stage} />
+                )}
               </motion.div>
 
               {/* Burst particles on reveal */}
