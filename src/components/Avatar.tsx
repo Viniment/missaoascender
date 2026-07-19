@@ -238,6 +238,171 @@ function renderHair(style: HairStyle, base: string, light: string, shape: FaceSh
     push(19, 1, 1, 1, light);
     return <g shapeRendering="crispEdges">{els}</g>;
   }
+
+  if (style === "slick") {
+    // topo achatado, penteado para trás, laterais coladas
+    for (let i = 0; i < 3; i++) {
+      const [l, r] = rows[i];
+      push(l, 4 + i, r - l + 1, 1, base);
+    }
+    // linhas de brilho horizontais indicando o "slick"
+    push(topRow[0] + 1, 4, topRow[1] - topRow[0] - 1, 1, light);
+    push(rows[1][0] + 2, 5, rows[1][1] - rows[1][0] - 3, 1, light);
+    // costeletas curtas
+    push(rows[4][0], 8, 1, 1, base);
+    push(rows[4][1], 8, 1, 1, base);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "undercut") {
+    // topo volumoso caindo para um lado, laterais raspadas
+    for (let i = 0; i < 3; i++) {
+      const [l, r] = rows[i];
+      push(l + 2, 4 + i, r - l - 1, 1, base);
+    }
+    // franja lateral caindo
+    push(9, 7, 6, 1, base);
+    push(10, 8, 5, 1, base);
+    push(11, 9, 3, 1, base);
+    // laterais raspadas (tom mais fraco)
+    push(rows[3][0], 7, 2, 2, light);
+    push(rows[3][1] - 1, 7, 2, 2, light);
+    // brilho no topo
+    push(topRow[0] + 3, 4, 4, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "ponytail") {
+    // topo puxado, com rabo atrás
+    for (let i = 0; i < 3; i++) {
+      const [l, r] = rows[i];
+      push(l, 4 + i, r - l + 1, 1, base);
+    }
+    // linhas puxadas para trás
+    push(topRow[0] + 2, 4, 3, 1, light);
+    push(topRow[0] + 6, 4, 3, 1, light);
+    // rabo saindo por trás/direita
+    push(23, 6, 1, 5, base);
+    push(24, 7, 1, 4, base);
+    push(23, 11, 2, 1, base);
+    // costeletas
+    push(rows[4][0], 8, 1, 1, base);
+    push(rows[4][1], 8, 1, 1, base);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "afro") {
+    // volumão redondo em torno da cabeça
+    for (let i = 0; i < 5; i++) {
+      const [l, r] = rows[i];
+      push(l - 2, 4 + i, r - l + 5, 1, base);
+    }
+    // domo acima
+    push(9, 2, 14, 2, base);
+    push(10, 1, 12, 1, base);
+    push(12, 0, 8, 1, base);
+    // laterais descendo
+    push(6, 8, 1, 3, base);
+    push(25, 8, 1, 3, base);
+    // brilho
+    push(11, 2, 3, 1, light);
+    push(17, 2, 3, 1, light);
+    push(13, 0, 3, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "dreads") {
+    // topo cheio + tranças descendo pelas laterais
+    for (let i = 0; i < 4; i++) {
+      const [l, r] = rows[i];
+      push(l, 4 + i, r - l + 1, 1, base);
+    }
+    // dreads (colunas 2px alternadas descendo)
+    const dreadCols = [8, 11, 14, 17, 20, 22];
+    dreadCols.forEach((cx, i) => {
+      const len = 5 + (i % 3); // comprimentos variados
+      for (let dy = 0; dy < len; dy++) {
+        push(cx, 8 + dy, 1, 1, dy % 2 === 0 ? base : light);
+      }
+    });
+    // laterais mais grossas
+    push(7, 8, 1, 6, base);
+    push(23, 8, 1, 6, base);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "samurai") {
+    // topo raspado / testa alta, coque preso alto atrás + rabo curto
+    for (let i = 1; i < 3; i++) {
+      const [l, r] = rows[i];
+      push(l + 1, 4 + i, r - l - 1, 1, base);
+    }
+    // coque
+    push(13, 1, 6, 2, base);
+    push(14, 0, 4, 1, base);
+    push(14, 1, 2, 1, light);
+    // faixa cerimonial
+    push(8, 6, 16, 1, "#7a1e1e");
+    push(8, 6, 16, 1, base);
+    // rabo descendo por trás
+    push(19, 3, 2, 4, base);
+    push(21, 6, 1, 3, base);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "wavy") {
+    // cabelo médio ondulado com mechas
+    for (let i = 0; i < 4; i++) {
+      const [l, r] = rows[i];
+      push(l, 4 + i, r - l + 1, 1, base);
+    }
+    // ondas frontais
+    push(9, 8, 2, 1, base);
+    push(12, 9, 2, 1, base);
+    push(16, 8, 2, 1, base);
+    push(19, 9, 2, 1, base);
+    // laterais descendo até y=12
+    for (let y = 8; y <= 12; y++) {
+      const row = rows[y - 4] ?? rows[rows.length - 1];
+      push(row[0] - 1, y, 1, 1, base);
+      push(row[1] + 1, y, 1, 1, base);
+    }
+    // mechas de brilho
+    push(11, 5, 2, 1, light);
+    push(15, 4, 2, 1, light);
+    push(19, 5, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "wildmane") {
+    // juba selvagem, volumosa, com pontas para fora
+    for (let i = 0; i < 4; i++) {
+      const [l, r] = rows[i];
+      push(l - 1, 4 + i, r - l + 3, 1, base);
+    }
+    // pontas espetadas irregulares acima
+    push(8, 3, 1, 1, base); push(8, 2, 1, 1, base);
+    push(11, 2, 1, 2, base);
+    push(14, 1, 1, 3, base);
+    push(17, 2, 1, 2, base);
+    push(20, 3, 1, 1, base); push(20, 1, 1, 2, base);
+    push(23, 3, 1, 1, base);
+    // laterais longas descendo
+    for (let y = 8; y <= 16; y++) {
+      const row = rows[y - 4] ?? rows[rows.length - 1];
+      push(row[0] - 2, y, 1, 1, base);
+      push(row[1] + 2, y, 1, 1, base);
+    }
+    // pontas laterais
+    push(5, 16, 1, 2, base);
+    push(26, 16, 1, 2, base);
+    // brilhos
+    push(10, 5, 2, 1, light);
+    push(16, 4, 3, 1, light);
+    push(20, 5, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
   return null;
 }
 
@@ -395,6 +560,95 @@ function renderBeard(style: BeardStyle, base: string, light: string, shape: Face
     push(18, 17, 2, 1, light);
     return <g shapeRendering="crispEdges">{els}</g>;
   }
+
+  if (style === "chinstrap") {
+    // linha fina contornando o maxilar, sem bigode
+    const [l16, r16] = rowAt(16);
+    push(l16, 16, 1, 1, base);
+    push(r16, 16, 1, 1, base);
+    push(l16, 17, 1, 1, base);
+    push(r16, 17, 1, 1, base);
+    push(l16 + 1, 18, 1, 1, base);
+    push(r16 - 1, 18, 1, 1, base);
+    push(l16 + 2, 19, 1, 1, base);
+    push(r16 - 2, 19, 1, 1, base);
+    // linha do queixo
+    push(12, 20, 8, 1, base);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "circle") {
+    // bigode + cavanhaque conectados formando um círculo em volta da boca
+    push(12, 17, 8, 1, base);            // bigode
+    push(11, 18, 1, 1, base);            // canto esq
+    push(20, 18, 1, 1, base);            // canto dir
+    push(11, 19, 1, 1, base);
+    push(20, 19, 1, 1, base);
+    push(12, 20, 8, 1, base);            // fecha embaixo
+    push(15, 19, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "muttonchops") {
+    // costeletas grossas descendo até o maxilar, sem queixo/bigode
+    for (let y = 12; y <= 19; y++) {
+      const [l, r] = rowAt(y);
+      push(l, y, 2, 1, base);
+      push(r - 1, y, 2, 1, base);
+    }
+    // pontas curvando para dentro perto do queixo
+    push(11, 19, 2, 1, base);
+    push(19, 19, 2, 1, base);
+    // brilhos
+    push(9, 13, 1, 1, light);
+    push(22, 13, 1, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "boxed") {
+    // barba curta e bem aparada, contornada
+    for (let y = 17; y <= 20; y++) {
+      const [l, r] = rowAt(y);
+      push(l + 1, y, r - l - 1, 1, base);
+    }
+    // recorta boca
+    push(14, 18, 4, 1, "#7a2828");
+    // borda escura marcada
+    push(11, 17, 1, 3, OUTLINE);
+    push(20, 17, 1, 3, OUTLINE);
+    // brilhos
+    push(13, 17, 2, 1, light);
+    push(17, 17, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "anchor") {
+    // bigode fino + linha vertical no queixo (âncora)
+    push(12, 17, 8, 1, base);
+    // barrinha vertical descendo do queixo
+    push(15, 19, 2, 3, base);
+    // barra horizontal formando âncora
+    push(13, 21, 6, 1, base);
+    push(15, 19, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
+  if (style === "handlebar") {
+    // bigode grande com pontas curvadas pra cima
+    push(12, 17, 8, 1, base);
+    push(11, 17, 1, 1, base);
+    push(20, 17, 1, 1, base);
+    // pontas subindo/curvando
+    push(10, 16, 1, 1, base);
+    push(21, 16, 1, 1, base);
+    push(9, 15, 1, 1, base);
+    push(22, 15, 1, 1, base);
+    // brilhos
+    push(13, 17, 2, 1, light);
+    push(17, 17, 2, 1, light);
+    return <g shapeRendering="crispEdges">{els}</g>;
+  }
+
   return null;
 }
 

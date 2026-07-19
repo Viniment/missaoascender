@@ -190,9 +190,9 @@ export type AvatarEquipado = {
 /* -------- Aparência customizável (grátis, não é item de loja) -------- */
 export type FaceShape = "round" | "square" | "oval" | "angular" | "diamond";
 export type SkinTone  = "porcelana" | "clara" | "dourada" | "oliva" | "cobre" | "bronze" | "cacau" | "ebano";
-export type HairStyle = "none" | "buzz" | "short" | "spiky" | "mohawk" | "long" | "topknot" | "curly";
+export type HairStyle = "none" | "buzz" | "short" | "spiky" | "mohawk" | "long" | "topknot" | "curly" | "slick" | "undercut" | "ponytail" | "afro" | "dreads" | "samurai" | "wavy" | "wildmane";
 export type FaceMark  = "none" | "scar" | "freckles" | "tattoo" | "warpaint";
-export type BeardStyle = "none" | "stubble" | "mustache" | "goatee" | "full" | "viking";
+export type BeardStyle = "none" | "stubble" | "mustache" | "goatee" | "full" | "viking" | "chinstrap" | "circle" | "muttonchops" | "boxed" | "anchor" | "handlebar";
 
 export const FACE_SHAPES: { id: FaceShape; nome: string }[] = [
   { id: "square",  nome: "Quadrado" },
@@ -221,6 +221,14 @@ export const HAIR_STYLES: { id: HairStyle; nome: string }[] = [
   { id: "long",    nome: "Longo" },
   { id: "topknot", nome: "Coque" },
   { id: "curly",   nome: "Cacheado" },
+  { id: "slick",     nome: "Penteado p/ trás" },
+  { id: "undercut",  nome: "Undercut" },
+  { id: "ponytail",  nome: "Rabo de cavalo" },
+  { id: "afro",      nome: "Afro" },
+  { id: "dreads",    nome: "Dreads" },
+  { id: "samurai",   nome: "Samurai" },
+  { id: "wavy",      nome: "Ondulado" },
+  { id: "wildmane",  nome: "Juba selvagem" },
 ];
 
 export const HAIR_COLORS: { id: string; nome: string; base: string; light: string }[] = [
@@ -259,6 +267,12 @@ export const BEARD_STYLES: { id: BeardStyle; nome: string }[] = [
   { id: "goatee",   nome: "Cavanhaque" },
   { id: "full",     nome: "Cheia" },
   { id: "viking",   nome: "Viking" },
+  { id: "chinstrap",  nome: "Chinstrap" },
+  { id: "circle",     nome: "Circular" },
+  { id: "muttonchops",nome: "Costeletas" },
+  { id: "boxed",      nome: "Aparada" },
+  { id: "anchor",     nome: "Âncora" },
+  { id: "handlebar",  nome: "Guidão" },
 ];
 
 export const APARENCIA_PADRAO = {
