@@ -341,6 +341,22 @@ export default function Dashboard() {
           </motion.div>
         )}
 
+        {/* Fissura — acesso rápido */}
+        <Link
+          to="/fissura"
+          className="rpg-panel p-3.5 sm:p-4 flex items-center gap-3 border-destructive/40 hover:border-destructive hover:shadow-[0_0_25px_rgba(239,68,68,0.25)] transition group"
+        >
+          <div className="w-10 h-10 rounded-md grid place-items-center bg-destructive/15 border border-destructive/40 text-destructive group-hover:scale-110 transition">
+            <Flame className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-destructive">Protocolo de emergência</p>
+            <h3 className="font-display text-sm sm:text-base tracking-widest">Estou em Fissura</h3>
+            <p className="text-[11px] text-muted-foreground">A IA monta um protocolo pra você atravessar a onda agora.</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-destructive" />
+        </Link>
+
         {/* Hábitos AGRUPADOS */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
