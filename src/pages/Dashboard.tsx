@@ -357,6 +357,38 @@ export default function Dashboard() {
           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-destructive" />
         </Link>
 
+        {/* Ferramentas cognitivas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link
+            to="/reestruturacao"
+            className="rpg-panel p-3.5 flex items-center gap-3 hover:border-primary hover:shadow-[0_0_25px_rgba(139,92,246,0.2)] transition group"
+          >
+            <div className="w-10 h-10 rounded-md grid place-items-center bg-primary/15 border border-primary/40 text-primary group-hover:scale-110 transition">
+              <Brain className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary">TCC</p>
+              <h3 className="font-display text-sm tracking-widest">Reestruturar</h3>
+              <p className="text-[11px] text-muted-foreground">Desmontar um pensamento.</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+          </Link>
+          <Link
+            to="/urge-surfing"
+            className="rpg-panel p-3.5 flex items-center gap-3 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.2)] transition group"
+          >
+            <div className="w-10 h-10 rounded-md grid place-items-center bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 group-hover:scale-110 transition">
+              <Waves className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-300">Mindfulness</p>
+              <h3 className="font-display text-sm tracking-widest">Surfar a Onda</h3>
+              <p className="text-[11px] text-muted-foreground">Atravessar um desejo sem ceder.</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-cyan-300" />
+          </Link>
+        </div>
+
         {/* Hábitos AGRUPADOS */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
