@@ -267,13 +267,13 @@ export default function Fissura() {
                   return (
                     <li
                       key={i}
-                      className={`rpg-panel p-3 sm:p-4 transition ${
+                      className={`rpg-panel p-3 sm:p-4 transition flex items-start gap-3 ${
                         ativo ? "border-primary/60 shadow-[0_0_20px_rgba(139,92,246,0.15)]" : ""
                       } ${feito ? "opacity-70" : ""}`}
                     >
                       <button
                         onClick={() => setPassoIdx(i)}
-                        className="w-full text-left flex items-start gap-3"
+                        className="flex-1 text-left flex items-start gap-3 min-w-0"
                       >
                         <div className="w-8 h-8 rounded-md grid place-items-center bg-primary/10 border border-primary/30 text-primary shrink-0">
                           {TECNICA_ICON[p.tecnica] ?? <Sparkles className="w-4 h-4" />}
@@ -295,17 +295,17 @@ export default function Fissura() {
                             </p>
                           )}
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); marcarPasso(i); }}
-                          className={`shrink-0 p-1.5 rounded-md border ${
-                            feito
-                              ? "border-primary bg-primary/20 text-primary"
-                              : "border-border text-muted-foreground hover:border-primary/50"
-                          }`}
-                          title={feito ? "Feito" : "Marcar como feito"}
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                        </button>
+                      </button>
+                      <button
+                        onClick={() => marcarPasso(i)}
+                        className={`shrink-0 p-1.5 rounded-md border self-start ${
+                          feito
+                            ? "border-primary bg-primary/20 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/50"
+                        }`}
+                        title={feito ? "Feito" : "Marcar como feito"}
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
                       </button>
                     </li>
                   );
