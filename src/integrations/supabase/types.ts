@@ -97,6 +97,63 @@ export type Database = {
         }
         Relationships: []
       }
+      fissuras: {
+        Row: {
+          contexto: string | null
+          criado_em: string
+          desejo: string | null
+          duracao_relatada: string | null
+          emocao: string | null
+          finalizado_em: string | null
+          id: string
+          intensidade_final: number | null
+          intensidade_inicial: number
+          missao_concluida: boolean
+          missao_imediata: string | null
+          protocolo: Json | null
+          resolvida: boolean
+          tecnicas_usadas: string[] | null
+          tipo_detectado: string | null
+          user_id: string
+        }
+        Insert: {
+          contexto?: string | null
+          criado_em?: string
+          desejo?: string | null
+          duracao_relatada?: string | null
+          emocao?: string | null
+          finalizado_em?: string | null
+          id?: string
+          intensidade_final?: number | null
+          intensidade_inicial: number
+          missao_concluida?: boolean
+          missao_imediata?: string | null
+          protocolo?: Json | null
+          resolvida?: boolean
+          tecnicas_usadas?: string[] | null
+          tipo_detectado?: string | null
+          user_id: string
+        }
+        Update: {
+          contexto?: string | null
+          criado_em?: string
+          desejo?: string | null
+          duracao_relatada?: string | null
+          emocao?: string | null
+          finalizado_em?: string | null
+          id?: string
+          intensidade_final?: number | null
+          intensidade_inicial?: number
+          missao_concluida?: boolean
+          missao_imediata?: string | null
+          protocolo?: Json | null
+          resolvida?: boolean
+          tecnicas_usadas?: string[] | null
+          tipo_detectado?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       habito_logs: {
         Row: {
           completado: boolean
