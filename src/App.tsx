@@ -14,6 +14,9 @@ import PerfilPage from "@/pages/Perfil";
 import LojaPage from "@/pages/Loja";
 import PersonalizarPage from "@/pages/Personalizar";
 import AdminPage from "@/pages/Admin";
+import Fissura from "@/pages/Fissura";
+import Reestruturacao from "@/pages/Reestruturacao";
+import UrgeSurfing from "@/pages/UrgeSurfing";
 import FissuraPage from "@/pages/Fissura";
 
 const qc = new QueryClient();
@@ -45,6 +48,9 @@ export default function App() {
             <Route path="/personalizar" element={<Protected><PersonalizarPage /></Protected>} />
             <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
             <Route path="/admin" element={<Protected><AdminPage /></Protected>} />
+            <Route path="/fissura" element={<Protected><Fissura /></Protected>} />
+            <Route path="/reestruturacao" element={<Protected><Reestruturacao /></Protected>} />
+            <Route path="/urge-surfing" element={<Protected><UrgeSurfing /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

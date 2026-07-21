@@ -345,6 +345,57 @@ export type Database = {
         }
         Relationships: []
       }
+      pensamentos: {
+        Row: {
+          ai_analise: Json | null
+          created_at: string
+          distorcoes: string[] | null
+          emocao: string | null
+          evidencias_contra: string | null
+          evidencias_favor: string | null
+          id: string
+          intensidade_emocao: number | null
+          intensidade_final: number | null
+          pensamento_alternativo: string | null
+          pensamento_automatico: string
+          situacao: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_analise?: Json | null
+          created_at?: string
+          distorcoes?: string[] | null
+          emocao?: string | null
+          evidencias_contra?: string | null
+          evidencias_favor?: string | null
+          id?: string
+          intensidade_emocao?: number | null
+          intensidade_final?: number | null
+          pensamento_alternativo?: string | null
+          pensamento_automatico: string
+          situacao: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_analise?: Json | null
+          created_at?: string
+          distorcoes?: string[] | null
+          emocao?: string | null
+          evidencias_contra?: string | null
+          evidencias_favor?: string | null
+          id?: string
+          intensidade_emocao?: number | null
+          intensidade_final?: number | null
+          pensamento_alternativo?: string | null
+          pensamento_automatico?: string
+          situacao?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transacoes_ouro: {
         Row: {
           data: string
@@ -369,6 +420,42 @@ export type Database = {
           origem?: string
           user_id?: string
           valor?: number
+        }
+        Relationships: []
+      }
+      urge_surfs: {
+        Row: {
+          cedeu: boolean | null
+          ciclos_respiracao: number
+          created_at: string
+          desejo: string | null
+          duracao_seg: number
+          id: string
+          intensidade_final: number | null
+          intensidade_inicial: number
+          user_id: string
+        }
+        Insert: {
+          cedeu?: boolean | null
+          ciclos_respiracao?: number
+          created_at?: string
+          desejo?: string | null
+          duracao_seg?: number
+          id?: string
+          intensidade_final?: number | null
+          intensidade_inicial: number
+          user_id: string
+        }
+        Update: {
+          cedeu?: boolean | null
+          ciclos_respiracao?: number
+          created_at?: string
+          desejo?: string | null
+          duracao_seg?: number
+          id?: string
+          intensidade_final?: number | null
+          intensidade_inicial?: number
+          user_id?: string
         }
         Relationships: []
       }
