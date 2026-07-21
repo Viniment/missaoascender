@@ -18,6 +18,7 @@ import Fissura from "@/pages/Fissura";
 import Reestruturacao from "@/pages/Reestruturacao";
 import UrgeSurfing from "@/pages/UrgeSurfing";
 import FissuraPage from "@/pages/Fissura";
+import Laboratorio from "@/pages/Laboratorio";
 
 const qc = new QueryClient();
 
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/fissura" element={<Protected><Fissura /></Protected>} />
             <Route path="/reestruturacao" element={<Protected><Reestruturacao /></Protected>} />
             <Route path="/urge-surfing" element={<Protected><UrgeSurfing /></Protected>} />
+            <Route path="/laboratorio" element={<Protected><Laboratorio /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
