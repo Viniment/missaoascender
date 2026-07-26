@@ -2,21 +2,22 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { shiftISO, todayISO } from "@/lib/utils";
 import type { Habito } from "@/lib/api";
-import { Target, TrendingDown } from "lucide-react";
+import { Flame, Skull, Sparkles, Target } from "lucide-react";
 
 /**
- * Balança do Alinhamento: mede, nos últimos 7 dias, se o herói está indo
- * em direção ao sonho ou se afastando dele.
+ * Termômetro do Sonho — últimos 7 dias.
  *
- * Regras:
- *  - Cada dia × cada hábito positivo ativo = 1 slot.
- *    - marcado → +1 (a favor do sonho)
- *    - não marcado → -1 (falha = traição do sonho)
- *  - Cada dia × cada hábito negativo ativo = 1 slot.
- *    - marcado → -1 (recaída)
- *    - não marcado → +1 (resistiu)
+ * Regra (dor pela inação, prazer pelo progresso):
+ *  - Dia SEM nenhum registro → conta como 100% negativo:
+ *      contra += (positivos + negativos) do dia. É a punição da omissão:
+ *      quem não aparece, trai.
+ *  - Dia COM pelo menos 1 registro (positivo OU negativo) → só o que foi
+ *    de fato marcado entra na conta:
+ *      positivo marcado → +1 (favor)
+ *      negativo marcado → -1 (contra)
+ *      slots não marcados NÃO são punidos.
  *
- *  score ∈ [-1, 1]. Ângulo da balança = score * 30°.
+ *  score ∈ [-1, 1].
  */
 export default function BalancaAlinhamento({ uid, habitos }: { uid: string; habitos: Habito[] }) {
   const hoje = todayISO();
@@ -37,35 +38,51 @@ export default function BalancaAlinhamento({ uid, habitos }: { uid: string; habi
 
   const positivos = habitos.filter(h => h.tipo === "positivo" && h.ativo);
   const negativos = habitos.filter(h => h.tipo === "negativo" && h.ativo);
+  const posIds = new Set(positivos.map(h => h.id));
+  const negIds = new Set(negativos.map(h => h.id));
 
   const dias: string[] = Array.from({ length: 7 }, (_, i) => shiftISO(hoje, -i));
   let favor = 0;
   let contra = 0;
+  let diasOmissos = 0;
+  let diasHeroicos = 0;
 
-  const logSet = new Set((logs ?? []).map(l => `${l.data}:${l.habito_id}`));
+  // agrupa logs por dia
+  const porDia = new Map<string, Set<string>>();
+  for (const l of logs ?? []) {
+    if (!porDia.has(l.data)) porDia.set(l.data, new Set());
+    porDia.get(l.data)!.add(l.habito_id);
+  }
 
   for (const d of dias) {
-    for (const h of positivos) {
-      if (logSet.has(`${d}:${h.id}`)) favor++;
-      else contra++;
+    const marcados = porDia.get(d);
+    if (!marcados || marcados.size === 0) {
+      // Dia sem registro = 100% negativo (dor da inação)
+      contra += positivos.length + negativos.length;
+      diasOmissos++;
+      continue;
     }
-    for (const h of negativos) {
-      if (logSet.has(`${d}:${h.id}`)) contra++;
-      else favor++;
+    let fDia = 0;
+    let cDia = 0;
+    for (const id of marcados) {
+      if (posIds.has(id)) fDia++;
+      else if (negIds.has(id)) cDia++;
     }
+    favor += fDia;
+    contra += cDia;
+    if (fDia > 0 && cDia === 0) diasHeroicos++;
   }
 
   const total = favor + contra;
   const score = total === 0 ? 0 : (favor - contra) / total;
   const pct = Math.round(((score + 1) / 2) * 100); // 0..100
-  const angle = score * 28; // graus
 
-  let status: { label: string; color: string; glow: string };
-  if (score >= 0.5) status = { label: "Indo em direção ao seu sonho", color: "text-emerald-300", glow: "drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]" };
-  else if (score >= 0.15) status = { label: "Se aproximando do que quer ser", color: "text-primary", glow: "drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]" };
-  else if (score > -0.15) status = { label: "Parado — nem avança, nem recua", color: "text-yellow-300", glow: "drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" };
-  else if (score > -0.5) status = { label: "Se afastando do seu sonho", color: "text-orange-300", glow: "drop-shadow-[0_0_8px_rgba(251,146,60,0.6)]" };
-  else status = { label: "Traindo você mesmo", color: "text-destructive", glow: "drop-shadow-[0_0_10px_rgba(239,68,68,0.7)]" };
+  let status: { label: string; sub: string; color: string; glow: string };
+  if (score >= 0.5)       status = { label: "Você está virando quem sonhou ser", sub: "prazer do progresso — não pare agora",          color: "text-emerald-300", glow: "drop-shadow-[0_0_10px_rgba(52,211,153,0.75)]" };
+  else if (score >= 0.15) status = { label: "Cada registro te aproxima do sonho", sub: "sente o peso caindo pro seu lado",              color: "text-primary",     glow: "drop-shadow-[0_0_10px_hsl(var(--primary)/0.7)]" };
+  else if (score > -0.15) status = { label: "Você está travado — nem avança, nem cai", sub: "silêncio também é uma escolha",              color: "text-yellow-300",  glow: "drop-shadow-[0_0_10px_rgba(250,204,21,0.65)]" };
+  else if (score > -0.5)  status = { label: "Cada dia sem registro é uma traição pequena", sub: "isso dói — e é pra doer mesmo",              color: "text-orange-300",  glow: "drop-shadow-[0_0_10px_rgba(251,146,60,0.7)]" };
+  else                    status = { label: "Você está virando quem jurou não ser",  sub: "a inação está te devorando — reaja hoje",   color: "text-destructive", glow: "drop-shadow-[0_0_14px_rgba(239,68,68,0.8)]" };
 
   const sem = positivos.length === 0 && negativos.length === 0;
 
@@ -76,8 +93,18 @@ export default function BalancaAlinhamento({ uid, habitos }: { uid: string; habi
         <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
           Rumo do sonho · 7d
         </span>
-        <span className="text-[10px] sm:text-xs font-display tabular-nums text-foreground/90">
-          {sem ? "—" : `${pct}%`}
+        <span className="flex items-center gap-2 text-[10px] sm:text-xs font-display tabular-nums text-foreground/90">
+          {!sem && diasHeroicos > 0 && (
+            <span className="flex items-center gap-0.5 text-emerald-300/90" title="dias heróicos (só positivos)">
+              <Sparkles className="w-2.5 h-2.5" />{diasHeroicos}
+            </span>
+          )}
+          {!sem && diasOmissos > 0 && (
+            <span className="flex items-center gap-0.5 text-destructive/90" title="dias sem nenhum registro">
+              <Skull className="w-2.5 h-2.5" />{diasOmissos}
+            </span>
+          )}
+          <span>{sem ? "—" : `${pct}%`}</span>
         </span>
       </div>
 
@@ -131,7 +158,10 @@ export default function BalancaAlinhamento({ uid, habitos }: { uid: string; habi
       {/* Legendas das pontas */}
       <div className="mt-1.5 flex items-center justify-between text-[9px] sm:text-[10px]">
         <span className="flex items-center gap-1 text-destructive/90">
-          <TrendingDown className="w-2.5 h-2.5" /> traindo você
+          <Skull className="w-2.5 h-2.5" /> traindo você
+        </span>
+        <span className="flex items-center gap-1 text-yellow-300/80">
+          <Flame className="w-2.5 h-2.5" /> reagir
         </span>
         <span className="flex items-center gap-1 text-emerald-300/90">
           rumo ao sonho <Target className="w-2.5 h-2.5" />
@@ -139,8 +169,13 @@ export default function BalancaAlinhamento({ uid, habitos }: { uid: string; habi
       </div>
 
       {/* Status */}
-      <div className={`mt-1.5 text-center text-[11px] sm:text-sm font-display tracking-wider leading-tight ${status.color}`}>
-        {sem ? "sem hábitos ativos" : status.label}
+      <div className={`mt-1.5 text-center font-display tracking-wider leading-tight ${status.color}`}>
+        <div className="text-[11px] sm:text-sm">{sem ? "sem hábitos ativos" : status.label}</div>
+        {!sem && (
+          <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">
+            {status.sub}
+          </div>
+        )}
       </div>
     </div>
   );
