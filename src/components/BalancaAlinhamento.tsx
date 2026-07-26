@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { shiftISO, todayISO } from "@/lib/utils";
 import type { Habito } from "@/lib/api";
-import { Scale } from "lucide-react";
+import { Compass, Heart, Skull } from "lucide-react";
 
 /**
  * Balança do Alinhamento: mede, nos últimos 7 dias, se o herói está indo
@@ -73,51 +73,48 @@ export default function BalancaAlinhamento({ uid, habitos }: { uid: string; habi
     <div className="rounded-lg border border-primary/20 bg-background/40 backdrop-blur-sm px-3 py-2.5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
-          <Scale className="w-3.5 h-3.5 text-primary" />
-          <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Balança · 7d</span>
+          <Compass className="w-3.5 h-3.5 text-primary" />
+          <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Alinhamento · 7d</span>
         </div>
         <span className={`text-[10px] sm:text-xs font-display tracking-wider ${status.color}`}>
           {sem ? "sem hábitos" : status.label}
         </span>
       </div>
 
-      <div className="mt-1.5 flex items-center gap-3">
-        {/* Balança SVG */}
-        <svg viewBox="0 0 120 60" className={`w-24 h-12 shrink-0 ${status.glow}`}>
-          {/* base */}
-          <line x1="60" y1="52" x2="60" y2="18" stroke="hsl(var(--primary))" strokeWidth="1.5" />
-          <circle cx="60" cy="15" r="2.5" fill="hsl(var(--primary))" />
-          <rect x="52" y="52" width="16" height="3" rx="1" fill="hsl(var(--primary))" opacity="0.7" />
-          {/* braço */}
-          <g style={{ transformOrigin: "60px 15px", transform: `rotate(${angle}deg)`, transition: "transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
-            <line x1="15" y1="15" x2="105" y2="15" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" />
-            {/* prato favor (esquerda) */}
-            <line x1="20" y1="15" x2="20" y2="26" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-            <path d="M 8 26 Q 20 34 32 26 Z" fill="rgba(52,211,153,0.25)" stroke="rgb(52,211,153)" strokeWidth="1.2" />
-            {/* prato contra (direita) */}
-            <line x1="100" y1="15" x2="100" y2="26" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.6" />
-            <path d="M 88 26 Q 100 34 112 26 Z" fill="rgba(239,68,68,0.25)" stroke="rgb(239,68,68)" strokeWidth="1.2" />
-          </g>
-        </svg>
+      <div className="mt-2 space-y-1.5">
+        {/* Barra bipolar herói ↔ sombra */}
+        <div className="relative h-3 rounded-full bg-secondary/50 overflow-hidden border border-primary/10">
+          {/* marca central */}
+          <div className="absolute inset-y-0 left-1/2 w-px bg-foreground/40 z-10" />
+          {/* preenchimento */}
+          <div
+            className={`absolute inset-y-0 transition-all duration-700 ease-out ${status.glow}`}
+            style={{
+              width: `${Math.max(2, Math.abs(pct - 50))}%`,
+              left: score >= 0 ? "50%" : `${pct}%`,
+              background: score >= 0
+                ? "linear-gradient(90deg, hsl(var(--primary)), rgb(52,211,153))"
+                : "linear-gradient(90deg, rgb(239,68,68), rgb(251,146,60))",
+              boxShadow: score >= 0
+                ? "0 0 10px rgba(52,211,153,0.5)"
+                : "0 0 10px rgba(239,68,68,0.5)",
+            }}
+          />
+          {/* indicador */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-foreground border-2 border-background shadow-lg transition-all duration-700 ease-out z-20"
+            style={{ left: `${pct}%` }}
+          />
+        </div>
 
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="h-1.5 rounded-full bg-secondary/60 overflow-hidden relative">
-            <div className="absolute inset-y-0 left-1/2 w-px bg-foreground/30" />
-            <div
-              className="h-full transition-all duration-700"
-              style={{
-                width: `${Math.abs(pct - 50)}%`,
-                marginLeft: score >= 0 ? "50%" : `${pct}%`,
-                background: score >= 0
-                  ? "linear-gradient(90deg, hsl(var(--primary)), rgb(52,211,153))"
-                  : "linear-gradient(90deg, rgb(239,68,68), rgb(251,146,60))",
-              }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-muted-foreground tabular-nums">
-            <span className="text-emerald-300/80">a favor {favor}</span>
-            <span className="text-destructive/80">contra {contra}</span>
-          </div>
+        <div className="flex items-center justify-between text-[9px] sm:text-[10px] tabular-nums">
+          <span className="flex items-center gap-1 text-emerald-300/90">
+            <Heart className="w-2.5 h-2.5" /> herói · {favor}
+          </span>
+          <span className="text-muted-foreground">{sem ? "—" : `${pct}%`}</span>
+          <span className="flex items-center gap-1 text-destructive/90">
+            {contra} · sombra <Skull className="w-2.5 h-2.5" />
+          </span>
         </div>
       </div>
     </div>
