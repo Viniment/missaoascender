@@ -21,6 +21,7 @@ import FissuraPage from "@/pages/Fissura";
 import Laboratorio from "@/pages/Laboratorio";
 import Predicao from "@/pages/Predicao";
 import Mente from "@/pages/Mente";
+import Trataka from "@/pages/Trataka";
 
 const qc = new QueryClient();
 
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/laboratorio" element={<Protected><Laboratorio /></Protected>} />
             <Route path="/predicao" element={<Protected><Predicao /></Protected>} />
             <Route path="/mente" element={<Protected><Mente /></Protected>} />
+            <Route path="/trataka" element={<Protected><Trataka /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
