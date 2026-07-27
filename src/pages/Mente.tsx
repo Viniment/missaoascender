@@ -1,6 +1,6 @@
 import Shell from "@/components/Shell";
 import { Link } from "react-router-dom";
-import { Brain, Waves, FlaskConical, Radar, ChevronRight } from "lucide-react";
+import { Brain, Waves, FlaskConical, Radar, ChevronRight, Eye } from "lucide-react";
 
 export default function Mente() {
   return (
@@ -72,6 +72,21 @@ export default function Mente() {
             <p className="text-[11px] text-muted-foreground">A IA antecipa sua próxima fissura e monta a blindagem.</p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-300" />
+        </Link>
+
+        <Link
+          to="/trataka"
+          className="rpg-panel p-3.5 flex items-center gap-3 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.15)] transition group"
+        >
+          <div className="w-10 h-10 rounded-md grid place-items-center bg-white/10 border border-white/30 text-white group-hover:scale-110 transition">
+            <Eye className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-white/70">Foco visual</p>
+            <h3 className="font-display text-sm tracking-widest">Trataka</h3>
+            <p className="text-[11px] text-muted-foreground">Um ponto. Silêncio absoluto. Presença profunda.</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white" />
         </Link>
       </div>
     </Shell>
