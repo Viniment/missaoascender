@@ -423,6 +423,39 @@ export type Database = {
         }
         Relationships: []
       }
+      trataka_sessoes: {
+        Row: {
+          concluida: boolean
+          criado_em: string
+          duracao_alvo_seg: number
+          duracao_seg: number
+          id: string
+          modo: string
+          som_ambiente: string | null
+          user_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          criado_em?: string
+          duracao_alvo_seg?: number
+          duracao_seg?: number
+          id?: string
+          modo?: string
+          som_ambiente?: string | null
+          user_id: string
+        }
+        Update: {
+          concluida?: boolean
+          criado_em?: string
+          duracao_alvo_seg?: number
+          duracao_seg?: number
+          id?: string
+          modo?: string
+          som_ambiente?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       urge_surfs: {
         Row: {
           cedeu: boolean | null
