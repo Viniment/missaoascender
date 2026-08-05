@@ -856,3 +856,29 @@ div[style*="Edit with Lovable"],
 @media (prefers-reduced-motion: reduce) {
   .app-bg-layer::before, .app-bg-layer::after, .app-bg-depth { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ---------- Módulo Estudos ---------- */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.acao-nota {
+  @apply inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-[11px] text-muted-foreground transition hover:border-primary hover:text-primary;
+}
+
+.notion-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: hsl(var(--muted-foreground));
+}
+.notion-editor .ProseMirror ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.notion-editor .ProseMirror ul[data-type="taskList"] li { display: flex; gap: .5rem; align-items: flex-start; }
+.notion-editor .ProseMirror ul[data-type="taskList"] li > label { margin-top: .25rem; }
+.notion-editor .ProseMirror table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+.notion-editor .ProseMirror th,
+.notion-editor .ProseMirror td { border: 1px solid hsl(var(--border)); padding: .5rem; position: relative; }
+.notion-editor .ProseMirror th { background: hsl(var(--muted) / .4); font-weight: 600; }
+.notion-editor .ProseMirror pre { background: hsl(var(--muted) / .5); border-radius: .5rem; padding: .75rem 1rem; }
+.notion-editor .ProseMirror mark { border-radius: .2rem; padding: 0 .15rem; color: inherit; }
+.notion-editor .ProseMirror:focus { outline: none; }
