@@ -97,6 +97,107 @@ export type Database = {
         }
         Relationships: []
       }
+      estudo_categorias: {
+        Row: {
+          banner_pos: number
+          banner_preset: string | null
+          banner_url: string | null
+          banner_zoom: number
+          criado_em: string
+          descricao: string | null
+          emoji: string
+          id: string
+          nome: string
+          ordem: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banner_pos?: number
+          banner_preset?: string | null
+          banner_url?: string | null
+          banner_zoom?: number
+          criado_em?: string
+          descricao?: string | null
+          emoji?: string
+          id?: string
+          nome: string
+          ordem?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banner_pos?: number
+          banner_preset?: string | null
+          banner_url?: string | null
+          banner_zoom?: number
+          criado_em?: string
+          descricao?: string | null
+          emoji?: string
+          id?: string
+          nome?: string
+          ordem?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      estudo_notas: {
+        Row: {
+          categoria_id: string | null
+          conteudo: Json | null
+          conteudo_texto: string
+          criado_em: string
+          excluida_em: string | null
+          favorita: boolean
+          fixada: boolean
+          id: string
+          na_lixeira: boolean
+          tags: string[]
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria_id?: string | null
+          conteudo?: Json | null
+          conteudo_texto?: string
+          criado_em?: string
+          excluida_em?: string | null
+          favorita?: boolean
+          fixada?: boolean
+          id?: string
+          na_lixeira?: boolean
+          tags?: string[]
+          titulo?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categoria_id?: string | null
+          conteudo?: Json | null
+          conteudo_texto?: string
+          criado_em?: string
+          excluida_em?: string | null
+          favorita?: boolean
+          fixada?: boolean
+          id?: string
+          na_lixeira?: boolean
+          tags?: string[]
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estudo_notas_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "estudo_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fissuras: {
         Row: {
           contexto: string | null
