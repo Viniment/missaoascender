@@ -64,7 +64,7 @@ export default function App() {
             <Route path="/trataka" element={<Protected><Trataka /></Protected>} />
             <Route path="/estudos" element={<Protected><Estudos /></Protected>} />
             <Route path="/estudos/:id" element={<Protected><EstudoCategoria /></Protected>} />
-            <Route path="/editor-test" element={<NoteEditorMinimal />} />
+            
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
