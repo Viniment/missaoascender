@@ -282,18 +282,12 @@ export default function NoteEditor({
           });
 
           if (!event.shiftKey) {
-            // Se estiver em um bloco que NÃO deve quebrar com split nativo, podemos tratar aqui.
-            // Mas para o parágrafo padrão, vamos garantir que o comando execute.
-            const { tr } = state;
-            try {
-              // Simular o comportamento do Enter padrão (splitBlock)
-              const newTr = tr.split($from.pos);
-              view.dispatch(newTr);
-              event.preventDefault();
-              return true;
-            } catch (e) {
-              console.error("DEBUG_ENTER: Falha ao aplicar split manual", e);
-            }
+            // Interceptamos e aplicamos o split manual para forçar a criação do novo bloco
+            // Isso ignora qualquer interceptação externa ou erro de propagação do Tiptap
+            view.dispatch(state.tr.split($from.pos));
+            event.preventDefault();
+            event.stopPropagation(); // Garantir que não chegue em formulários pais
+            return true;
           }
         }
         
