@@ -273,27 +273,27 @@ export default function NoteEditor({
         const { selection } = state;
         const { $from, empty } = selection;
 
-        console.log("DEBUG_ENTER", {
+        // DEPURAÇÃO AGRESSIVA
+        console.log("DEBUG_ENTER_EVENT", {
           key: event.key,
+          code: event.code,
           shift: event.shiftKey,
           target: event.target,
-          focused: view.hasFocus(),
-          editable: view.editable,
-          nodeType: $from.parent.type.name,
-          selectionEmpty: empty,
-          pos: selection.from
+          type: event.type,
+          isComposing: event.isComposing,
+          defaultPrevented: event.defaultPrevented
         });
 
-        // Tentar forçar a quebra se o Tiptap estiver sendo bloqueado por algum pai
-        if (event.key === 'Enter' && !event.shiftKey) {
-          // Se for um item de lista, deixamos o Tiptap tentar primeiro
-          if ($from.parent.type.name === 'taskItem' || $from.parent.type.name === 'listItem') {
-            return false;
-          }
-          
-          // Se chegamos aqui e é um parágrafo normal, vamos ver se o preventDefault já foi chamado
-          if (event.defaultPrevented) {
-             console.warn("DEBUG_ENTER: Evento já veio com preventDefault!");
+        if (event.key === 'Enter') {
+          // Tentar forçar a execução do comando splitBlock se o Enter estiver morrendo
+          if (!event.shiftKey) {
+            console.log("DEBUG_ENTER: Executando splitBlock manualmente");
+            const success = view.dispatch(state.tr.split($from.pos));
+            if (success) {
+               console.log("DEBUG_ENTER: splitBlock manual funcionou");
+               event.preventDefault();
+               return true;
+            }
           }
         }
         
