@@ -331,16 +331,10 @@ export default function NoteEditor({
       },
     },
     onUpdate: ({ editor: ed }) => {
-      // Força o editor a emitir as mudanças corretamente
       emitir(ed as Editor);
     },
     onSelectionUpdate: () => setTick((t) => t + 1),
-    onTransaction: ({ transaction }) => {
-      // Se a transação não for meta, forçamos o re-render para garantir UI atualizada
-      setTick((t) => t + 1);
-    },
-    // Removendo interceptação de teclado para deixar o Tiptap lidar com tudo nativamente
-    // e garantir compatibilidade total com extensões (listas, emojis, etc)
+    onTransaction: () => setTick((t) => t + 1),
     injectCSS: false,
   });
 
