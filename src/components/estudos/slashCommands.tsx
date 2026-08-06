@@ -52,8 +52,11 @@ export const getSlashCommands = (editor: any, userId: string, imgInput: any) => 
             popup[0].hide(); 
             return true; 
           }
-          // Se o menu estiver aberto, delegar para ele. 
-          // O SlashList retornará true se consumir a tecla (como Enter ou Setas).
+          
+          // Se o menu NÃO estiver visível por algum motivo, não interceptar
+          if (!popup[0].state.isVisible) return false;
+
+          // Delegar para o SlashList. Se retornar true, o evento é consumido (Enter, Setas).
           return component.ref?.onKeyDown(props);
         },
         onExit: () => { 
