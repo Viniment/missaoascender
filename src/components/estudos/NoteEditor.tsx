@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 // @ts-ignore
-import { BubbleMenu, FloatingMenu } from "@tiptap/react";
+import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -319,7 +319,7 @@ export default function NoteEditor({
       {/* Notion-style Bubble Menu */}
       <BubbleMenu 
         editor={editor} 
-        tippyOptions={{ duration: 100 }}
+        {...({ tippyOptions: { duration: 100 } } as any)}
         className="flex items-center gap-0.5 rounded-xl border border-border/50 bg-background/90 backdrop-blur-xl p-1 shadow-2xl ring-1 ring-white/5 overflow-hidden"
       >
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-3.5 h-3.5" /></Btn>
@@ -336,7 +336,7 @@ export default function NoteEditor({
       {/* Notion-style Floating Menu */}
       <FloatingMenu 
         editor={editor} 
-        tippyOptions={{ duration: 100, placement: 'left-start' }}
+        {...({ tippyOptions: { duration: 100, placement: 'left-start' } } as any)}
         className="flex flex-col gap-1 rounded-xl border border-border/50 bg-background/95 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-white/10 min-w-[200px]"
       >
         <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Conteúdo</div>
