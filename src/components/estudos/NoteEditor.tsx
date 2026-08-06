@@ -274,6 +274,9 @@ export default function NoteEditor({
   ], [userId]);
 
   const editor = useEditor({
+    immediatelyRender: false,
+    shouldRerenderOnTransaction: false,
+
     extensions,
     content: conteudo || "",
     editorProps: {
@@ -289,6 +292,7 @@ export default function NoteEditor({
   // Re-configure suggestion with the actual editor instance once available
   useEffect(() => {
     if (editor && userId) {
+      console.log("[Editor Debug] Updating Slash Commands...");
       editor.setOptions({
         extensions: editor.options.extensions.map(ext => {
           if (ext.name === 'slashCommand') {
@@ -298,7 +302,7 @@ export default function NoteEditor({
         })
       });
     }
-  }, [editor, userId]);
+  }, [userId]); // Removido 'editor' da dependência para evitar loops, já que editor é estável via useEditor
 
   const lastContent = useRef("");
   useEffect(() => {

@@ -64,7 +64,8 @@ export default function EstudoCategoria() {
 
   // ----- rascunho local + autosave -----
   const [titulo, setTitulo] = useState("");
-  const [conteudo, setConteudo] = useState<any>(null);
+  // const [conteudo, setConteudo] = useState<any>(null); // REMOVIDO: Causa re-render no editor
+
   const htmlRef = useRef("");
   const textoRef = useRef("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,7 +73,7 @@ export default function EstudoCategoria() {
   useEffect(() => {
     if (!notaAberta) return;
     setTitulo(notaAberta.titulo);
-    setConteudo(notaAberta.conteudo);
+    // setConteudo(notaAberta.conteudo); // REMOVIDO: Sincronização via key={notaAberta.id}
     setSalvando("idle");
     setHistorico([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
