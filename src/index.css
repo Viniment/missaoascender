@@ -4,6 +4,84 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .notion-editor-wrapper .tiptap {
+    @apply outline-none;
+  }
+
+  .notion-editor-wrapper .tiptap > * {
+    @apply my-1 relative;
+  }
+
+  /* Hover effect for blocks */
+  .notion-editor-wrapper .tiptap > *:hover::before {
+    content: '⋮⋮';
+    @apply absolute -left-8 top-1 flex h-6 w-6 cursor-grab items-center justify-center rounded text-muted-foreground/40 hover:bg-primary/10 hover:text-primary transition-all;
+  }
+
+  .notion-editor-wrapper .tiptap h1 { @apply text-3xl font-bold mt-8 mb-4; }
+  .notion-editor-wrapper .tiptap h2 { @apply text-2xl font-bold mt-6 mb-3; }
+  .notion-editor-wrapper .tiptap h3 { @apply text-xl font-bold mt-4 mb-2; }
+  .notion-editor-wrapper .tiptap p { @apply my-2 leading-relaxed; }
+
+  .notion-editor-wrapper .tiptap ul { @apply list-disc pl-6 my-2; }
+  .notion-editor-wrapper .tiptap ol { @apply list-decimal pl-6 my-2; }
+
+  .notion-editor-wrapper .tiptap .has-focus {
+    @apply ring-2 ring-primary/20 rounded-lg bg-primary/5 transition-all;
+  }
+
+  .notion-editor-wrapper .tiptap table {
+    @apply border-collapse table-fixed w-full my-4 overflow-hidden rounded-xl border border-border/50 bg-card/20;
+  }
+
+  .notion-editor-wrapper .tiptap table td,
+  .notion-editor-wrapper .tiptap table th {
+    @apply border border-border/50 p-2 relative min-w-[100px] text-sm;
+  }
+
+  .notion-editor-wrapper .tiptap table th {
+    @apply bg-primary/10 font-bold text-left;
+  }
+
+  .notion-editor-wrapper .tiptap .selectedCell:after {
+    @apply z-10 content-[''] absolute inset-0 bg-primary/20 pointer-events-none;
+  }
+
+  .notion-editor-wrapper .tiptap blockquote {
+    @apply pl-4 border-l-4 border-primary/50 italic my-4 text-muted-foreground bg-primary/5 py-2 rounded-r-lg;
+  }
+
+  .notion-editor-wrapper .tiptap hr {
+    @apply border-t border-border/50 my-8;
+  }
+
+  .notion-editor-wrapper .tiptap .task-list {
+    @apply list-none pl-0 my-4;
+  }
+
+  .notion-editor-wrapper .tiptap .task-list li {
+    @apply flex items-start gap-3 mb-2;
+  }
+
+  .notion-editor-wrapper .tiptap .task-list li > label {
+    @apply flex-shrink-0 mt-1 select-none cursor-pointer;
+  }
+
+  .notion-editor-wrapper .tiptap .task-list li > div {
+    @apply flex-1 min-w-0;
+  }
+
+  .notion-editor-wrapper .tiptap pre {
+    @apply bg-slate-950/80 rounded-xl p-4 my-4 font-mono text-sm border border-border/50 overflow-x-auto;
+  }
+
+  .notion-editor-wrapper .tiptap code {
+    @apply bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[0.9em] font-mono;
+  }
+}
+
+
 .pixel-avatar {
   image-rendering: pixelated;
 }
