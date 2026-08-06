@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -32,7 +32,6 @@ export default function EstudoCategoria() {
   const [editarCat, setEditarCat] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const [salvando, setSalvando] = useState<"idle" | "salvando" | "salvo">("idle");
-  console.log("[Editor Debug] EstudoCategoria Rendering...");
   const [historico, setHistorico] = useState<{ em: string; titulo: string }[]>([]);
   const [verHistorico, setVerHistorico] = useState(false);
 
@@ -64,8 +63,7 @@ export default function EstudoCategoria() {
 
   // ----- rascunho local + autosave -----
   const [titulo, setTitulo] = useState("");
-  // const [conteudo, setConteudo] = useState<any>(null); // REMOVIDO: Causa re-render no editor
-
+  const [conteudo, setConteudo] = useState<any>(null);
   const htmlRef = useRef("");
   const textoRef = useRef("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -73,19 +71,19 @@ export default function EstudoCategoria() {
   useEffect(() => {
     if (!notaAberta) return;
     setTitulo(notaAberta.titulo);
-    // setConteudo(notaAberta.conteudo); // REMOVIDO: Sincronização via key={notaAberta.id}
+    setConteudo(notaAberta.conteudo);
     setSalvando("idle");
     setHistorico([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notaAberta?.id]);
 
-  const agendarSalvar = useCallback((patch: Partial<Nota>) => {
-    if (!notaId) return;
+  const agendarSalvar = (patch: Partial<Nota>) => {
+    if (!notaAberta) return;
     setSalvando("salvando");
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       try {
-        await atualizarNota(notaId, patch);
+        await atualizarNota(notaAberta.id, patch);
         setSalvando("salvo");
         setHistorico((h) => [{ em: new Date().toISOString(), titulo: patch.titulo ?? titulo }, ...h].slice(0, 20));
         invalidar();
@@ -94,7 +92,7 @@ export default function EstudoCategoria() {
         setSalvando("idle");
       }
     }, 800);
-  }, [notaId, titulo]);
+  };
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
@@ -264,9 +262,8 @@ export default function EstudoCategoria() {
             )}
 
             <NoteEditor
-              key={notaAberta.id}
               userId={user.id}
-              conteudo={notaAberta.conteudo}
+              conteudo={conteudo}
               onChange={({ json, html, texto }) => {
                 htmlRef.current = html;
                 textoRef.current = texto;
