@@ -180,35 +180,41 @@ export default function EstudoCategoria() {
 
         {/* Editor aberto */}
         {notaAberta ? (
-          <section className="rounded-2xl border border-border bg-card/50 p-4 sm:p-6">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <button onClick={() => setParams({})} className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
-                <ArrowLeft className="w-3.5 h-3.5" /> Voltar à lista
+          <section className="rounded-3xl border border-border/40 bg-card/30 p-6 sm:p-10 shadow-2xl backdrop-blur-sm relative overflow-visible">
+            <div className="flex items-center justify-between gap-2 mb-8 border-b border-border/10 pb-6">
+              <button onClick={() => setParams({})} className="px-4 py-2 rounded-xl bg-muted/30 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex items-center gap-2 transition-all">
+                <ArrowLeft className="w-4 h-4" /> Voltar à lista
               </button>
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                {salvando === "salvando" && <><Loader2 className="w-3.5 h-3.5 animate-spin" /> salvando…</>}
-                {salvando === "salvo" && <><Check className="w-3.5 h-3.5 text-green-400" /> salvo</>}
-                {salvando === "idle" && <>editado {formatarData(notaAberta.updated_at)}</>}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-background/40 px-3 py-1.5 rounded-full border border-border/20">
+                  {salvando === "salvando" && <><Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> salvando…</>}
+                  {salvando === "salvo" && <><Check className="w-3.5 h-3.5 text-green-400" /> salvo</>}
+                  {salvando === "idle" && <>editado {formatarData(notaAberta.updated_at)}</>}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                value={titulo}
-                onChange={(e) => { setTitulo(e.target.value); agendarSalvar({ titulo: e.target.value || "Sem título" }); }}
-                placeholder="Sem título"
-                className="flex-1 bg-transparent font-display text-xl tracking-wide outline-none placeholder:text-muted-foreground"
-              />
-              <button onClick={async () => { await atualizarNota(notaAberta.id, { favorita: !notaAberta.favorita }); invalidar(); }}
-                aria-label="Favoritar" className={cn("p-2 rounded-lg hover:bg-muted", notaAberta.favorita ? "text-yellow-400" : "text-muted-foreground")}>
-                <Star className="w-4 h-4" fill={notaAberta.favorita ? "currentColor" : "none"} />
-              </button>
-              <button onClick={async () => { await atualizarNota(notaAberta.id, { fixada: !notaAberta.fixada }); invalidar(); }}
-                aria-label="Fixar" className={cn("p-2 rounded-lg hover:bg-muted", notaAberta.fixada ? "text-primary" : "text-muted-foreground")}>
-                <Pin className="w-4 h-4" fill={notaAberta.fixada ? "currentColor" : "none"} />
-              </button>
-              <button onClick={() => setVerHistorico((v) => !v)} aria-label="Histórico de edições"
-                className="p-2 rounded-lg text-muted-foreground hover:bg-muted"><History className="w-4 h-4" /></button>
+            <div className="flex flex-col gap-6 mb-8 group/header">
+              <div className="flex items-center gap-4">
+                <input
+                  value={titulo}
+                  onChange={(e) => { setTitulo(e.target.value); agendarSalvar({ titulo: e.target.value || "Sem título" }); }}
+                  placeholder="Título da anotação"
+                  className="flex-1 bg-transparent font-display text-4xl sm:text-5xl tracking-tight outline-none placeholder:text-muted-foreground/30 font-black text-foreground transition-all focus:placeholder:opacity-0"
+                />
+                <div className="flex items-center gap-2 opacity-0 group-hover/header:opacity-100 transition-opacity">
+                  <button onClick={async () => { await atualizarNota(notaAberta.id, { favorita: !notaAberta.favorita }); invalidar(); }}
+                    aria-label="Favoritar" className={cn("w-10 h-10 grid place-items-center rounded-xl bg-background/40 border border-border/30 hover:bg-muted transition-all", notaAberta.favorita ? "text-yellow-400 border-yellow-400/30" : "text-muted-foreground")}>
+                    <Star className="w-5 h-5" fill={notaAberta.favorita ? "currentColor" : "none"} />
+                  </button>
+                  <button onClick={async () => { await atualizarNota(notaAberta.id, { fixada: !notaAberta.fixada }); invalidar(); }}
+                    aria-label="Fixar" className={cn("w-10 h-10 grid place-items-center rounded-xl bg-background/40 border border-border/30 hover:bg-muted transition-all", notaAberta.fixada ? "text-primary border-primary/30" : "text-muted-foreground")}>
+                    <Pin className="w-5 h-5" fill={notaAberta.fixada ? "currentColor" : "none"} />
+                  </button>
+                  <button onClick={() => setVerHistorico((v) => !v)} aria-label="Histórico de edições"
+                    className="w-10 h-10 grid place-items-center rounded-xl bg-background/40 border border-border/30 text-muted-foreground hover:bg-muted transition-all"><History className="w-5 h-5" /></button>
+                </div>
+              </div>
             </div>
 
             {/* Tags */}
