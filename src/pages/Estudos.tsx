@@ -148,7 +148,7 @@ export default function Estudos() {
 
         {/* Resultados da busca em anotações */}
         {termo && (
-          <section className="rpg-panel p-4">
+          <section className="rpg-panel scanlines p-4">
             <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">
               {resultados.length} anotação(ões) encontradas
             </p>
@@ -171,7 +171,7 @@ export default function Estudos() {
 
         {/* Lixeira */}
         {verLixeira && (
-          <section className="rpg-panel p-4">
+          <section className="rpg-panel scanlines p-4">
             <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Lixeira</p>
             {lixeira.length === 0 && <p className="text-xs text-muted-foreground">Vazia.</p>}
             <div className="space-y-1.5">
@@ -259,7 +259,7 @@ export default function Estudos() {
 
         {/* Atalhos */}
         {notas.some((n) => n.favorita || n.fixada) && (
-          <section className="rpg-panel p-4">
+          <section className="rpg-panel scanlines p-4">
             <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">Favoritas e fixadas</p>
             <div className="flex flex-wrap gap-2">
               {notas.filter((n) => n.favorita || n.fixada).slice(0, 10).map((n) => (
