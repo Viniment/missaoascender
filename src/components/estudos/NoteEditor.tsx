@@ -269,9 +269,28 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        // Se o menu de Slash Commands estiver aberto, ele cuida do Enter.
-        // O SlashExtension usa o onKeyDown da sugestão que já injetamos.
-        // Não interceptamos nada aqui para garantir que o Tiptap receba o evento.
+        const { state } = view;
+        const { selection } = state;
+        const { $from } = selection;
+
+        if (event.key === 'Enter') {
+          console.log("DEBUG_ENTER_EVENT", {
+            key: event.key,
+            shift: event.shiftKey,
+            defaultPrevented: event.defaultPrevented,
+            nodeType: $from.parent.type.name
+          });
+
+          if (!event.shiftKey) {
+            // Interceptamos e aplicamos o split manual para forçar a criação do novo bloco
+            // Isso ignora qualquer interceptação externa ou erro de propagação do Tiptap
+            view.dispatch(state.tr.split($from.pos));
+            event.preventDefault();
+            event.stopPropagation(); // Garantir que não chegue em formulários pais
+            return true;
+          }
+        }
+        
         return false;
       },
       attributes: {
