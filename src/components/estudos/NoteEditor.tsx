@@ -271,28 +271,25 @@ export default function NoteEditor({
       handleKeyDown: (view, event) => {
         const { state } = view;
         const { selection } = state;
-        const { $from, empty } = selection;
-
-        // DEPURAÇÃO AGRESSIVA
-        console.log("DEBUG_ENTER_EVENT", {
-          key: event.key,
-          code: event.code,
-          shift: event.shiftKey,
-          target: event.target,
-          type: event.type,
-          isComposing: event.isComposing,
-          defaultPrevented: event.defaultPrevented
-        });
+        const { $from } = selection;
 
         if (event.key === 'Enter') {
-          // Tentar forçar a execução do comando splitBlock se o Enter estiver morrendo
+          console.log("DEBUG_ENTER_EVENT", {
+            key: event.key,
+            shift: event.shiftKey,
+            defaultPrevented: event.defaultPrevented
+          });
+
           if (!event.shiftKey) {
-            console.log("DEBUG_ENTER: Executando splitBlock manualmente");
-            const success = view.dispatch(state.tr.split($from.pos));
-            if (success) {
-               console.log("DEBUG_ENTER: splitBlock manual funcionou");
-               event.preventDefault();
-               return true;
+            // Tentar aplicar o split manual e retornar true para indicar que processamos o evento
+            try {
+              const tr = state.tr.split($from.pos);
+              view.dispatch(tr);
+              console.log("DEBUG_ENTER: split manual aplicado");
+              event.preventDefault();
+              return true;
+            } catch (e) {
+              console.error("DEBUG_ENTER: erro no split manual", e);
             }
           }
         }
