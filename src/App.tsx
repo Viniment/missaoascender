@@ -24,6 +24,7 @@ import Mente from "@/pages/Mente";
 import Trataka from "@/pages/Trataka";
 import Estudos from "@/pages/Estudos";
 import EstudoCategoria from "@/pages/EstudoCategoria";
+import NoteEditorMinimal from "@/components/estudos/NoteEditorMinimal";
 
 const qc = new QueryClient();
 
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/trataka" element={<Protected><Trataka /></Protected>} />
             <Route path="/estudos" element={<Protected><Estudos /></Protected>} />
             <Route path="/estudos/:id" element={<Protected><EstudoCategoria /></Protected>} />
+            <Route path="/editor-test" element={<NoteEditorMinimal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
