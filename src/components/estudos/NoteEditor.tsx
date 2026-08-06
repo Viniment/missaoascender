@@ -119,7 +119,7 @@ function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string
   };
 
   return (
-    <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }} shouldShow={({ state }) => {
+    <FloatingMenu editor={editor} updateDelay={100} shouldShow={({ state }) => {
       const { selection } = state;
       const { $from, empty } = selection;
       return empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
