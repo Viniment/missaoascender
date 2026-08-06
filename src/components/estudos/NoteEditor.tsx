@@ -328,7 +328,7 @@ export default function NoteEditor({
         <Btn title="Limpar" onClick={() => editor.chain().focus().unsetAllMarks().run()}><Eraser className="w-4 h-4" /></Btn>
       </div>
 
-      <div id="floating-menu" className="floating-menu-wrapper" style={{ visibility: 'hidden' }}>
+      <div id="floating-menu" className="floating-menu-wrapper" style={{ display: 'none' }}>
         <FloatingMenuContent editor={editor} />
       </div>
 
