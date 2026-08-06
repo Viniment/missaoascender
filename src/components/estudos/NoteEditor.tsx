@@ -308,7 +308,7 @@ export default function NoteEditor({
       Placeholder.configure({ 
         placeholder: ({ node }) => {
           if (node.type.name === 'heading') return `Título ${node.attrs.level}...`;
-          return "Escreva algo ou use '/' para comandos...";
+          return "mude o estilo do editor para editor wysiwyg... quero todas as funções funcionando..";
         } 
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
