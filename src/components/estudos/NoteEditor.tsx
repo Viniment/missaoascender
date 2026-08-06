@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorContent, useEditor, type Editor, BubbleMenu, FloatingMenu } from "@tiptap/react";
+import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 
@@ -246,10 +246,6 @@ export default function NoteEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ 
-        document: true,
-        paragraph: true,
-        text: true,
-        history: true,
         link: false, 
         underline: false,
         heading: { levels: [1, 2, 3] }
