@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-// @ts-ignore
-import { BubbleMenu, FloatingMenu } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/extension-bubble-menu";
+import { FloatingMenu } from "@tiptap/extension-floating-menu";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
