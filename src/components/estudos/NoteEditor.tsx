@@ -336,7 +336,7 @@ export default function NoteEditor({
       {/* Notion-style Floating Menu */}
       <FloatingMenu 
         editor={editor} 
-        tippyOptions={{ duration: 100, placement: 'left-start' }}
+        {...({ tippyOptions: { duration: 100, placement: 'left-start' } } as any)}
         className="flex flex-col gap-1 rounded-xl border border-border/50 bg-background/95 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-white/10 min-w-[200px]"
       >
         <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Conteúdo</div>
