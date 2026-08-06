@@ -243,6 +243,7 @@ export default function NoteEditor({
     extensions: [
       StarterKit.configure({ 
         heading: { levels: [1, 2, 3, 4] },
+        // O StarterKit já inclui BulletList, OrderedList e ListItem
         bulletList: { HTMLAttributes: { class: 'list-disc ml-6 space-y-1' } },
         orderedList: { HTMLAttributes: { class: 'list-decimal ml-6 space-y-1' } },
         codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm my-4' } }
@@ -257,7 +258,9 @@ export default function NoteEditor({
       }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
-      TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2 list-none p-0' } }),
+      TaskList.configure({ 
+        HTMLAttributes: { class: 'notion-task-list my-2 list-none p-0' } 
+      }),
       TaskItem.configure({ 
         nested: true, 
         HTMLAttributes: { class: 'flex items-start gap-2 my-1' },
@@ -272,18 +275,14 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        // Deixar o Tiptap lidar com Enter nativamente para listas e tarefas
-        if (event.key === 'Enter') {
-          return false;
-        }
+        // Log para depuração (pode ser removido após validação)
+        console.log("Editor KeyDown:", event.key, "Shift:", event.shiftKey, "Selection:", view.state.selection.$from.parent.type.name);
+        
+        // Se o menu de Slash Commands estiver aberto, não interferimos
+        // (Isso é tratado na extensão de sugestão, mas é bom garantir)
         
         // Tab e Shift+Tab para indentação
         if (event.key === 'Tab') {
-          const { state } = view;
-          const { selection } = state;
-          const { $from } = selection;
-          
-          // Verifica se estamos dentro de uma lista (bullet, ordered ou task)
           const isInsideList = editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList');
           
           if (isInsideList) {
