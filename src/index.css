@@ -5,7 +5,7 @@
 @layer components {
   .notion-editor-wrapper .tiptap,
   .notion-block-editor {
-    @apply outline-none min-h-[60vh] pb-60;
+    @apply outline-none min-h-[60vh] pb-60 bg-transparent;
   }
 
   /* Block-level styles */
@@ -99,7 +99,7 @@
 
   .notion-editor-wrapper .tiptap code,
   .notion-block-editor code {
-    @apply bg-primary/20 text-primary-foreground/90 px-2 py-0.5 rounded-lg text-[0.85em] font-mono font-bold shadow-sm;
+    @apply bg-primary/20 text-primary px-2 py-0.5 rounded-lg text-[0.85em] font-mono font-bold shadow-sm;
   }
 
   /* Placeholder logic */
