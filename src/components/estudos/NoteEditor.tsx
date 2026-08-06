@@ -285,7 +285,7 @@ export default function NoteEditor({
 
   // Re-configure suggestion with the actual editor instance once available
   useEffect(() => {
-    if (editor) {
+    if (editor && userId) {
       editor.setOptions({
         extensions: editor.options.extensions.map(ext => {
           if (ext.name === 'slashCommand') {
