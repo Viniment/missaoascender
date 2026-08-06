@@ -267,11 +267,11 @@ export default function EstudoCategoria() {
               key={notaAberta.id}
               userId={user.id}
               conteudo={notaAberta.conteudo}
-              onChange={useCallback(({ json, html, texto }) => {
+              onChange={({ json, html, texto }) => {
                 htmlRef.current = html;
                 textoRef.current = texto;
                 agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
-              }, [notaAberta.id, agendarSalvar])}
+              }}
             />
           </section>
         ) : (
