@@ -315,7 +315,7 @@ export default function NoteEditor({
       <Toolbar editor={editor} userId={userId} />
       
       {/* Menus via renderProps ou elementos DOM */}
-      <div id="bubble-menu" className="bubble-menu-wrapper" style={{ visibility: 'hidden' }}>
+      <div id="bubble-menu" className="bubble-menu-wrapper" style={{ display: 'none' }}>
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
         <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
         <Btn title="Sublinhado" active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></Btn>
