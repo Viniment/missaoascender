@@ -79,7 +79,7 @@ export default function EstudoCategoria() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notaAberta?.id]);
 
-  const agendarSalvar = (patch: Partial<Nota>) => {
+  const agendarSalvar = useCallback((patch: Partial<Nota>) => {
     if (!notaAberta) return;
     setSalvando("salvando");
     if (timer.current) clearTimeout(timer.current);
@@ -94,7 +94,7 @@ export default function EstudoCategoria() {
         setSalvando("idle");
       }
     }, 800);
-  };
+  }, [notaAberta?.id, titulo]);
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
