@@ -257,8 +257,11 @@ export default function NoteEditor({
       }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
-      TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2' } }),
-      TaskItem.configure({ nested: true, HTMLAttributes: { class: 'flex items-start gap-2 my-1' } }),
+      TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2 list-none p-0' } }),
+      TaskItem.configure({ 
+        nested: true, 
+        HTMLAttributes: { class: 'flex items-start gap-2 my-1' },
+      }),
       Image.configure({ HTMLAttributes: { class: "rounded-2xl max-w-full shadow-2xl my-6 mx-auto border border-white/10" } }),
       Table.configure({ resizable: true, HTMLAttributes: { class: 'notion-table my-4' } }),
       TableRow, TableCell, TableHeader,
@@ -269,28 +272,31 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        const { state } = view;
-        const { selection } = state;
-        const { $from } = selection;
-
+        // Deixar o Tiptap lidar com Enter nativamente para listas e tarefas
         if (event.key === 'Enter') {
-          console.log("DEBUG_ENTER_EVENT", {
-            key: event.key,
-            shift: event.shiftKey,
-            defaultPrevented: event.defaultPrevented,
-            nodeType: $from.parent.type.name
-          });
-
-          if (!event.shiftKey) {
-            // Interceptamos e aplicamos o split manual para forçar a criação do novo bloco
-            // Isso ignora qualquer interceptação externa ou erro de propagação do Tiptap
-            view.dispatch(state.tr.split($from.pos));
+          return false;
+        }
+        
+        // Tab e Shift+Tab para indentação
+        if (event.key === 'Tab') {
+          const { state } = view;
+          const { selection } = state;
+          const { $from } = selection;
+          
+          // Verifica se estamos dentro de uma lista (bullet, ordered ou task)
+          const isInsideList = editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList');
+          
+          if (isInsideList) {
+            if (event.shiftKey) {
+              editor.commands.liftListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
+            } else {
+              editor.commands.sinkListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
+            }
             event.preventDefault();
-            event.stopPropagation(); // Garantir que não chegue em formulários pais
             return true;
           }
         }
-        
+
         return false;
       },
       attributes: {
