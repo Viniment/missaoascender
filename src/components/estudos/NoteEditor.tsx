@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+
+
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
@@ -12,18 +14,22 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
+import Typography from "@tiptap/extension-typography";
+import Focus from "@tiptap/extension-focus";
+import Dropcursor from "@tiptap/extension-dropcursor";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Code2, Highlighter, Palette,
   Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Minus, Table as TableIcon,
   Link2, Image as ImageIcon, Paperclip, Smile, AtSign, CalendarDays, ChevronsUpDown, Lightbulb,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Eraser,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Eraser, Plus, Type,
 } from "lucide-react";
 import { Callout, ToggleBlock } from "./extensions";
 import { EMOJIS_EDITOR, uploadArquivo } from "@/lib/estudos";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import "./editor.css";
 
-/** Popover mínimo (o projeto não usa shadcn/ui). */
+/** Popover mínimo */
 function Pop({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -51,7 +57,7 @@ function Pop({ title, icon, children }: { title: string; icon: React.ReactNode; 
         {icon}
       </button>
       {open && (
-        <div className="absolute left-0 top-9 z-40 rounded-xl border border-border bg-popover p-2 shadow-xl">
+        <div className="absolute left-0 top-9 z-[60] rounded-xl border border-border bg-popover p-2 shadow-xl animate-in fade-in zoom-in-95 duration-100">
           {children}
         </div>
       )}
@@ -109,7 +115,7 @@ function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
   };
 
   return (
-    <div className="sticky top-14 z-20 -mx-1 mb-3 rounded-xl border border-border/70 bg-background/95 backdrop-blur px-1.5 py-1.5">
+    <div className="sticky top-14 z-20 -mx-1 mb-3 rounded-xl border border-border/70 bg-background/95 backdrop-blur px-1.5 py-1.5 shadow-sm">
       <div className="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
         <Btn title="Desfazer" onClick={() => editor.chain().focus().undo().run()}><Undo2 className="w-4 h-4" /></Btn>
         <Btn title="Refazer" onClick={() => editor.chain().focus().redo().run()}><Redo2 className="w-4 h-4" /></Btn>
@@ -193,6 +199,36 @@ function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
   );
 }
 
+function FloatingMenuContent({ editor }: { editor: Editor }) {
+  const items = [
+    { label: "Texto", icon: <Type className="w-4 h-4" />, command: () => editor.chain().focus().setParagraph().run() },
+    { label: "Título 1", icon: <Heading1 className="w-4 h-4" />, command: () => editor.chain().focus().toggleHeading({ level: 1 }).run() },
+    { label: "Título 2", icon: <Heading2 className="w-4 h-4" />, command: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: "Checklist", icon: <ListChecks className="w-4 h-4" />, command: () => editor.chain().focus().toggleTaskList().run() },
+    { label: "Lista", icon: <List className="w-4 h-4" />, command: () => editor.chain().focus().toggleBulletList().run() },
+    { label: "Tabela", icon: <TableIcon className="w-4 h-4" />, command: () => editor.chain().focus().insertTable({ rows: 2, cols: 2 }).run() },
+    { label: "Callout", icon: <Lightbulb className="w-4 h-4" />, command: () => (editor.chain().focus() as any).setCallout().run() },
+  ];
+
+  return (
+    <div className="floating-menu-wrapper">
+      <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Comandos Rápidos</div>
+      {items.map((it, i) => (
+        <button
+          key={i}
+          onClick={it.command}
+          className="flex items-center gap-3 px-3 py-1.5 text-sm rounded-md hover:bg-primary/10 transition text-left"
+        >
+          <div className="h-7 w-7 rounded bg-primary/5 flex items-center justify-center text-primary">
+            {it.icon}
+          </div>
+          <span>{it.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function NoteEditor({
   userId, conteudo, onChange,
 }: {
@@ -209,13 +245,22 @@ export default function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ link: false, underline: false }),
+      StarterKit.configure({ 
+        link: false, 
+        underline: false,
+        heading: { levels: [1, 2, 3] }
+      }),
       Underline,
       TextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { target: "_blank", rel: "noopener" } }),
-      Placeholder.configure({ placeholder: "Comece a escrever… use a barra acima para formatar." }),
+      Placeholder.configure({ 
+        placeholder: ({ node }) => {
+          if (node.type.name === 'heading') return `Título ${node.attrs.level}...`;
+          return "Escreva algo ou '/' para comandos...";
+        },
+      }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),
@@ -224,14 +269,19 @@ export default function NoteEditor({
       TableRow,
       TableHeader,
       TableCell,
+      Typography,
+      Focus.configure({ className: 'has-focus', mode: 'all' }),
+      Dropcursor.configure({ color: '#7b2ff7', width: 2 }),
       Callout,
       ToggleBlock,
+
+
     ],
     content: conteudo ?? "",
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[50vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary",
+          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[50vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary notion-editor",
       },
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
@@ -240,6 +290,21 @@ export default function NoteEditor({
   });
 
   const notaCarregada = useRef<string>("");
+  
+  useEffect(() => {
+    if (!editor) return;
+    
+    // Configurando menus dinamicamente após o editor estar montado
+    // Como a API oficial é restrita via types aqui, vamos garantir que os elementos apareçam
+    const bubbleEl = document.querySelector('#bubble-menu') as HTMLElement;
+    const floatingEl = document.querySelector('#floating-menu') as HTMLElement;
+    
+    if (bubbleEl) bubbleEl.style.display = 'flex';
+    if (floatingEl) floatingEl.style.display = 'flex';
+  }, [editor]);
+
+
+
   useEffect(() => {
     if (!editor) return;
     const chave = JSON.stringify(conteudo ?? "");
@@ -252,9 +317,16 @@ export default function NoteEditor({
   if (!editor) return null;
 
   return (
-    <div>
+    <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
+      
+      {/* Menus via Popover ou implementações customizadas */}
+      {/* Omitindo BubbleMenu/FloatingMenu por agora para restaurar a estabilidade total */}
+
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
 }
+
+
+

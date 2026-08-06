@@ -180,8 +180,9 @@ export default function EstudoCategoria() {
 
         {/* Editor aberto */}
         {notaAberta ? (
-          <section className="rounded-2xl border border-border bg-card/50 p-4 sm:p-6">
-            <div className="flex items-center justify-between gap-2 mb-2">
+          <section className="rounded-2xl border border-border bg-card/50 p-0 overflow-hidden shadow-xl">
+            {/* Header fixo do editor estilo Notion */}
+            <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-border bg-card/40 backdrop-blur-sm">
               <button onClick={() => setParams({})} className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
                 <ArrowLeft className="w-3.5 h-3.5" /> Voltar à lista
               </button>
@@ -192,85 +193,88 @@ export default function EstudoCategoria() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                value={titulo}
-                onChange={(e) => { setTitulo(e.target.value); agendarSalvar({ titulo: e.target.value || "Sem título" }); }}
-                placeholder="Sem título"
-                className="flex-1 bg-transparent font-display text-xl tracking-wide outline-none placeholder:text-muted-foreground"
-              />
-              <button onClick={async () => { await atualizarNota(notaAberta.id, { favorita: !notaAberta.favorita }); invalidar(); }}
-                aria-label="Favoritar" className={cn("p-2 rounded-lg hover:bg-muted", notaAberta.favorita ? "text-yellow-400" : "text-muted-foreground")}>
-                <Star className="w-4 h-4" fill={notaAberta.favorita ? "currentColor" : "none"} />
-              </button>
-              <button onClick={async () => { await atualizarNota(notaAberta.id, { fixada: !notaAberta.fixada }); invalidar(); }}
-                aria-label="Fixar" className={cn("p-2 rounded-lg hover:bg-muted", notaAberta.fixada ? "text-primary" : "text-muted-foreground")}>
-                <Pin className="w-4 h-4" fill={notaAberta.fixada ? "currentColor" : "none"} />
-              </button>
-              <button onClick={() => setVerHistorico((v) => !v)} aria-label="Histórico de edições"
-                className="p-2 rounded-lg text-muted-foreground hover:bg-muted"><History className="w-4 h-4" /></button>
-            </div>
-
-            {/* Tags */}
-            <div className="mb-3 flex flex-wrap items-center gap-1.5">
-              {notaAberta.tags.map((t) => (
-                <span key={t} className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[10px]">
-                  <Tag className="w-3 h-3" /> {t}
-                  <button aria-label={`Remover tag ${t}`} onClick={async () => {
-                    await atualizarNota(notaAberta.id, { tags: notaAberta.tags.filter((x) => x !== t) }); invalidar();
-                  }}><X className="w-3 h-3" /></button>
-                </span>
-              ))}
-              <button
-                onClick={async () => {
-                  const t = window.prompt("Nova tag");
-                  if (!t?.trim()) return;
-                  await atualizarNota(notaAberta.id, { tags: [...notaAberta.tags, t.trim()] });
-                  invalidar();
-                }}
-                className="rounded-full border border-dashed border-border px-2.5 py-1 text-[10px] text-muted-foreground hover:border-primary hover:text-primary">
-                + tag
-              </button>
-            </div>
-
-            {/* Ações da anotação */}
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              <select
-                aria-label="Mover para outra categoria"
-                value={notaAberta.categoria_id ?? ""}
-                onChange={async (e) => { await atualizarNota(notaAberta.id, { categoria_id: e.target.value }); invalidar(); nav(`/estudos/${e.target.value}`); }}
-                className="rounded-lg border border-border bg-card/60 px-2.5 py-1.5 text-[11px] outline-none focus:border-primary">
-                {categorias.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.nome}</option>)}
-              </select>
-              <button onClick={() => exportarPDF(titulo, htmlRef.current)} className="acao-nota"><FileDown className="w-3.5 h-3.5" /> PDF</button>
-              <button onClick={() => baixarArquivo(`${titulo}.md`, htmlParaMarkdown(htmlRef.current), "text/markdown")} className="acao-nota"><FileCode className="w-3.5 h-3.5" /> Markdown</button>
-              <button onClick={() => baixarArquivo(`${titulo}.txt`, textoRef.current, "text/plain")} className="acao-nota"><FileType className="w-3.5 h-3.5" /> TXT</button>
-              <button onClick={async () => { await duplicarNota(user.id, notaAberta); invalidar(); toast.success("Anotação duplicada."); }} className="acao-nota"><Copy className="w-3.5 h-3.5" /> Duplicar</button>
-              <button onClick={async () => { await moverParaLixeira(notaAberta.id); invalidar(); setParams({}); toast.success("Movida para a lixeira."); }}
-                className="acao-nota text-destructive"><Trash2 className="w-3.5 h-3.5" /> Lixeira</button>
-            </div>
-
-            {verHistorico && (
-              <div className="mb-3 rounded-xl border border-border p-3">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Histórico desta sessão</p>
-                {historico.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground">Criada {formatarData(notaAberta.criado_em)} · editada {formatarData(notaAberta.updated_at)}</p>
-                ) : historico.map((h, i) => (
-                  <p key={i} className="text-[11px] text-muted-foreground">{new Date(h.em).toLocaleTimeString("pt-BR")} — “{h.titulo}”</p>
-                ))}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  value={titulo}
+                  onChange={(e) => { setTitulo(e.target.value); agendarSalvar({ titulo: e.target.value || "Sem título" }); }}
+                  placeholder="Sem título"
+                  className="flex-1 bg-transparent font-display text-xl tracking-wide outline-none placeholder:text-muted-foreground"
+                />
+                <button onClick={async () => { await atualizarNota(notaAberta.id, { favorita: !notaAberta.favorita }); invalidar(); }}
+                  aria-label="Favoritar" className={cn("p-2 rounded-lg hover:bg-muted", notaAberta.favorita ? "text-yellow-400" : "text-muted-foreground")}>
+                  <Star className="w-4 h-4" fill={notaAberta.favorita ? "currentColor" : "none"} />
+                </button>
+                <button onClick={async () => { await atualizarNota(notaAberta.id, { fixada: !notaAberta.fixada }); invalidar(); }}
+                  aria-label="Fixar" className={cn("p-2 rounded-lg hover:bg-muted", notaAberta.fixada ? "text-primary" : "text-muted-foreground")}>
+                  <Pin className="w-4 h-4" fill={notaAberta.fixada ? "currentColor" : "none"} />
+                </button>
+                <button onClick={() => setVerHistorico((v) => !v)} aria-label="Histórico de edições"
+                  className="p-2 rounded-lg text-muted-foreground hover:bg-muted"><History className="w-4 h-4" /></button>
               </div>
-            )}
 
-            <NoteEditor
-              userId={user.id}
-              conteudo={conteudo}
-              onChange={({ json, html, texto }) => {
-                htmlRef.current = html;
-                textoRef.current = texto;
-                agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
-              }}
-            />
+              {/* Tags */}
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                {notaAberta.tags.map((t) => (
+                  <span key={t} className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[10px]">
+                    <Tag className="w-3 h-3" /> {t}
+                    <button aria-label={`Remover tag ${t}`} onClick={async () => {
+                      await atualizarNota(notaAberta.id, { tags: notaAberta.tags.filter((x) => x !== t) }); invalidar();
+                    }}><X className="w-3 h-3" /></button>
+                  </span>
+                ))}
+                <button
+                  onClick={async () => {
+                    const t = window.prompt("Nova tag");
+                    if (!t?.trim()) return;
+                    await atualizarNota(notaAberta.id, { tags: [...notaAberta.tags, t.trim()] });
+                    invalidar();
+                  }}
+                  className="rounded-full border border-dashed border-border px-2.5 py-1 text-[10px] text-muted-foreground hover:border-primary hover:text-primary">
+                  + tag
+                </button>
+              </div>
+
+              {/* Ações da anotação */}
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                <select
+                  aria-label="Mover para outra categoria"
+                  value={notaAberta.categoria_id ?? ""}
+                  onChange={async (e) => { await atualizarNota(notaAberta.id, { categoria_id: e.target.value }); invalidar(); nav(`/estudos/${e.target.value}`); }}
+                  className="rounded-lg border border-border bg-card/60 px-2.5 py-1.5 text-[11px] outline-none focus:border-primary">
+                  {categorias.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.nome}</option>)}
+                </select>
+                <button onClick={() => exportarPDF(titulo, htmlRef.current)} className="acao-nota"><FileDown className="w-3.5 h-3.5" /> PDF</button>
+                <button onClick={() => baixarArquivo(`${titulo}.md`, htmlParaMarkdown(htmlRef.current), "text/markdown")} className="acao-nota"><FileCode className="w-3.5 h-3.5" /> Markdown</button>
+                <button onClick={() => baixarArquivo(`${titulo}.txt`, textoRef.current, "text/plain")} className="acao-nota"><FileType className="w-3.5 h-3.5" /> TXT</button>
+                <button onClick={async () => { await duplicarNota(user.id, notaAberta); invalidar(); toast.success("Anotação duplicada."); }} className="acao-nota"><Copy className="w-3.5 h-3.5" /> Duplicar</button>
+                <button onClick={async () => { await moverParaLixeira(notaAberta.id); invalidar(); setParams({}); toast.success("Movida para a lixeira."); }}
+                  className="acao-nota text-destructive"><Trash2 className="w-3.5 h-3.5" /> Lixeira</button>
+              </div>
+
+              {verHistorico && (
+                <div className="mb-3 rounded-xl border border-border p-3">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-1">Histórico desta sessão</p>
+                  {historico.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground">Criada {formatarData(notaAberta.criado_em)} · editada {formatarData(notaAberta.updated_at)}</p>
+                  ) : historico.map((h, i) => (
+                    <p key={i} className="text-[11px] text-muted-foreground">{new Date(h.em).toLocaleTimeString("pt-BR")} — “{h.titulo}”</p>
+                  ))}
+                </div>
+              )}
+
+              <NoteEditor
+                userId={user.id}
+                conteudo={conteudo}
+                onChange={({ json, html, texto }) => {
+                  htmlRef.current = html;
+                  textoRef.current = texto;
+                  agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
+                }}
+              />
+            </div>
           </section>
+
         ) : (
           /* Lista de anotações */
           <div className="space-y-2">
