@@ -294,6 +294,31 @@ export default function NoteEditor({
   });
 
   const notaCarregada = useRef<string>("");
+  
+  useEffect(() => {
+    if (!editor) return;
+    
+    const bubbleEl = document.querySelector('#bubble-menu') as HTMLElement;
+    const floatingEl = document.querySelector('#floating-menu') as HTMLElement;
+    
+    if (bubbleEl) {
+      editor.registerExtension(BubbleMenuExtension.configure({
+        element: bubbleEl,
+        tippyOptions: { duration: 100 },
+      }));
+      bubbleEl.style.display = 'flex';
+    }
+    
+    if (floatingEl) {
+      editor.registerExtension(FloatingMenuExtension.configure({
+        element: floatingEl,
+        tippyOptions: { duration: 100 },
+      }));
+      floatingEl.style.display = 'flex';
+    }
+  }, [editor]);
+
+
   useEffect(() => {
     if (!editor) return;
     const chave = JSON.stringify(conteudo ?? "");
