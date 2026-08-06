@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import { EditorContent, useEditor, type Editor, BubbleMenu, FloatingMenu } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 
@@ -263,19 +263,15 @@ export default function NoteEditor({
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
-      TaskItem.configure({ nested: true }),
+      TaskItem,
       Image.configure({ HTMLAttributes: { class: "rounded-lg max-w-full" } }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
       TableCell,
-      Typography,
-      Focus.configure({ className: 'has-focus', mode: 'all' }),
       Dropcursor.configure({ color: '#7b2ff7', width: 2 }),
       Callout,
       ToggleBlock,
-
-
     ],
     content: conteudo ?? "",
     editorProps: {
