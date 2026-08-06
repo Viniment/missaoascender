@@ -107,7 +107,7 @@ function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string
   };
 
   return (
-    <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }} shouldShow={({ state }) => {
+    <FloatingMenu editor={editor} updateDelay={100} shouldShow={({ state }) => {
       const { selection } = state;
       const { $from, empty } = selection;
       return empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
@@ -132,7 +132,7 @@ function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string
 /** BubbleMenu (Aparece ao selecionar texto) */
 function TextBubbleMenu({ editor }: { editor: Editor }) {
   return (
-    <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+    <BubbleMenu editor={editor} updateDelay={100}>
       <div className="flex items-center gap-0.5 rounded-full border border-border/70 bg-background/95 backdrop-blur-md px-1.5 py-1 shadow-2xl border-primary/30 ring-1 ring-primary/20">
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
         <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
