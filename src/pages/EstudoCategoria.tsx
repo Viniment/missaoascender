@@ -263,16 +263,19 @@ export default function EstudoCategoria() {
               </div>
             )}
 
-            <NoteEditor
-              userId={user.id}
-              conteudo={conteudo}
-              onChange={({ json, html, texto }) => {
-                htmlRef.current = html;
-                textoRef.current = texto;
-                agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
-              }}
-            />
+            <div className="px-6 py-4">
+              <NoteEditor
+                userId={user.id}
+                conteudo={conteudo}
+                onChange={({ json, html, texto }) => {
+                  htmlRef.current = html;
+                  textoRef.current = texto;
+                  agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
+                }}
+              />
+            </div>
           </section>
+
         ) : (
           /* Lista de anotações */
           <div className="space-y-2">
