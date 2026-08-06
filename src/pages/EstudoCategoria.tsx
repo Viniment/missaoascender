@@ -180,7 +180,9 @@ export default function EstudoCategoria() {
 
         {/* Editor aberto */}
         {notaAberta ? (
-          <section className="rounded-2xl border border-border bg-card/50 p-4 sm:p-6">
+          <section className="rounded-2xl border border-border bg-card/50 p-0 overflow-hidden shadow-xl">
+            {/* Header fixo do editor estilo Notion */}
+            <div className="flex items-center justify-between gap-2 px-6 py-4 border-b border-border bg-card/40 backdrop-blur-sm">
             <div className="flex items-center justify-between gap-2 mb-2">
               <button onClick={() => setParams({})} className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1">
                 <ArrowLeft className="w-3.5 h-3.5" /> Voltar à lista
