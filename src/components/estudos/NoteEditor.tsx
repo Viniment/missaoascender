@@ -263,19 +263,15 @@ export default function NoteEditor({
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
-      TaskItem.configure({ nested: true }),
+      TaskItem,
       Image.configure({ HTMLAttributes: { class: "rounded-lg max-w-full" } }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
       TableCell,
-      Typography,
-      Focus.configure({ className: 'has-focus', mode: 'all' }),
       Dropcursor.configure({ color: '#7b2ff7', width: 2 }),
       Callout,
       ToggleBlock,
-
-
     ],
     content: conteudo ?? "",
     editorProps: {
@@ -293,20 +289,6 @@ export default function NoteEditor({
   
   useEffect(() => {
     if (!editor) return;
-    
-    // Configurando menus dinamicamente após o editor estar montado
-    // Como a API oficial é restrita via types aqui, vamos garantir que os elementos apareçam
-    const bubbleEl = document.querySelector('#bubble-menu') as HTMLElement;
-    const floatingEl = document.querySelector('#floating-menu') as HTMLElement;
-    
-    if (bubbleEl) bubbleEl.style.display = 'flex';
-    if (floatingEl) floatingEl.style.display = 'flex';
-  }, [editor]);
-
-
-
-  useEffect(() => {
-    if (!editor) return;
     const chave = JSON.stringify(conteudo ?? "");
     if (chave !== notaCarregada.current && !editor.isFocused) {
       notaCarregada.current = chave;
@@ -320,9 +302,7 @@ export default function NoteEditor({
     <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
       
-      {/* Menus via Popover ou implementações customizadas */}
-      {/* Omitindo BubbleMenu/FloatingMenu por agora para restaurar a estabilidade total */}
-
+      {/* Omitindo menus flutuantes temporariamente para garantir estabilidade core */}
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
