@@ -232,7 +232,12 @@ export default function NoteEditor({
       }),
       Underline, TextStyle, Color, Typography, Subscript, Superscript,
       Highlight.configure({ multicolor: true }),
-      Link.configure({ openOnClick: false }),
+      Link.configure({ 
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-colors cursor-pointer',
+        },
+      }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
       TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2' } }),
