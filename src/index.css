@@ -882,3 +882,73 @@ div[style*="Edit with Lovable"],
 .notion-editor .ProseMirror pre { background: hsl(var(--muted) / .5); border-radius: .5rem; padding: .75rem 1rem; }
 .notion-editor .ProseMirror mark { border-radius: .2rem; padding: 0 .15rem; color: inherit; }
 .notion-editor .ProseMirror:focus { outline: none; }
+
+/* ============ EDITOR ESTILO NOTION ============ */
+.notion-editor-container .ProseMirror {
+  outline: none;
+}
+
+.notion-editor-container .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+.notion-table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.notion-table td, .notion-table th {
+  border: 1px solid hsl(var(--border));
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 6px 10px;
+  position: relative;
+  vertical-align: top;
+}
+
+.notion-table th {
+  background-color: hsl(var(--muted) / 0.5);
+  font-weight: bold;
+  text-align: left;
+}
+
+.notion-task-list {
+  list-style: none;
+  padding: 0;
+}
+
+.notion-task-list li {
+  display: flex;
+  margin-bottom: 0.25rem;
+}
+
+.notion-task-list li > label {
+  flex: 0 0 auto;
+  margin-right: 0.5rem;
+  user-select: none;
+}
+
+.notion-task-list li > div {
+  flex: 1 1 auto;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
