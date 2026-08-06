@@ -39,7 +39,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const appBgId = (heroi?.avatar_equipado as any)?.appBg as string | undefined;
   const appBg = !lowPower && appBgId ? APP_BACKGROUNDS[appBgId] : null;
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden game-bg">
       {appBg ? (
         <>
           <div className={cn("app-bg-layer", appBg.className)} aria-hidden="true">

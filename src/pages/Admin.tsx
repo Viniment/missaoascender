@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -59,7 +60,7 @@ export default function Admin() {
   if (!isAdmin) {
     return (
       <Shell>
-        <div className="rpg-panel p-6 text-center space-y-2">
+        <div className="rpg-panel scanlines p-6 text-center space-y-2">
           <Shield className="w-8 h-8 mx-auto text-destructive" />
           <p className="font-display tracking-widest text-destructive">ACESSO NEGADO</p>
           <p className="text-xs text-muted-foreground">Esta área é restrita a administradores.</p>
@@ -328,7 +329,7 @@ export default function Admin() {
 
         {tab === "heroi" && (
           <div className="space-y-3">
-            <Section title="STATUS" icon={<Sparkles className="w-3 h-3" />}>
+            <Section title="STATUS" icon={<Sparkles className="w-3 h-3" />} className="scanlines">
               <Stat label="Nível" value={heroi.nivel} />
               <Stat label="XP" value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} />
               <Stat label="Vida" value={`${heroi.vida_atual}/${heroi.vida_max}`} />
@@ -369,7 +370,7 @@ export default function Admin() {
 
         {tab === "conq" && (
           <div className="space-y-3">
-            <Section title="CONQUISTAS" icon={<Trophy className="w-3 h-3" />}>
+            <Section title="CONQUISTAS" icon={<Trophy className="w-3 h-3" />} className="scanlines">
               <Stat label="Total" value={conquistas?.length ?? 0} />
             </Section>
             <Group title="Ações">
@@ -381,7 +382,7 @@ export default function Admin() {
 
         {tab === "inimigo" && (
           <div className="space-y-3">
-            <Section title="INIMIGO" icon={<Skull className="w-3 h-3" />}>
+            <Section title="INIMIGO" icon={<Skull className="w-3 h-3" />} className="scanlines">
               {inimigo ? (
                 <>
                   <Stat label="Nome" value={inimigo.nome} />
@@ -401,7 +402,7 @@ export default function Admin() {
 
         {tab === "dia" && (
           <div className="space-y-3">
-            <Section title="DIA" icon={<RefreshCw className="w-3 h-3" />}>
+            <Section title="DIA" icon={<RefreshCw className="w-3 h-3" />} className="scanlines">
               <p className="text-xs text-muted-foreground col-span-2">Todos os hábitos são diários. Reset para testar de novo.</p>
             </Section>
             <Group title="Ações">
@@ -485,18 +486,18 @@ export default function Admin() {
   );
 }
 
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, icon, children, className }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <div className="rpg-panel p-4 space-y-3">
+    <div className={cn("rpg-panel p-4 space-y-3", className)}>
       <p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1">{icon}{title}</p>
       <div className="grid grid-cols-2 gap-2">{children}</div>
     </div>
   );
 }
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+function Group({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="rpg-panel p-4 space-y-2">
+    <div className={cn("rpg-panel p-4 space-y-2", className)}>
       <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{title}</p>
       <div className="grid grid-cols-2 gap-2">{children}</div>
     </div>

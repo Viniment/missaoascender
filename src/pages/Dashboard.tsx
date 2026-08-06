@@ -258,7 +258,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="player-card scanlines p-3.5 sm:p-5"
+          className="player-card scanlines p-3.5 sm:p-5 shadow-2xl"
         >
           {(() => {
             const cardBgId = (heroi.avatar_equipado as any)?.cardBg as string | undefined;
