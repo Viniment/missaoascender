@@ -305,6 +305,7 @@ export default function NoteEditor({
     if (!editor || !conteudo) return;
     const current = JSON.stringify(conteudo);
     if (current !== lastContent.current && !editor.isFocused) {
+      console.log("[Editor Debug] Syncing content from prop...");
       lastContent.current = current;
       editor.commands.setContent(conteudo, { emitUpdate: false });
     }
