@@ -278,12 +278,7 @@ export default function NoteEditor({
       Dropcursor.configure({ color: '#7b2ff7', width: 2 }),
       Callout,
       ToggleBlock,
-      BubbleMenuExtension.configure({
-        element: document.querySelector('#bubble-menu') as HTMLElement,
-      }),
-      FloatingMenuExtension.configure({
-        element: document.querySelector('#floating-menu') as HTMLElement,
-      }),
+
 
     ],
     content: conteudo ?? "",
