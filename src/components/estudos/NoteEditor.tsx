@@ -245,10 +245,9 @@ export default function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ 
-        link: false, 
-        underline: false,
-        heading: { levels: [1, 2, 3] }
+      StarterKit.configure({
+        // starter-kit include Document, Paragraph, Text, Heading, BulletList, OrderedList, ListItem, Blockquote, etc.
+        heading: { levels: [1, 2, 3] },
       }),
       Underline,
       TextStyle,
@@ -301,8 +300,6 @@ export default function NoteEditor({
   return (
     <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
-      
-      {/* Omitindo menus flutuantes temporariamente para garantir estabilidade core */}
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
