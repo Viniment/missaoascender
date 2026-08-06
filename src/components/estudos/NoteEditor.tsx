@@ -302,7 +302,8 @@ export default function NoteEditor({
         })
       });
     }
-  }, [userId]); // Removido 'editor' da dependência para evitar loops, já que editor é estável via useEditor
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const lastContent = useRef("");
   useEffect(() => {
