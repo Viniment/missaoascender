@@ -269,9 +269,14 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        // Se o menu de Slash Commands estiver aberto, ele cuida do Enter.
-        // O SlashExtension usa o onKeyDown da sugestão que já injetamos.
-        // Não interceptamos nada aqui para garantir que o Tiptap receba o evento.
+        console.log("DEBUG_ENTER:", {
+          key: event.key,
+          shift: event.shiftKey,
+          defaultPrevented: event.defaultPrevented,
+          target: event.target,
+          focused: view.hasFocus(),
+          editable: view.editable
+        });
         return false;
       },
       attributes: {
