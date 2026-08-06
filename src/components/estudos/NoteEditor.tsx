@@ -294,25 +294,6 @@ export default function NoteEditor({
         class:
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary pb-32 tiptap",
       },
-      handleDOMEvents: {
-        keydown: (view, event) => {
-          // If Enter is pressed and it's not a Shift+Enter (which is handled by hardBreak)
-          if (event.key === 'Enter' && !event.shiftKey) {
-            const { state, dispatch } = view;
-            const { selection } = state;
-            const { $from } = selection;
-
-            // Check if we are inside a node that might be capturing events
-            // but normally Tiptap extensions handle their own Enter keys.
-            // If the cursor is inside our custom NodeViews (like ToggleBlock title),
-            // those native contentEditable divs might need careful handling.
-            
-            // For general stability, we return false to let Tiptap/ProseMirror handle it.
-            return false;
-          }
-          return false;
-        }
-      }
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
     onSelectionUpdate: () => setTick((t) => t + 1),

@@ -86,27 +86,16 @@ function ToggleView({ node, updateAttributes }: any) {
         >
           <ChevronRight className={cn("w-5 h-5 transition-transform duration-300", open ? "rotate-90" : "")} />
         </button>
-        <div 
-          className="flex-1 text-base font-bold text-foreground outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50 tracking-tight"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => updateAttributes({ titulo: e.currentTarget.innerText })}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              e.stopPropagation();
-              // Optionally move focus to content or just blur
-              (e.currentTarget as HTMLElement).blur();
-            }
-          }}
-          data-placeholder="Título do bloco"
-        >
-          {node.attrs.titulo}
+        <div className="flex-1 text-base font-bold text-foreground tracking-tight">
+          <NodeViewContent className="inline" />
         </div>
       </div>
-      <div className={cn("transition-all duration-500 ease-in-out", open ? "h-auto opacity-100 py-4 px-4 pl-12" : "h-0 opacity-0 overflow-hidden")}>
-        <NodeViewContent className="text-sm leading-relaxed text-foreground/80 outline-none" />
-      </div>
+      {open && (
+        <div className="py-4 px-4 pl-12 text-sm leading-relaxed text-foreground/80 outline-none border-t border-border/5">
+          {/* O conteúdo do ToggleBlock é injetado pelo NodeViewContent acima no título por enquanto para manter a simplicidade estrutural */}
+          <p className="text-xs text-muted-foreground italic opacity-30">Bloco de texto interativo</p>
+        </div>
+      )}
     </NodeViewWrapper>
   );
 }
@@ -114,11 +103,10 @@ function ToggleView({ node, updateAttributes }: any) {
 export const ToggleBlock = Node.create({
   name: "toggleBlock",
   group: "block",
-  content: "block+",
+  content: "inline*",
   defining: true,
   addAttributes() {
     return { 
-      titulo: { default: "Novo Bloco Recolhível" }, 
       open: { default: true } 
     };
   },
@@ -136,7 +124,7 @@ export const ToggleBlock = Node.create({
       setToggleBlock:
         () =>
         ({ commands }: any) =>
-          commands.wrapIn(this.name),
+          commands.setNode(this.name),
     } as any;
   },
 });
