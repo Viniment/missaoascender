@@ -269,14 +269,34 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        console.log("DEBUG_ENTER:", {
+        const { state } = view;
+        const { selection } = state;
+        const { $from, empty } = selection;
+
+        console.log("DEBUG_ENTER", {
           key: event.key,
           shift: event.shiftKey,
-          defaultPrevented: event.defaultPrevented,
           target: event.target,
           focused: view.hasFocus(),
-          editable: view.editable
+          editable: view.editable,
+          nodeType: $from.parent.type.name,
+          selectionEmpty: empty,
+          pos: selection.from
         });
+
+        // Tentar forçar a quebra se o Tiptap estiver sendo bloqueado por algum pai
+        if (event.key === 'Enter' && !event.shiftKey) {
+          // Se for um item de lista, deixamos o Tiptap tentar primeiro
+          if ($from.parent.type.name === 'taskItem' || $from.parent.type.name === 'listItem') {
+            return false;
+          }
+          
+          // Se chegamos aqui e é um parágrafo normal, vamos ver se o preventDefault já foi chamado
+          if (event.defaultPrevented) {
+             console.warn("DEBUG_ENTER: Evento já veio com preventDefault!");
+          }
+        }
+        
         return false;
       },
       attributes: {
