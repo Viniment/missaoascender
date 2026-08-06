@@ -290,6 +290,18 @@ export default function NoteEditor({
     ],
     content: conteudo ?? "",
     editorProps: {
+      handleDOMEvents: {
+        keydown: (_view, event) => {
+          if (event.key === 'Enter') {
+            console.log('DOM_KEYDOWN: Enter');
+            // Check if default is already prevented by something else
+            if (event.defaultPrevented) {
+              console.warn('Enter was already prevented!');
+            }
+          }
+          return false;
+        }
+      },
       attributes: {
         class:
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary pb-32 tiptap",
@@ -302,11 +314,11 @@ export default function NoteEditor({
 
   const notaCarregada = useRef<string>("");
   useEffect(() => {
-    if (!editor) return;
-    const chave = JSON.stringify(conteudo ?? "");
+    if (!editor || !conteudo) return;
+    const chave = JSON.stringify(conteudo);
     if (chave !== notaCarregada.current && !editor.isFocused) {
       notaCarregada.current = chave;
-      editor.commands.setContent(conteudo ?? "", { emitUpdate: false });
+      editor.commands.setContent(conteudo, { emitUpdate: false });
     }
   }, [conteudo, editor]);
 
@@ -339,9 +351,10 @@ export default function NoteEditor({
         shouldShow={({ state }) => {
           const { selection } = state;
           const { $from } = selection;
+          // Only show if the parent is a paragraph AND it is empty
           return $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
         }}
-        {...({ tippyOptions: { duration: 100, placement: 'left-start', zIndex: 40 } } as any)}
+        {...({ tippyOptions: { duration: 100, placement: 'right-start', zIndex: 40 } } as any)}
         className="flex flex-col gap-1 rounded-xl border border-border/50 bg-background/95 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-white/10 min-w-[200px]"
       >
         <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Conteúdo</div>
