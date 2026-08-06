@@ -117,7 +117,7 @@ export default function Estudos() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por título, conteúdo, categoria ou tag..."
-              className="w-full rounded-xl border border-border bg-card/60 pl-9 pr-9 py-2.5 text-sm outline-none focus:border-primary"
+              className="w-full rounded-xl border border-border bg-secondary pl-9 pr-9 py-2.5 text-sm outline-none focus:border-primary"
             />
             {busca && (
               <button onClick={() => setBusca("")} aria-label="Limpar busca"
@@ -130,7 +130,7 @@ export default function Estudos() {
             value={ordem}
             onChange={(e) => setOrdem(e.target.value as Ordem)}
             aria-label="Ordenar cadernos"
-            className="rounded-xl border border-border bg-card/60 px-3 py-2.5 text-xs outline-none focus:border-primary"
+            className="rounded-xl border border-border bg-secondary px-3 py-2.5 text-xs outline-none focus:border-primary"
           >
             <option value="recentes">Mais recentes</option>
             <option value="antigas">Mais antigas</option>

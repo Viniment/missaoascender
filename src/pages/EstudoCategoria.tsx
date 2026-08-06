@@ -149,7 +149,7 @@ export default function EstudoCategoria() {
           <div className="relative flex-1 min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar nesta categoria..."
-              className="w-full rounded-xl border border-border bg-card/60 pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary" />
+              className="w-full rounded-xl border border-border bg-secondary pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary" />
           </div>
           <div className="flex rounded-xl border border-border overflow-hidden">
             {([["todas", "Todas"], ["favoritas", "⭐"], ["fixadas", "📌"]] as [Filtro, string][]).map(([v, l]) => (
@@ -160,7 +160,7 @@ export default function EstudoCategoria() {
             ))}
           </div>
           <select value={ordem} onChange={(e) => setOrdem(e.target.value as Ordem)} aria-label="Ordenar anotações"
-            className="rounded-xl border border-border bg-card/60 px-3 py-2.5 text-xs outline-none focus:border-primary">
+            className="rounded-xl border border-border bg-secondary px-3 py-2.5 text-xs outline-none focus:border-primary">
             <option value="editadas">Última edição</option>
             <option value="criadas">Mais recentes</option>
             <option value="antigas">Mais antigas</option>
