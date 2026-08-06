@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorContent, useEditor, BubbleMenu, FloatingMenu, type Editor } from "@tiptap/react";
+import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import BubbleMenu from "@tiptap/extension-bubble-menu";
+import FloatingMenu from "@tiptap/extension-floating-menu";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -93,9 +95,8 @@ function Pop({ title, icon, children }: { title: string; icon: React.ReactNode; 
 }
 
 /** FloatingMenu (Aparece em linhas vazias) */
-function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string }) {
+function FloatingEditorMenu({ editor, userId }: { editor: any; userId: string }) {
   const imgInput = useRef<HTMLInputElement>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
 
   const subirImagem = async (file: File) => {
     try {
@@ -107,11 +108,7 @@ function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string
   };
 
   return (
-    <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }} shouldShow={({ state }) => {
-      const { selection } = state;
-      const { $from, empty } = selection;
-      return empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
-    }}>
+    <div className="tiptap-floating-wrapper">
       <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/95 backdrop-blur-md p-1 shadow-lg border-primary/20 ring-1 ring-primary/10">
         <Btn title="Título 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}><Heading1 className="w-4 h-4" /></Btn>
         <Btn title="Título 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}><Heading2 className="w-4 h-4" /></Btn>
@@ -125,14 +122,14 @@ function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string
         <input ref={imgInput} type="file" accept="image/*,image/gif" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) subirImagem(f); e.target.value = ""; }} />
       </div>
-    </FloatingMenu>
+    </div>
   );
 }
 
 /** BubbleMenu (Aparece ao selecionar texto) */
-function TextBubbleMenu({ editor }: { editor: Editor }) {
+function TextBubbleMenu({ editor }: { editor: any }) {
   return (
-    <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+    <div className="tiptap-bubble-wrapper">
       <div className="flex items-center gap-0.5 rounded-full border border-border/70 bg-background/95 backdrop-blur-md px-1.5 py-1 shadow-2xl border-primary/30 ring-1 ring-primary/20">
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
         <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
@@ -165,12 +162,12 @@ function TextBubbleMenu({ editor }: { editor: Editor }) {
           </div>
         </Pop>
       </div>
-    </BubbleMenu>
+    </div>
   );
 }
 
 /** Toolbar Principal Refinada */
-function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
+function Toolbar({ editor, userId }: { editor: any; userId: string }) {
   const imgInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -288,7 +285,7 @@ export default function NoteEditor({
   const [, setTick] = useState(0);
 
   const emitir = useCallback(
-    (ed: Editor) => onChange({ json: ed.getJSON(), html: ed.getHTML(), texto: ed.getText() }),
+    (ed: any) => onChange({ json: ed.getJSON(), html: ed.getHTML(), texto: ed.getText() }),
     [onChange],
   );
 
@@ -324,6 +321,17 @@ export default function NoteEditor({
       TableCell,
       Callout,
       ToggleBlock,
+      BubbleMenu.configure({
+        element: document.querySelector('.tiptap-bubble-wrapper') as HTMLElement,
+      }),
+      FloatingMenu.configure({
+        element: document.querySelector('.tiptap-floating-wrapper') as HTMLElement,
+        shouldShow: ({ state }) => {
+          const { selection } = state;
+          const { $from, empty } = selection;
+          return empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
+        },
+      }),
     ],
     content: conteudo ?? "",
     editorProps: {
@@ -332,7 +340,7 @@ export default function NoteEditor({
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:mx-auto notion-content-area",
       },
     },
-    onUpdate: ({ editor: ed }) => emitir(ed as Editor),
+    onUpdate: ({ editor: ed }) => emitir(ed),
     onSelectionUpdate: () => setTick((t) => t + 1),
     onTransaction: () => setTick((t) => t + 1),
   });
@@ -357,18 +365,17 @@ export default function NoteEditor({
       <FloatingEditorMenu editor={editor} userId={userId} />
       
       <div className="relative px-1 py-4">
-        <EditorContent editor={editor} className="notion-editor-container" />
+        <EditorContent editor={editor} />
       </div>
-      
-      {/* Rodapé de stats discreto */}
-      <div className="mt-8 flex items-center justify-between border-t border-white/5 pt-4 text-[10px] text-muted-foreground uppercase tracking-widest opacity-40 group-hover/editor:opacity-100 transition-opacity">
-        <div className="flex gap-4">
-          <span>{editor.storage.characterCount?.words?.() ?? 0} palavras</span>
-          <span>{editor.storage.characterCount?.characters?.() ?? 0} caracteres</span>
+
+      <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between text-[10px] text-muted-foreground/40 uppercase tracking-widest font-medium">
+        <div className="flex items-center gap-4">
+          <span>{editor.storage.characterCount?.characters() || 0} CARACTERES</span>
+          <span>{editor.storage.characterCount?.words() || 0} PALAVRAS</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="h-1 w-1 rounded-full bg-green-500 animate-pulse" />
-          Salvo automaticamente
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-1 rounded-full bg-primary/40 animate-pulse" />
+          SALVAMENTO AUTOMÁTICO ATIVO
         </div>
       </div>
     </div>
