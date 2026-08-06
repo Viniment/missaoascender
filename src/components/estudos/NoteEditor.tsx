@@ -258,7 +258,10 @@ export default function NoteEditor({
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
       TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2 list-none p-0' } }),
-      TaskItem.configure({ nested: true, HTMLAttributes: { class: 'flex items-start gap-2 my-1' } }),
+      TaskItem.configure({ 
+        nested: true, 
+        HTMLAttributes: { class: 'flex items-start gap-2 my-1' },
+      }),
       Image.configure({ HTMLAttributes: { class: "rounded-2xl max-w-full shadow-2xl my-6 mx-auto border border-white/10" } }),
       Table.configure({ resizable: true, HTMLAttributes: { class: 'notion-table my-4' } }),
       TableRow, TableCell, TableHeader,
