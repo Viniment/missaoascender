@@ -274,30 +274,6 @@ export default function NoteEditor({
     ],
     content: conteudo || "",
     editorProps: {
-      handleKeyDown: (view, event) => {
-        // Log para depuração (pode ser removido após validação)
-        console.log("Editor KeyDown:", event.key, "Shift:", event.shiftKey, "Selection:", view.state.selection.$from.parent.type.name);
-        
-        // Se o menu de Slash Commands estiver aberto, não interferimos
-        // (Isso é tratado na extensão de sugestão, mas é bom garantir)
-        
-        // Tab e Shift+Tab para indentação
-        if (event.key === 'Tab') {
-          const isInsideList = editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList');
-          
-          if (isInsideList) {
-            if (event.shiftKey) {
-              editor.commands.liftListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
-            } else {
-              editor.commands.sinkListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
-            }
-            event.preventDefault();
-            return true;
-          }
-        }
-
-        return false;
-      },
       attributes: {
         class: "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none notion-content-area"
       }
@@ -309,7 +285,7 @@ export default function NoteEditor({
 
   // Re-configure suggestion with the actual editor instance once available
   useEffect(() => {
-    if (editor) {
+    if (editor && userId) {
       editor.setOptions({
         extensions: editor.options.extensions.map(ext => {
           if (ext.name === 'slashCommand') {
