@@ -296,6 +296,8 @@ export default function NoteEditor({
     extensions: [
       StarterKit.configure({ 
         heading: { levels: [1, 2, 3] },
+        bulletList: { HTMLAttributes: { class: 'list-disc ml-4 space-y-2' } },
+        orderedList: { HTMLAttributes: { class: 'list-decimal ml-4 space-y-2' } },
         codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm' } }
       }),
       Underline,
