@@ -330,9 +330,18 @@ export default function NoteEditor({
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:mx-auto notion-content-area",
       },
     },
-    onUpdate: ({ editor: ed }) => emitir(ed as Editor),
+    onUpdate: ({ editor: ed }) => {
+      // Força o editor a emitir as mudanças corretamente
+      emitir(ed as Editor);
+    },
     onSelectionUpdate: () => setTick((t) => t + 1),
-    onTransaction: () => setTick((t) => t + 1),
+    onTransaction: ({ transaction }) => {
+      // Se a transação não for meta, forçamos o re-render para garantir UI atualizada
+      setTick((t) => t + 1);
+    },
+    // Removendo interceptação de teclado para deixar o Tiptap lidar com tudo nativamente
+    // e garantir compatibilidade total com extensões (listas, emojis, etc)
+    injectCSS: false,
   });
 
   const notaCarregada = useRef<string>("");
