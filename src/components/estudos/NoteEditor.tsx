@@ -350,9 +350,7 @@ export default function NoteEditor({
     const chave = JSON.stringify(conteudo ?? "");
     if (chave !== notaCarregada.current && !editor.isFocused) {
       notaCarregada.current = chave;
-      // Garante que o conteúdo seja aplicado apenas se houver diferença real
-      // para evitar perda de foco ou comportamento estranho no Enter
-      editor.commands.setContent(conteudo ?? "", false);
+      editor.commands.setContent(conteudo ?? "", { emitUpdate: false });
     }
   }, [conteudo, editor]);
 
