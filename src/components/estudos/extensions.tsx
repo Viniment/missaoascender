@@ -75,11 +75,11 @@ function ToggleView({ node, updateAttributes }: any) {
           <ChevronRight className={cn("w-4 h-4 transition-transform", open ? "rotate-90" : "")} />
         </button>
         <div 
-          className="flex-1 text-sm font-semibold outline-none empty:before:content-[attr(placeholder)] empty:before:text-muted-foreground/60"
+          className="flex-1 text-sm font-semibold outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/60"
           contentEditable
           suppressContentEditableWarning
           onBlur={(e) => updateAttributes({ titulo: e.currentTarget.innerText })}
-          placeholder="Título do bloco"
+          data-placeholder="Título do bloco"
         >
           {node.attrs.titulo}
         </div>
