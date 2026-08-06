@@ -296,6 +296,8 @@ export default function NoteEditor({
     extensions: [
       StarterKit.configure({ 
         heading: { levels: [1, 2, 3] },
+        bulletList: { HTMLAttributes: { class: 'list-disc ml-4 space-y-2' } },
+        orderedList: { HTMLAttributes: { class: 'list-decimal ml-4 space-y-2' } },
         codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm' } }
       }),
       Underline,
@@ -323,7 +325,7 @@ export default function NoteEditor({
       Callout,
       ToggleBlock,
     ],
-    content: conteudo ?? "",
+    content: conteudo || "",
     editorProps: {
       attributes: {
         class:
@@ -335,16 +337,15 @@ export default function NoteEditor({
     },
     onSelectionUpdate: () => setTick((t) => t + 1),
     onTransaction: () => setTick((t) => t + 1),
-    injectCSS: false,
   });
 
   const notaCarregada = useRef<string>("");
   useEffect(() => {
-    if (!editor) return;
-    const chave = JSON.stringify(conteudo ?? "");
+    if (!editor || !conteudo) return;
+    const chave = JSON.stringify(conteudo);
     if (chave !== notaCarregada.current && !editor.isFocused) {
       notaCarregada.current = chave;
-      editor.commands.setContent(conteudo ?? "", { emitUpdate: false });
+      editor.commands.setContent(conteudo, { emitUpdate: false });
     }
   }, [conteudo, editor]);
 
