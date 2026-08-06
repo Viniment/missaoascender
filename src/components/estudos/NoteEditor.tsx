@@ -26,7 +26,7 @@ import {
   Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Minus, Table as TableIcon,
   Link2, Image as ImageIcon, Paperclip, Smile, AtSign, CalendarDays, ChevronsUpDown, Lightbulb,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Eraser,
-  Plus, Trash2, Copy, ArrowUp, ArrowDown, GripVertical, Type,
+  Plus, Trash2, Copy, ArrowUp, ArrowDown, GripVertical, Video, Type,
   List as ListIcon, SquareCheck, Info, ChevronDown
 } from "lucide-react";
 import { Callout, ToggleBlock } from "./extensions";
