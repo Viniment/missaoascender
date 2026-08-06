@@ -138,7 +138,7 @@ function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string
 
 function TextBubbleMenu({ editor }: { editor: Editor }) {
   return (
-    <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+    <BubbleMenu editor={editor} updateDelay={100}>
       <div className="flex items-center gap-0.5 rounded-full border border-primary/40 bg-background/95 backdrop-blur-md px-1.5 py-1 shadow-2xl ring-1 ring-primary/20">
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
         <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
