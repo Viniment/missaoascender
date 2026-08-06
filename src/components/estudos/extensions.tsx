@@ -88,17 +88,6 @@ function ToggleView({ node, updateAttributes }: any) {
         </button>
         <div 
           className="flex-1 text-base font-bold text-foreground outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/50 tracking-tight"
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => updateAttributes({ titulo: e.currentTarget.innerText })}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              e.stopPropagation();
-              // Optionally move focus to content or just blur
-              (e.currentTarget as HTMLElement).blur();
-            }
-          }}
           data-placeholder="Título do bloco"
         >
           {node.attrs.titulo}
@@ -114,7 +103,8 @@ function ToggleView({ node, updateAttributes }: any) {
 export const ToggleBlock = Node.create({
   name: "toggleBlock",
   group: "block",
-  content: "block+",
+  content: "text*",
+  inline: false,
   defining: true,
   addAttributes() {
     return { 
