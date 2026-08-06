@@ -346,11 +346,11 @@ export default function NoteEditor({
 
   const notaCarregada = useRef<string>("");
   useEffect(() => {
-    if (!editor) return;
-    const chave = JSON.stringify(conteudo ?? "");
+    if (!editor || !conteudo) return;
+    const chave = JSON.stringify(conteudo);
     if (chave !== notaCarregada.current && !editor.isFocused) {
       notaCarregada.current = chave;
-      editor.commands.setContent(conteudo ?? "", { emitUpdate: false });
+      editor.commands.setContent(conteudo, { emitUpdate: false });
     }
   }, [conteudo, editor]);
 
