@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import { BubbleMenu, FloatingMenu } from "@tiptap/react";
+// Use the extensions instead of components if exports are missing from @tiptap/react
+import BubbleMenuExtension from "@tiptap/extension-bubble-menu";
+import FloatingMenuExtension from "@tiptap/extension-floating-menu";
+// We'll use the extension-based configuration in useEditor
+
 
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
