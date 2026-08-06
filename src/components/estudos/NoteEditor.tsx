@@ -292,7 +292,7 @@ export default function NoteEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary notion-block-editor pb-32",
+          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary pb-32",
       },
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
@@ -313,7 +313,7 @@ export default function NoteEditor({
   if (!editor) return null;
 
   return (
-    <div className="relative">
+    <div className="relative notion-editor-root">
       <Toolbar editor={editor} userId={userId} />
       
       {/* Notion-style Bubble Menu */}
