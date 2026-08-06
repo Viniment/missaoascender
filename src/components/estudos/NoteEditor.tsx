@@ -211,8 +211,7 @@ export default function NoteEditor({
     extensions: [
       StarterKit.configure({ 
         link: false, 
-        underline: false, 
-        history: { depth: 50 } 
+        underline: false,
       }),
       Underline,
       TextStyle,
