@@ -209,13 +209,23 @@ export default function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ link: false, underline: false }),
+      StarterKit.configure({ 
+        link: false, 
+        underline: false, 
+        history: { depth: 50 } 
+      }),
       Underline,
       TextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
-      Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { target: "_blank", rel: "noopener" } }),
-      Placeholder.configure({ placeholder: "Comece a escrever… use a barra acima para formatar." }),
+      Link.configure({ 
+        openOnClick: false, 
+        autolink: true, 
+        HTMLAttributes: { target: "_blank", rel: "noopener" } 
+      }),
+      Placeholder.configure({ 
+        placeholder: "Comece a escrever… use a barra acima para formatar." 
+      }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),
@@ -226,6 +236,20 @@ export default function NoteEditor({
       TableCell,
       Callout,
       ToggleBlock,
+      // Novas extensões para experiência Notion
+      require("@tiptap/extension-bubble-menu").BubbleMenu.configure({
+        // Placeholder for Bubble Menu component
+      }),
+      require("@tiptap/extension-floating-menu").FloatingMenu.configure({
+        // Placeholder for Floating Menu component
+      }),
+      require("@tiptap/extension-subscript").Subscript,
+      require("@tiptap/extension-superscript").Superscript,
+      require("@tiptap/extension-youtube").Youtube.configure({
+        HTMLAttributes: { class: "rounded-lg w-full aspect-video" }
+      }),
+      require("@tiptap/extension-typography").Typography,
+
     ],
     content: conteudo ?? "",
     editorProps: {
