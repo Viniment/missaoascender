@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-
-
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Highlight from "@tiptap/extension-highlight";
@@ -14,22 +12,18 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
-import Typography from "@tiptap/extension-typography";
-import Focus from "@tiptap/extension-focus";
-import Dropcursor from "@tiptap/extension-dropcursor";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Code2, Highlighter, Palette,
   Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Minus, Table as TableIcon,
   Link2, Image as ImageIcon, Paperclip, Smile, AtSign, CalendarDays, ChevronsUpDown, Lightbulb,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Eraser, Plus, Type,
+  AlignLeft, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Eraser,
 } from "lucide-react";
 import { Callout, ToggleBlock } from "./extensions";
 import { EMOJIS_EDITOR, uploadArquivo } from "@/lib/estudos";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import "./editor.css";
 
-/** Popover mínimo */
+/** Popover mínimo (o projeto não usa shadcn/ui). */
 function Pop({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -57,7 +51,7 @@ function Pop({ title, icon, children }: { title: string; icon: React.ReactNode; 
         {icon}
       </button>
       {open && (
-        <div className="absolute left-0 top-9 z-[60] rounded-xl border border-border bg-popover p-2 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute left-0 top-9 z-40 rounded-xl border border-border bg-popover p-2 shadow-xl">
           {children}
         </div>
       )}
@@ -115,7 +109,7 @@ function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
   };
 
   return (
-    <div className="sticky top-14 z-20 -mx-1 mb-3 rounded-xl border border-border/70 bg-background/95 backdrop-blur px-1.5 py-1.5 shadow-sm">
+    <div className="sticky top-14 z-20 -mx-1 mb-3 rounded-xl border border-border/70 bg-background/95 backdrop-blur px-1.5 py-1.5">
       <div className="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
         <Btn title="Desfazer" onClick={() => editor.chain().focus().undo().run()}><Undo2 className="w-4 h-4" /></Btn>
         <Btn title="Refazer" onClick={() => editor.chain().focus().redo().run()}><Redo2 className="w-4 h-4" /></Btn>
@@ -199,36 +193,6 @@ function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
   );
 }
 
-function FloatingMenuContent({ editor }: { editor: Editor }) {
-  const items = [
-    { label: "Texto", icon: <Type className="w-4 h-4" />, command: () => editor.chain().focus().setParagraph().run() },
-    { label: "Título 1", icon: <Heading1 className="w-4 h-4" />, command: () => editor.chain().focus().toggleHeading({ level: 1 }).run() },
-    { label: "Título 2", icon: <Heading2 className="w-4 h-4" />, command: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
-    { label: "Checklist", icon: <ListChecks className="w-4 h-4" />, command: () => editor.chain().focus().toggleTaskList().run() },
-    { label: "Lista", icon: <List className="w-4 h-4" />, command: () => editor.chain().focus().toggleBulletList().run() },
-    { label: "Tabela", icon: <TableIcon className="w-4 h-4" />, command: () => editor.chain().focus().insertTable({ rows: 2, cols: 2 }).run() },
-    { label: "Callout", icon: <Lightbulb className="w-4 h-4" />, command: () => (editor.chain().focus() as any).setCallout().run() },
-  ];
-
-  return (
-    <div className="floating-menu-wrapper">
-      <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Comandos Rápidos</div>
-      {items.map((it, i) => (
-        <button
-          key={i}
-          onClick={it.command}
-          className="flex items-center gap-3 px-3 py-1.5 text-sm rounded-md hover:bg-primary/10 transition text-left"
-        >
-          <div className="h-7 w-7 rounded bg-primary/5 flex items-center justify-center text-primary">
-            {it.icon}
-          </div>
-          <span>{it.label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function NoteEditor({
   userId, conteudo, onChange,
 }: {
@@ -245,30 +209,21 @@ export default function NoteEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        // starter-kit include Document, Paragraph, Text, Heading, BulletList, OrderedList, ListItem, Blockquote, etc.
-        heading: { levels: [1, 2, 3] },
-      }),
+      StarterKit.configure({ link: false, underline: false }),
       Underline,
       TextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { target: "_blank", rel: "noopener" } }),
-      Placeholder.configure({ 
-        placeholder: ({ node }) => {
-          if (node.type.name === 'heading') return `Título ${node.attrs.level}...`;
-          return "Escreva algo ou '/' para comandos...";
-        },
-      }),
+      Placeholder.configure({ placeholder: "Comece a escrever… use a barra acima para formatar." }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
-      TaskItem,
+      TaskItem.configure({ nested: true }),
       Image.configure({ HTMLAttributes: { class: "rounded-lg max-w-full" } }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
       TableCell,
-      Dropcursor.configure({ color: '#7b2ff7', width: 2 }),
       Callout,
       ToggleBlock,
     ],
@@ -276,7 +231,7 @@ export default function NoteEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[50vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary notion-editor",
+          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[50vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary",
       },
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
@@ -285,7 +240,6 @@ export default function NoteEditor({
   });
 
   const notaCarregada = useRef<string>("");
-  
   useEffect(() => {
     if (!editor) return;
     const chave = JSON.stringify(conteudo ?? "");
@@ -298,12 +252,9 @@ export default function NoteEditor({
   if (!editor) return null;
 
   return (
-    <div className="notion-editor-container">
+    <div>
       <Toolbar editor={editor} userId={userId} />
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
 }
-
-
-
