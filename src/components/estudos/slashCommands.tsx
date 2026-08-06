@@ -48,7 +48,12 @@ export const getSlashCommands = (editor: any, userId: string, imgInput: any) => 
           popup[0].setProps({ getReferenceClientRect: props.clientRect });
         },
         onKeyDown: (props: any) => {
-          if (props.event.key === "Escape") { popup[0].hide(); return true; }
+          if (props.event.key === "Escape") { 
+            popup[0].hide(); 
+            return true; 
+          }
+          // Se o menu estiver aberto, delegar para ele. 
+          // O SlashList retornará true se consumir a tecla (como Enter ou Setas).
           return component.ref?.onKeyDown(props);
         },
         onExit: () => { 

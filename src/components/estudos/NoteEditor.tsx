@@ -269,12 +269,7 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-          const { state } = view;
-          const { selection } = state;
-          const { $from } = selection;
-          if ($from.parent.type.name === 'taskItem') return false;
-        }
+        // Permitir que o Tiptap lide com o Enter normalmente
         return false;
       },
       attributes: {
