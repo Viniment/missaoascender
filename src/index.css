@@ -86,4 +86,3 @@
     @apply content-[attr(data-placeholder)] float-left text-muted-foreground/30 pointer-events-none h-0 font-medium;
   }
 }
-}
