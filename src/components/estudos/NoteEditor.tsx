@@ -337,7 +337,6 @@ export default function NoteEditor({
     },
     onSelectionUpdate: () => setTick((t) => t + 1),
     onTransaction: () => setTick((t) => t + 1),
-    injectCSS: false,
   });
 
   const notaCarregada = useRef<string>("");
