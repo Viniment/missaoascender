@@ -150,12 +150,22 @@ function TextBubbleMenu({ editor }: { editor: Editor }) {
           editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
         }}><Link2 className="w-4 h-4" /></Btn>
         <Sep />
-        <Pop title="Cor" icon={<Palette className="w-4 h-4" />}>
+        <Pop title="Cor do Texto" icon={<Palette className="w-4 h-4" />}>
           <div className="grid grid-cols-4 gap-1.5 p-1">
             {CORES_TEXTO.map((c) => (
               <button key={c} type="button" onClick={() => editor.chain().focus().setColor(c).run()}
                 className="h-6 w-6 rounded-md border border-white/10 hover:scale-110 transition" style={{ background: c }} />
             ))}
+            <button type="button" onClick={() => editor.chain().focus().unsetColor().run()} className="col-span-4 h-6 rounded-md border border-white/10 hover:bg-white/5 transition text-[10px] uppercase font-bold">Remover Cor</button>
+          </div>
+        </Pop>
+        <Pop title="Marca-texto" icon={<Highlighter className="w-4 h-4" />}>
+          <div className="grid grid-cols-4 gap-1.5 p-1">
+            {CORES_FUNDO.map((c) => (
+              <button key={c} type="button" onClick={() => editor.chain().focus().toggleHighlight({ color: c }).run()}
+                className="h-6 w-6 rounded-md border border-white/10 hover:scale-110 transition" style={{ background: c }} />
+            ))}
+            <button type="button" onClick={() => editor.chain().focus().unsetHighlight().run()} className="col-span-4 h-6 rounded-md border border-white/10 hover:bg-white/5 transition text-[10px] uppercase font-bold">Remover Marca-texto</button>
           </div>
         </Pop>
       </div>
