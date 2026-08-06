@@ -885,25 +885,25 @@ div[style*="Edit with Lovable"],
 
 @layer components {
   /* Isolated Notion-style editor styles */
-  .notion-editor-root .tiptap {
+  .notion-editor-root .tiptap, .notion-editor-root .ProseMirror {
     @apply outline-none min-h-[60vh] pb-60 bg-transparent;
   }
 
-  .notion-editor-root .tiptap > * {
+  .notion-editor-root .tiptap > *, .notion-editor-root .ProseMirror > * {
     @apply my-2 relative transition-all duration-200;
   }
 
-  .notion-editor-root .tiptap > *:hover::before {
+  .notion-editor-root .tiptap > *, .notion-editor-root .ProseMirror > *:hover::before {
     content: '⋮⋮';
     @apply absolute -left-10 top-1.5 flex h-7 w-7 cursor-grab items-center justify-center rounded-lg text-muted-foreground/30 hover:bg-primary/20 hover:text-primary transition-all font-bold text-lg select-none;
   }
 
-  .notion-editor-root .tiptap h1 { @apply text-4xl font-black mt-12 mb-6 tracking-tight text-foreground font-display; }
-  .notion-editor-root .tiptap h2 { @apply text-3xl font-extrabold mt-10 mb-5 tracking-tight text-foreground/90 font-display; }
-  .notion-editor-root .tiptap h3 { @apply text-2xl font-bold mt-8 mb-4 tracking-tight text-foreground/80 font-display; }
-  .notion-editor-root .tiptap p { @apply my-4 leading-relaxed text-foreground/80 text-lg; }
-  .notion-editor-root .tiptap ul { @apply list-disc pl-8 my-4 space-y-2; }
-  .notion-editor-root .tiptap ol { @apply list-decimal pl-8 my-4 space-y-2; }
+  .notion-editor-root .tiptap h1, .notion-editor-root .ProseMirror h1 { @apply text-4xl font-black mt-12 mb-6 tracking-tight text-foreground font-display; }
+  .notion-editor-root .tiptap h2, .notion-editor-root .ProseMirror h2 { @apply text-3xl font-extrabold mt-10 mb-5 tracking-tight text-foreground/90 font-display; }
+  .notion-editor-root .tiptap h3, .notion-editor-root .ProseMirror h3 { @apply text-2xl font-bold mt-8 mb-4 tracking-tight text-foreground/80 font-display; }
+  .notion-editor-root .tiptap p, .notion-editor-root .ProseMirror p { @apply my-4 leading-relaxed text-foreground/80 text-lg; }
+  .notion-editor-root .tiptap ul, .notion-editor-root .ProseMirror ul { @apply list-disc pl-8 my-4 space-y-2; }
+  .notion-editor-root .tiptap ol, .notion-editor-root .ProseMirror ol { @apply list-decimal pl-8 my-4 space-y-2; }
   .notion-editor-root .tiptap li p { @apply my-1 text-base; }
 
   .notion-editor-root .tiptap .has-focus {

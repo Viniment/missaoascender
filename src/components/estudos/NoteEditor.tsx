@@ -292,8 +292,19 @@ export default function NoteEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary pb-32",
+          "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary pb-32 tiptap",
       },
+      handleDOMEvents: {
+        keydown: (view, event) => {
+          if (event.key === 'Enter' && !event.shiftKey) {
+            if (view.state.selection.$from.parent.type.name === 'toggleBlock') {
+              // Custom logic if we want Enter to break out of a specific node
+              // but for now let's just ensure we don't block it.
+            }
+          }
+          return false;
+        }
+      }
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
     onSelectionUpdate: () => setTick((t) => t + 1),

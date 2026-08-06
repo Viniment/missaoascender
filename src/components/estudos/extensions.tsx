@@ -91,6 +91,14 @@ function ToggleView({ node, updateAttributes }: any) {
           contentEditable
           suppressContentEditableWarning
           onBlur={(e) => updateAttributes({ titulo: e.currentTarget.innerText })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              // Optionally move focus to content or just blur
+              (e.currentTarget as HTMLElement).blur();
+            }
+          }}
           data-placeholder="Título do bloco"
         >
           {node.attrs.titulo}
