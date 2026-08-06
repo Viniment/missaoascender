@@ -243,7 +243,6 @@ export default function NoteEditor({
     extensions: [
       StarterKit.configure({ 
         heading: { levels: [1, 2, 3, 4] },
-        // O StarterKit já inclui BulletList, OrderedList e ListItem
         bulletList: { HTMLAttributes: { class: 'list-disc ml-6 space-y-1' } },
         orderedList: { HTMLAttributes: { class: 'list-decimal ml-6 space-y-1' } },
         codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm my-4' } }
@@ -259,7 +258,7 @@ export default function NoteEditor({
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
       TaskList.configure({ 
-        HTMLAttributes: { class: 'notion-task-list my-2 list-none p-0' } 
+        HTMLAttributes: { class: 'notion-task-list my-2' } 
       }),
       TaskItem.configure({ 
         nested: true, 
@@ -276,6 +275,12 @@ export default function NoteEditor({
     editorProps: {
       attributes: {
         class: "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none notion-content-area"
+      },
+      handleKeyDown: (view, event) => {
+        if (event.key === 'Enter') {
+          console.log('[Editor Debug] Enter pressed');
+        }
+        return false;
       }
     },
     onUpdate: ({ editor: ed }) => {
