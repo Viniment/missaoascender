@@ -48,7 +48,15 @@ export const getSlashCommands = (editor: any, userId: string, imgInput: any) => 
           popup[0].setProps({ getReferenceClientRect: props.clientRect });
         },
         onKeyDown: (props: any) => {
-          if (props.event.key === "Escape") { popup[0].hide(); return true; }
+          if (props.event.key === "Escape") { 
+            popup[0].hide(); 
+            return true; 
+          }
+          
+          // Se o menu NÃO estiver visível por algum motivo, não interceptar
+          if (!popup[0].state.isVisible) return false;
+
+          // Delegar para o SlashList. Se retornar true, o evento é consumido (Enter, Setas).
           return component.ref?.onKeyDown(props);
         },
         onExit: () => { 
