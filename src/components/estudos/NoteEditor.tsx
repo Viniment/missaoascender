@@ -325,7 +325,7 @@ export default function NoteEditor({
       Callout,
       ToggleBlock,
     ],
-    content: conteudo ?? "",
+    content: conteudo || "",
     editorProps: {
       attributes: {
         class:
