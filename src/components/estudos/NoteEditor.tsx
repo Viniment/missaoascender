@@ -295,8 +295,6 @@ export default function NoteEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ 
-        link: false, 
-        underline: false,
         heading: { levels: [1, 2, 3] },
         codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm' } }
       }),
@@ -330,6 +328,28 @@ export default function NoteEditor({
       attributes: {
         class:
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:mx-auto notion-content-area",
+      },
+      handleKeyDown: (view, event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          const { state } = view;
+          const { selection } = state;
+          const { $from } = selection;
+
+          // Se estiver em uma lista (enumerada ou marcadores) ou checklist, 
+          // deixa o Tiptap lidar nativamente para criar o próximo item.
+          // O nó real da lista no StarterKit/Tiptap é 'listItem'
+          const parentType = $from.parent.type.name;
+          if (parentType === 'listItem' || parentType === 'taskItem') {
+            return false;
+          }
+
+          // Para parágrafos normais e outros blocos, força o splitBlock
+          if (editor) {
+            editor.commands.splitBlock();
+            return true;
+          }
+        }
+        return false;
       },
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
