@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -485,18 +486,18 @@ export default function Admin() {
   );
 }
 
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, icon, children, className }: { title: string; icon: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <div className="rpg-panel p-4 space-y-3">
+    <div className={cn("rpg-panel p-4 space-y-3", className)}>
       <p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1">{icon}{title}</p>
       <div className="grid grid-cols-2 gap-2">{children}</div>
     </div>
   );
 }
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+function Group({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="rpg-panel p-4 space-y-2">
+    <div className={cn("rpg-panel p-4 space-y-2", className)}>
       <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">{title}</p>
       <div className="grid grid-cols-2 gap-2">{children}</div>
     </div>
