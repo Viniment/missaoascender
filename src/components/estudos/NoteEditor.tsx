@@ -329,6 +329,26 @@ export default function NoteEditor({
         class:
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:mx-auto notion-content-area",
       },
+      handleKeyDown: (view, event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          const { state } = view;
+          const { selection } = state;
+          const { $from, empty } = selection;
+
+          // Se estiver em uma lista (enumerada ou marcadores) ou checklist, 
+          // deixa o Tiptap lidar nativamente para criar o próximo item.
+          const parentType = $from.parent.type.name;
+          if (parentType === 'listItem' || parentType === 'taskItem') {
+            return false;
+          }
+
+          // Para parágrafos normais e outros blocos, força o splitBlock
+          if (editor) {
+            return editor.commands.splitBlock();
+          }
+        }
+        return false;
+      },
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
     onSelectionUpdate: () => setTick((t) => t + 1),
