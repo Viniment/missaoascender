@@ -372,7 +372,19 @@ export default function NoteEditor({
       {/* Indicator for Notion-like interactivity */}
       <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-background/80 backdrop-blur-md px-4 py-2 border border-border/50 shadow-xl ring-1 ring-white/5">
         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Editor Premium Ativado</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground line-clamp-1 max-w-[200px]" title="Finalizei uma auditoria e reestruturação profunda do editor de estudos para eliminar a causa raiz dos conflitos com a tecla Enter e o cursor.
+
+Principais correções realizadas:
+
+Arquitetura de Blocos: Removi os elementos contentEditable manuais de dentro dos NodeViews (como no título do bloco recolhível), que estavam interceptando o foco e eventos do navegador de forma inconsistente.
+
+Integração Nativa: O ToggleBlock agora utiliza NodeViewContent de forma nativa, permitindo que o Tiptap gerencie o fluxo de digitação sem interceptações externas de keydown ou preventDefault().
+
+Simplificação de Eventos: Removi o handleDOMEvents do NoteEditor.tsx que tentava forçar o comportamento do Enter, deixando o ProseMirror lidar com a quebra de linha padrão, o que é muito mais estável.
+
+Schema Otimizado: Ajustei o esquema do ToggleBlock para aceitar conteúdo em linha, garantindo que o Enter saia do bloco e crie um novo parágrafo naturalmente, como esperado no Notion.
+
+O editor agora deve apresentar uma experiência de digitação fluida, com o Enter, Shift+Enter e listas funcionando de forma consistente em todo o documento.">Editor Premium Ativado</span>
       </div>
     </div>
   );
