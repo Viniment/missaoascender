@@ -1,44 +1,26 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { ChevronRight, Info, AlertTriangle, CheckCircle2, Flame, Pin, Brain, XCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 /* ---------------- Callout ---------------- */
 
-const EMOJI_MAP: Record<string, any> = {
-  "💡": Info,
-  "⚠️": AlertTriangle,
-  "✅": CheckCircle2,
-  "🔥": Flame,
-  "📌": Pin,
-  "🧠": Brain,
-  "❌": XCircle,
-};
-
 function CalloutView({ node, updateAttributes }: any) {
-  const emoji = node.attrs.emoji || "💡";
-  const Icon = EMOJI_MAP[emoji] || Info;
-
   return (
-    <NodeViewWrapper className="not-prose my-6 flex gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4 group relative shadow-sm transition-all hover:shadow-md hover:border-primary/30">
-      <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
-          contentEditable={false}
-          onClick={() => {
-            const lista = ["💡", "⚠️", "✅", "🔥", "📌", "🧠", "❌"];
-            const i = lista.indexOf(emoji);
-            updateAttributes({ emoji: lista[(i + 1) % lista.length] });
-          }}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-inner"
-          title="Trocar ícone"
-        >
-          <span className="text-xl leading-none select-none">{emoji}</span>
-        </button>
-      </div>
-      <div className="flex-1 min-w-0 pt-1">
-        <NodeViewContent className="text-sm leading-relaxed text-foreground/90 outline-none" />
-      </div>
+    <NodeViewWrapper className="not-prose my-3 flex gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+      <button
+        type="button"
+        contentEditable={false}
+        onClick={() => {
+          const lista = ["💡", "⚠️", "✅", "🔥", "📌", "🧠", "❌"];
+          const i = lista.indexOf(node.attrs.emoji);
+          updateAttributes({ emoji: lista[(i + 1) % lista.length] });
+        }}
+        className="text-lg leading-none select-none"
+        title="Trocar ícone"
+      >
+        {node.attrs.emoji}
+      </button>
+      <NodeViewContent className="flex-1 min-w-0 text-sm" />
     </NodeViewWrapper>
   );
 }
@@ -75,26 +57,26 @@ export const Callout = Node.create({
 function ToggleView({ node, updateAttributes }: any) {
   const open = node.attrs.open;
   return (
-    <NodeViewWrapper className="not-prose my-4 rounded-2xl border border-border/40 bg-card/30 group relative overflow-hidden transition-all hover:border-border/60">
-      <div className={cn("flex items-center gap-3 px-4 py-3 border-b border-border/10 bg-background/40 transition-colors", open && "bg-background/60")}>
+    <NodeViewWrapper className="not-prose my-3 rounded-xl border border-border/70 bg-card/40">
+      <div className="flex items-center gap-2 px-3 py-2">
         <button
           type="button"
           contentEditable={false}
           onClick={() => updateAttributes({ open: !open })}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-primary/15 hover:text-primary transition-all flex-shrink-0 shadow-sm"
+          className="text-muted-foreground hover:text-primary transition"
           title={open ? "Recolher" : "Expandir"}
         >
-          <ChevronRight className={cn("w-5 h-5 transition-transform duration-300", open ? "rotate-90" : "")} />
+          <ChevronRight className={`w-4 h-4 transition-transform ${open ? "rotate-90" : ""}`} />
         </button>
-        <div className="flex-1 text-base font-bold text-foreground tracking-tight outline-none">
-          <NodeViewContent />
-        </div>
+        <input
+          contentEditable={false}
+          value={node.attrs.titulo}
+          onChange={(e) => updateAttributes({ titulo: e.target.value })}
+          placeholder="Título do bloco"
+          className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-muted-foreground"
+        />
       </div>
-      {open && (
-        <div className="py-4 px-4 pl-12 text-sm leading-relaxed text-foreground/80 outline-none border-t border-border/5">
-          <NodeViewContent className="toggle-content" />
-        </div>
-      )}
+      <NodeViewContent className={`px-3 pb-3 pl-9 text-sm ${open ? "" : "hidden"}`} />
     </NodeViewWrapper>
   );
 }
@@ -105,9 +87,7 @@ export const ToggleBlock = Node.create({
   content: "block+",
   defining: true,
   addAttributes() {
-    return { 
-      open: { default: true } 
-    };
+    return { titulo: { default: "Bloco recolhível" }, open: { default: true } };
   },
   parseHTML() {
     return [{ tag: 'div[data-type="toggle-block"]' }];
@@ -123,7 +103,7 @@ export const ToggleBlock = Node.create({
       setToggleBlock:
         () =>
         ({ commands }: any) =>
-          commands.setNode(this.name),
+          commands.wrapIn(this.name),
     } as any;
   },
 });
