@@ -319,7 +319,7 @@ export default function NoteEditor({
       {/* Notion-style Bubble Menu */}
       <BubbleMenu 
         editor={editor} 
-        tippyOptions={{ duration: 100 }}
+        {...({ tippyOptions: { duration: 100 } } as any)}
         className="flex items-center gap-0.5 rounded-xl border border-border/50 bg-background/90 backdrop-blur-xl p-1 shadow-2xl ring-1 ring-white/5 overflow-hidden"
       >
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-3.5 h-3.5" /></Btn>
