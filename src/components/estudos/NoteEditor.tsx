@@ -257,7 +257,7 @@ export default function NoteEditor({
       }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
-      TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2' } }),
+      TaskList.configure({ HTMLAttributes: { class: 'notion-task-list my-2 list-none p-0' } }),
       TaskItem.configure({ nested: true, HTMLAttributes: { class: 'flex items-start gap-2 my-1' } }),
       Image.configure({ HTMLAttributes: { class: "rounded-2xl max-w-full shadow-2xl my-6 mx-auto border border-white/10" } }),
       Table.configure({ resizable: true, HTMLAttributes: { class: 'notion-table my-4' } }),
@@ -269,28 +269,24 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        const { state } = view;
-        const { selection } = state;
-        const { $from } = selection;
-
-        if (event.key === 'Enter') {
-          console.log("DEBUG_ENTER_EVENT", {
-            key: event.key,
-            shift: event.shiftKey,
-            defaultPrevented: event.defaultPrevented,
-            nodeType: $from.parent.type.name
-          });
-
-          if (!event.shiftKey) {
-            // Interceptamos e aplicamos o split manual para forçar a criação do novo bloco
-            // Isso ignora qualquer interceptação externa ou erro de propagação do Tiptap
-            view.dispatch(state.tr.split($from.pos));
-            event.preventDefault();
-            event.stopPropagation(); // Garantir que não chegue em formulários pais
+        // Permitir que o Tiptap lide com o Enter nativamente para listas e tarefas
+        if (event.key === 'Enter' && !event.shiftKey) {
+          return false; // Retornar false permite que o Tiptap processe o evento
+        }
+        
+        // Tab e Shift+Tab para indentação (padrão Tiptap deve lidar se as extensões estiverem certas, 
+        // mas as vezes precisa de um empurrão se houver conflitos)
+        if (event.key === 'Tab') {
+          if (editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList')) {
+            if (event.shiftKey) {
+              editor.commands.liftListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
+            } else {
+              editor.commands.sinkListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
+            }
             return true;
           }
         }
-        
+
         return false;
       },
       attributes: {
