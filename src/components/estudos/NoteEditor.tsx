@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import { EditorContent, useEditor, BubbleMenu, FloatingMenu, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -15,8 +15,6 @@ import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table
 import Typography from "@tiptap/extension-typography";
 import Focus from "@tiptap/extension-focus";
 import Dropcursor from "@tiptap/extension-dropcursor";
-import BubbleMenu from "@tiptap/extension-bubble-menu";
-import FloatingMenu from "@tiptap/extension-floating-menu";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Code2, Highlighter, Palette,
   Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Minus, Table as TableIcon,
@@ -243,9 +241,6 @@ export default function NoteEditor({
     [onChange],
   );
 
-  const bubbleMenuRef = useRef<HTMLDivElement>(null);
-  const floatingMenuRef = useRef<HTMLDivElement>(null);
-
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ 
@@ -277,14 +272,6 @@ export default function NoteEditor({
       Dropcursor.configure({ color: '#7b2ff7', width: 2 }),
       Callout,
       ToggleBlock,
-      BubbleMenu.configure({
-        element: bubbleMenuRef.current as HTMLElement,
-        tippyOptions: { duration: 100 },
-      }),
-      FloatingMenu.configure({
-        element: floatingMenuRef.current as HTMLElement,
-        tippyOptions: { duration: 100 },
-      }),
     ],
     content: conteudo ?? "",
     editorProps: {
@@ -314,7 +301,7 @@ export default function NoteEditor({
     <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
       
-      <div ref={bubbleMenuRef} className="bubble-menu-container">
+      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
         <div className="bubble-menu-wrapper">
           <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
           <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
@@ -327,11 +314,11 @@ export default function NoteEditor({
           }}><Link2 className="w-4 h-4" /></Btn>
           <Btn title="Limpar" onClick={() => editor.chain().focus().unsetAllMarks().run()}><Eraser className="w-4 h-4" /></Btn>
         </div>
-      </div>
+      </BubbleMenu>
 
-      <div ref={floatingMenuRef} className="floating-menu-container">
+      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
         <FloatingMenuContent editor={editor} />
-      </div>
+      </FloatingMenu>
 
       <EditorContent editor={editor} className="notion-editor" />
     </div>
