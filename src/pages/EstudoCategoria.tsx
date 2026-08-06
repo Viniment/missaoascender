@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -32,6 +32,7 @@ export default function EstudoCategoria() {
   const [editarCat, setEditarCat] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const [salvando, setSalvando] = useState<"idle" | "salvando" | "salvo">("idle");
+  console.log("[Editor Debug] EstudoCategoria Rendering...");
   const [historico, setHistorico] = useState<{ em: string; titulo: string }[]>([]);
   const [verHistorico, setVerHistorico] = useState(false);
 
@@ -63,7 +64,8 @@ export default function EstudoCategoria() {
 
   // ----- rascunho local + autosave -----
   const [titulo, setTitulo] = useState("");
-  const [conteudo, setConteudo] = useState<any>(null);
+  // const [conteudo, setConteudo] = useState<any>(null); // REMOVIDO: Causa re-render no editor
+
   const htmlRef = useRef("");
   const textoRef = useRef("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -71,7 +73,7 @@ export default function EstudoCategoria() {
   useEffect(() => {
     if (!notaAberta) return;
     setTitulo(notaAberta.titulo);
-    setConteudo(notaAberta.conteudo);
+    // setConteudo(notaAberta.conteudo); // REMOVIDO: Sincronização via key={notaAberta.id}
     setSalvando("idle");
     setHistorico([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -262,13 +264,14 @@ export default function EstudoCategoria() {
             )}
 
             <NoteEditor
+              key={notaAberta.id}
               userId={user.id}
-              conteudo={conteudo}
-              onChange={({ json, html, texto }) => {
+              conteudo={notaAberta.conteudo}
+              onChange={useCallback(({ json, html, texto }) => {
                 htmlRef.current = html;
                 textoRef.current = texto;
                 agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
-              }}
+              }, [notaAberta.id])}
             />
           </section>
         ) : (
