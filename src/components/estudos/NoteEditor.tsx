@@ -277,19 +277,22 @@ export default function NoteEditor({
           console.log("DEBUG_ENTER_EVENT", {
             key: event.key,
             shift: event.shiftKey,
-            defaultPrevented: event.defaultPrevented
+            defaultPrevented: event.defaultPrevented,
+            nodeType: $from.parent.type.name
           });
 
           if (!event.shiftKey) {
-            // Tentar aplicar o split manual e retornar true para indicar que processamos o evento
+            // Se estiver em um bloco que NÃO deve quebrar com split nativo, podemos tratar aqui.
+            // Mas para o parágrafo padrão, vamos garantir que o comando execute.
+            const { tr } = state;
             try {
-              const tr = state.tr.split($from.pos);
-              view.dispatch(tr);
-              console.log("DEBUG_ENTER: split manual aplicado");
+              // Simular o comportamento do Enter padrão (splitBlock)
+              const newTr = tr.split($from.pos);
+              view.dispatch(newTr);
               event.preventDefault();
               return true;
             } catch (e) {
-              console.error("DEBUG_ENTER: erro no split manual", e);
+              console.error("DEBUG_ENTER: Falha ao aplicar split manual", e);
             }
           }
         }
