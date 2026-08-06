@@ -271,7 +271,7 @@ export default function EstudoCategoria() {
                 htmlRef.current = html;
                 textoRef.current = texto;
                 agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
-              }, [notaAberta.id])}
+              }, [notaAberta.id, agendarSalvar])}
             />
           </section>
         ) : (
