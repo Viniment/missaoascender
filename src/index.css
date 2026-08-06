@@ -893,7 +893,8 @@ div[style*="Edit with Lovable"],
     @apply my-2 relative transition-all duration-200;
   }
 
-  .notion-editor-root .tiptap > *, .notion-editor-root .ProseMirror > *:hover::before {
+  .notion-editor-root .tiptap > *:hover::before,
+  .notion-editor-root .ProseMirror > *:hover::before {
     content: '⋮⋮';
     @apply absolute -left-10 top-1.5 flex h-7 w-7 cursor-grab items-center justify-center rounded-lg text-muted-foreground/30 hover:bg-primary/20 hover:text-primary transition-all font-bold text-lg select-none;
   }
