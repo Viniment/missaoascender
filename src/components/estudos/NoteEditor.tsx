@@ -272,20 +272,27 @@ export default function NoteEditor({
     content: conteudo || "",
     editorProps: {
       handleKeyDown: (view, event) => {
-        // Permitir que o Tiptap lide com o Enter nativamente para listas e tarefas
-        if (event.key === 'Enter' && !event.shiftKey) {
-          return false; // Retornar false permite que o Tiptap processe o evento
+        // Deixar o Tiptap lidar com Enter nativamente para listas e tarefas
+        if (event.key === 'Enter') {
+          return false;
         }
         
-        // Tab e Shift+Tab para indentação (padrão Tiptap deve lidar se as extensões estiverem certas, 
-        // mas as vezes precisa de um empurrão se houver conflitos)
+        // Tab e Shift+Tab para indentação
         if (event.key === 'Tab') {
-          if (editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList')) {
+          const { state } = view;
+          const { selection } = state;
+          const { $from } = selection;
+          
+          // Verifica se estamos dentro de uma lista (bullet, ordered ou task)
+          const isInsideList = editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList');
+          
+          if (isInsideList) {
             if (event.shiftKey) {
               editor.commands.liftListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
             } else {
               editor.commands.sinkListItem(editor.isActive('taskList') ? 'taskItem' : 'listItem');
             }
+            event.preventDefault();
             return true;
           }
         }
