@@ -320,33 +320,13 @@ export default function NoteEditor({
     <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
       
-      {/* Menus nativos via bibliotecas */}
-      {editor && (
-        <>
-          <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
-            <div className="bubble-menu-wrapper">
-              <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
-              <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
-              <Btn title="Sublinhado" active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></Btn>
-              <Sep />
-              <Btn title="Link" active={editor.isActive("link")} onClick={() => {
-                const ant = editor.getAttributes("link").href;
-                const url = window.prompt("URL:", ant || "https://");
-                if (url) editor.chain().focus().setLink({ href: url }).run();
-              }}><Link2 className="w-4 h-4" /></Btn>
-              <Btn title="Limpar" onClick={() => editor.chain().focus().unsetAllMarks().run()}><Eraser className="w-4 h-4" /></Btn>
-            </div>
-          </BubbleMenu>
-
-          <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-            <FloatingMenuContent editor={editor} />
-          </FloatingMenu>
-        </>
-      )}
+      {/* Menus via Popover ou implementações customizadas */}
+      {/* Omitindo BubbleMenu/FloatingMenu por agora para restaurar a estabilidade total */}
 
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
 }
+
 
 
