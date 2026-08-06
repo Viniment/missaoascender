@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import BubbleMenu from "@tiptap/extension-bubble-menu";
-import FloatingMenu from "@tiptap/extension-floating-menu";
+import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -95,7 +94,7 @@ function Pop({ title, icon, children }: { title: string; icon: React.ReactNode; 
 }
 
 /** FloatingMenu (Aparece em linhas vazias) */
-function FloatingEditorMenu({ editor, userId }: { editor: any; userId: string }) {
+function FloatingEditorMenu({ editor, userId }: { editor: Editor; userId: string }) {
   const imgInput = useRef<HTMLInputElement>(null);
 
   const subirImagem = async (file: File) => {
@@ -108,7 +107,11 @@ function FloatingEditorMenu({ editor, userId }: { editor: any; userId: string })
   };
 
   return (
-    <div className="tiptap-floating-wrapper">
+    <FloatingMenu editor={editor} updateDelay={100} shouldShow={({ state }) => {
+      const { selection } = state;
+      const { $from, empty } = selection;
+      return empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
+    }}>
       <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/95 backdrop-blur-md p-1 shadow-lg border-primary/20 ring-1 ring-primary/10">
         <Btn title="Título 1" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}><Heading1 className="w-4 h-4" /></Btn>
         <Btn title="Título 2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}><Heading2 className="w-4 h-4" /></Btn>
@@ -122,14 +125,14 @@ function FloatingEditorMenu({ editor, userId }: { editor: any; userId: string })
         <input ref={imgInput} type="file" accept="image/*,image/gif" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) subirImagem(f); e.target.value = ""; }} />
       </div>
-    </div>
+    </FloatingMenu>
   );
 }
 
 /** BubbleMenu (Aparece ao selecionar texto) */
-function TextBubbleMenu({ editor }: { editor: any }) {
+function TextBubbleMenu({ editor }: { editor: Editor }) {
   return (
-    <div className="tiptap-bubble-wrapper">
+    <BubbleMenu editor={editor} updateDelay={100}>
       <div className="flex items-center gap-0.5 rounded-full border border-border/70 bg-background/95 backdrop-blur-md px-1.5 py-1 shadow-2xl border-primary/30 ring-1 ring-primary/20">
         <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
         <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
@@ -162,12 +165,12 @@ function TextBubbleMenu({ editor }: { editor: any }) {
           </div>
         </Pop>
       </div>
-    </div>
+    </BubbleMenu>
   );
 }
 
 /** Toolbar Principal Refinada */
-function Toolbar({ editor, userId }: { editor: any; userId: string }) {
+function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
   const imgInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -285,7 +288,7 @@ export default function NoteEditor({
   const [, setTick] = useState(0);
 
   const emitir = useCallback(
-    (ed: any) => onChange({ json: ed.getJSON(), html: ed.getHTML(), texto: ed.getText() }),
+    (ed: Editor) => onChange({ json: ed.getJSON(), html: ed.getHTML(), texto: ed.getText() }),
     [onChange],
   );
 
@@ -321,17 +324,6 @@ export default function NoteEditor({
       TableCell,
       Callout,
       ToggleBlock,
-      BubbleMenu.configure({
-        element: document.querySelector('.tiptap-bubble-wrapper') as HTMLElement,
-      }),
-      FloatingMenu.configure({
-        element: document.querySelector('.tiptap-floating-wrapper') as HTMLElement,
-        shouldShow: ({ state }) => {
-          const { selection } = state;
-          const { $from, empty } = selection;
-          return empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
-        },
-      }),
     ],
     content: conteudo ?? "",
     editorProps: {
@@ -340,7 +332,7 @@ export default function NoteEditor({
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:mx-auto notion-content-area",
       },
     },
-    onUpdate: ({ editor: ed }) => emitir(ed),
+    onUpdate: ({ editor: ed }) => emitir(ed as Editor),
     onSelectionUpdate: () => setTick((t) => t + 1),
     onTransaction: () => setTick((t) => t + 1),
   });
