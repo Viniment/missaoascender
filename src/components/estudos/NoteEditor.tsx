@@ -333,10 +333,11 @@ export default function NoteEditor({
         if (event.key === "Enter" && !event.shiftKey) {
           const { state } = view;
           const { selection } = state;
-          const { $from, empty } = selection;
+          const { $from } = selection;
 
           // Se estiver em uma lista (enumerada ou marcadores) ou checklist, 
           // deixa o Tiptap lidar nativamente para criar o próximo item.
+          // O nó real da lista no StarterKit/Tiptap é 'listItem'
           const parentType = $from.parent.type.name;
           if (parentType === 'listItem' || parentType === 'taskItem') {
             return false;
@@ -344,7 +345,8 @@ export default function NoteEditor({
 
           // Para parágrafos normais e outros blocos, força o splitBlock
           if (editor) {
-            return editor.commands.splitBlock();
+            editor.commands.splitBlock();
+            return true;
           }
         }
         return false;
