@@ -296,11 +296,19 @@ export default function NoteEditor({
       },
       handleDOMEvents: {
         keydown: (view, event) => {
+          // If Enter is pressed and it's not a Shift+Enter (which is handled by hardBreak)
           if (event.key === 'Enter' && !event.shiftKey) {
-            if (view.state.selection.$from.parent.type.name === 'toggleBlock') {
-              // Custom logic if we want Enter to break out of a specific node
-              // but for now let's just ensure we don't block it.
-            }
+            const { state, dispatch } = view;
+            const { selection } = state;
+            const { $from } = selection;
+
+            // Check if we are inside a node that might be capturing events
+            // but normally Tiptap extensions handle their own Enter keys.
+            // If the cursor is inside our custom NodeViews (like ToggleBlock title),
+            // those native contentEditable divs might need careful handling.
+            
+            // For general stability, we return false to let Tiptap/ProseMirror handle it.
+            return false;
           }
           return false;
         }
