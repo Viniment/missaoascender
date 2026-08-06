@@ -328,6 +328,7 @@ export default function NoteEditor({
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-primary/40" />{stats.characters()} Caracteres</span>
           <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-primary/40" />{stats.words()} Palavras</span>
+          <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-primary/40" />{stats.lines() || stats.paragraphs()} Blocos</span>
           <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-cyan-400/40" />{Math.ceil(stats.words() / 200)} min de leitura</span>
         </div>
         <div className="flex items-center gap-2 text-primary/60">
