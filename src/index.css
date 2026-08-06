@@ -5,7 +5,7 @@
 @layer components {
   .notion-editor-wrapper .tiptap,
   .notion-block-editor {
-    @apply outline-none min-h-[60vh] pb-60;
+    @apply outline-none min-h-[60vh] pb-60 bg-transparent;
   }
 
   /* Block-level styles */
