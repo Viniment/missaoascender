@@ -306,14 +306,14 @@ export default function NoteEditor({
 
   const lastContent = useRef("");
   useEffect(() => {
-    if (!editor || !conteudo) return;
+    if (!editor || !conteudo || editor.isFocused) return;
     const current = JSON.stringify(conteudo);
-    if (current !== lastContent.current && !editor.isFocused) {
+    if (current !== lastContent.current) {
       console.log("[Editor Debug] Syncing content from prop...");
       lastContent.current = current;
       editor.commands.setContent(conteudo, { emitUpdate: false });
     }
-  }, [conteudo, editor]);
+  }, [conteudo, editor]); // editor é estável, conteudo muda apenas externamente
 
   if (!editor) return null;
 
