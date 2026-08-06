@@ -32,6 +32,7 @@ export default function EstudoCategoria() {
   const [editarCat, setEditarCat] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   const [salvando, setSalvando] = useState<"idle" | "salvando" | "salvo">("idle");
+  console.log("[Editor Debug] EstudoCategoria Rendering...");
   const [historico, setHistorico] = useState<{ em: string; titulo: string }[]>([]);
   const [verHistorico, setVerHistorico] = useState(false);
 
@@ -262,13 +263,14 @@ export default function EstudoCategoria() {
             )}
 
             <NoteEditor
+              key={notaAberta.id}
               userId={user.id}
-              conteudo={conteudo}
-              onChange={({ json, html, texto }) => {
+              conteudo={notaAberta.conteudo}
+              onChange={useCallback(({ json, html, texto }) => {
                 htmlRef.current = html;
                 textoRef.current = texto;
                 agendarSalvar({ conteudo: json, conteudo_texto: texto } as any);
-              }}
+              }, [notaAberta.id])}
             />
           </section>
         ) : (

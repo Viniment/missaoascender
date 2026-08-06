@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
@@ -239,49 +239,47 @@ export default function NoteEditor({
 }) {
   const imgInput = useRef<HTMLInputElement>(null);
   
+  console.log("[Editor Debug] NoteEditor Rendering...");
+
+  const extensions = useMemo(() => [
+    StarterKit.configure({ 
+      heading: { levels: [1, 2, 3, 4] },
+      bulletList: { HTMLAttributes: { class: 'list-disc ml-6 space-y-1' } },
+      orderedList: { HTMLAttributes: { class: 'list-decimal ml-6 space-y-1' } },
+      codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm my-4' } }
+    }),
+    Underline, TextStyle, Color, Typography, Subscript, Superscript,
+    Highlight.configure({ multicolor: true }),
+    Link.configure({ 
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-colors cursor-pointer',
+      },
+    }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
+    TaskList.configure({ 
+      HTMLAttributes: { class: 'notion-task-list my-2' } 
+    }),
+    TaskItem.configure({ 
+      nested: true, 
+      HTMLAttributes: { class: 'flex items-start gap-2 my-1' },
+    }),
+    Image.configure({ HTMLAttributes: { class: "rounded-2xl max-w-full shadow-2xl my-6 mx-auto border border-white/10" } }),
+    Table.configure({ resizable: true, HTMLAttributes: { class: 'notion-table my-4' } }),
+    TableRow, TableCell, TableHeader,
+    Callout, ToggleBlock,
+    CharacterCount,
+    SlashExtension.configure({ suggestion: getSlashCommands(null, userId, imgInput).suggestion }),
+  ], [userId]);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ 
-        heading: { levels: [1, 2, 3, 4] },
-        bulletList: { HTMLAttributes: { class: 'list-disc ml-6 space-y-1' } },
-        orderedList: { HTMLAttributes: { class: 'list-decimal ml-6 space-y-1' } },
-        codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm my-4' } }
-      }),
-      Underline, TextStyle, Color, Typography, Subscript, Superscript,
-      Highlight.configure({ multicolor: true }),
-      Link.configure({ 
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-colors cursor-pointer',
-        },
-      }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Placeholder.configure({ placeholder: "Digite '/' para comandos ou comece a escrever..." }),
-      TaskList.configure({ 
-        HTMLAttributes: { class: 'notion-task-list my-2' } 
-      }),
-      TaskItem.configure({ 
-        nested: true, 
-        HTMLAttributes: { class: 'flex items-start gap-2 my-1' },
-      }),
-      Image.configure({ HTMLAttributes: { class: "rounded-2xl max-w-full shadow-2xl my-6 mx-auto border border-white/10" } }),
-      Table.configure({ resizable: true, HTMLAttributes: { class: 'notion-table my-4' } }),
-      TableRow, TableCell, TableHeader,
-      Callout, ToggleBlock,
-      CharacterCount,
-      SlashExtension.configure({ suggestion: getSlashCommands(null, userId, imgInput).suggestion }),
-    ],
+    extensions,
     content: conteudo || "",
     editorProps: {
       attributes: {
         class: "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none notion-content-area"
       },
-      handleKeyDown: (view, event) => {
-        if (event.key === 'Enter') {
-          console.log('[Editor Debug] Enter pressed');
-        }
-        return false;
-      }
     },
     onUpdate: ({ editor: ed }) => {
       onChange({ json: ed.getJSON(), html: ed.getHTML(), texto: ed.getText() });
