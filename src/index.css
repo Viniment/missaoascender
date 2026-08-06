@@ -885,25 +885,26 @@ div[style*="Edit with Lovable"],
 
 @layer components {
   /* Isolated Notion-style editor styles */
-  .notion-editor-root .tiptap {
+  .notion-editor-root .tiptap, .notion-editor-root .ProseMirror {
     @apply outline-none min-h-[60vh] pb-60 bg-transparent;
   }
 
-  .notion-editor-root .tiptap > * {
+  .notion-editor-root .tiptap > *, .notion-editor-root .ProseMirror > * {
     @apply my-2 relative transition-all duration-200;
   }
 
-  .notion-editor-root .tiptap > *:hover::before {
+  .notion-editor-root .tiptap > *:hover::before,
+  .notion-editor-root .ProseMirror > *:hover::before {
     content: '⋮⋮';
     @apply absolute -left-10 top-1.5 flex h-7 w-7 cursor-grab items-center justify-center rounded-lg text-muted-foreground/30 hover:bg-primary/20 hover:text-primary transition-all font-bold text-lg select-none;
   }
 
-  .notion-editor-root .tiptap h1 { @apply text-4xl font-black mt-12 mb-6 tracking-tight text-foreground font-display; }
-  .notion-editor-root .tiptap h2 { @apply text-3xl font-extrabold mt-10 mb-5 tracking-tight text-foreground/90 font-display; }
-  .notion-editor-root .tiptap h3 { @apply text-2xl font-bold mt-8 mb-4 tracking-tight text-foreground/80 font-display; }
-  .notion-editor-root .tiptap p { @apply my-4 leading-relaxed text-foreground/80 text-lg; }
-  .notion-editor-root .tiptap ul { @apply list-disc pl-8 my-4 space-y-2; }
-  .notion-editor-root .tiptap ol { @apply list-decimal pl-8 my-4 space-y-2; }
+  .notion-editor-root .tiptap h1, .notion-editor-root .ProseMirror h1 { @apply text-4xl font-black mt-12 mb-6 tracking-tight text-foreground font-display; }
+  .notion-editor-root .tiptap h2, .notion-editor-root .ProseMirror h2 { @apply text-3xl font-extrabold mt-10 mb-5 tracking-tight text-foreground/90 font-display; }
+  .notion-editor-root .tiptap h3, .notion-editor-root .ProseMirror h3 { @apply text-2xl font-bold mt-8 mb-4 tracking-tight text-foreground/80 font-display; }
+  .notion-editor-root .tiptap p, .notion-editor-root .ProseMirror p { @apply my-4 leading-relaxed text-foreground/80 text-lg; }
+  .notion-editor-root .tiptap ul, .notion-editor-root .ProseMirror ul { @apply list-disc pl-8 my-4 space-y-2; }
+  .notion-editor-root .tiptap ol, .notion-editor-root .ProseMirror ol { @apply list-decimal pl-8 my-4 space-y-2; }
   .notion-editor-root .tiptap li p { @apply my-1 text-base; }
 
   .notion-editor-root .tiptap .has-focus {
@@ -927,43 +928,43 @@ div[style*="Edit with Lovable"],
     @apply z-10 content-[''] absolute inset-0 bg-primary/10 pointer-events-none;
   }
 
-  .notion-editor-root .tiptap blockquote {
+  .notion-editor-root .tiptap blockquote, .notion-editor-root .ProseMirror blockquote {
     @apply pl-6 border-l-4 border-primary/40 italic my-8 text-foreground/70 bg-primary/[0.03] py-6 rounded-r-2xl text-xl font-medium leading-relaxed shadow-sm;
   }
 
-  .notion-editor-root .tiptap hr {
+  .notion-editor-root .tiptap hr, .notion-editor-root .ProseMirror hr {
     @apply border-t-2 border-border/20 my-12 opacity-50;
   }
 
-  .notion-editor-root .tiptap .task-list {
+  .notion-editor-root .tiptap .task-list, .notion-editor-root .ProseMirror .task-list {
     @apply list-none pl-0 my-6 space-y-3;
   }
 
-  .notion-editor-root .tiptap .task-list li {
+  .notion-editor-root .tiptap .task-list li, .notion-editor-root .ProseMirror .task-list li {
     @apply flex items-start gap-4 p-2 rounded-xl transition-colors hover:bg-white/[0.02];
   }
 
-  .notion-editor-root .tiptap .task-list li > label {
+  .notion-editor-root .tiptap .task-list li > label, .notion-editor-root .ProseMirror .task-list li > label {
     @apply flex-shrink-0 mt-1.5 select-none cursor-pointer scale-125;
   }
 
-  .notion-editor-root .tiptap .task-list li > div {
+  .notion-editor-root .tiptap .task-list li > div, .notion-editor-root .ProseMirror .task-list li > div {
     @apply flex-1 min-w-0 text-lg;
   }
 
-  .notion-editor-root .tiptap .task-list li[data-checked="true"] > div {
+  .notion-editor-root .tiptap .task-list li[data-checked="true"] > div, .notion-editor-root .ProseMirror .task-list li[data-checked="true"] > div {
     @apply text-muted-foreground/50 line-through;
   }
 
-  .notion-editor-root .tiptap pre {
+  .notion-editor-root .tiptap pre, .notion-editor-root .ProseMirror pre {
     @apply bg-slate-950/90 rounded-2xl p-6 my-8 font-mono text-sm border border-white/5 overflow-x-auto shadow-2xl ring-1 ring-white/10;
   }
 
-  .notion-editor-root .tiptap code {
+  .notion-editor-root .tiptap code, .notion-editor-root .ProseMirror code {
     @apply bg-primary/20 text-primary px-2 py-0.5 rounded-lg text-[0.85em] font-mono font-bold shadow-sm;
   }
 
-  .notion-editor-root .tiptap p.is-editor-empty:first-child::before {
+  .notion-editor-root .tiptap p.is-editor-empty:first-child::before, .notion-editor-root .ProseMirror p.is-editor-empty:first-child::before {
     @apply content-[attr(data-placeholder)] float-left text-muted-foreground/30 pointer-events-none h-0 font-medium;
   }
 }
