@@ -302,24 +302,7 @@ export default function NoteEditor({
     <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
       
-      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
-        <div className="bubble-menu-wrapper">
-          <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
-          <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
-          <Btn title="Sublinhado" active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></Btn>
-          <Sep />
-          <Btn title="Link" active={editor.isActive("link")} onClick={() => {
-            const anterior = editor.getAttributes("link").href;
-            const url = window.prompt("URL", anterior);
-            if (url) editor.chain().focus().setLink({ href: url }).run();
-          }}><Link2 className="w-4 h-4" /></Btn>
-        </div>
-      </BubbleMenu>
-
-      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
-        <FloatingMenuContent editor={editor} />
-      </FloatingMenu>
-
+      {/* Omitindo menus flutuantes temporariamente para garantir estabilidade core */}
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
