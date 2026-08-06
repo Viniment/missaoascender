@@ -295,8 +295,7 @@ export default function NoteEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ 
-        link: false, 
-        underline: false,
+        history: true,
         heading: { levels: [1, 2, 3] },
         codeBlock: { HTMLAttributes: { class: 'rounded-xl bg-muted/50 p-4 border border-white/5 font-mono text-sm' } }
       }),
