@@ -299,10 +299,12 @@ export default function NoteEditor({
   if (!editor) return null;
 
   return (
-    <div className="notion-editor-container">
+    <div className="notion-editor-container" style={{ border: '4px solid red' }}>
+      <div style={{ background: 'red', color: 'white', padding: '4px', textAlign: 'center', fontWeight: 'bold' }}>
+        *** TESTE DO EDITOR ***
+      </div>
       <Toolbar editor={editor} userId={userId} />
       
-      {/* Omitindo menus flutuantes temporariamente para garantir estabilidade core */}
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
