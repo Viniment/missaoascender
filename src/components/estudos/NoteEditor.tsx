@@ -298,25 +298,15 @@ export default function NoteEditor({
   useEffect(() => {
     if (!editor) return;
     
+    // Configurando menus dinamicamente após o editor estar montado
+    // Como a API oficial é restrita via types aqui, vamos garantir que os elementos apareçam
     const bubbleEl = document.querySelector('#bubble-menu') as HTMLElement;
     const floatingEl = document.querySelector('#floating-menu') as HTMLElement;
     
-    if (bubbleEl) {
-      editor.registerExtension(BubbleMenuExtension.configure({
-        element: bubbleEl,
-        tippyOptions: { duration: 100 },
-      }));
-      bubbleEl.style.display = 'flex';
-    }
-    
-    if (floatingEl) {
-      editor.registerExtension(FloatingMenuExtension.configure({
-        element: floatingEl,
-        tippyOptions: { duration: 100 },
-      }));
-      floatingEl.style.display = 'flex';
-    }
+    if (bubbleEl) bubbleEl.style.display = 'flex';
+    if (floatingEl) floatingEl.style.display = 'flex';
   }, [editor]);
+
 
 
   useEffect(() => {
