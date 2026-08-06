@@ -331,23 +331,6 @@ export default function NoteEditor({
         class:
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary prose-img:mx-auto notion-content-area",
       },
-      handleKeyDown: (view, event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-          const { state } = view;
-          const { selection } = state;
-          const { $from, empty } = selection;
-
-          if (empty && $from.parent.type.name === "taskItem") {
-            return false;
-          }
-
-          if (editor) {
-            editor.commands.splitBlock();
-            return true;
-          }
-        }
-        return false;
-      },
     },
     onUpdate: ({ editor: ed }) => emitir(ed as Editor),
     onSelectionUpdate: () => setTick((t) => t + 1),
