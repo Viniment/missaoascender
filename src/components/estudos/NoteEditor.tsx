@@ -203,7 +203,7 @@ function Toolbar({ editor, userId }: { editor: Editor; userId: string }) {
           <Btn title="Vídeo do YouTube" onClick={() => {
             const url = window.prompt("URL do YouTube");
             if (url) (editor.chain().focus() as any).setYoutubeVideo({ src: url }).run();
-          }}><YoutubeIcon className="w-4 h-4" /></Btn>
+          }}><Video className="w-4 h-4" /></Btn>
           <Pop title="Emoji" icon={<Smile className="w-4 h-4" />}>
               <div className="grid w-56 grid-cols-8 gap-1 p-1">
                 {EMOJIS_EDITOR.map((e) => (
