@@ -307,26 +307,26 @@ export default function NoteEditor({
     <div className="notion-editor-container">
       <Toolbar editor={editor} userId={userId} />
       
-      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
-        <div className="bubble-menu-wrapper">
-          <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
-          <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
-          <Btn title="Sublinhado" active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></Btn>
-          <Sep />
-          <Btn title="Link" active={editor.isActive("link")} onClick={() => {
-            const ant = editor.getAttributes("link").href;
-            const url = window.prompt("URL:", ant || "https://");
-            if (url) editor.chain().focus().setLink({ href: url }).run();
-          }}><Link2 className="w-4 h-4" /></Btn>
-          <Btn title="Limpar" onClick={() => editor.chain().focus().unsetAllMarks().run()}><Eraser className="w-4 h-4" /></Btn>
-        </div>
-      </BubbleMenu>
+      {/* Menus via renderProps ou elementos DOM */}
+      <div id="bubble-menu" className="bubble-menu-wrapper" style={{ visibility: 'hidden' }}>
+        <Btn title="Negrito" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}><Bold className="w-4 h-4" /></Btn>
+        <Btn title="Itálico" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()}><Italic className="w-4 h-4" /></Btn>
+        <Btn title="Sublinhado" active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()}><UnderlineIcon className="w-4 h-4" /></Btn>
+        <Sep />
+        <Btn title="Link" active={editor.isActive("link")} onClick={() => {
+          const ant = editor.getAttributes("link").href;
+          const url = window.prompt("URL:", ant || "https://");
+          if (url) editor.chain().focus().setLink({ href: url }).run();
+        }}><Link2 className="w-4 h-4" /></Btn>
+        <Btn title="Limpar" onClick={() => editor.chain().focus().unsetAllMarks().run()}><Eraser className="w-4 h-4" /></Btn>
+      </div>
 
-      <FloatingMenu editor={editor} tippyOptions={{ duration: 100 }}>
+      <div id="floating-menu" className="floating-menu-wrapper" style={{ visibility: 'hidden' }}>
         <FloatingMenuContent editor={editor} />
-      </FloatingMenu>
+      </div>
 
       <EditorContent editor={editor} className="notion-editor" />
     </div>
   );
 }
+
