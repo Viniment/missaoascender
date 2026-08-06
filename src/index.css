@@ -498,6 +498,137 @@
   50%      { box-shadow: 0 0 26px var(--frame-c, #22d3ee), inset 0 0 12px var(--frame-c, #22d3ee); opacity: 1; }
 }
 
+/* ============ NOTION-LIKE EDITOR STYLES ============ */
+.notion-content-area {
+  min-height: 500px;
+  padding-bottom: 200px;
+}
+
+.notion-content-area .ProseMirror {
+  outline: none !important;
+}
+
+.notion-content-area p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #64748b;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Tasks */
+ul.notion-task-list {
+  list-style: none;
+  padding: 0;
+}
+ul.notion-task-list li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+ul.notion-task-list li > label {
+  flex: 0 0 auto;
+  user-select: none;
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+}
+ul.notion-task-list li > div {
+  flex: 1 1 auto;
+}
+
+/* Tables */
+.notion-table {
+  border-collapse: collapse;
+  margin: 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.notion-table td, .notion-table th {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  min-width: 1em;
+  padding: 6px 10px;
+  position: relative;
+  vertical-align: top;
+}
+.notion-table th {
+  background-color: rgba(255, 255, 255, 0.05);
+  font-weight: bold;
+  text-align: left;
+}
+.notion-table .selectedCell:after {
+  background: rgba(123, 47, 247, 0.2);
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(123, 47, 247, 0.3);
+}
+
+/* Slash Commands Menu */
+.slash-menu {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  padding: 4px;
+  width: 280px;
+  z-index: 100;
+}
+.slash-menu-item {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: hsl(var(--foreground));
+  display: flex;
+  gap: 8px;
+  padding: 6px 8px;
+  text-align: left;
+  width: 100%;
+  transition: background 0.1s;
+}
+.slash-menu-item.is-selected {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+.slash-menu-item-icon {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px;
+}
+.slash-menu-item-text {
+  display: flex;
+  flex-direction: column;
+}
+.slash-menu-item-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+.slash-menu-item-desc {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* Emoji Picker Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+
 @keyframes frameFlicker {
   0%, 100% { filter: hue-rotate(0deg) brightness(1); }
   50%      { filter: hue-rotate(20deg) brightness(1.35); }
