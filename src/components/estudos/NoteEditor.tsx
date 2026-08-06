@@ -290,18 +290,6 @@ export default function NoteEditor({
     ],
     content: conteudo ?? "",
     editorProps: {
-      handleDOMEvents: {
-        keydown: (_view, event) => {
-          if (event.key === 'Enter') {
-            console.log('DOM_KEYDOWN: Enter');
-            // Check if default is already prevented by something else
-            if (event.defaultPrevented) {
-              console.warn('Enter was already prevented!');
-            }
-          }
-          return false;
-        }
-      },
       attributes: {
         class:
           "prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[60vh] prose-headings:font-display prose-headings:tracking-wide prose-a:text-primary pb-32 tiptap",

@@ -86,14 +86,13 @@ function ToggleView({ node, updateAttributes }: any) {
         >
           <ChevronRight className={cn("w-5 h-5 transition-transform duration-300", open ? "rotate-90" : "")} />
         </button>
-        <div className="flex-1 text-base font-bold text-foreground tracking-tight">
-          <NodeViewContent className="inline" />
+        <div className="flex-1 text-base font-bold text-foreground tracking-tight outline-none">
+          <NodeViewContent />
         </div>
       </div>
       {open && (
         <div className="py-4 px-4 pl-12 text-sm leading-relaxed text-foreground/80 outline-none border-t border-border/5">
-          {/* O conteúdo do ToggleBlock é injetado pelo NodeViewContent acima no título por enquanto para manter a simplicidade estrutural */}
-          <p className="text-xs text-muted-foreground italic opacity-30">Bloco de texto interativo</p>
+          <NodeViewContent className="toggle-content" />
         </div>
       )}
     </NodeViewWrapper>
@@ -103,7 +102,7 @@ function ToggleView({ node, updateAttributes }: any) {
 export const ToggleBlock = Node.create({
   name: "toggleBlock",
   group: "block",
-  content: "inline*",
+  content: "block+",
   defining: true,
   addAttributes() {
     return { 
