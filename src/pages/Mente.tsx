@@ -8,8 +8,8 @@ export default function Mente() {
       <div className="max-w-3xl mx-auto p-4 space-y-4">
         <header className="rpg-panel p-4">
           <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Central da Mente</p>
-          <h1 className="font-display text-lg tracking-widest">Ferramentas cognitivas</h1>
-          <p className="text-[11px] text-muted-foreground mt-1">TCC, mindfulness, leitura de padrões e radar preditivo — tudo num só lugar.</p>
+          <h1 className="font-display text-lg tracking-widest">Auto-observação</h1>
+          <p className="text-[11px] text-muted-foreground mt-1">Aqui você registra e interpreta. A IA não analisa nada nesta aba — ela só cruza padrões no Laboratório.</p>
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -21,12 +21,13 @@ export default function Mente() {
               <Brain className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-primary">TCC</p>
-              <h3 className="font-display text-sm tracking-widest">Reestruturar</h3>
-              <p className="text-[11px] text-muted-foreground">Desmontar um pensamento.</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Registro</p>
+              <h3 className="font-display text-sm tracking-widest">Registro de Pensamento</h3>
+              <p className="text-[11px] text-muted-foreground">Situação, emoção, distanciamento e continuum.</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
           </Link>
+
 
           <Link
             to="/urge-surfing"
