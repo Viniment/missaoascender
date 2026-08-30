@@ -1,123 +1,88 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import Shell from "@/components/Shell";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchHeroi, fetchInimigoAtivo, fetchOnboarding } from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Brain, Loader2, Lightbulb, Scale, Sparkles, CheckCircle2,
+  ArrowLeft, Brain, Loader2, CheckCircle2, Eye, Ruler, Info,
 } from "lucide-react";
-
-type Analise = {
-  distorcoes: string[];
-  resumo_distorcao: string;
-  pensamento_alternativo: string;
-  perguntas_socraticas: string[];
-  proximo_passo: string;
-};
 
 const EMOCOES = [
   "Ansiedade", "Tristeza", "Raiva", "Vergonha", "Medo",
-  "Culpa", "Frustração", "Solidão", "Inveja", "Vazio",
+  "Culpa", "Frustração", "Solidão", "Inveja", "Vazio", "Outra",
 ];
-
-const DISTORCAO_LABEL: Record<string, string> = {
-  catastrofizacao: "Catastrofização",
-  tudo_ou_nada: "Tudo ou nada",
-  leitura_mental: "Leitura mental",
-  adivinhacao: "Adivinhação",
-  personalizacao: "Personalização",
-  filtro_mental: "Filtro mental",
-  desqualificar_positivo: "Desqualificar o positivo",
-  rotulacao: "Rotulação",
-  raciocinio_emocional: "Raciocínio emocional",
-  deveria: "Deveria/Tinha que",
-  minimizacao: "Minimização",
-  magnificacao: "Magnificação",
-  culpa: "Culpa desproporcional",
-  comparacao_injusta: "Comparação injusta",
-};
 
 export default function Reestruturacao() {
   const { user } = useAuth();
   const nav = useNavigate();
   const uid = user?.id;
 
-  const { data: heroi } = useQuery({ queryKey: ["heroi", uid], queryFn: () => fetchHeroi(uid!), enabled: !!uid });
-  const { data: inimigo } = useQuery({ queryKey: ["inimigo", uid], queryFn: () => fetchInimigoAtivo(uid!), enabled: !!uid });
-  const { data: ob } = useQuery({ queryKey: ["ob", uid], queryFn: () => fetchOnboarding(uid!), enabled: !!uid });
-
-  const [stage, setStage] = useState<"form" | "loading" | "analise">("form");
   const [situacao, setSituacao] = useState("");
   const [pensamento, setPensamento] = useState("");
-  const [emocao, setEmocao] = useState("");
+  const [emocoes, setEmocoes] = useState<string[]>([]);
   const [intensidade, setIntensidade] = useState(6);
   const [favor, setFavor] = useState("");
   const [contra, setContra] = useState("");
-  const [analise, setAnalise] = useState<Analise | null>(null);
-  const [intensidadeFinal, setIntensidadeFinal] = useState(3);
+
+  const [distTexto, setDistTexto] = useState("");
+  const [distStatus, setDistStatus] = useState<string | null>(null);
+
+  const [contValor, setContValor] = useState(50);
+  const [contZero, setContZero] = useState("");
+  const [contCem, setContCem] = useState("");
+  const [contMotivo, setContMotivo] = useState("");
+  const [mostrarExemplo, setMostrarExemplo] = useState(false);
+
+  const [alternativo, setAlternativo] = useState("");
+  const [semAlternativo, setSemAlternativo] = useState(false);
+
+  const [comportamento, setComportamento] = useState("");
+  const [consequencia, setConsequencia] = useState("");
+  const [intensidadeFinal, setIntensidadeFinal] = useState(5);
   const [salvando, setSalvando] = useState(false);
 
-  const analisar = async () => {
-    if (!uid) return;
-    if (!situacao.trim() || !pensamento.trim()) {
-      toast.error("Descreva a situação e o pensamento.");
-      return;
-    }
-    setStage("loading");
-    try {
-      const { data, error } = await supabase.functions.invoke("reestruturacao-cognitiva", {
-        body: {
-          situacao,
-          pensamento_automatico: pensamento,
-          emocao,
-          intensidade_emocao: intensidade,
-          evidencias_favor: favor,
-          evidencias_contra: contra,
-          heroi_nome: heroi?.nome,
-          inimigo_nome: inimigo?.nome,
-          sonho: (ob as any)?.sonhos ?? null,
-          mentiras: inimigo?.mentiras ?? [],
-        },
-      });
-      if (error) throw error;
-      setAnalise(data as Analise);
-      setIntensidadeFinal(Math.max(1, intensidade - 2));
-      setStage("analise");
-    } catch (e: any) {
-      toast.error("Não consegui analisar agora. Tenta de novo.");
-      setStage("form");
-    }
-  };
+  const toggleEmocao = (e: string) =>
+    setEmocoes((prev) => (prev.includes(e) ? prev.filter((x) => x !== e) : [...prev, e]));
 
   const salvar = async () => {
-    if (!uid || !analise) return;
+    if (!uid) return;
+    if (!situacao.trim() || !pensamento.trim()) {
+      toast.error("Descreva a situação e o pensamento automático.");
+      return;
+    }
     setSalvando(true);
     const { error } = await supabase.from("pensamentos").insert({
       user_id: uid,
       situacao,
       pensamento_automatico: pensamento,
-      emocao,
+      emocao: emocoes[0] ?? null,
+      emocoes,
       intensidade_emocao: intensidade,
-      distorcoes: analise.distorcoes,
       evidencias_favor: favor,
       evidencias_contra: contra,
-      pensamento_alternativo: analise.pensamento_alternativo,
+      pensamento_alternativo: semAlternativo ? null : alternativo,
+      sem_alternativo: semAlternativo,
+      distanciamento_texto: distTexto || null,
+      distanciamento_status: distStatus,
+      continuum_valor: contValor,
+      continuum_zero: contZero || null,
+      continuum_cem: contCem || null,
+      continuum_motivo: contMotivo || null,
+      comportamento: comportamento || null,
+      consequencia: consequencia || null,
       intensidade_final: intensidadeFinal,
-      ai_analise: analise as any,
-    });
+    } as any);
     setSalvando(false);
     if (error) { toast.error("Erro ao salvar."); return; }
-    toast.success("Reestruturação registrada.");
-    nav("/");
+    toast.success("Registro salvo. Ele vai alimentar o Laboratório.");
+    nav("/mente");
   };
 
   return (
     <Shell>
-      <div className="max-w-2xl mx-auto space-y-4 pb-8">
+      <div className="max-w-2xl mx-auto space-y-4 pb-10">
         <button onClick={() => nav(-1)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-3.5 h-3.5" /> Voltar
         </button>
@@ -128,149 +93,188 @@ export default function Reestruturacao() {
               <Brain className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Reestruturação Cognitiva</p>
-              <h1 className="font-display text-lg sm:text-xl tracking-widest">Desmontar o pensamento</h1>
-              <p className="text-xs text-muted-foreground">Nem toda coisa que a sua cabeça fala é verdade.</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Registro de pensamento</p>
+              <h1 className="font-display text-lg sm:text-xl tracking-widest">Auto-observação</h1>
+              <p className="text-xs text-muted-foreground">Aqui não há análise automática. Você observa, você interpreta.</p>
             </div>
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {stage === "form" && (
-            <motion.section key="form" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="rpg-panel p-4 sm:p-5 space-y-4">
-              <div>
-                <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Situação (o que aconteceu)</label>
-                <textarea
-                  value={situacao} onChange={(e) => setSituacao(e.target.value)}
-                  rows={2} maxLength={400}
-                  className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60"
-                  placeholder="Ex.: mensagem não respondida, feedback no trabalho, olhar do espelho..."
-                />
-              </div>
+        <motion.section initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="rpg-panel p-4 sm:p-5 space-y-4">
+          <Campo label="Situação — o que aconteceu?" hint="Descreva o que aconteceu da forma mais objetiva possível.">
+            <textarea value={situacao} onChange={(e) => setSituacao(e.target.value)} rows={2} maxLength={500}
+              className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60"
+              placeholder="Ex.: recebi um feedback no trabalho." />
+          </Campo>
 
-              <div>
-                <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Pensamento automático</label>
-                <textarea
-                  value={pensamento} onChange={(e) => setPensamento(e.target.value)}
-                  rows={2} maxLength={400}
-                  className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60"
-                  placeholder="Ex.: 'ninguém me suporta', 'nunca vou conseguir', 'sou um fracasso'..."
-                />
-              </div>
+          <Campo label="Pensamento automático" hint="O que passou pela sua cabeça naquele momento?">
+            <textarea value={pensamento} onChange={(e) => setPensamento(e.target.value)} rows={2} maxLength={500}
+              className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60"
+              placeholder="Escreva com as suas palavras." />
+          </Campo>
 
-              <div>
-                <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Emoção</label>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {EMOCOES.map((e) => (
-                    <button key={e} onClick={() => setEmocao(e)}
-                      className={`text-[11px] px-2.5 py-1 rounded border transition ${
-                        emocao === e ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
-                      }`}>
-                      {e}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-                  Intensidade da emoção: <span className="text-primary">{intensidade}/10</span>
-                </label>
-                <input type="range" min={1} max={10} value={intensidade} onChange={(e) => setIntensidade(+e.target.value)}
-                  className="w-full accent-primary mt-1.5" />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Evidências a favor</label>
-                  <textarea
-                    value={favor} onChange={(e) => setFavor(e.target.value)}
-                    rows={2} maxLength={300}
-                    className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60"
-                    placeholder="O que sustenta esse pensamento?"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Evidências contra</label>
-                  <textarea
-                    value={contra} onChange={(e) => setContra(e.target.value)}
-                    rows={2} maxLength={300}
-                    className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60"
-                    placeholder="O que fura esse pensamento?"
-                  />
-                </div>
-              </div>
-
-              <button onClick={analisar} className="w-full rpg-panel p-3 border-primary/60 hover:border-primary bg-primary/10 hover:bg-primary/15 transition font-display tracking-widest text-sm flex items-center justify-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" /> Analisar com o mentor
-              </button>
-            </motion.section>
-          )}
-
-          {stage === "loading" && (
-            <motion.section key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rpg-panel p-8 text-center space-y-3">
-              <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
-              <p className="font-display tracking-widest text-sm">Investigando o pensamento…</p>
-            </motion.section>
-          )}
-
-          {stage === "analise" && analise && (
-            <motion.section key="analise" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-              <div className="rpg-panel p-4 border-yellow-500/40">
-                <div className="flex items-center gap-2 mb-2">
-                  <Scale className="w-4 h-4 text-yellow-400" />
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-yellow-300">Padrão detectado</p>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {analise.distorcoes.map((d) => (
-                    <span key={d} className="text-[10px] px-2 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-200">
-                      {DISTORCAO_LABEL[d] ?? d}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-sm text-foreground/90">{analise.resumo_distorcao}</p>
-              </div>
-
-              <div className="rpg-panel p-4 border-primary/50 bg-primary/5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="w-4 h-4 text-primary" />
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Pensamento alternativo</p>
-                </div>
-                <p className="text-sm text-foreground leading-relaxed">{analise.pensamento_alternativo}</p>
-              </div>
-
-              <div className="rpg-panel p-4">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2">Perguntas para levar</p>
-                <ul className="space-y-1.5">
-                  {analise.perguntas_socraticas.map((q, i) => (
-                    <li key={i} className="text-sm text-foreground/85 flex gap-2">
-                      <span className="text-primary">›</span> {q}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rpg-panel p-4 border-green-500/40">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-green-300 mb-1">Próximo passo (≤ 2min)</p>
-                <p className="text-sm text-foreground/90">{analise.proximo_passo}</p>
-              </div>
-
-              <div className="rpg-panel p-4 space-y-2">
-                <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-                  Intensidade agora: <span className="text-primary">{intensidadeFinal}/10</span>
-                </label>
-                <input type="range" min={0} max={10} value={intensidadeFinal} onChange={(e) => setIntensidadeFinal(+e.target.value)}
-                  className="w-full accent-primary" />
-                <button onClick={salvar} disabled={salvando}
-                  className="w-full rpg-panel p-3 border-primary/60 hover:border-primary bg-primary/10 hover:bg-primary/15 transition font-display tracking-widest text-sm flex items-center justify-center gap-2 disabled:opacity-60">
-                  {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-primary" />}
-                  Registrar e voltar
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Emoção (pode marcar várias)</label>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {EMOCOES.map((e) => (
+                <button key={e} onClick={() => toggleEmocao(e)}
+                  className={`text-[11px] px-2.5 py-1 rounded border transition ${
+                    emocoes.includes(e) ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                  }`}>
+                  {e}
                 </button>
-              </div>
-            </motion.section>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+              Intensidade: <span className="text-primary">{intensidade}/10</span>
+            </label>
+            <input type="range" min={0} max={10} value={intensidade} onChange={(e) => setIntensidade(+e.target.value)}
+              className="w-full accent-primary mt-1.5" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Campo label="Evidências a favor" hint="Que fatos parecem apoiar esse pensamento?">
+              <textarea value={favor} onChange={(e) => setFavor(e.target.value)} rows={3} maxLength={400}
+                className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60" />
+            </Campo>
+            <Campo label="Evidências contra" hint="Que fatos não combinam totalmente com esse pensamento?">
+              <textarea value={contra} onChange={(e) => setContra(e.target.value)} rows={3} maxLength={400}
+                className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60" />
+            </Campo>
+          </div>
+        </motion.section>
+
+        {/* Distanciamento cognitivo */}
+        <section className="rpg-panel p-4 sm:p-5 space-y-3 border-cyan-500/30">
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-cyan-300" />
+            <p className="text-[10px] uppercase tracking-[0.3em] text-cyan-300">Distanciamento cognitivo</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Observe o pensamento. Não precisa concordar nem discordar dele imediatamente.
+          </p>
+          <Campo label="Como consigo observar esse pensamento de fora?">
+            <textarea value={distTexto} onChange={(e) => setDistTexto(e.target.value)} rows={2} maxLength={400}
+              className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-cyan-400/60"
+              placeholder="Estou tendo o pensamento de que…" />
+          </Campo>
+          <div className="space-y-1.5">
+            {[
+              { id: "observei", label: "Consegui observar o pensamento como um pensamento." },
+              { id: "envolvido", label: "Ainda estou muito envolvido com ele." },
+            ].map((o) => (
+              <button key={o.id} onClick={() => setDistStatus(distStatus === o.id ? null : o.id)}
+                className={`w-full text-left text-xs px-3 py-2 rounded border transition ${
+                  distStatus === o.id ? "border-cyan-400 bg-cyan-500/10 text-cyan-200" : "border-border text-muted-foreground hover:border-cyan-400/40"
+                }`}>
+                {distStatus === o.id ? "☑" : "☐"} {o.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Continuum cognitivo */}
+        <section className="rpg-panel p-4 sm:p-5 space-y-3 border-amber-500/30">
+          <div className="flex items-center gap-2">
+            <Ruler className="w-4 h-4 text-amber-300" />
+            <p className="text-[10px] uppercase tracking-[0.3em] text-amber-300">Continuum cognitivo</p>
+          </div>
+          <p className="text-xs text-muted-foreground">Onde essa situação realmente está nessa escala?</p>
+
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+            <span>0</span><span>50</span><span>100</span>
+          </div>
+          <input type="range" min={0} max={100} value={contValor} onChange={(e) => setContValor(+e.target.value)}
+            className="w-full accent-amber-400" />
+          <p className="text-center font-display text-lg tracking-widest text-amber-300">{contValor}</p>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Campo label="O que seria 0?">
+              <input value={contZero} onChange={(e) => setContZero(e.target.value)} maxLength={200}
+                className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-amber-400/60" />
+            </Campo>
+            <Campo label="O que seria 100?">
+              <input value={contCem} onChange={(e) => setContCem(e.target.value)} maxLength={200}
+                className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-amber-400/60" />
+            </Campo>
+          </div>
+          <Campo label="Por que coloquei nessa posição?">
+            <textarea value={contMotivo} onChange={(e) => setContMotivo(e.target.value)} rows={2} maxLength={400}
+              className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-amber-400/60" />
+          </Campo>
+
+          <button onClick={() => setMostrarExemplo((v) => !v)} className="text-[11px] text-muted-foreground hover:text-amber-300 flex items-center gap-1">
+            <Info className="w-3 h-3" /> Como funciona essa ferramenta?
+          </button>
+          {mostrarExemplo && (
+            <div className="text-[11px] text-muted-foreground rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 space-y-1">
+              <p>“Sou um fracasso.” pode virar uma escala:</p>
+              <p>0 = fracasso absoluto · 100 = desempenho excepcional</p>
+              <p>E então <span className="text-foreground/90">você</span> decide onde a realidade daquela situação se encontra.</p>
+            </div>
           )}
-        </AnimatePresence>
+        </section>
+
+        {/* Pensamento alternativo */}
+        <section className="rpg-panel p-4 sm:p-5 space-y-3 border-primary/40">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Pensamento alternativo</p>
+          <p className="text-xs text-muted-foreground">
+            Depois de observar os fatos e as evidências, existe outra forma de interpretar essa situação?
+          </p>
+          <textarea value={alternativo} onChange={(e) => setAlternativo(e.target.value)} rows={3} maxLength={500}
+            disabled={semAlternativo}
+            className="w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60 disabled:opacity-40"
+            placeholder="Escreva com as suas palavras. Só você escreve aqui." />
+          <button onClick={() => setSemAlternativo((v) => !v)}
+            className={`w-full text-left text-xs px-3 py-2 rounded border transition ${
+              semAlternativo ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+            }`}>
+            {semAlternativo ? "☑" : "☐"} Não consigo encontrar um pensamento alternativo agora.
+          </button>
+        </section>
+
+        {/* Depois */}
+        <section className="rpg-panel p-4 sm:p-5 space-y-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Campo label="Comportamento (opcional)" hint="O que você fez depois?">
+              <input value={comportamento} onChange={(e) => setComportamento(e.target.value)} maxLength={200}
+                className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60" />
+            </Campo>
+            <Campo label="Consequência (opcional)" hint="O que veio depois disso?">
+              <input value={consequencia} onChange={(e) => setConsequencia(e.target.value)} maxLength={200}
+                className="mt-1 w-full rpg-panel bg-background/40 p-2.5 text-sm outline-none focus:border-primary/60" />
+            </Campo>
+          </div>
+
+          <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground block">
+            Intensidade agora: <span className="text-primary">{intensidadeFinal}/10</span>
+          </label>
+          <input type="range" min={0} max={10} value={intensidadeFinal} onChange={(e) => setIntensidadeFinal(+e.target.value)}
+            className="w-full accent-primary" />
+
+          <button onClick={salvar} disabled={salvando}
+            className="w-full rpg-panel p-3 border-primary/60 hover:border-primary bg-primary/10 hover:bg-primary/15 transition font-display tracking-widest text-sm flex items-center justify-center gap-2 disabled:opacity-60">
+            {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-primary" />}
+            Salvar registro
+          </button>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Seus registros alimentam o Laboratório, onde a IA cruza o histórico e mostra o que se repete.
+          </p>
+        </section>
       </div>
     </Shell>
+  );
+}
+
+function Campo({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">{label}</label>
+      {hint && <p className="text-[10px] text-muted-foreground/70 mt-0.5">{hint}</p>}
+      {children}
+    </div>
   );
 }

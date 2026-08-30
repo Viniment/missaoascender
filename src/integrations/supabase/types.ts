@@ -449,9 +449,18 @@ export type Database = {
       pensamentos: {
         Row: {
           ai_analise: Json | null
+          comportamento: string | null
+          consequencia: string | null
+          continuum_cem: string | null
+          continuum_motivo: string | null
+          continuum_valor: number | null
+          continuum_zero: string | null
           created_at: string
+          distanciamento_status: string | null
+          distanciamento_texto: string | null
           distorcoes: string[] | null
           emocao: string | null
+          emocoes: string[] | null
           evidencias_contra: string | null
           evidencias_favor: string | null
           id: string
@@ -459,15 +468,25 @@ export type Database = {
           intensidade_final: number | null
           pensamento_alternativo: string | null
           pensamento_automatico: string
+          sem_alternativo: boolean
           situacao: string
           updated_at: string
           user_id: string
         }
         Insert: {
           ai_analise?: Json | null
+          comportamento?: string | null
+          consequencia?: string | null
+          continuum_cem?: string | null
+          continuum_motivo?: string | null
+          continuum_valor?: number | null
+          continuum_zero?: string | null
           created_at?: string
+          distanciamento_status?: string | null
+          distanciamento_texto?: string | null
           distorcoes?: string[] | null
           emocao?: string | null
+          emocoes?: string[] | null
           evidencias_contra?: string | null
           evidencias_favor?: string | null
           id?: string
@@ -475,15 +494,25 @@ export type Database = {
           intensidade_final?: number | null
           pensamento_alternativo?: string | null
           pensamento_automatico: string
+          sem_alternativo?: boolean
           situacao: string
           updated_at?: string
           user_id: string
         }
         Update: {
           ai_analise?: Json | null
+          comportamento?: string | null
+          consequencia?: string | null
+          continuum_cem?: string | null
+          continuum_motivo?: string | null
+          continuum_valor?: number | null
+          continuum_zero?: string | null
           created_at?: string
+          distanciamento_status?: string | null
+          distanciamento_texto?: string | null
           distorcoes?: string[] | null
           emocao?: string | null
+          emocoes?: string[] | null
           evidencias_contra?: string | null
           evidencias_favor?: string | null
           id?: string
@@ -491,6 +520,7 @@ export type Database = {
           intensidade_final?: number | null
           pensamento_alternativo?: string | null
           pensamento_automatico?: string
+          sem_alternativo?: boolean
           situacao?: string
           updated_at?: string
           user_id?: string
