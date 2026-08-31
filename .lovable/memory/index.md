@@ -12,6 +12,8 @@ Datas sempre Brasília (getTodayBrasilia).
 
 ## Memories
 - [Design system](mem://design/tokens) — Purple neon, glow effects, custom CSS utilities
-- [Game systems](mem://features/game-systems) — XP, ouro, ranks, missões, hábitos, diário, recompensas
+- [Game systems](mem://features/game-systems) — XP, gold, ranks, missions, habits, journal, challenges, rewards
+- [Mente e Laboratório](mem://features/mente-laboratorio) — Mente = registro sem IA; IA só cruza padrões no Laboratório
+
 - [Timezone](mem://preferences/timezone) — Sempre getTodayBrasilia() para datas
 - [Filosofia emocional](mem://design/emotional-philosophy) — Voz do Pai Interior, jardim, zona de conforto, diálogo interno
