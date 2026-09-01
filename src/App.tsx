@@ -22,6 +22,7 @@ import Laboratorio from "@/pages/Laboratorio";
 import Predicao from "@/pages/Predicao";
 import Mente from "@/pages/Mente";
 import Trataka from "@/pages/Trataka";
+import Japamala from "@/pages/Japamala";
 import Estudos from "@/pages/Estudos";
 import EstudoCategoria from "@/pages/EstudoCategoria";
 
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/predicao" element={<Protected><Predicao /></Protected>} />
             <Route path="/mente" element={<Protected><Mente /></Protected>} />
             <Route path="/trataka" element={<Protected><Trataka /></Protected>} />
+            <Route path="/japamala" element={<Protected><Japamala /></Protected>} />
             <Route path="/estudos" element={<Protected><Estudos /></Protected>} />
             <Route path="/estudos/:id" element={<Protected><EstudoCategoria /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />

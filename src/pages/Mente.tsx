@@ -1,6 +1,6 @@
 import Shell from "@/components/Shell";
 import { Link } from "react-router-dom";
-import { Brain, Waves, FlaskConical, Radar, ChevronRight, Eye } from "lucide-react";
+import { Brain, Waves, FlaskConical, Radar, ChevronRight, Eye, Repeat } from "lucide-react";
 
 export default function Mente() {
   return (
@@ -88,6 +88,21 @@ export default function Mente() {
             <p className="text-[11px] text-muted-foreground">Um ponto. Silêncio absoluto. Presença profunda.</p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white" />
+        </Link>
+
+        <Link
+          to="/japamala"
+          className="rpg-panel p-3.5 flex items-center gap-3 hover:border-primary hover:shadow-[0_0_25px_rgba(139,92,246,0.2)] transition group"
+        >
+          <div className="w-10 h-10 rounded-md grid place-items-center bg-primary/15 border border-primary/40 text-primary group-hover:scale-110 transition">
+            <Repeat className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Repetição mental</p>
+            <h3 className="font-display text-sm tracking-widest">Japamala</h3>
+            <p className="text-[11px] text-muted-foreground">Uma frase nova a cada conta. Só contar e repetir.</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
         </Link>
       </div>
     </Shell>
