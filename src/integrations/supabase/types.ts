@@ -647,6 +647,7 @@ export type Database = {
       users: {
         Row: {
           avatar_equipado: Json
+          carta_enfrentamento: string | null
           criado_em: string
           id: string
           itens_desbloqueados: string[]
@@ -664,6 +665,7 @@ export type Database = {
         }
         Insert: {
           avatar_equipado?: Json
+          carta_enfrentamento?: string | null
           criado_em?: string
           id: string
           itens_desbloqueados?: string[]
@@ -681,6 +683,7 @@ export type Database = {
         }
         Update: {
           avatar_equipado?: Json
+          carta_enfrentamento?: string | null
           criado_em?: string
           id?: string
           itens_desbloqueados?: string[]
