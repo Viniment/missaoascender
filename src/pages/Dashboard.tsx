@@ -24,6 +24,7 @@ import ChestOverlay from "@/components/fx/ChestOverlay";
 import EditHabitoDialog from "@/components/EditHabitoDialog";
 import EditInimigoDialog from "@/components/EditInimigoDialog";
 import BalancaAlinhamento from "@/components/BalancaAlinhamento";
+import CartaEnfrentamentoDialog from "@/components/CartaEnfrentamentoDialog";
 import type { Habito } from "@/lib/api";
 import { CARD_BACKGROUNDS } from "@/lib/itens";
 
