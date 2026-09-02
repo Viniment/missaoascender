@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [chestGold, setChestGold] = useState<number | null>(null);
   const [editHabito, setEditHabito] = useState<Habito | null>(null);
   const [editInimigoOpen, setEditInimigoOpen] = useState(false);
+  const [cartaOpen, setCartaOpen] = useState(false);
   const prevNivel = useRef<number | null>(null);
   const prevEnemyHp = useRef<number | null>(null);
 
