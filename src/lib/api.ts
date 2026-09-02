@@ -38,6 +38,7 @@ export type Heroi = {
   avatar_equipado: AvatarEquipado;
   itens_desbloqueados: string[];
   titulo: string | null;
+  carta_enfrentamento: string | null;
 };
 
 export type MiniVitoria = {
