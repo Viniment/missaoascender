@@ -38,6 +38,7 @@ export type Heroi = {
   avatar_equipado: AvatarEquipado;
   itens_desbloqueados: string[];
   titulo: string | null;
+  carta_enfrentamento: string | null;
 };
 
 export type MiniVitoria = {
@@ -365,6 +366,38 @@ export function rollDailyChest(): number {
   if (r < 0.6) return 1 + Math.floor(Math.random() * 3); // 1-3
   if (r < 0.9) return 4 + Math.floor(Math.random() * 3); // 4-6
   return 7 + Math.floor(Math.random() * 4); // 7-10
+}
+
+/** Loot 1–10 com raridade crescente (1–2 muito comum … 10 lendário). */
+export function rollLoot(): number {
+  const pesos = [26, 22, 15, 12, 8, 6, 4, 2.5, 1.5, 0.6]; // índice 0 => valor 1
+  const total = pesos.reduce((s, p) => s + p, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < pesos.length; i++) {
+    r -= pesos[i];
+    if (r <= 0) return i + 1;
+  }
+  return 1;
+}
+
+export async function salvarCartaEnfrentamento(userId: string, texto: string) {
+  const { error } = await supabase.from("users").update({ carta_enfrentamento: texto } as any).eq("id", userId);
+  if (error) throw error;
+}
+
+/** Registra um enfrentamento (vitória sobre o impulso) e concede loot de Vida + Ouro. */
+export async function registrarEnfrentamento(heroi: Heroi): Promise<{ vida: number; ouro: number }> {
+  const vida = rollLoot();
+  const ouro = rollLoot();
+  const { error } = await supabase.from("users").update({
+    vida_atual: clamp(heroi.vida_atual + vida, 0, heroi.vida_max),
+    ouro: (heroi.ouro ?? 0) + ouro,
+  }).eq("id", heroi.id);
+  if (error) throw error;
+  await supabase.from("transacoes_ouro").insert({
+    user_id: heroi.id, valor: ouro, origem: "carta_enfrentamento", descricao: `Enfrentei (+${vida} vida)`,
+  });
+  return { vida, ouro };
 }
 
 export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<number> {

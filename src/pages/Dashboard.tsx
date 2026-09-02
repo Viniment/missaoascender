@@ -24,6 +24,7 @@ import ChestOverlay from "@/components/fx/ChestOverlay";
 import EditHabitoDialog from "@/components/EditHabitoDialog";
 import EditInimigoDialog from "@/components/EditInimigoDialog";
 import BalancaAlinhamento from "@/components/BalancaAlinhamento";
+import CartaEnfrentamentoDialog from "@/components/CartaEnfrentamentoDialog";
 import type { Habito } from "@/lib/api";
 import { CARD_BACKGROUNDS } from "@/lib/itens";
 
@@ -69,6 +70,7 @@ export default function Dashboard() {
   const [chestGold, setChestGold] = useState<number | null>(null);
   const [editHabito, setEditHabito] = useState<Habito | null>(null);
   const [editInimigoOpen, setEditInimigoOpen] = useState(false);
+  const [cartaOpen, setCartaOpen] = useState(false);
   const prevNivel = useRef<number | null>(null);
   const prevEnemyHp = useRef<number | null>(null);
 
@@ -343,21 +345,31 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {/* Fissura — acesso rápido */}
-        <Link
-          to="/fissura"
-          className="rpg-panel p-3.5 sm:p-4 flex items-center gap-3 border-destructive/40 hover:border-destructive hover:shadow-[0_0_25px_rgba(239,68,68,0.25)] transition group"
+        {/* Carta de Enfrentamento — acesso rápido */}
+        <button
+          type="button"
+          onClick={() => setCartaOpen(true)}
+          className="w-full text-left rpg-panel p-3.5 sm:p-4 flex items-center gap-3 border-destructive/40 hover:border-destructive hover:shadow-[0_0_25px_rgba(239,68,68,0.25)] transition group"
         >
           <div className="w-10 h-10 rounded-md grid place-items-center bg-destructive/15 border border-destructive/40 text-destructive group-hover:scale-110 transition">
-            <Flame className="w-5 h-5" />
+            <Swords className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-destructive">Protocolo de emergência</p>
-            <h3 className="font-display text-sm sm:text-base tracking-widest">Estou em Fissura</h3>
-            <p className="text-[11px] text-muted-foreground">A IA monta um protocolo pra você atravessar a onda agora.</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-destructive">Quando eu estiver prestes a ceder</p>
+            <h3 className="font-display text-sm sm:text-base tracking-widest">Carta de Enfrentamento</h3>
+            <p className="text-[11px] text-muted-foreground">Leia antes de escolher.</p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-destructive" />
-        </Link>
+        </button>
+        <CartaEnfrentamentoDialog
+          open={cartaOpen}
+          onClose={() => setCartaOpen(false)}
+          heroi={heroi}
+          inimigo={inimigo}
+          habitos={habitos}
+          onboarding={ob}
+          onChanged={() => qc.invalidateQueries({ queryKey: ["heroi", uid] })}
+        />
 
         {/* Central da Mente — atalho unificado */}
         <Link
