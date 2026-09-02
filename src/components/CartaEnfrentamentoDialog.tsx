@@ -90,7 +90,7 @@ export default function CartaEnfrentamentoDialog({
     try {
       const r = await registrarEnfrentamento(heroi);
       await onChanged();
-      fireReward();
+      fireReward(`+${r.ouro} ouro`);
       setLoot({ ...r, frase: FRASES_VITORIA[Math.floor(Math.random() * FRASES_VITORIA.length)] });
       setModo("vitoria");
     } catch (e: any) {
