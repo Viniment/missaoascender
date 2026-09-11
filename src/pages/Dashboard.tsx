@@ -311,7 +311,6 @@ export default function Dashboard() {
           <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
             <Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3.5 h-3.5" />} />
             <Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3.5 h-3.5" />} />
-            {uid && <BalancaAlinhamento uid={uid} habitos={habitos ?? []} />}
           </div>
         </motion.div>
 
