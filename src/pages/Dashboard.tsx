@@ -11,7 +11,7 @@ import {
 import { todayISO, shiftISO, formatBRDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil, ChevronLeft, ChevronRight, Calendar, Brain, Waves, FlaskConical, Radar } from "lucide-react";
+import { Gift, Plus, Heart, Zap, Coins, Flame, Swords, Trash2, Skull, Shield, Sparkles, Loader2, X, Trophy, Pencil, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { Link } from "react-router-dom";
 import { fireReward } from "@/components/fx/RewardBurst";
@@ -354,9 +354,9 @@ export default function Dashboard() {
             <Swords className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-destructive">Quando eu estiver prestes a ceder</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-destructive">LEMBRETE DIÁRIO</p>
             <h3 className="font-display text-sm sm:text-base tracking-widest">Carta de Enfrentamento</h3>
-            <p className="text-[11px] text-muted-foreground">Leia antes de escolher.</p>
+            <p className="text-[11px] text-muted-foreground">A Carta fica na Home. Use este atalho sempre que quiser abrir o lembrete diário.</p>
           </div>
           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-destructive" />
         </button>
@@ -369,22 +369,6 @@ export default function Dashboard() {
           onboarding={ob}
           onChanged={() => qc.invalidateQueries({ queryKey: ["heroi", uid] })}
         />
-
-        {/* Central da Mente — atalho unificado */}
-        <Link
-          to="/mente"
-          className="rpg-panel p-3.5 flex items-center gap-3 hover:border-primary hover:shadow-[0_0_25px_rgba(139,92,246,0.2)] transition group"
-        >
-          <div className="w-10 h-10 rounded-md grid place-items-center bg-primary/15 border border-primary/40 text-primary group-hover:scale-110 transition">
-            <Brain className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-primary">Central da Mente</p>
-            <h3 className="font-display text-sm sm:text-base tracking-widest">TCC · Mindfulness · Laboratório · Radar</h3>
-            <p className="text-[11px] text-muted-foreground">Todas as ferramentas cognitivas num só lugar.</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
-        </Link>
 
         {/* Hábitos AGRUPADOS */}
         <div className="space-y-4">
