@@ -1,0 +1,52 @@
+name: Ajustar Conquistas
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  ajustar:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Corrigir Grade E Compactar Recompensas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/pages/Conquistas.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          bad_grid = 'grid grid-cols-2 gap-1.5 sm:grid-cols-4 [&>div]:p-2 [&>div]:rounded-lg [&_.font-display]:text-sm [&_.text-xl]:text-sm [&_.text-lg]:text-sm [&_.text-2xl]:text-sm'
+          attrs_grid = bad_grid + ' lg:grid-cols-7'
+          if attrs_grid in text:
+              text = text.replace(attrs_grid, 'grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7', 1)
+
+          old_grid = 'grid grid-cols-2 gap-2 sm:grid-cols-4'
+          new_grid = 'grid grid-cols-2 gap-1.5 sm:grid-cols-4 [&>div]:p-2 [&>div]:rounded-lg [&_.font-display]:text-sm [&_.text-xl]:text-sm [&_.text-lg]:text-sm [&_.text-2xl]:text-sm'
+          marker = 'const rarity=reward?.raridade?.toLowerCase()'
+          before, sep, after = text.partition(marker)
+          if sep and old_grid in before:
+              before = before.replace(old_grid, new_grid, 1)
+              text = before + sep + after
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit Alteracoes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet; then
+            echo 'Nenhuma alteracao necessaria.'
+            exit 0
+          fi
+          git add src/pages/Conquistas.tsx
+          git commit -m '[Correção] Ajustar Grade Das Recompensas Das Conquistas'
+          git push
