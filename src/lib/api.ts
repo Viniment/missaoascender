@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { todayISO, xpForLevel, clamp } from "./utils";
 import { AvatarEquipado, ITENS_INICIAIS, getItem } from "./itens";
 import { getPetSkill } from "./itens";
+import { emitGameEvent } from "@/game/events";
 
 export type Habito = {
   id: string;
@@ -104,7 +105,6 @@ export async function sincronizarItensDesbloqueados(userId: string, heroi: Heroi
   const atuais = new Set(heroi.itens_desbloqueados ?? []);
   const antes = atuais.size;
   for (const id of ITENS_INICIAIS) atuais.add(id);
-  // itens com unlock atendido
   const { ITENS } = await import("./itens");
   for (const it of ITENS) {
     if (it.unlock && conquistasTipos.includes(it.unlock)) atuais.add(it.id);
@@ -116,56 +116,27 @@ export async function sincronizarItensDesbloqueados(userId: string, heroi: Heroi
 }
 
 export async function fetchInimigoAtivo(userId: string): Promise<Inimigo | null> {
-  const { data } = await supabase
-    .from("inimigo")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("ativo", true)
-    .order("criado_em", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data } = await supabase.from("inimigo").select("*").eq("user_id", userId).eq("ativo", true).order("criado_em", { ascending: false }).limit(1).maybeSingle();
   return (data as unknown as Inimigo) ?? null;
 }
 
 export async function fetchHabitos(userId: string): Promise<Habito[]> {
-  const { data } = await supabase
-    .from("habitos")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("ativo", true)
-    .order("criado_em", { ascending: true });
+  const { data } = await supabase.from("habitos").select("*").eq("user_id", userId).eq("ativo", true).order("criado_em", { ascending: true });
   return (data as Habito[]) ?? [];
 }
 
 export async function fetchLogsHoje(userId: string): Promise<Set<string>> {
-  const { data } = await supabase
-    .from("habito_logs")
-    .select("habito_id")
-    .eq("user_id", userId)
-    .eq("data", todayISO());
+  const { data } = await supabase.from("habito_logs").select("habito_id").eq("user_id", userId).eq("data", todayISO());
   return new Set((data ?? []).map((r: any) => r.habito_id));
 }
 
-/** Logs for a specific ISO date. */
 export async function fetchLogsData(userId: string, data: string): Promise<Set<string>> {
-  const { data: rows } = await supabase
-    .from("habito_logs")
-    .select("habito_id")
-    .eq("user_id", userId)
-    .eq("data", data);
+  const { data: rows } = await supabase.from("habito_logs").select("habito_id").eq("user_id", userId).eq("data", data);
   return new Set((rows ?? []).map((r: any) => r.habito_id));
 }
 
-/**
- * Recalcula o HP máximo do inimigo com base no potencial diário de dano do usuário.
- * Regra: hp_max = soma(dano dos hábitos positivos) * 21 dias (mínimo de 21 dias
- * de consistência para derrotar o inimigo). Preserva o dano já causado.
- */
 export async function recalcularHpMaxInimigo(userId: string): Promise<void> {
-  const [inimigo, habitos] = await Promise.all([
-    fetchInimigoAtivo(userId),
-    fetchHabitos(userId),
-  ]);
+  const [inimigo, habitos] = await Promise.all([fetchInimigoAtivo(userId), fetchHabitos(userId)]);
   if (!inimigo) return;
   const positivos = habitos.filter(h => h.tipo === "positivo");
   const danoDiario = positivos.reduce((s, h) => s + (h.peso_dano_cura || 0), 0);
@@ -174,49 +145,29 @@ export async function recalcularHpMaxInimigo(userId: string): Promise<void> {
   if (novoMax === inimigo.hp_max) return;
   const danoJaCausado = Math.max(0, inimigo.hp_max - inimigo.hp_atual);
   const novoAtual = clamp(novoMax - danoJaCausado, 0, novoMax);
-  await supabase.from("inimigo")
-    .update({ hp_max: novoMax, hp_atual: novoAtual })
-    .eq("id", inimigo.id);
+  await supabase.from("inimigo").update({ hp_max: novoMax, hp_atual: novoAtual }).eq("id", inimigo.id);
 }
 
 export async function fetchOnboarding(userId: string) {
-  const { data } = await supabase
-    .from("onboarding_respostas")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data } = await supabase.from("onboarding_respostas").select("*").eq("user_id", userId).maybeSingle();
   return data;
 }
 
 export async function fetchMiniVitorias(userId: string): Promise<MiniVitoria[]> {
-  const { data } = await supabase
-    .from("mini_vitorias")
-    .select("*")
-    .eq("user_id", userId)
-    .order("criado_em", { ascending: false });
+  const { data } = await supabase.from("mini_vitorias").select("*").eq("user_id", userId).order("criado_em", { ascending: false });
   return (data as MiniVitoria[]) ?? [];
 }
 
 export async function fetchConquistas(userId: string): Promise<Conquista[]> {
-  const { data } = await supabase
-    .from("conquistas")
-    .select("*")
-    .eq("user_id", userId)
-    .order("desbloqueada_em", { ascending: false });
+  const { data } = await supabase.from("conquistas").select("*").eq("user_id", userId).order("desbloqueada_em", { ascending: false });
   return (data as Conquista[]) ?? [];
 }
 
 export async function fetchTransacoes(userId: string) {
-  const { data } = await supabase
-    .from("transacoes_ouro")
-    .select("*")
-    .eq("user_id", userId)
-    .order("data", { ascending: false })
-    .limit(50);
+  const { data } = await supabase.from("transacoes_ouro").select("*").eq("user_id", userId).order("data", { ascending: false }).limit(50);
   return data ?? [];
 }
 
-/** Apply XP gain and level ups. Returns new heroi patch. */
 export function applyXp(h: Heroi, delta: number) {
   let xp = h.xp_atual + delta;
   let nivel = h.nivel;
@@ -226,11 +177,7 @@ export function applyXp(h: Heroi, delta: number) {
     xp -= prox;
     nivel += 1;
     prox = xpForLevel(nivel);
-    conquistas.push({
-      tipo: `nivel_${nivel}`,
-      titulo: `Nível ${nivel} alcançado`,
-      descricao: `Você evoluiu para o nível ${nivel}.`,
-    });
+    conquistas.push({ tipo: `nivel_${nivel}`, titulo: `Nível ${nivel} alcançado`, descricao: `Você evoluiu para o nível ${nivel}.` });
   }
   if (xp < 0) xp = 0;
   return { xp_atual: xp, nivel, xp_proximo_nivel: prox, conquistas };
@@ -238,40 +185,24 @@ export function applyXp(h: Heroi, delta: number) {
 
 export async function checkConquistas(userId: string, novas: { tipo: string; titulo: string; descricao: string }[]) {
   if (!novas.length) return;
-  await supabase.from("conquistas").upsert(
-    novas.map(c => ({ user_id: userId, tipo: c.tipo, titulo: c.titulo, descricao: c.descricao })),
-    { onConflict: "user_id,tipo", ignoreDuplicates: true },
-  );
+  await supabase.from("conquistas").upsert(novas.map(c => ({ user_id: userId, tipo: c.tipo, titulo: c.titulo, descricao: c.descricao })), { onConflict: "user_id,tipo", ignoreDuplicates: true });
 }
 
-/** Garante conquistas de nível para todo n em (fromLevel, toLevel]. */
 export async function unlockLevelConquistas(userId: string, fromLevel: number, toLevel: number) {
   const rows: { tipo: string; titulo: string; descricao: string }[] = [];
-  for (let n = Math.max(2, fromLevel + 1); n <= toLevel; n++) {
-    rows.push({
-      tipo: `nivel_${n}`,
-      titulo: `Nível ${n} alcançado`,
-      descricao: `Você evoluiu para o nível ${n}.`,
-    });
-  }
+  for (let n = Math.max(2, fromLevel + 1); n <= toLevel; n++) rows.push({ tipo: `nivel_${n}`, titulo: `Nível ${n} alcançado`, descricao: `Você evoluiu para o nível ${n}.` });
   await checkConquistas(userId, rows);
 }
 
-/** Libera conquistas de streak baseadas no total atingido. */
 export async function unlockStreakConquistas(userId: string, streak: number) {
   const rows: { tipo: string; titulo: string; descricao: string }[] = [];
-  if (streak >= 7)  rows.push({ tipo: "streak_7",  titulo: "7 dias de streak",  descricao: "Uma semana inteira de consistência." });
+  if (streak >= 7) rows.push({ tipo: "streak_7", titulo: "7 dias de streak", descricao: "Uma semana inteira de consistência." });
   if (streak >= 30) rows.push({ tipo: "streak_30", titulo: "30 dias de streak", descricao: "Um mês de disciplina implacável." });
   await checkConquistas(userId, rows);
 }
 
-/** Libera a conquista de baú (primeira vez que abre). */
 export async function unlockBauConquista(userId: string) {
-  await checkConquistas(userId, [{
-    tipo: "bau_lendario",
-    titulo: "Baú aberto",
-    descricao: "Você abriu o baú diário.",
-  }]);
+  await checkConquistas(userId, [{ tipo: "bau_lendario", titulo: "Baú aberto", descricao: "Você abriu o baú diário." }]);
 }
 
 export async function updateHabito(habitoId: string, patch: Partial<Pick<Habito, "nome" | "tipo" | "peso_dano_cura" | "peso_xp" | "peso_ouro">>) {
@@ -284,41 +215,26 @@ export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimi
   if (error) throw error;
 }
 
-/** Mark a habit as done today (or undo). Updates hero + enemy + logs + gold tx. */
-export async function toggleHabito(opts: {
-  heroi: Heroi;
-  inimigo: Inimigo | null;
-  habito: Habito;
-  marcado: boolean; // current state
-  data?: string;    // ISO date; defaults to today
-}) {
+export async function toggleHabito(opts: { heroi: Heroi; inimigo: Inimigo | null; habito: Habito; marcado: boolean; data?: string }) {
   const { heroi, inimigo, habito, marcado } = opts;
   const dia = opts.data ?? todayISO();
-  const sign = marcado ? -1 : 1; // if already marked, we're undoing
+  const sign = marcado ? -1 : 1;
   const positivo = habito.tipo === "positivo";
   const skill = getPetSkill(heroi.avatar_equipado?.pet);
 
-  // Habit log
   if (marcado) {
     await supabase.from("habito_logs").delete().eq("habito_id", habito.id).eq("data", dia);
   } else {
-    await supabase.from("habito_logs").insert({
-      user_id: heroi.id,
-      habito_id: habito.id,
-      data: dia,
-      completado: true,
-    });
+    await supabase.from("habito_logs").insert({ user_id: heroi.id, habito_id: habito.id, data: dia, completado: true });
   }
 
-  // Hero XP + vida
   let xpBase = positivo ? habito.peso_xp : -habito.peso_xp;
   if (positivo && skill.xpBonusPct) xpBase = Math.round(xpBase * (1 + skill.xpBonusPct));
   const xpDelta = sign * xpBase;
 
   let vidaBase = 0;
-  if (positivo) {
-    vidaBase = skill.curaPorHabito ?? 0;
-  } else {
+  if (positivo) vidaBase = skill.curaPorHabito ?? 0;
+  else {
     const perda = Math.max(2, Math.round(habito.peso_dano_cura / 3));
     const reduzida = skill.danoReducaoPct ? Math.round(perda * (1 - skill.danoReducaoPct)) : perda;
     vidaBase = -Math.max(1, reduzida);
@@ -326,51 +242,50 @@ export async function toggleHabito(opts: {
   const vidaDelta = sign * vidaBase;
 
   let ouroBase = positivo ? (habito.peso_ouro ?? 0) : 0;
-  if (positivo && skill.ouroBonusPct && ouroBase > 0) {
-    const bonus = Math.max(1, Math.round(ouroBase * skill.ouroBonusPct));
-    ouroBase = ouroBase + bonus;
-  }
+  if (positivo && skill.ouroBonusPct && ouroBase > 0) ouroBase += Math.max(1, Math.round(ouroBase * skill.ouroBonusPct));
   const ouroDelta = sign * ouroBase;
   const { xp_atual, nivel, xp_proximo_nivel, conquistas } = applyXp(heroi, xpDelta);
   const vida_atual = clamp(heroi.vida_atual + vidaDelta, 0, heroi.vida_max);
   const ouro = Math.max(0, (heroi.ouro ?? 0) + ouroDelta);
 
-  await supabase.from("users").update({
-    xp_atual, nivel, xp_proximo_nivel, vida_atual, ouro,
-  }).eq("id", heroi.id);
+  await supabase.from("users").update({ xp_atual, nivel, xp_proximo_nivel, vida_atual, ouro }).eq("id", heroi.id);
 
-  if (ouroDelta !== 0) {
-    await supabase.from("transacoes_ouro").insert({
-      user_id: heroi.id,
-      valor: ouroDelta,
-      origem: "habito",
-      descricao: habito.nome,
-    });
-  }
+  if (ouroDelta !== 0) await supabase.from("transacoes_ouro").insert({ user_id: heroi.id, valor: ouroDelta, origem: "habito", descricao: habito.nome });
 
-  // Enemy HP
+  let enemyDefeated = false;
   if (inimigo) {
     const hpDelta = sign * (positivo ? -habito.peso_dano_cura : habito.peso_dano_cura);
     const hp_atual = clamp(inimigo.hp_atual + hpDelta, 0, inimigo.hp_max);
+    enemyDefeated = inimigo.hp_atual > 0 && hp_atual <= 0;
     await supabase.from("inimigo").update({ hp_atual }).eq("id", inimigo.id);
   }
 
   if (conquistas.length) await checkConquistas(heroi.id, conquistas);
 
+  // Event layer observes the existing result; it does not apply XP/gold/HP again.
+  emitGameEvent(marcado ? "HABIT_UNDONE" : "HABIT_COMPLETED", {
+    habitId: habito.id,
+    habitName: habito.nome,
+    xpDelta,
+    goldDelta: ouroDelta,
+  }, "toggleHabito");
+
+  if (enemyDefeated && inimigo) {
+    emitGameEvent("ENEMY_DEFEATED", { enemyId: inimigo.id, enemyName: inimigo.nome }, "toggleHabito");
+  }
+
   return { xpDelta, positivo, ouroDelta };
 }
 
-/** Roll the daily chest. Returns gold amount. */
 export function rollDailyChest(): number {
   const r = Math.random();
-  if (r < 0.6) return 1 + Math.floor(Math.random() * 3); // 1-3
-  if (r < 0.9) return 4 + Math.floor(Math.random() * 3); // 4-6
-  return 7 + Math.floor(Math.random() * 4); // 7-10
+  if (r < 0.6) return 1 + Math.floor(Math.random() * 3);
+  if (r < 0.9) return 4 + Math.floor(Math.random() * 3);
+  return 7 + Math.floor(Math.random() * 4);
 }
 
-/** Loot 1–10 com raridade crescente (1–2 muito comum … 10 lendário). */
 export function rollLoot(): number {
-  const pesos = [26, 22, 15, 12, 8, 6, 4, 2.5, 1.5, 0.6]; // índice 0 => valor 1
+  const pesos = [26, 22, 15, 12, 8, 6, 4, 2.5, 1.5, 0.6];
   const total = pesos.reduce((s, p) => s + p, 0);
   let r = Math.random() * total;
   for (let i = 0; i < pesos.length; i++) {
@@ -385,18 +300,12 @@ export async function salvarCartaEnfrentamento(userId: string, texto: string) {
   if (error) throw error;
 }
 
-/** Registra um enfrentamento (vitória sobre o impulso) e concede loot de Vida + Ouro. */
 export async function registrarEnfrentamento(heroi: Heroi): Promise<{ vida: number; ouro: number }> {
   const vida = rollLoot();
   const ouro = rollLoot();
-  const { error } = await supabase.from("users").update({
-    vida_atual: clamp(heroi.vida_atual + vida, 0, heroi.vida_max),
-    ouro: (heroi.ouro ?? 0) + ouro,
-  }).eq("id", heroi.id);
+  const { error } = await supabase.from("users").update({ vida_atual: clamp(heroi.vida_atual + vida, 0, heroi.vida_max), ouro: (heroi.ouro ?? 0) + ouro }).eq("id", heroi.id);
   if (error) throw error;
-  await supabase.from("transacoes_ouro").insert({
-    user_id: heroi.id, valor: ouro, origem: "carta_enfrentamento", descricao: `Enfrentei (+${vida} vida)`,
-  });
+  await supabase.from("transacoes_ouro").insert({ user_id: heroi.id, valor: ouro, origem: "carta_enfrentamento", descricao: `Enfrentei (+${vida} vida)` });
   return { vida, ouro };
 }
 
@@ -405,16 +314,8 @@ export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<numb
   const skill = getPetSkill(heroi.avatar_equipado?.pet);
   const bonus = skill.ouroBonusPct ? Math.max(1, Math.round(base * skill.ouroBonusPct)) : 0;
   const gold = base + bonus;
-  await supabase.from("users").update({
-    ouro: heroi.ouro + gold,
-    ultimo_bau_data: todayISO(),
-  }).eq("id", userId);
-  await supabase.from("transacoes_ouro").insert({
-    user_id: userId,
-    valor: gold,
-    origem: "bau_diario",
-    descricao: bonus > 0 ? `Baú do dia (+${bonus} bônus de pet)` : "Baú do dia",
-  });
+  await supabase.from("users").update({ ouro: heroi.ouro + gold, ultimo_bau_data: todayISO() }).eq("id", userId);
+  await supabase.from("transacoes_ouro").insert({ user_id: userId, valor: gold, origem: "bau_diario", descricao: bonus > 0 ? `Baú do dia (+${bonus} bônus de pet)` : "Baú do dia" });
   await unlockBauConquista(userId);
   return gold;
 }
@@ -422,15 +323,8 @@ export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<numb
 export async function concluirMiniVitoria(userId: string, heroi: Heroi, mv: MiniVitoria) {
   const { xp_atual, nivel, xp_proximo_nivel, conquistas } = applyXp(heroi, mv.recompensa_xp);
   const vida_atual = clamp(heroi.vida_atual + mv.recompensa_vida, 0, heroi.vida_max);
-  await supabase.from("users").update({
-    xp_atual, nivel, xp_proximo_nivel, vida_atual,
-    ouro: heroi.ouro + mv.recompensa_ouro,
-  }).eq("id", userId);
-  await supabase.from("mini_vitorias").update({
-    concluida: true, concluida_em: new Date().toISOString(),
-  }).eq("id", mv.id);
-  await supabase.from("transacoes_ouro").insert({
-    user_id: userId, valor: mv.recompensa_ouro, origem: "mini_vitoria", descricao: mv.titulo,
-  });
+  await supabase.from("users").update({ xp_atual, nivel, xp_proximo_nivel, vida_atual, ouro: heroi.ouro + mv.recompensa_ouro }).eq("id", userId);
+  await supabase.from("mini_vitorias").update({ concluida: true, concluida_em: new Date().toISOString() }).eq("id", mv.id);
+  await supabase.from("transacoes_ouro").insert({ user_id: userId, valor: mv.recompensa_ouro, origem: "mini_vitoria", descricao: mv.titulo });
   if (conquistas.length) await checkConquistas(userId, conquistas);
 }
