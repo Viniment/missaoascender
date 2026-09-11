@@ -20,6 +20,21 @@ const MOODS: { id: Mood; label: string; icon: any }[] = [
 ];
 const MILESTONES = [8, 10, 12, 14, 16, 18, 20, 24];
 
+function tituloPorHoras(h: number) {
+  if (h >= 24) return "Jejum Épico";
+  if (h >= 20) return "20 Horas de Jejum";
+  if (h >= 18) return "18 Horas de Jejum";
+  if (h >= 16) return "16 Horas de Jejum";
+  if (h >= 14) return "14 Horas de Jejum";
+  if (h >= 12) return "12 Horas de Jejum";
+  if (h >= 10) return "10 Horas de Jejum";
+  if (h >= 8) return "8 Horas de Jejum";
+  if (h >= 6) return "6 Horas de Jejum";
+  if (h >= 4) return "4 Horas de Jejum";
+  if (h >= 2) return "2 Horas de Jejum";
+  return "Início do Jejum";
+}
+
 function pad(n: number) { return String(n).padStart(2, "0"); }
 function toInputValue(date: Date) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }); }
