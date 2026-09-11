@@ -138,8 +138,8 @@ export default function JejumCard() {
       const nextVida = Math.min(current.vida_max, current.vida_atual + vida);
       await supabase.from("users").update({ xp_atual: nextXp.xp_atual, nivel: nextXp.nivel, xp_proximo_nivel: nextXp.xp_proximo_nivel, vida_atual: nextVida, ouro: current.ouro + ouro }).eq("id", uid);
       await supabase.from("transacoes_ouro").insert({ user_id: uid, valor: ouro, origem: "jejum", descricao: `Jejum de ${durationText(minutes)}` });
-      const { data: attr } = await supabase.from("hero_attributes").select("*").eq("user_id", uid).maybeSingle();
-      await supabase.from("hero_attributes").upsert({
+      const { data: attr } = await (supabase as any).from("hero_attributes").select("*").eq("user_id", uid).maybeSingle();
+      await (supabase as any).from("hero_attributes").upsert({
         user_id: uid,
         consciencia: attr?.consciencia ?? 0,
         foco: attr?.foco ?? 0,
