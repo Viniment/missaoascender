@@ -25,6 +25,7 @@ import Japamala from "@/pages/Japamala";
 import Estudos from "@/pages/Estudos";
 import EstudoCategoria from "@/pages/EstudoCategoria";
 import Imersao from "@/pages/Imersao";
+import Projetos from "@/pages/Projetos";
 
 const qc = new QueryClient();
 
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="/laboratorio" element={<Protected><Laboratorio /></Protected>} />
               <Route path="/predicao" element={<Protected><Predicao /></Protected>} />
               <Route path="/mente" element={<Protected><Mente /></Protected>} />
+              <Route path="/projetos" element={<Protected><Projetos /></Protected>} />
               <Route path="/trataka" element={<Protected><Trataka /></Protected>} />
               <Route path="/japamala" element={<Protected><Japamala /></Protected>} />
               <Route path="/estudos" element={<Protected><Estudos /></Protected>} />
