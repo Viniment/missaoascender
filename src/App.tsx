@@ -14,6 +14,7 @@ import PerfilPage from "@/pages/Perfil";
 import LojaPage from "@/pages/Loja";
 import PersonalizarPage from "@/pages/Personalizar";
 import AdminPage from "@/pages/Admin";
+import FissuraPage from "@/pages/Fissura";
 import Reestruturacao from "@/pages/Reestruturacao";
 import UrgeSurfing from "@/pages/UrgeSurfing";
 import Laboratorio from "@/pages/Laboratorio";
@@ -49,7 +50,7 @@ export default function App() {
               <Route path="/inimigo" element={<Protected><InimigoPage /></Protected>} />
               <Route path="/mini-vitorias" element={<Protected><MiniVitoriasPage /></Protected>} />
               <Route path="/conquistas" element={<Protected><ConquistasPage /></Protected>} />
-              <Route path="/fissura" element={<Protected><Imersao /></Protected>} />
+              <Route path="/fissura" element={<Protected><FissuraPage /></Protected>} />
               <Route path="/loja" element={<Protected><LojaPage /></Protected>} />
               <Route path="/personalizar" element={<Protected><PersonalizarPage /></Protected>} />
               <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
