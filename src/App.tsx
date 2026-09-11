@@ -9,7 +9,7 @@ import Onboarding from "@/pages/Onboarding";
 import CriarInimigo from "@/pages/CriarInimigo";
 import InimigoPage from "@/pages/Inimigo";
 import MiniVitoriasPage from "@/pages/MiniVitorias";
-import ConquistasPage from "@/pages/ConquistasComJejum";
+import ConquistasPage from "@/pages/Conquistas";
 import PerfilPage from "@/pages/Perfil";
 import LojaPage from "@/pages/Loja";
 import PersonalizarPage from "@/pages/Personalizar";
