@@ -84,9 +84,9 @@ export default function CartaEnfrentamentoDialog({ open, onClose, heroi, inimigo
 
   const fecharSeguro = () => { if (modo !== "gerando") onClose(); };
 
-  return <AnimatePresence>{open && <motion.div className="fx-essential fixed inset-0 z-[80] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+  return <AnimatePresence>{open && <motion.div className="fx-essential fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
     <div className="absolute inset-0 bg-background/90 backdrop-blur-md" onClick={fecharSeguro} />
-    <motion.div initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, opacity: 0 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-md rpg-panel danger-glow scanlines border-destructive/40 p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+    <motion.div initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, opacity: 0 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-2xl rpg-panel danger-glow scanlines border-destructive/40 p-4 sm:p-5 space-y-4 max-h-[90vh] overflow-y-auto">
       {modo !== "gerando" && <button onClick={onClose} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground" aria-label="Fechar"><X className="w-4 h-4" /></button>}
       {modo !== "vitoria" && <div><p className="text-[10px] uppercase tracking-[0.4em] text-destructive flex items-center gap-1"><Swords className="w-3 h-3" /> Carta de Enfrentamento</p><h3 className="font-display text-lg tracking-widest mt-1">{modo === "vazio" && "Eu ainda não tenho uma carta."}{modo === "ler" && "Um lembrete para todos os dias."}{modo === "editar" && "Minha carta"}{modo === "gerando" && "Escrevendo..."}{modo === "revisar" && "Nova versão gerada"}</h3></div>}
 
