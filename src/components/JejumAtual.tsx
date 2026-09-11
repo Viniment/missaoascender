@@ -7,6 +7,21 @@ type Estado = "tranquila" | "normal" | "vontade" | "dificil";
 const KEY = "ascensao:jejum-atual";
 const META_HORAS = 18;
 
+function tituloPorHoras(h: number) {
+  if (h >= 24) return "Jejum Épico";
+  if (h >= 20) return "20 Horas de Jejum";
+  if (h >= 18) return "18 Horas de Jejum";
+  if (h >= 16) return "16 Horas de Jejum";
+  if (h >= 14) return "14 Horas de Jejum";
+  if (h >= 12) return "12 Horas de Jejum";
+  if (h >= 10) return "10 Horas de Jejum";
+  if (h >= 8) return "8 Horas de Jejum";
+  if (h >= 6) return "6 Horas de Jejum";
+  if (h >= 4) return "4 Horas de Jejum";
+  if (h >= 2) return "2 Horas de Jejum";
+  return "Início do Jejum";
+}
+
 function formatarTempo(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(total / 3600);
@@ -66,7 +81,8 @@ export default function JejumAtual() {
             <p className="text-[9px] uppercase tracking-[0.3em] text-primary flex items-center gap-1.5">
               <Clock3 className="w-3 h-3" /> JEJUM ATUAL
             </p>
-            <h3 className="font-display text-lg tracking-widest mt-1">{inicio ? formatarTempo(decorrido) : "Nenhum jejum ativo"}</h3>
+            <h3 className="font-display text-lg tracking-widest mt-1">{inicio ? tituloPorHoras(Math.floor(decorrido / 3600000)) : "Nenhum jejum ativo"}</h3>
+            {inicio && <p className="text-xs text-muted-foreground mt-0.5">{formatarTempo(decorrido)}</p>}
           </div>
           {inicio ? (
             <button onClick={encerrar} className="text-muted-foreground hover:text-destructive p-1" title="Encerrar jejum">

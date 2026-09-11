@@ -20,6 +20,21 @@ const MOODS: { id: Mood; label: string; icon: any }[] = [
 ];
 const MILESTONES = [8, 10, 12, 14, 16, 18, 20, 24];
 
+function tituloPorHoras(h: number) {
+  if (h >= 24) return "Jejum Épico";
+  if (h >= 20) return "20 Horas de Jejum";
+  if (h >= 18) return "18 Horas de Jejum";
+  if (h >= 16) return "16 Horas de Jejum";
+  if (h >= 14) return "14 Horas de Jejum";
+  if (h >= 12) return "12 Horas de Jejum";
+  if (h >= 10) return "10 Horas de Jejum";
+  if (h >= 8) return "8 Horas de Jejum";
+  if (h >= 6) return "6 Horas de Jejum";
+  if (h >= 4) return "4 Horas de Jejum";
+  if (h >= 2) return "2 Horas de Jejum";
+  return "Início do Jejum";
+}
+
 function pad(n: number) { return String(n).padStart(2, "0"); }
 function toInputValue(date: Date) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
 function formatDate(iso: string) { return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }); }
@@ -123,8 +138,8 @@ export default function JejumCard() {
       const nextVida = Math.min(current.vida_max, current.vida_atual + vida);
       await supabase.from("users").update({ xp_atual: nextXp.xp_atual, nivel: nextXp.nivel, xp_proximo_nivel: nextXp.xp_proximo_nivel, vida_atual: nextVida, ouro: current.ouro + ouro }).eq("id", uid);
       await supabase.from("transacoes_ouro").insert({ user_id: uid, valor: ouro, origem: "jejum", descricao: `Jejum de ${durationText(minutes)}` });
-      const { data: attr } = await supabase.from("hero_attributes").select("*").eq("user_id", uid).maybeSingle();
-      await supabase.from("hero_attributes").upsert({
+      const { data: attr } = await (supabase as any).from("hero_attributes").select("*").eq("user_id", uid).maybeSingle();
+      await (supabase as any).from("hero_attributes").upsert({
         user_id: uid,
         consciencia: attr?.consciencia ?? 0,
         foco: attr?.foco ?? 0,
@@ -165,7 +180,7 @@ export default function JejumCard() {
         <div className="w-11 h-11 rounded-md grid place-items-center bg-primary/10 border border-primary/30 text-primary"><Clock3 className="w-5 h-5" /></div>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[.3em] text-primary">JEJUM</p>
-          <h3 className="font-display text-base tracking-widest">{active ? "Jejum Em Andamento" : "Jejum Atual"}</h3>
+          <h3 className="font-display text-base tracking-widest">{active ? tituloPorHoras(elapsedHours) : "Jejum Atual"}</h3>
           <p className="text-[11px] text-muted-foreground">{active ? `${durationText(elapsedMinutes)} · ${statusText}` : statusText}</p>
         </div>
         <div className="text-right shrink-0">
