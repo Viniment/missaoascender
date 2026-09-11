@@ -180,7 +180,7 @@ export default function JejumCard() {
         <div className="w-11 h-11 rounded-md grid place-items-center bg-primary/10 border border-primary/30 text-primary"><Clock3 className="w-5 h-5" /></div>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[.3em] text-primary">JEJUM</p>
-          <h3 className="font-display text-base tracking-widest">{active ? "Jejum Em Andamento" : "Jejum Atual"}</h3>
+          <h3 className="font-display text-base tracking-widest">{active ? tituloPorHoras(elapsedHours) : "Jejum Atual"}</h3>
           <p className="text-[11px] text-muted-foreground">{active ? `${durationText(elapsedMinutes)} · ${statusText}` : statusText}</p>
         </div>
         <div className="text-right shrink-0">
