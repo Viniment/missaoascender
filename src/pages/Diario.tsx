@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Brain, Check, ChevronRight, Coins, History, Sparkles, Target, Trophy, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Brain, Check, ChevronRight, Coins, History, Sparkles, Target, Trophy, X, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
-import { applyXp, fetchHeroi } from "@/lib/api";
+import { applyXp, fetchHeroi, rollLifeReward } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { todayISO, formatBRDate } from "@/lib/utils";
 import { emitGameEvent } from "@/game/events";
 import { toast } from "sonner";
 
-type DiaryEntry = { id: string; date: string; text: string; type: string; xp: number; gold: number };
+type DiaryEntry = { id: string; date: string; text: string; type: string; xp: number; gold: number; life: number };
 type Mode = "thought" | "urge" | "emotion" | "impulse" | "reflection";
 type Step = "thought" | "emotion" | "urge" | "separate" | "distance" | "reframe" | "choice";
 
@@ -60,31 +60,19 @@ export default function Diario() {
   function reset() {
     setMode(null); setStep("thought"); setThought(""); setEmotion(""); setIntensity(5); setUrge(""); setThoughtKind(""); setDistance(false); setEvidenceFor(""); setEvidenceAgainst(""); setAlternative(""); setChoice(""); setSaved(false);
   }
-
-  function begin(next: Mode) {
-    setMode(next);
-    setStep(next === "emotion" ? "emotion" : "thought");
-  }
-
-  function next() {
-    const order: Step[] = ["thought", "emotion", "urge", "separate", "distance", "reframe", "choice"];
-    const i = order.indexOf(step);
-    if (i < order.length - 1) setStep(order[i + 1]);
-  }
-
-  function back() {
-    const order: Step[] = ["thought", "emotion", "urge", "separate", "distance", "reframe", "choice"];
-    const i = order.indexOf(step);
-    if (i > 0) setStep(order[i - 1]); else reset();
-  }
+  function begin(next: Mode) { setMode(next); setStep(next === "emotion" ? "emotion" : "thought"); }
+  function next() { const order: Step[] = ["thought", "emotion", "urge", "separate", "distance", "reframe", "choice"]; const i = order.indexOf(step); if (i < order.length - 1) setStep(order[i + 1]); }
+  function back() { const order: Step[] = ["thought", "emotion", "urge", "separate", "distance", "reframe", "choice"]; const i = order.indexOf(step); if (i > 0) setStep(order[i - 1]); else reset(); }
 
   async function finish() {
     if (!uid || !heroi || saving) return;
     setSaving(true);
     const xp = 30 + (distance ? 20 : 0) + (alternative.trim() ? 10 : 0);
     const gold = 5;
+    const life = rollLifeReward();
     const nextHero = applyXp(heroi, xp);
     const ouro = (heroi.ouro ?? 0) + gold;
+    const vida_atual = Math.min(heroi.vida_max, heroi.vida_atual + life);
     const summary = [
       `PENSAMENTO: ${thought || "não informado"}`,
       `SENTIMENTO: ${emotion || "não informado"} (${intensity}/10)`,
@@ -92,10 +80,10 @@ export default function Diario() {
       `PERSPECTIVA: ${alternative || "não registrada"}`,
       `ESCOLHA: ${choice || "não registrada"}`,
     ].join("\n");
-    const { error } = await supabase.from("users").update({ xp_atual: nextHero.xp_atual, nivel: nextHero.nivel, xp_proximo_nivel: nextHero.xp_proximo_nivel, ouro }).eq("id", uid);
+    const { error } = await supabase.from("users").update({ xp_atual: nextHero.xp_atual, nivel: nextHero.nivel, xp_proximo_nivel: nextHero.xp_proximo_nivel, ouro, vida_atual }).eq("id", uid);
     if (error) { toast.error(error.message); setSaving(false); return; }
-    await supabase.from("transacoes_ouro").insert({ user_id: uid, valor: gold, origem: "diario", descricao: "Registro metacognitivo" });
-    const entry: DiaryEntry = { id: crypto.randomUUID(), date: todayISO(), text: summary, type: mode || "reflection", xp, gold };
+    await supabase.from("transacoes_ouro").insert({ user_id: uid, valor: gold, origem: "diario", descricao: `Registro metacognitivo (+${life} vida)` });
+    const entry: DiaryEntry = { id: crypto.randomUUID(), date: todayISO(), text: summary, type: mode || "reflection", xp, gold, life };
     const nextEntries = [entry, ...entries].slice(0, 100);
     localStorage.setItem(`ascensao:diario:${uid}`, JSON.stringify(nextEntries));
     setEntries(nextEntries);
@@ -123,7 +111,7 @@ export default function Diario() {
           {step === "emotion" && <Question title="O que você está sentindo?" subtitle="Uma emoção pode estar presente sem precisar comandar seu comportamento."><ChoiceGrid options={emotions} value={emotion} onChange={setEmotion} /><div className="mt-6"><div className="flex justify-between text-xs font-black"><span>INTENSIDADE</span><span>{intensity}/10</span></div><input type="range" min="0" max="10" value={intensity} onChange={(e) => setIntensity(Number(e.target.value))} className="mt-3 w-full accent-primary" /></div></Question>}
           {step === "urge" && <Question title="O que você está com vontade de fazer?" subtitle="Descreva o impulso sem transformá-lo automaticamente em necessidade."><textarea autoFocus value={urge} onChange={(e) => setUrge(e.target.value)} placeholder="Ex.: Estou com vontade de comer..." className="min-h-32 w-full rounded-2xl border border-border bg-background p-4 text-sm outline-none focus:ring-2 focus:ring-primary" /><div className="mt-5 rounded-2xl border border-primary/30 bg-primary/5 p-5"><div className="text-center text-lg font-black">VONTADE ≠ COMANDO</div><p className="mt-2 text-center text-xs text-muted-foreground">Uma vontade pode ser intensa e ainda assim não determinar o que você fará.</p></div></Question>}
           {step === "separate" && <Question title="Separe o que está acontecendo" subtitle="Pensamento, sentimento, vontade e ação são experiências diferentes."><div className="grid gap-3 sm:grid-cols-2"><InfoCard title="PENSAMENTO" value={thought || "Ainda não identificado"} /><InfoCard title="SENTIMENTO" value={emotion ? `${emotion} • ${intensity}/10` : "Ainda não identificado"} /><InfoCard title="VONTADE" value={urge || "Ainda não identificada"} /><InfoCard title="AÇÃO" value="Ainda será escolhida" /></div></Question>}
-          {step === "distance" && <Question title="Observe o pensamento" subtitle="Você não precisa eliminar o pensamento. Apenas perceber que ele é um evento mental."><div className="rounded-2xl border border-border bg-muted/20 p-5"><div className="text-xs font-black uppercase text-muted-foreground">ANTES</div><p className="mt-2 text-lg font-black">{thought || "Não identifiquei um pensamento específico."}</p><div className="my-5 text-center text-2xl text-primary">↓</div><div className="text-xs font-black uppercase text-muted-foreground">DEPOIS</div><p className="mt-2 text-lg font-black">Estou tendo o pensamento de que {thought || "algo precisa acontecer agora"}.</p></div><button onClick={() => setDistance(!distance)} className={`mt-4 w-full rounded-2xl border p-4 text-left font-bold ${distance ? "border-primary bg-primary/10" : "border-border bg-muted/20"}`}><Check className={`mr-2 inline h-4 w-4 ${distance ? "opacity-100" : "opacity-30"}`} />Consegui observar o pensamento sem tratá-lo como uma ordem.</button></Question>}
+          {step === "distance" && <Question title="Observe o pensamento" subtitle="Você não precisa eliminar o pensamento. Apenas perceber que ele é um evento mental."><div className="rounded-2xl border border-border bg-muted/20 p-5"><div className="text-xs font-black uppercase text-muted-foreground">ANTES</div><p className="mt-2 text-lg font-black">{thought || "Não identifiquei um pensamento específico."}</p><div className="my-5 text-center text-2xl text-primary">↓</div><div className="text-xs font-black uppercase text-muted-foreground">DEPOIS</div><p className="mt-2 text-lg font-black">Estou tendo o pensamento de que {thought || "algo precisa acontecer agora"}.</p></div><button onClick={() => setDistance(!distance)} className={`mt-4 w-full rounded-2xl border p-4 text-left font-bold ${distance ? "border-primary bg-primary/10" : "border-border bg-muted/20"}`}><Check className={`mr-2 inline h-4 w-4 ${distance ? "opacity-100" : "opacity-30"}'} />Consegui observar o pensamento sem tratá-lo como uma ordem.</button></Question>}
           {step === "reframe" && <Question title="Investigue e encontre outra perspectiva" subtitle="Você não precisa provar que o pensamento é falso. Procure uma leitura mais completa."><div className="space-y-4"><Field label="O que apoia esse pensamento?" value={evidenceFor} setValue={setEvidenceFor} placeholder="Evidências ou fatos..." /><Field label="O que não apoia?" value={evidenceAgainst} setValue={setEvidenceAgainst} placeholder="O que o pensamento pode estar ignorando?" /><Field label="Existe outra explicação possível?" value={alternative} setValue={setAlternative} placeholder="Uma perspectiva mais equilibrada..." /></div></Question>}
           {step === "choice" && <Question title="Agora é você quem decide" subtitle="O pensamento apareceu. A emoção apareceu. A vontade apareceu. Agora existe uma escolha."><ChoiceGrid options={actions} value={choice} onChange={setChoice} /><div className="mt-5 rounded-2xl border border-primary/30 bg-primary/5 p-5 text-center"><Target className="mx-auto h-6 w-6 text-primary" /><p className="mt-2 text-sm font-black">Você não controla tudo que aparece.</p><p className="mt-1 text-xs text-muted-foreground">Você pode treinar o que faz com aquilo que aparece.</p></div></Question>}
         </motion.div>
@@ -132,11 +120,11 @@ export default function Diario() {
       <aside className="rounded-3xl border border-border bg-card p-5 shadow-lg"><div className="text-xs font-black uppercase tracking-wider text-primary">Regra da campanha</div><p className="mt-3 text-lg font-black">"Uma vontade não é uma ordem."</p><p className="mt-3 text-xs leading-5 text-muted-foreground">O objetivo não é nunca sentir ansiedade, fome, tédio ou impulso. É perceber o que está acontecendo antes de transformar automaticamente uma experiência interna em ação.</p></aside>
     </section>}
 
-    {saved && <section className="rounded-3xl border border-primary/30 bg-card p-8 text-center shadow-lg"><div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary"><Trophy className="h-8 w-8" /></div><h2 className="mt-5 text-2xl font-black">Registro concluído</h2><p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">Você separou experiência interna de ação e tomou uma decisão consciente.</p><div className="mx-auto mt-6 flex max-w-sm justify-center gap-3"><div className="rounded-2xl bg-primary/10 px-6 py-4 font-black">+{30 + (distance ? 20 : 0) + (alternative.trim() ? 10 : 0)} XP</div><div className="rounded-2xl bg-muted px-6 py-4 font-black">+5 🪙</div></div><div className="mt-6 flex justify-center gap-3"><button onClick={reset} className="rounded-2xl bg-primary px-6 py-3 font-black text-primary-foreground">Novo registro</button><Link to="/mente" className="rounded-2xl border border-border px-6 py-3 font-bold hover:bg-muted">Voltar para Mente</Link></div></section>}
+    {saved && <section className="rounded-3xl border border-primary/30 bg-card p-8 text-center shadow-lg"><div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary"><Trophy className="h-8 w-8" /></div><h2 className="mt-5 text-2xl font-black">Registro concluído</h2><p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">Você separou experiência interna de ação e tomou uma decisão consciente.</p><div className="mx-auto mt-6 flex max-w-sm justify-center gap-3"><div className="rounded-2xl bg-primary/10 px-6 py-4 font-black">+{30 + (distance ? 20 : 0) + (alternative.trim() ? 10 : 0)} XP</div><div className="rounded-2xl bg-muted px-5 py-4 font-black">+5 🪙</div><div className="rounded-2xl bg-destructive/10 px-5 py-4 font-black text-destructive"><Heart className="mr-1 inline h-4 w-4" />+{entries[0]?.life ?? 0}</div></div><div className="mt-6 flex justify-center gap-3"><button onClick={reset} className="rounded-2xl bg-primary px-6 py-3 font-black text-primary-foreground">Novo registro</button><Link to="/mente" className="rounded-2xl border border-border px-6 py-3 font-bold hover:bg-muted">Voltar para Mente</Link></div></section>}
 
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-lg sm:p-7"><div className="flex items-center gap-3"><History className="h-5 w-5 text-primary" /><h2 className="text-xl font-black">Histórico de campanha</h2></div><p className="mt-1 text-xs text-muted-foreground">Toque em qualquer registro para abrir o texto completo.</p><div className="mt-4 space-y-3">{entries.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">Seu primeiro registro começa aqui.</div> : entries.slice(0, 6).map((e) => <button key={e.id} onClick={() => setSelectedEntry(e)} className="w-full rounded-2xl border border-border bg-muted/20 p-4 text-left transition hover:border-primary/40 hover:bg-primary/5"><div className="flex items-center justify-between gap-2"><span className="text-[10px] font-black uppercase tracking-wider text-primary">{formatBRDate(e.date)}</span><span className="text-[10px] font-black">+{e.xp} XP • +{e.gold} 🪙</span></div><p className="mt-2 line-clamp-4 whitespace-pre-line text-sm">{e.text}</p><div className="mt-3 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Abrir registro completo <ChevronRight className="h-3 w-3" /></div></button>)}</div></section>
+    <section className="rounded-3xl border border-border bg-card p-5 shadow-lg sm:p-7"><div className="flex items-center gap-3"><History className="h-5 w-5 text-primary" /><h2 className="text-xl font-black">Histórico de campanha</h2></div><p className="mt-1 text-xs text-muted-foreground">Toque em qualquer registro para abrir o texto completo.</p><div className="mt-4 space-y-3">{entries.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">Seu primeiro registro começa aqui.</div> : entries.slice(0, 6).map((e) => <button key={e.id} onClick={() => setSelectedEntry(e)} className="w-full rounded-2xl border border-border bg-muted/20 p-4 text-left transition hover:border-primary/40 hover:bg-primary/5"><div className="flex items-center justify-between gap-2"><span className="text-[10px] font-black uppercase tracking-wider text-primary">{formatBRDate(e.date)}</span><span className="text-[10px] font-black">+{e.xp} XP • +{e.gold} 🪙 • +{e.life ?? 0} ❤️</span></div><p className="mt-2 line-clamp-4 whitespace-pre-line text-sm">{e.text}</p><div className="mt-3 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Abrir registro completo <ChevronRight className="h-3 w-3" /></div></button>)}</div></section>
 
-    {selectedEntry && <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" role="dialog" aria-modal="true"><div className="w-full max-w-2xl rounded-3xl border border-primary/30 bg-card p-5 shadow-2xl sm:p-7"><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">Histórico de campanha</div><h2 className="mt-1 font-display text-xl tracking-widest">REGISTRO COMPLETO</h2><p className="mt-1 text-xs text-muted-foreground">{formatBRDate(selectedEntry.date)} • +{selectedEntry.xp} XP • +{selectedEntry.gold} 🪙</p></div><button onClick={() => setSelectedEntry(null)} className="rounded-lg border border-border p-2 hover:bg-muted" aria-label="Fechar"><X className="h-4 w-4" /></button></div><div className="mt-5 max-h-[65vh] overflow-y-auto rounded-2xl border border-border bg-background/50 p-5"><p className="whitespace-pre-line text-sm leading-7">{selectedEntry.text}</p></div><button onClick={() => setSelectedEntry(null)} className="mt-4 w-full rounded-2xl border border-border px-5 py-3 font-bold hover:bg-muted">Fechar</button></div></div>}
+    {selectedEntry && <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" role="dialog" aria-modal="true"><div className="w-full max-w-2xl rounded-3xl border border-primary/30 bg-card p-5 shadow-2xl sm:p-7"><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">Histórico de campanha</div><h2 className="mt-1 font-display text-xl tracking-widest">REGISTRO COMPLETO</h2><p className="mt-1 text-xs text-muted-foreground">{formatBRDate(selectedEntry.date)} • +{selectedEntry.xp} XP • +{selectedEntry.gold} 🪙 • +{selectedEntry.life ?? 0} ❤️</p></div><button onClick={() => setSelectedEntry(null)} className="rounded-lg border border-border p-2 hover:bg-muted" aria-label="Fechar"><X className="h-4 w-4" /></button></div><div className="mt-5 max-h-[65vh] overflow-y-auto rounded-2xl border border-border bg-background/50 p-5"><p className="whitespace-pre-line text-sm leading-7">{selectedEntry.text}</p></div><button onClick={() => setSelectedEntry(null)} className="mt-4 w-full rounded-2xl border border-border px-5 py-3 font-bold hover:bg-muted">Fechar</button></div></div>}
   </div></Shell>;
 }
 
