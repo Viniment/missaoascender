@@ -1,0 +1,49 @@
+name: Ajustar Conquistas
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  ajustar:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ajustar Titulos E Recompensas
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/pages/Conquistas.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          helper = '''function toTitleCase(value:string){return value.replace(/\\p{L}[\\p{L}\\p{M}]*/gu,word=>word.charAt(0).toUpperCase()+word.slice(1))}\n'''
+          if 'function toTitleCase(' not in text:
+              text = text.replace('function loadDiary(uid:string)', helper + 'function loadDiary(uid:string)', 1)
+
+          text = text.replace('add({tipo,titulo,descricao:desc,', 'add({tipo,titulo:toTitleCase(titulo),descricao:desc,', 1)
+
+          old_grid = 'grid grid-cols-2 gap-2 sm:grid-cols-4'
+          new_grid = 'grid grid-cols-2 gap-1.5 sm:grid-cols-4 [&>div]:p-2 [&>div]:rounded-lg [&_.font-display]:text-sm [&_.text-xl]:text-sm [&_.text-lg]:text-sm [&_.text-2xl]:text-sm'
+          text = text.replace(old_grid, new_grid, 1)
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit Alteracoes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet; then
+            echo 'Nenhuma alteracao necessaria.'
+            exit 0
+          fi
+          git add src/pages/Conquistas.tsx
+          git commit -m '[Melhoria] Organizar Recompensas E Titulos Das Conquistas'
+          git push
