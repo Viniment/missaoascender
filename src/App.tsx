@@ -25,6 +25,7 @@ import Trataka from "@/pages/Trataka";
 import Japamala from "@/pages/Japamala";
 import Estudos from "@/pages/Estudos";
 import EstudoCategoria from "@/pages/EstudoCategoria";
+import Imersao from "@/pages/Imersao";
 
 const qc = new QueryClient();
 
@@ -55,7 +56,6 @@ export default function App() {
             <Route path="/personalizar" element={<Protected><PersonalizarPage /></Protected>} />
             <Route path="/perfil" element={<Protected><PerfilPage /></Protected>} />
             <Route path="/admin" element={<Protected><AdminPage /></Protected>} />
-            <Route path="/fissura" element={<Protected><Fissura /></Protected>} />
             <Route path="/reestruturacao" element={<Protected><Reestruturacao /></Protected>} />
             <Route path="/urge-surfing" element={<Protected><UrgeSurfing /></Protected>} />
             <Route path="/laboratorio" element={<Protected><Laboratorio /></Protected>} />
@@ -65,6 +65,7 @@ export default function App() {
             <Route path="/japamala" element={<Protected><Japamala /></Protected>} />
             <Route path="/estudos" element={<Protected><Estudos /></Protected>} />
             <Route path="/estudos/:id" element={<Protected><EstudoCategoria /></Protected>} />
+            <Route path="/imersao" element={<Protected><Imersao /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
