@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
 import { fetchConquistas, fetchHeroi } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, Lock, Brain, Swords, Flame, Coins, Shield, Sparkles, Target, Eye, Waves, Star, CheckCircle2, BookOpen, Compass, Heart, Gift, Clock3 } from "lucide-react";
+import { Trophy, Lock, Brain, Swords, Flame, Coins, Shield, Sparkles, BookOpen, Compass, Waves, CheckCircle2, Gift, Clock3 } from "lucide-react";
 
 type Grupo = "todas" | "mente" | "jornada" | "consistencia" | "batalha" | "riqueza" | "autodomínio" | "jejum";
 type Raridade = "comum" | "rara" | "epica" | "lendaria";
@@ -16,7 +16,7 @@ const JEJUM_MAX_HOURS=21*24;
 const JEJUM_MILESTONES=Array.from({length:Math.floor(JEJUM_MAX_HOURS/8)},(_,i)=>(i+1)*8);
 const JEJUM_TITLES=Object.fromEntries(JEJUM_MILESTONES.map(h=>[h,`${h} Horas De Jejum`])) as Record<number,string>;
 function loadDiary(uid:string){try{return JSON.parse(localStorage.getItem(`ascensao:diario:${uid}`)||"[]") as any[]}catch{return[]}}
-function loadMaxFast(uid:string){try{const s=JSON.parse(localStorage.getItem(`ascensao:jejum:${uid}`)||"[]`) as Array<{minutes:number}>;return Math.max(0,...s.map(x=>(x.minutes||0)/60))}catch{return 0}}
+function loadMaxFast(uid:string){try{const s=JSON.parse(localStorage.getItem(`ascensao:jejum:${uid}`)||"[]") as Array<{minutes:number}>;return Math.max(0,...s.map(x=>(x.minutes||0)/60))}catch{return 0}}
 function rarity(h:number):Raridade{return h>=168?"lendaria":h>=72?"epica":h>=32?"rara":"comum"}
 
 export default function ConquistasPage(){
@@ -25,7 +25,7 @@ export default function ConquistasPage(){
  const {data:hero}=useQuery({queryKey:["heroi",uid],queryFn:()=>fetchHeroi(uid!),enabled:!!uid});
  const {data:econ}=useQuery({queryKey:["econ-conq",uid],queryFn:async()=>{const {data}=await supabase.from("transacoes_ouro").select("valor,origem").eq("user_id",uid!);const rows=data??[];return{ganho:rows.filter(x=>(x.valor??0)>0).reduce((a,x)=>a+(x.valor??0),0),compras:rows.filter(x=>x.origem==="loja").length}},enabled:!!uid});
  useEffect(()=>{if(uid){setDiary(loadDiary(uid));setMaxFast(loadMaxFast(uid))}},[uid]);
- useEffect(()=>{if(!uid||maxFast<8)return;const rows=JEJUM_MILESTONES.filter(h=>maxFast>=h).map(h=>({user_id:uid,tipo:`jejum_${h}h`,titulo:JEJUM_TITLES[h],descricao:`Você alcançou ${h} horas de jejum em uma sessão registrada.`}));supabase.from("conquistas").upsert(rows,{onConflict:"user_id,tipo",ignoreDuplicates:true}).then(()=>qc.invalidateQueries({queryKey:["conq",uid]}))},[uid,maxFast]);
+ useEffect(()=>{if(!uid||maxFast<8)return;const rows=JEJUM_MILESTONES.filter(h=>maxFast>=h).map(h=>({user_id:uid,tipo:`jejum_${h}h`,titulo:JEJUM_TITLES[h],descricao:`Você alcançou ${h} horas de jejum em uma sessão registrada.`}));supabase.from("conquistas").upsert(rows,{onConflict:"user_id,tipo",ignoreDuplicates:true}).then(()=>qc.invalidateQueries({queryKey:["conq",uid]}))},[uid,maxFast,qc]);
  const items=useMemo<Item[]>(()=>{if(!hero)return[];const unlocked=new Set((cs??[]).map(x=>x.tipo));const result:Item[]=[];const add=(tipo:string,titulo:string,desc:string,como:string,current:number,goal:number,grupo:Exclude<Grupo,"todas">,raridade:Raridade,icon:any,atributo:string)=>result.push({tipo,titulo,descricao:desc,como,unlocked:current>=goal||unlocked.has(tipo),progresso:current>=goal||unlocked.has(tipo)?undefined:`${Math.min(current,goal)}/${goal}`,percent:Math.min(100,current/goal*100),grupo,raridade,icon,atributo});const nivel=hero.nivel??1,streak=hero.streak_atual??0,ouro=hero.ouro??0,count=diary.length,dates=new Set(diary.map(x=>x.date)).size,urges=diary.filter(x=>x.type==="urge").length,thoughts=diary.filter(x=>/PENSAMENTO:/i.test(x.text||"")).length,ganho=econ?.ganho??0,compras=econ?.compras??0;
  for(const n of [2,3,4,5,7,10,15,20,30,50,75,100])add(`nivel_${n}`,`Nível ${n}`,`Alcance o nível ${n}.`,`Continue acumulando XP.`,nivel,n,"jornada",n>=50?"lendaria":n>=20?"epica":n>=10?"rara":"comum",Sparkles,"resiliencia");
  for(const n of [1,2,3,5,7,10,14,21,30,45,60,100])add(`diario_${n}`,`Diário ${n}`,`Seu diário faz parte da campanha.`,`Faça ${n} registros.`,count,n,"jornada",n>=30?"epica":n>=10?"rara":"comum",BookOpen,"resiliencia");
