@@ -70,22 +70,15 @@ export async function fetchHeroi(userId: string): Promise<Heroi | null> {
   } as Heroi;
 }
 
-/** Compra ou desbloqueia item; retorna lista atualizada. */
 export async function comprarItem(userId: string, heroi: Heroi, itemId: string) {
   const item = getItem(itemId);
   if (!item) throw new Error("Item inexistente");
   if (heroi.itens_desbloqueados.includes(itemId)) throw new Error("Você já possui este item");
   if (item.preco === null) throw new Error("Item só pode ser desbloqueado por conquista");
   if (heroi.ouro < item.preco) throw new Error("Ouro insuficiente");
-
   const novos = [...heroi.itens_desbloqueados, itemId];
-  await supabase.from("users").update({
-    ouro: heroi.ouro - item.preco,
-    itens_desbloqueados: novos,
-  }).eq("id", userId);
-  await supabase.from("transacoes_ouro").insert({
-    user_id: userId, valor: -item.preco, origem: "loja", descricao: item.nome,
-  });
+  await supabase.from("users").update({ ouro: heroi.ouro - item.preco, itens_desbloqueados: novos }).eq("id", userId);
+  await supabase.from("transacoes_ouro").insert({ user_id: userId, valor: -item.preco, origem: "loja", descricao: item.nome });
 }
 
 export async function equiparItem(userId: string, heroi: Heroi, itemId: string | null, categoria: "hat" | "armor" | "aura" | "mask" | "pet" | "frame" | "card_bg" | "app_bg") {
@@ -94,24 +87,18 @@ export async function equiparItem(userId: string, heroi: Heroi, itemId: string |
   await supabase.from("users").update({ avatar_equipado: equipado as any }).eq("id", userId);
 }
 
-/** Atualiza um patch da aparência (rosto, pele, cabelo, olhos, marca). */
 export async function salvarAparencia(userId: string, heroi: Heroi, patch: Partial<AvatarEquipado>) {
   const equipado = { ...(heroi.avatar_equipado ?? {}), ...patch };
   await supabase.from("users").update({ avatar_equipado: equipado as any }).eq("id", userId);
 }
 
-/** Garante itens iniciais + itens ligados a conquistas do usuário. */
 export async function sincronizarItensDesbloqueados(userId: string, heroi: Heroi, conquistasTipos: string[]) {
   const atuais = new Set(heroi.itens_desbloqueados ?? []);
   const antes = atuais.size;
   for (const id of ITENS_INICIAIS) atuais.add(id);
   const { ITENS } = await import("./itens");
-  for (const it of ITENS) {
-    if (it.unlock && conquistasTipos.includes(it.unlock)) atuais.add(it.id);
-  }
-  if (atuais.size !== antes) {
-    await supabase.from("users").update({ itens_desbloqueados: Array.from(atuais) }).eq("id", userId);
-  }
+  for (const it of ITENS) if (it.unlock && conquistasTipos.includes(it.unlock)) atuais.add(it.id);
+  if (atuais.size !== antes) await supabase.from("users").update({ itens_desbloqueados: Array.from(atuais) }).eq("id", userId);
   return Array.from(atuais);
 }
 
@@ -215,6 +202,16 @@ export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimi
   if (error) throw error;
 }
 
+/** 1–5, com os valores maiores deliberadamente mais raros. */
+export function rollLifeReward(): number {
+  const r = Math.random();
+  if (r < 0.55) return 1;
+  if (r < 0.82) return 2;
+  if (r < 0.94) return 3;
+  if (r < 0.985) return 4;
+  return 5;
+}
+
 export async function toggleHabito(opts: { heroi: Heroi; inimigo: Inimigo | null; habito: Habito; marcado: boolean; data?: string }) {
   const { heroi, inimigo, habito, marcado } = opts;
   const dia = opts.data ?? todayISO();
@@ -222,18 +219,15 @@ export async function toggleHabito(opts: { heroi: Heroi; inimigo: Inimigo | null
   const positivo = habito.tipo === "positivo";
   const skill = getPetSkill(heroi.avatar_equipado?.pet);
 
-  if (marcado) {
-    await supabase.from("habito_logs").delete().eq("habito_id", habito.id).eq("data", dia);
-  } else {
-    await supabase.from("habito_logs").insert({ user_id: heroi.id, habito_id: habito.id, data: dia, completado: true });
-  }
+  if (marcado) await supabase.from("habito_logs").delete().eq("habito_id", habito.id).eq("data", dia);
+  else await supabase.from("habito_logs").insert({ user_id: heroi.id, habito_id: habito.id, data: dia, completado: true });
 
   let xpBase = positivo ? habito.peso_xp : -habito.peso_xp;
   if (positivo && skill.xpBonusPct) xpBase = Math.round(xpBase * (1 + skill.xpBonusPct));
   const xpDelta = sign * xpBase;
 
   let vidaBase = 0;
-  if (positivo) vidaBase = skill.curaPorHabito ?? 0;
+  if (positivo) vidaBase = rollLifeReward();
   else {
     const perda = Math.max(2, Math.round(habito.peso_dano_cura / 3));
     const reduzida = skill.danoReducaoPct ? Math.round(perda * (1 - skill.danoReducaoPct)) : perda;
@@ -249,7 +243,6 @@ export async function toggleHabito(opts: { heroi: Heroi; inimigo: Inimigo | null
   const ouro = Math.max(0, (heroi.ouro ?? 0) + ouroDelta);
 
   await supabase.from("users").update({ xp_atual, nivel, xp_proximo_nivel, vida_atual, ouro }).eq("id", heroi.id);
-
   if (ouroDelta !== 0) await supabase.from("transacoes_ouro").insert({ user_id: heroi.id, valor: ouroDelta, origem: "habito", descricao: habito.nome });
 
   let enemyDefeated = false;
@@ -261,20 +254,10 @@ export async function toggleHabito(opts: { heroi: Heroi; inimigo: Inimigo | null
   }
 
   if (conquistas.length) await checkConquistas(heroi.id, conquistas);
+  emitGameEvent(marcado ? "HABIT_UNDONE" : "HABIT_COMPLETED", { habitId: habito.id, habitName: habito.nome, xpDelta, goldDelta: ouroDelta }, "toggleHabito");
+  if (enemyDefeated && inimigo) emitGameEvent("ENEMY_DEFEATED", { enemyId: inimigo.id, enemyName: inimigo.nome }, "toggleHabito");
 
-  // Event layer observes the existing result; it does not apply XP/gold/HP again.
-  emitGameEvent(marcado ? "HABIT_UNDONE" : "HABIT_COMPLETED", {
-    habitId: habito.id,
-    habitName: habito.nome,
-    xpDelta,
-    goldDelta: ouroDelta,
-  }, "toggleHabito");
-
-  if (enemyDefeated && inimigo) {
-    emitGameEvent("ENEMY_DEFEATED", { enemyId: inimigo.id, enemyName: inimigo.nome }, "toggleHabito");
-  }
-
-  return { xpDelta, positivo, ouroDelta };
+  return { xpDelta, positivo, ouroDelta, vidaDelta };
 }
 
 export function rollDailyChest(): number {
@@ -288,10 +271,7 @@ export function rollLoot(): number {
   const pesos = [26, 22, 15, 12, 8, 6, 4, 2.5, 1.5, 0.6];
   const total = pesos.reduce((s, p) => s + p, 0);
   let r = Math.random() * total;
-  for (let i = 0; i < pesos.length; i++) {
-    r -= pesos[i];
-    if (r <= 0) return i + 1;
-  }
+  for (let i = 0; i < pesos.length; i++) { r -= pesos[i]; if (r <= 0) return i + 1; }
   return 1;
 }
 
@@ -300,13 +280,15 @@ export async function salvarCartaEnfrentamento(userId: string, texto: string) {
   if (error) throw error;
 }
 
-export async function registrarEnfrentamento(heroi: Heroi): Promise<{ vida: number; ouro: number }> {
-  const vida = rollLoot();
+export async function registrarEnfrentamento(heroi: Heroi): Promise<{ vida: number; ouro: number; xp: number }> {
+  const vida = rollLifeReward();
   const ouro = rollLoot();
-  const { error } = await supabase.from("users").update({ vida_atual: clamp(heroi.vida_atual + vida, 0, heroi.vida_max), ouro: (heroi.ouro ?? 0) + ouro }).eq("id", heroi.id);
+  const xp = 20;
+  const next = applyXp(heroi, xp);
+  const { error } = await supabase.from("users").update({ xp_atual: next.xp_atual, nivel: next.nivel, xp_proximo_nivel: next.xp_proximo_nivel, vida_atual: clamp(heroi.vida_atual + vida, 0, heroi.vida_max), ouro: (heroi.ouro ?? 0) + ouro }).eq("id", heroi.id);
   if (error) throw error;
-  await supabase.from("transacoes_ouro").insert({ user_id: heroi.id, valor: ouro, origem: "carta_enfrentamento", descricao: `Enfrentei (+${vida} vida)` });
-  return { vida, ouro };
+  await supabase.from("transacoes_ouro").insert({ user_id: heroi.id, valor: ouro, origem: "carta_enfrentamento", descricao: `Leitura da carta (+${vida} vida, +${xp} XP)` });
+  return { vida, ouro, xp };
 }
 
 export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<number> {
@@ -322,9 +304,9 @@ export async function abrirBauDiario(userId: string, heroi: Heroi): Promise<numb
 
 export async function concluirMiniVitoria(userId: string, heroi: Heroi, mv: MiniVitoria) {
   const { xp_atual, nivel, xp_proximo_nivel, conquistas } = applyXp(heroi, mv.recompensa_xp);
-  const vida_atual = clamp(heroi.vida_atual + mv.recompensa_vida, 0, heroi.vida_max);
+  const vida_atual = clamp(heroi.vida_atual + rollLifeReward(), 0, heroi.vida_max);
   await supabase.from("users").update({ xp_atual, nivel, xp_proximo_nivel, vida_atual, ouro: heroi.ouro + mv.recompensa_ouro }).eq("id", userId);
   await supabase.from("mini_vitorias").update({ concluida: true, concluida_em: new Date().toISOString() }).eq("id", mv.id);
-  await supabase.from("transacoes_ouro").insert({ user_id: userId, valor: mv.recompensa_ouro, origem: "mini_vitoria", descricao: mv.titulo });
+  await supabase.from("transacoes_ouro").insert({ user_id: userId, valor: mv.recompensa_ouro, origem: "mini_vitoria", descricao: `${mv.titulo} (+vida aleatória 1–5)` });
   if (conquistas.length) await checkConquistas(userId, conquistas);
 }
