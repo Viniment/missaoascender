@@ -9,12 +9,12 @@ export default function DashboardComJejum() {
   useEffect(() => {
     const find = () => {
       const button = Array.from(document.querySelectorAll("button")).find(el => el.textContent?.includes("Carta de Enfrentamento"));
-      if (!button?.parentElement) return;
-      let mount = button.parentElement.querySelector("[data-jejum-mount]") as HTMLElement | null;
+      if (!button) return;
+      let mount = button.nextElementSibling?.matches("[data-jejum-mount]") ? button.nextElementSibling as HTMLElement : null;
       if (!mount) {
         mount = document.createElement("div");
         mount.setAttribute("data-jejum-mount", "true");
-        button.parentElement.insertAdjacentElement("afterend", mount);
+        button.insertAdjacentElement("afterend", mount);
       }
       setTarget(mount);
     };
