@@ -7,6 +7,21 @@ type Estado = "tranquila" | "normal" | "vontade" | "dificil";
 const KEY = "ascensao:jejum-atual";
 const META_HORAS = 18;
 
+function tituloPorHoras(h: number) {
+  if (h >= 24) return "Jejum Épico";
+  if (h >= 20) return "20 Horas de Jejum";
+  if (h >= 18) return "18 Horas de Jejum";
+  if (h >= 16) return "16 Horas de Jejum";
+  if (h >= 14) return "14 Horas de Jejum";
+  if (h >= 12) return "12 Horas de Jejum";
+  if (h >= 10) return "10 Horas de Jejum";
+  if (h >= 8) return "8 Horas de Jejum";
+  if (h >= 6) return "6 Horas de Jejum";
+  if (h >= 4) return "4 Horas de Jejum";
+  if (h >= 2) return "2 Horas de Jejum";
+  return "Início do Jejum";
+}
+
 function formatarTempo(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
   const h = Math.floor(total / 3600);
