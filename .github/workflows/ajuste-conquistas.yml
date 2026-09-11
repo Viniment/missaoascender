@@ -1,0 +1,38 @@
+name: Ajuste temporário das conquistas
+
+on:
+  push:
+    paths:
+      - .github/workflows/ajuste-conquistas.yml
+
+permissions:
+  contents: write
+
+jobs:
+  ajustar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remover seção de próximos troféus
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("src/pages/Conquistas.tsx")
+          s = p.read_text()
+          start = '  {proximas.length>0&&<section>'
+          end = '  <section className="relative flex items-center gap-1">'
+          i = s.find(start)
+          j = s.find(end, i)
+          if i == -1 or j == -1:
+              raise SystemExit("Seção PRÓXIMOS TROFÉUS não encontrada")
+          s = s[:i] + s[j:]
+          s = s.replace(',proximas=catalog.filter(x=>!x.unlocked).sort((a,b)=>b.percent-a.percent).slice(0,3)', '')
+          p.write_text(s)
+          PY
+      - name: Commitar alteração
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/pages/Conquistas.tsx
+          git diff --cached --quiet || git commit -m "feat: remover seção de próximos troféus"
+          git push
