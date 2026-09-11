@@ -81,7 +81,8 @@ export default function JejumAtual() {
             <p className="text-[9px] uppercase tracking-[0.3em] text-primary flex items-center gap-1.5">
               <Clock3 className="w-3 h-3" /> JEJUM ATUAL
             </p>
-            <h3 className="font-display text-lg tracking-widest mt-1">{inicio ? formatarTempo(decorrido) : "Nenhum jejum ativo"}</h3>
+            <h3 className="font-display text-lg tracking-widest mt-1">{inicio ? tituloPorHoras(Math.floor(decorrido / 3600000)) : "Nenhum jejum ativo"}</h3>
+            {inicio && <p className="text-xs text-muted-foreground mt-0.5">{formatarTempo(decorrido)}</p>}
           </div>
           {inicio ? (
             <button onClick={encerrar} className="text-muted-foreground hover:text-destructive p-1" title="Encerrar jejum">
