@@ -63,14 +63,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <aside className="fixed left-0 top-14 bottom-0 z-40 hidden w-[78px] border-r border-border bg-background/80 backdrop-blur-xl lg:flex lg:flex-col lg:items-center lg:py-4">
+      <aside className="group fixed left-0 top-14 bottom-0 z-40 hidden w-[78px] border-r border-border bg-background/85 backdrop-blur-xl transition-[width,box-shadow] duration-200 ease-out hover:w-[220px] hover:shadow-[12px_0_35px_rgba(0,0,0,.28)] lg:flex lg:flex-col lg:items-center lg:py-4">
         <div className="flex w-full flex-col items-center gap-2 px-2">
           {NAV.map(({ to, label, Icon }) => {
             const active = loc.pathname === to;
-            return <Link key={to} to={to} aria-label={label} title={label} className={cn("group relative flex h-12 w-12 items-center justify-center rounded-xl transition-all", active ? "text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-foreground")}>
+            return <Link key={to} to={to} aria-label={label} title={label} className={cn("group/item relative flex h-12 w-full items-center justify-start overflow-hidden rounded-xl px-3 transition-all", active ? "text-primary-foreground" : "text-muted-foreground hover:bg-primary/10 hover:text-foreground")}>
               {active && <span className="absolute inset-0 rounded-xl bg-gradient-to-b from-primary to-[hsl(263_90%_40%)] shadow-[0_0_18px_hsl(var(--primary)/0.45)]" />}
-              <Icon className="relative z-10 h-5 w-5" />
-              <span className="pointer-events-none absolute left-14 z-50 whitespace-nowrap rounded-lg border border-border bg-popover px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-popover-foreground opacity-0 shadow-xl transition-opacity group-hover:opacity-100">{label}</span>
+              <Icon className="relative z-10 h-5 w-5 shrink-0" />
+              <span className="relative z-10 ml-3 whitespace-nowrap overflow-hidden font-display text-[10px] font-bold uppercase tracking-[0.16em] opacity-0 transition-opacity duration-150 group-hover:opacity-100">{label}</span>
             </Link>;
           })}
         </div>
