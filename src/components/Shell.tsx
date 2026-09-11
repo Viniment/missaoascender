@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt, Shield, Brain, BookOpen, Menu, X, ChevronRight } from "lucide-react";
+import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt, Shield, Brain, BookOpen, Menu, X, ChevronRight, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -17,6 +17,7 @@ const NAV = [
   { to: "/", label: "Base", Icon: Home },
   { to: "/inimigo", label: "Inimigo", Icon: Swords },
   { to: "/mente", label: "Mente", Icon: Brain },
+  { to: "/projetos", label: "Projetos", Icon: FolderKanban },
   { to: "/estudos", label: "Estudos", Icon: BookOpen },
   { to: "/mini-vitorias", label: "Vitórias", Icon: ListChecks },
   { to: "/loja", label: "Loja", Icon: Store },
