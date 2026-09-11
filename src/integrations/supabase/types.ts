@@ -70,6 +70,60 @@ export type Database = {
           },
         ]
       }
+      conquista_recompensas: {
+        Row: {
+          atributo: string
+          atributo_delta: number
+          conquista_id: string
+          conquista_tipo: string
+          criado_em: string
+          id: string
+          ouro: number
+          user_id: string
+          vida: number
+          xp: number
+        }
+        Insert: {
+          atributo: string
+          atributo_delta?: number
+          conquista_id: string
+          conquista_tipo: string
+          criado_em?: string
+          id?: string
+          ouro?: number
+          user_id: string
+          vida?: number
+          xp?: number
+        }
+        Update: {
+          atributo?: string
+          atributo_delta?: number
+          conquista_id?: string
+          conquista_tipo?: string
+          criado_em?: string
+          id?: string
+          ouro?: number
+          user_id?: string
+          vida?: number
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conquista_recompensas_conquista_id_fkey"
+            columns: ["conquista_id"]
+            isOneToOne: false
+            referencedRelation: "conquistas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conquista_recompensas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conquistas: {
         Row: {
           desbloqueada_em: string
@@ -328,6 +382,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      hero_attributes: {
+        Row: {
+          autodominio: number
+          consciencia: number
+          coragem: number
+          disciplina: number
+          foco: number
+          gestao: number
+          resiliencia: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          autodominio?: number
+          consciencia?: number
+          coragem?: number
+          disciplina?: number
+          foco?: number
+          gestao?: number
+          resiliencia?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          autodominio?: number
+          consciencia?: number
+          coragem?: number
+          disciplina?: number
+          foco?: number
+          gestao?: number
+          resiliencia?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_attributes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inimigo: {
         Row: {
@@ -706,6 +804,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_conquista_reward: {
+        Args: { p_conquista_id: string; p_user_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -713,6 +815,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      xp_for_level_reward: { Args: { p_level: number }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
