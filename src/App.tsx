@@ -26,6 +26,7 @@ import Estudos from "@/pages/Estudos";
 import EstudoCategoria from "@/pages/EstudoCategoria";
 import Imersao from "@/pages/Imersao";
 import Projetos from "@/pages/Projetos";
+import JejumAtual from "@/components/JejumAtual";
 
 const qc = new QueryClient();
 
@@ -34,6 +35,15 @@ function Protected({ children }: { children: JSX.Element }) {
   if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/auth" replace />;
   return children;
+}
+
+function Home() {
+  return (
+    <>
+      <Dashboard />
+      <JejumAtual />
+    </>
+  );
 }
 
 export default function App() {
@@ -47,7 +57,7 @@ export default function App() {
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
               <Route path="/criar-inimigo" element={<Protected><CriarInimigo /></Protected>} />
-              <Route path="/" element={<Protected><Dashboard /></Protected>} />
+              <Route path="/" element={<Protected><Home /></Protected>} />
               <Route path="/inimigo" element={<Protected><InimigoPage /></Protected>} />
               <Route path="/mini-vitorias" element={<Protected><MiniVitoriasPage /></Protected>} />
               <Route path="/conquistas" element={<Protected><ConquistasPage /></Protected>} />
