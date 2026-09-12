@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Droplets, Trash2, Clock3, RotateCcw, Save, Shield } from "lucide-react";
+import { Droplets, Trash2, Clock3, RotateCcw, Save, Shield, Database } from "lucide-react";
 
 type Props = { uid: string; nome: string; busy: boolean; setBusy: (v: boolean) => void };
 
@@ -14,9 +14,37 @@ type Config = {
 
 export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
   const qc = useQueryClient();
+  const [meta, setMeta] = useState("");
+  const [preparing, setPreparing] = useState(false);
+
+  const prepararBanco = async () => {
+    setPreparing(true);
+    try {
+      const { data: result, error } = await supabase.rpc("admin_preparar_agua_jejum");
+      if (error) throw error;
+      toast.success(result?.message ?? "Banco de água e jejum preparado com sucesso.");
+      await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] });
+    } catch (e: any) {
+      toast.error(`Não foi possível preparar o banco: ${e.message}`);
+    } finally {
+      setPreparing(false);
+    }
+  };
+
+  const garantirEstrutura = async () => {
+    const { error } = await supabase.rpc("admin_preparar_agua_jejum");
+    if (error) throw error;
+  };
+
   const { data } = useQuery({
     queryKey: ["admin-water-jejum-config", uid],
     queryFn: async () => {
+      try {
+        await garantirEstrutura();
+      } catch {
+        // O botão de preparação manual mostra o erro detalhado se a RPC ainda não estiver publicada.
+      }
+
       const { data, error } = await (supabase as any)
         .from("users")
         .select("agua_meta_ml, jejum_reset_at, agua_reset_at")
@@ -26,8 +54,8 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
       return data as Config;
     },
     enabled: !!uid,
+    retry: false,
   });
-  const [meta, setMeta] = useState("");
 
   useEffect(() => {
     if (data?.agua_meta_ml != null) setMeta(String(data.agua_meta_ml));
@@ -42,6 +70,7 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
     }
     setBusy(true);
     try {
+      await garantirEstrutura();
       const { error } = await (supabase as any)
         .from("users")
         .update({ agua_meta_ml: value })
@@ -60,6 +89,7 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
     if (!confirm(`Apagar TODO o histórico de jejum de ${nome}? Isso também apagará o maior jejum, o estado ativo e as conquistas de jejum.`)) return;
     setBusy(true);
     try {
+      await garantirEstrutura();
       const now = new Date().toISOString();
       const { error: userError } = await (supabase as any)
         .from("users")
@@ -88,6 +118,7 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
     if (!confirm(`Zerar os registros locais de água de ${nome}?`)) return;
     setBusy(true);
     try {
+      await garantirEstrutura();
       const { error } = await (supabase as any)
         .from("users")
         .update({ agua_reset_at: new Date().toISOString() })
@@ -104,6 +135,22 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
 
   return (
     <div className="space-y-3">
+      <div className="rpg-panel p-4 space-y-3 border-primary/30">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1">
+          <Database className="w-3 h-3" /> BANCO — ÁGUA E JEJUM
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Prepara automaticamente as colunas e atualiza o schema do banco. Depois disso, as opções abaixo podem salvar e apagar os dados sem SQL manual.
+        </p>
+        <button
+          onClick={prepararBanco}
+          disabled={busy || preparing}
+          className="w-full btn-pixel py-2.5 rounded-md text-xs flex items-center justify-center gap-2"
+        >
+          <Database className="w-4 h-4" /> {preparing ? "Preparando banco..." : "Preparar / Corrigir Banco"}
+        </button>
+      </div>
+
       <div className="rpg-panel p-4 space-y-3">
         <p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1">
           <Droplets className="w-3 h-3" /> ÁGUA — CONFIGURAÇÃO INDIVIDUAL
