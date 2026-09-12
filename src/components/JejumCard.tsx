@@ -12,7 +12,7 @@ type Session = { id: string; startedAt: string; endedAt: string; minutes: number
 type Reward = { xp: number; ouro: number; vida: number; atributo: string; atributoDelta: number };
 const STORAGE=(uid:string)=>`ascensao:jejum:${uid}`;
 const MOODS=[{id:"tranquila",label:"Tranquila",icon:Smile},{id:"normal",label:"Normal",icon:Meh},{id:"vontade",label:"Vontade",icon:Waves},{id:"dificil",label:"Difícil",icon:Frown}] as const;
-const MILESTONES=[8,16,24];
+const MILESTONES=Array.from({length:63},(_,i)=>(i+1)*8);
 function pad(n:number){return String(n).padStart(2,"0")}
 function toInputValue(date:Date){return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`}
 function formatDate(iso:string){return new Date(iso).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}
@@ -20,7 +20,7 @@ function durationText(minutes:number){return `${Math.floor(minutes/60)}h ${pad(m
 function loadSessions(uid:string):Session[]{try{return JSON.parse(localStorage.getItem(STORAGE(uid))||"[]")}catch{return[]}}
 function saveSessions(uid:string,s:Session[]){localStorage.setItem(STORAGE(uid),JSON.stringify(s))}
 function getMinutes(start:string,end:string){return Math.max(0,Math.floor((new Date(end).getTime()-new Date(start).getTime())/60000))}
-function tituloPorHoras(h:number){return h>=8?`${Math.floor(h/8)*8} Horas De Jejum`:"Jejum Em Andamento"}
+function tituloPorHoras(h:number){return h>=8?`${Math.floor(h/8)*8} Horas de Jejum`:"Jejum Em Andamento"}
 
 export default function JejumCard(){
  const {user}=useAuth();const uid=user?.id;const [active,setActive]=useState<{startedAt:string;hourlyStates:HourState[]}|null>(null);const [sessions,setSessions]=useState<Session[]>([]);const [now,setNow]=useState(Date.now());const [expanded,setExpanded]=useState(false);const [startOpen,setStartOpen]=useState(false);const [finishOpen,setFinishOpen]=useState(false);const [finishConfirmOpen,setFinishConfirmOpen]=useState(false);const [startValue,setStartValue]=useState(toInputValue(new Date()));const [finishValue,setFinishValue]=useState(toInputValue(new Date()));const [mood,setMood]=useState<Mood>("normal");const [saving,setSaving]=useState(false);
