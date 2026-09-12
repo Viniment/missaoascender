@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
 import { WifiOff, RefreshCw, ShieldAlert } from "lucide-react";
 import { CONNECTION_CHECK_INTERVAL_MS, SAVE_RETRY_ATTEMPTS, markSaveFailure, markSaveRetry, notifyOffline, notifySaveFailure, notifySaveRetry } from "@/lib/reliability";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+import { supabase } from "@/integrations/supabase/client";
 
 async function checkConnection(): Promise<boolean> {
   if (typeof navigator !== "undefined" && !navigator.onLine) return false;
+
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
-      method: "GET",
-      cache: "no-store",
-      headers: { apikey: SUPABASE_KEY },
-    });
-    return response.status < 500;
+    // Reuse the same configured/authenticated Supabase client used by the app.
+    // A direct /rest/v1/ probe with a manually assembled API key can report
+    // "invalid api key" even when the application's authenticated client is valid.
+    const { error } = await supabase.from("users").select("id").limit(1);
+    return !error;
   } catch {
     return false;
   }
@@ -28,7 +26,7 @@ function installReliableFetch() {
   const reliableFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
-    const isSupabase = url.startsWith(SUPABASE_URL);
+    const isSupabase = url.startsWith(import.meta.env.VITE_SUPABASE_URL as string);
     const isWrite = isSupabase && !["GET", "HEAD", "OPTIONS"].includes(method);
     let lastError: unknown = null;
 
