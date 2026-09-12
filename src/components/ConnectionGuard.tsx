@@ -3,15 +3,18 @@ import { WifiOff, RefreshCw } from "lucide-react";
 import { CONNECTION_CHECK_INTERVAL_MS, SAVE_RETRY_ATTEMPTS, markSaveFailure, markSaveRetry, notifyOffline, notifySaveFailure, notifySaveRetry } from "@/lib/reliability";
 import { supabase } from "@/integrations/supabase/client";
 
+const SAVE_FAILURE_CONFIRM_DELAY_MS = 1800;
+
 async function checkConnection(): Promise<boolean> {
   if (typeof navigator !== "undefined" && !navigator.onLine) return false;
 
   try {
-    // Reuse the same configured/authenticated Supabase client used by the app.
-    // A direct /rest/v1/ probe with a manually assembled API key can report
-    // "invalid api key" even when the application's authenticated client is valid.
+    // The request only needs to prove that Supabase is reachable.
+    // RLS/auth/table errors still mean the server answered, so they must
+    // NOT be interpreted as loss of connection.
     const { error } = await supabase.from("users").select("id").limit(1);
-    return !error;
+    if (!error) return true;
+    return typeof error.status === "number" && error.status > 0;
   } catch {
     return false;
   }
@@ -29,20 +32,31 @@ function installReliableFetch() {
     const isSupabase = url.startsWith(import.meta.env.VITE_SUPABASE_URL as string);
     const isWrite = isSupabase && !["GET", "HEAD", "OPTIONS"].includes(method);
     let lastError: unknown = null;
+    let lastFailureWasTransport = false;
 
     for (let attempt = 0; attempt <= SAVE_RETRY_ATTEMPTS; attempt++) {
       try {
         const response = await originalFetch(input, init);
+
+        // A normal HTTP response means the request reached Supabase.
+        // Do not show the global "save failed" toast for 4xx responses:
+        // those are application/database errors and their own callers must
+        // decide how to present them. This prevents false global warnings.
         if (!isWrite || response.status < 500 || attempt === SAVE_RETRY_ATTEMPTS) {
-          if (isWrite && !response.ok) {
-            markSaveFailure();
-            notifySaveFailure();
+          if (isWrite && response.status >= 500 && attempt === SAVE_RETRY_ATTEMPTS) {
+            lastError = new Error(`Supabase HTTP ${response.status}`);
+            lastFailureWasTransport = true;
+          } else {
+            return response;
           }
-          return response;
+          break;
         }
+
         lastError = new Error(`Supabase HTTP ${response.status}`);
+        lastFailureWasTransport = true;
       } catch (error) {
         lastError = error;
+        lastFailureWasTransport = true;
       }
 
       if (attempt < SAVE_RETRY_ATTEMPTS) {
@@ -55,10 +69,19 @@ function installReliableFetch() {
       }
     }
 
-    if (isWrite) {
-      markSaveFailure();
-      notifySaveFailure();
+    if (isWrite && lastFailureWasTransport) {
+      // Give an in-flight request time to finish before declaring failure.
+      // This is especially important when the write reached the database but
+      // the response was delayed/lost on the way back to the browser.
+      await new Promise((resolve) => window.setTimeout(resolve, SAVE_FAILURE_CONFIRM_DELAY_MS));
+
+      const connectionRecovered = await checkConnection();
+      if (!connectionRecovered) {
+        markSaveFailure();
+        notifySaveFailure();
+      }
     }
+
     throw lastError instanceof Error ? lastError : new TypeError("Não foi possível conectar ao servidor");
   };
 
