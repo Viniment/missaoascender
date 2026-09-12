@@ -197,7 +197,7 @@ export async function updateHabito(habitoId: string, patch: Partial<Pick<Habito,
   if (error) throw error;
 }
 
-export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimigo, "nome" | "gatilho" | "mentiras" | "hp_max">> & { hp_atual?: number }) {
+export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimigo, "nome" | "gatilho" | "mentiras" | "hp_max">> & { hp_atual?: number; avatar_config?: any }) {
   const { error } = await supabase.from("inimigo").update(patch).eq("id", inimigoId);
   if (error) throw error;
 }
