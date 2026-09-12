@@ -20,14 +20,12 @@ export default function DashboardComJejum() {
       if (!button) return;
 
       const next = button.nextElementSibling;
-      if (next instanceof HTMLElement && next.matches("[data-jejum-mount]")) {
-        mount = next;
-      } else {
+      if (next instanceof HTMLElement && next.matches("[data-jejum-mount]")) mount = next;
+      else {
         mount = document.createElement("div");
         mount.setAttribute("data-jejum-mount", "true");
         button.insertAdjacentElement("afterend", mount);
       }
-
       setTarget(mount);
       observer.disconnect();
     };
@@ -35,7 +33,6 @@ export default function DashboardComJejum() {
     const observer = new MutationObserver(find);
     observer.observe(document.body, { childList: true, subtree: true });
     find();
-
     return () => {
       cancelled = true;
       observer.disconnect();
@@ -46,7 +43,7 @@ export default function DashboardComJejum() {
   return <>
     <Dashboard />
     {target ? createPortal(
-      <div className="space-y-2 pt-1">
+      <div className="space-y-1 pt-0.5">
         <JejumCard />
         <UrgeSurfingCard />
       </div>,
