@@ -29,9 +29,13 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
     await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); setBusy(false);
   };
   const resetJejum = async () => {
-    if (!confirm(`Apagar TODO o histórico de jejum de ${nome}? Isso também apagará o maior jejum e o estado ativo no próximo acesso.`)) return;
-    setBusy(true); const { error } = await (supabase as any).from("users").update({ jejum_reset_at: new Date().toISOString() }).eq("id", uid);
-    if (error) toast.error(error.message); else toast.success("Histórico de jejum marcado para limpeza total"); await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); setBusy(false);
+    if (!confirm(`Apagar TODO o histórico de jejum de ${nome}? Isso também apagará o maior jejum, o estado ativo e as conquistas de jejum.`)) return;
+    setBusy(true);
+    const now = new Date().toISOString();
+    const { error } = await (supabase as any).from("users").update({ jejum_reset_at: now }).eq("id", uid);
+    await (supabase as any).from("conquistas").delete().eq("user_id", uid).like("tipo", "jejum_%");
+    if (error) toast.error(error.message); else toast.success("Histórico, maior jejum e conquistas de jejum marcados para limpeza");
+    await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); await qc.invalidateQueries({ queryKey: ["admin-conq", uid] }); setBusy(false);
   };
   const resetAgua = async () => {
     if (!confirm(`Zerar os registros locais de água de ${nome}?`)) return;
@@ -42,7 +46,7 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
   return <div className="space-y-3">
     <div className="rpg-panel p-4 space-y-3"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Droplets className="w-3 h-3" /> ÁGUA — CONFIGURAÇÃO INDIVIDUAL</p><p className="text-xs text-muted-foreground">A meta é definida manualmente para este usuário. Não existem metas pré-definidas.</p><div className="flex gap-2"><input type="number" min="1" max="1000000" step="1" value={meta} onChange={e => setMeta(e.target.value)} className="flex-1 bg-secondary border border-border rounded-md px-3 py-2 text-sm" placeholder="Ex.: 5000" /><button onClick={saveMeta} disabled={busy} className="btn-pixel px-4 rounded-md text-xs flex items-center gap-2"><Save className="w-4 h-4" /> Salvar ml</button></div><p className="text-[9px] text-muted-foreground">Meta atual: <strong className="text-cyan-300">{data?.agua_meta_ml ?? "—"} ml</strong></p></div>
     <div className="rpg-panel p-4 space-y-2"><p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">LIMPEZA DO RASTREADOR</p><button onClick={resetAgua} disabled={busy} className="w-full border border-destructive/40 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><RotateCcw className="w-4 h-4" /> Zerar histórico de água</button></div>
-    <div className="rpg-panel p-4 space-y-2 border-amber-400/20"><p className="text-[10px] uppercase tracking-[0.25em] text-amber-300 flex items-center gap-1"><Clock3 className="w-3 h-3" /> JEJUM</p><p className="text-xs text-muted-foreground">Remove o histórico local, o maior tempo e o estado ativo de jejum no próximo acesso do usuário.</p><button onClick={resetJejum} disabled={busy} className="w-full border border-destructive/50 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Apagar histórico de jejum</button></div>
-    <div className="rpg-panel p-4 space-y-2 border-destructive/30"><p className="text-[10px] uppercase tracking-[0.25em] text-destructive flex items-center gap-1"><Shield className="w-3 h-3" /> RESET TOTAL</p><p className="text-xs text-muted-foreground">O Reset Total da aba Herói também grava os marcadores que limpam jejum e água.</p></div>
+    <div className="rpg-panel p-4 space-y-2 border-amber-400/20"><p className="text-[10px] uppercase tracking-[0.25em] text-amber-300 flex items-center gap-1"><Clock3 className="w-3 h-3" /> JEJUM</p><p className="text-xs text-muted-foreground">Remove o histórico local, o maior tempo, o estado ativo e as conquistas de jejum no próximo acesso do usuário.</p><button onClick={resetJejum} disabled={busy} className="w-full border border-destructive/50 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Apagar histórico de jejum</button></div>
+    <div className="rpg-panel p-4 space-y-2 border-destructive/30"><p className="text-[10px] uppercase tracking-[0.25em] text-destructive flex items-center gap-1"><Shield className="w-3 h-3" /> RESET TOTAL</p><p className="text-xs text-muted-foreground">O Reset Total da aba Herói grava os marcadores que limpam jejum e água.</p></div>
   </div>;
 }
