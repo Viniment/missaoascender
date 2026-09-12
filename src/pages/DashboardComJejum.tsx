@@ -9,24 +9,49 @@ export default function DashboardComJejum() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    let mount: HTMLElement | null = null;
+
     const find = () => {
-      const button = Array.from(document.querySelectorAll("button")).find(el => el.textContent?.includes("Carta de Enfrentamento"));
+      if (cancelled) return;
+      const button = Array.from(document.querySelectorAll("button")).find(
+        el => el.textContent?.includes("Carta de Enfrentamento")
+      );
       if (!button) return;
-      let mount = button.nextElementSibling?.matches("[data-jejum-mount]") ? button.nextElementSibling as HTMLElement : null;
-      if (!mount) {
+
+      const next = button.nextElementSibling;
+      if (next instanceof HTMLElement && next.matches("[data-jejum-mount]")) {
+        mount = next;
+      } else {
         mount = document.createElement("div");
         mount.setAttribute("data-jejum-mount", "true");
         button.insertAdjacentElement("afterend", mount);
       }
+
       setTarget(mount);
+      observer.disconnect();
     };
-    const timer = window.setTimeout(find, 50);
-    return () => window.clearTimeout(timer);
+
+    const observer = new MutationObserver(find);
+    observer.observe(document.body, { childList: true, subtree: true });
+    find();
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (mount?.isConnected) mount.remove();
+    };
   }, []);
 
   return <>
     <Dashboard />
-    {target ? createPortal(<div className="space-y-4"><JejumCard /><UrgeSurfingCard /></div>, target) : null}
+    {target ? createPortal(
+      <div className="space-y-2 pt-1">
+        <JejumCard />
+        <UrgeSurfingCard />
+      </div>,
+      target
+    ) : null}
     <ConquistaJejumPopup />
   </>;
 }
