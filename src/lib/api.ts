@@ -17,7 +17,7 @@ export type Habito = {
 export type Inimigo = {
   id: string;
   nome: string;
-  avatar_config: { emoji?: string } | null;
+  avatar_config: { emoji?: string; tipo?: "foto" | "icone"; foto_url?: string; foto_path?: string } | null;
   hp_max: number;
   hp_atual: number;
   mentiras: string[];
@@ -197,7 +197,7 @@ export async function updateHabito(habitoId: string, patch: Partial<Pick<Habito,
   if (error) throw error;
 }
 
-export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimigo, "nome" | "gatilho" | "mentiras" | "hp_max">> & { hp_atual?: number }) {
+export async function updateInimigo(inimigoId: string, patch: Partial<Pick<Inimigo, "nome" | "gatilho" | "mentiras" | "hp_max">> & { hp_atual?: number; avatar_config?: any }) {
   const { error } = await supabase.from("inimigo").update(patch).eq("id", inimigoId);
   if (error) throw error;
 }

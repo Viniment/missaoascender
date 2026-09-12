@@ -323,7 +323,15 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="text-3xl sm:text-4xl drop-shadow-[0_0_10px_rgba(255,0,0,0.6)] shrink-0">{(inimigo.avatar_config as any)?.emoji ?? "😈"}</div>
+                {(inimigo.avatar_config as any)?.tipo === "foto" && (inimigo.avatar_config as any)?.foto_url ? (
+                  <img
+                    src={(inimigo.avatar_config as any).foto_url}
+                    alt={`Imagem do inimigo ${inimigo.nome}`}
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border border-destructive/40 shadow-[0_0_14px_rgba(255,0,0,0.35)] shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 grid place-items-center rounded-lg border border-destructive/30 bg-destructive/5 text-4xl sm:text-5xl drop-shadow-[0_0_10px_rgba(255,0,0,0.6)] shrink-0">{(inimigo.avatar_config as any)?.emoji ?? "😈"}</div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> BOSS</p>
                   <h3 className="font-display text-sm sm:text-xl tracking-widest sm:tracking-widest text-foreground break-words leading-tight">{inimigo.nome}</h3>

@@ -721,6 +721,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_app_state: {
+        Row: {
+          chave: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          valor: Json
+        }
+        Insert: {
+          chave: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          valor?: Json
+        }
+        Update: {
+          chave?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          valor?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_app_state_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -744,11 +776,14 @@ export type Database = {
       }
       users: {
         Row: {
+          agua_meta_ml: number | null
+          agua_reset_at: string | null
           avatar_equipado: Json
           carta_enfrentamento: string | null
           criado_em: string
           id: string
           itens_desbloqueados: string[]
+          jejum_reset_at: string | null
           nivel: number
           nome: string
           ouro: number
@@ -762,11 +797,14 @@ export type Database = {
           xp_proximo_nivel: number
         }
         Insert: {
+          agua_meta_ml?: number | null
+          agua_reset_at?: string | null
           avatar_equipado?: Json
           carta_enfrentamento?: string | null
           criado_em?: string
           id: string
           itens_desbloqueados?: string[]
+          jejum_reset_at?: string | null
           nivel?: number
           nome?: string
           ouro?: number
@@ -780,11 +818,14 @@ export type Database = {
           xp_proximo_nivel?: number
         }
         Update: {
+          agua_meta_ml?: number | null
+          agua_reset_at?: string | null
           avatar_equipado?: Json
           carta_enfrentamento?: string | null
           criado_em?: string
           id?: string
           itens_desbloqueados?: string[]
+          jejum_reset_at?: string | null
           nivel?: number
           nome?: string
           ouro?: number
@@ -804,6 +845,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_preparar_agua_jejum: { Args: never; Returns: Json }
       claim_conquista_reward: {
         Args: { p_conquista_id: string; p_user_id: string }
         Returns: Json

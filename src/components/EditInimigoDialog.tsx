@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, Plus, Trash2, Skull } from "lucide-react";
+import { X, Loader2, Plus, Trash2, Skull, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { updateInimigo, type Inimigo } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+
+const ICONES = ["😈", "👹", "💀", "🕷️", "🐍", "🐺", "🔥", "⛓️", "🍔", "🍺", "📱", "🌀"];
 
 export default function EditInimigoDialog({
   inimigo, open, onClose, onSaved,
@@ -18,6 +21,12 @@ export default function EditInimigoDialog({
   const [novaMentira, setNovaMentira] = useState("");
   const [hpMax, setHpMax] = useState(100);
   const [saving, setSaving] = useState(false);
+  const [tipo, setTipo] = useState<"foto" | "icone">("icone");
+  const [emoji, setEmoji] = useState("😈");
+  const [fotoUrl, setFotoUrl] = useState<string | undefined>();
+  const [fotoPath, setFotoPath] = useState<string | undefined>();
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!inimigo) return;
@@ -25,7 +34,34 @@ export default function EditInimigoDialog({
     setGatilho(inimigo.gatilho ?? "");
     setMentiras(inimigo.mentiras ?? []);
     setHpMax(inimigo.hp_max);
+    const cfg = (inimigo.avatar_config ?? {}) as any;
+    setEmoji(cfg.emoji ?? "😈");
+    setFotoUrl(cfg.foto_url);
+    setFotoPath(cfg.foto_path);
+    setTipo(cfg.tipo === "foto" && cfg.foto_url ? "foto" : "icone");
   }, [inimigo, open]);
+
+  const enviarFoto = async (file: File) => {
+    setUploading(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sessão expirada.");
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${uid}/boss-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("boss").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data, error: e2 } = await supabase.storage.from("boss").createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (e2) throw e2;
+      setFotoPath(path);
+      setFotoUrl(data.signedUrl);
+      setTipo("foto");
+      toast.success("Foto carregada.");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
 
   const addMentira = () => {
     const t = novaMentira.trim();
@@ -46,6 +82,13 @@ export default function EditInimigoDialog({
         mentiras: mentiras.map(m => m.trim()).filter(Boolean),
         hp_max: newHpMax,
         hp_atual,
+        avatar_config: {
+          ...(inimigo.avatar_config ?? {}),
+          tipo: tipo === "foto" && fotoUrl ? "foto" : "icone",
+          emoji,
+          foto_url: fotoUrl ?? null,
+          foto_path: fotoPath ?? null,
+        },
       });
       toast.success("Inimigo atualizado.");
       onSaved(); onClose();
@@ -73,6 +116,56 @@ export default function EditInimigoDialog({
             <div>
               <p className="text-[10px] uppercase tracking-[0.4em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> Editar Inimigo</p>
               <h3 className="font-display text-lg tracking-widest mt-1">Reconfigurar o boss</h3>
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Imagem do inimigo</label>
+              <div className="mt-1 flex items-center gap-3">
+                {tipo === "foto" && fotoUrl ? (
+                  <img src={fotoUrl} alt="Foto do inimigo" className="w-16 h-16 rounded-lg object-cover border border-destructive/40" />
+                ) : (
+                  <div className="w-16 h-16 grid place-items-center rounded-lg border border-destructive/30 bg-destructive/5 text-3xl">{emoji}</div>
+                )}
+                <div className="flex-1 grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button" onClick={() => setTipo("icone")}
+                    className={`rounded-md border px-2 py-1.5 text-[11px] ${tipo === "icone" ? "border-destructive text-destructive bg-destructive/10" : "border-border text-muted-foreground"}`}
+                  >Ícone</button>
+                  <button
+                    type="button" onClick={() => (fotoUrl ? setTipo("foto") : fileRef.current?.click())}
+                    className={`rounded-md border px-2 py-1.5 text-[11px] ${tipo === "foto" ? "border-destructive text-destructive bg-destructive/10" : "border-border text-muted-foreground"}`}
+                  >Foto</button>
+                </div>
+              </div>
+              <input
+                ref={fileRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) void enviarFoto(f); e.target.value = ""; }}
+              />
+              {tipo === "icone" ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {ICONES.map(ic => (
+                    <button
+                      key={ic} type="button" onClick={() => setEmoji(ic)}
+                      className={`w-9 h-9 rounded-md border text-lg ${emoji === ic ? "border-destructive bg-destructive/10" : "border-border"}`}
+                    >{ic}</button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button" disabled={uploading} onClick={() => fileRef.current?.click()}
+                    className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] text-muted-foreground disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} {fotoUrl ? "Trocar foto" : "Enviar foto"}
+                  </button>
+                  {fotoUrl && (
+                    <button
+                      type="button" onClick={() => { setFotoUrl(undefined); setFotoPath(undefined); setTipo("icone"); }}
+                      className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] text-muted-foreground"
+                    ><Trash2 className="w-3.5 h-3.5" /> Remover</button>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
