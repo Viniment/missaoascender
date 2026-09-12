@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { WifiOff, RefreshCw, ShieldAlert } from "lucide-react";
-import { CONNECTION_CHECK_INTERVAL_MS, notifyOffline } from "@/lib/reliability";
+import { CONNECTION_CHECK_INTERVAL_MS, SAVE_RETRY_ATTEMPTS, markSaveFailure, markSaveRetry, notifyOffline, notifySaveFailure, notifySaveRetry } from "@/lib/reliability";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -19,12 +19,63 @@ async function checkConnection(): Promise<boolean> {
   }
 }
 
+function installReliableFetch() {
+  const marker = "__newLifeupReliableFetch";
+  const current = window.fetch as typeof window.fetch & { [marker]?: boolean };
+  if (current[marker]) return () => {};
+
+  const originalFetch = window.fetch.bind(window);
+  const reliableFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+    const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+    const isSupabase = url.startsWith(SUPABASE_URL);
+    const isWrite = isSupabase && !["GET", "HEAD", "OPTIONS"].includes(method);
+    let lastError: unknown = null;
+
+    for (let attempt = 0; attempt <= SAVE_RETRY_ATTEMPTS; attempt++) {
+      try {
+        const response = await originalFetch(input, init);
+        if (!isWrite || response.status < 500 || attempt === SAVE_RETRY_ATTEMPTS) {
+          if (isWrite && !response.ok) {
+            markSaveFailure();
+            notifySaveFailure();
+          }
+          return response;
+        }
+        lastError = new Error(`Supabase HTTP ${response.status}`);
+      } catch (error) {
+        lastError = error;
+      }
+
+      if (attempt < SAVE_RETRY_ATTEMPTS) {
+        const nextAttempt = attempt + 1;
+        if (isWrite) {
+          markSaveRetry(nextAttempt);
+          notifySaveRetry(nextAttempt);
+        }
+        await new Promise((resolve) => window.setTimeout(resolve, 700 * 2 ** attempt));
+      }
+    }
+
+    if (isWrite) {
+      markSaveFailure();
+      notifySaveFailure();
+    }
+    throw lastError instanceof Error ? lastError : new TypeError("Não foi possível conectar ao servidor");
+  };
+
+  reliableFetch[marker] = true;
+  window.fetch = reliableFetch;
+  return () => { window.fetch = originalFetch; };
+}
+
 export default function ConnectionGuard({ children }: { children: React.ReactNode }) {
   const [connected, setConnected] = useState(true);
   const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     let mounted = true;
+    const restoreFetch = installReliableFetch();
 
     const verify = async () => {
       setChecking(true);
@@ -51,6 +102,7 @@ export default function ConnectionGuard({ children }: { children: React.ReactNod
       window.clearInterval(interval);
       window.removeEventListener("offline", onOffline);
       window.removeEventListener("online", onOnline);
+      restoreFetch();
     };
   }, []);
 
