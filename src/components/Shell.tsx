@@ -71,10 +71,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               const active = isActive(to);
               return (
                 <Link key={to} to={to} onClick={mobile ? closeMenu : undefined} aria-label={label} title={!mobile && !desktopExpanded ? label : undefined}
-                  className={cn("group/item relative flex items-center overflow-hidden rounded-xl border transition-all duration-200", mobile ? "min-h-11 gap-3 px-3" : desktopExpanded ? "h-10.5 gap-3 px-2.5" : "h-[56px] justify-center px-2",
+                  className={cn("group/item relative flex items-center overflow-hidden border transition-all duration-200", mobile ? "min-h-11 gap-3 rounded-xl px-3" : desktopExpanded ? "h-10.5 gap-3 rounded-xl px-2.5" : "mx-auto h-14 w-14 justify-center rounded-lg p-0",
                     active ? "border-primary/55 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary shadow-[0_0_22px_hsl(var(--primary)/0.18),inset_0_0_18px_hsl(var(--primary)/0.07)]" : "border-transparent text-muted-foreground hover:border-primary/20 hover:bg-white/[0.025] hover:text-foreground")}>
                   {active && <span className="absolute left-0 top-1/2 h-8 w-0.5 -translate-y-1/2 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.95)]" />}
-                  <span className={cn("relative z-10 flex shrink-0 items-center justify-center rounded-lg border transition-all", mobile ? "h-8 w-8" : desktopExpanded ? "h-8 w-8" : "h-12 w-12 p-3", active ? "border-primary/50 bg-primary/20 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.15)]" : "border-border/40 bg-background/30 group-hover/item:border-primary/30 group-hover/item:bg-primary/10 group-hover/item:text-primary")}>
+                  <span className={cn("relative z-10 flex shrink-0 items-center justify-center border transition-all", mobile ? "h-8 w-8 rounded-lg" : desktopExpanded ? "h-8 w-8 rounded-lg" : "h-11 w-11 rounded-md p-2.5", active ? "border-primary/50 bg-primary/20 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.15)]" : "border-border/40 bg-background/30 group-hover/item:border-primary/30 group-hover/item:bg-primary/10 group-hover/item:text-primary")}>
                     <Icon className={cn(mobile ? "h-4 w-4" : desktopExpanded ? "h-[18px] w-[18px]" : "h-[22px] w-[22px]")} />
                   </span>
                   <span className={cn("relative z-10 min-w-0 flex-1 truncate font-display font-black uppercase tracking-[0.16em] text-[9px]", !mobile && !desktopExpanded && "sr-only")}>{label}</span>
