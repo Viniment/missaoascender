@@ -7,34 +7,47 @@ import { fetchHeroi, fetchMiniVitorias, concluirMiniVitoria } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, Sparkles } from "lucide-react";
 
+const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
+
 export default function MiniVitoriasPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const uid = user?.id;
   const { data: heroi } = useQuery({ queryKey: ["heroi", uid], queryFn: () => fetchHeroi(uid!), enabled: !!uid });
   const { data: mvs } = useQuery({ queryKey: ["mvs", uid], queryFn: () => fetchMiniVitorias(uid!), enabled: !!uid });
-  const [nova, setNova] = useState({ titulo: "", ouro: 3, xp: 15, vida: 5 });
+  const [titulo, setTitulo] = useState("");
   const [show, setShow] = useState(false);
 
   const criar = async () => {
-    if (!uid || !nova.titulo.trim()) return;
+    if (!uid || !titulo.trim()) return;
+    const recompensaOuro = randomInt(5, 10);
+    const recompensaXp = randomInt(5, 10);
+    const recompensaVida = randomInt(1, 2);
     const { error } = await supabase.from("mini_vitorias").insert({
-      user_id: uid, titulo: nova.titulo.trim(),
-      recompensa_ouro: nova.ouro, recompensa_xp: nova.xp, recompensa_vida: nova.vida,
+      user_id: uid,
+      titulo: titulo.trim(),
+      recompensa_ouro: recompensaOuro,
+      recompensa_xp: recompensaXp,
+      recompensa_vida: recompensaVida,
     });
     if (error) return toast.error(error.message);
-    setNova({ titulo: "", ouro: 3, xp: 15, vida: 5 });
+    setTitulo("");
     setShow(false);
     await qc.invalidateQueries({ queryKey: ["mvs", uid] });
+    toast.success(`Mini vitória criada: +${recompensaXp} XP · +${recompensaOuro} 🪙 · +${recompensaVida} HP`);
   };
 
   const concluir = async (id: string) => {
     if (!heroi || !mvs) return;
     const mv = mvs.find(m => m.id === id)!;
     if (mv.concluida) return;
-    await concluirMiniVitoria(heroi.id, heroi, mv);
-    toast.success(`+${mv.recompensa_xp} XP · +${mv.recompensa_ouro} 🪙`);
-    await qc.invalidateQueries();
+    try {
+      await concluirMiniVitoria(heroi.id, heroi, mv);
+      toast.success(`+${mv.recompensa_xp} XP · +${mv.recompensa_ouro} 🪙 · +${mv.recompensa_vida} HP`);
+      await qc.invalidateQueries();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível concluir a mini vitória.");
+    }
   };
 
   return (
@@ -43,31 +56,25 @@ export default function MiniVitoriasPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-xl tracking-wider text-primary glow-text-purple">MINI VITÓRIAS</h1>
-            <p className="text-xs text-muted-foreground">Pequenas metas que dão recompensas grandes.</p>
+            <p className="text-xs text-muted-foreground">Pequenas metas que dão recompensas aleatórias.</p>
           </div>
           <button onClick={() => setShow(v => !v)} className="text-xs text-primary flex items-center gap-1"><Plus className="w-3 h-3" /> nova</button>
         </div>
 
         {show && (
           <div className="rpg-panel p-4 space-y-3">
-            <input className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm"
+            <input
+              className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm"
               placeholder="Ex: Ler 20 páginas"
-              value={nova.titulo} onChange={e => setNova({ ...nova, titulo: e.target.value })}/>
-            <div className="grid grid-cols-3 gap-2">
-              <label className="text-xs text-muted-foreground">Ouro
-                <input type="number" className="mt-1 w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-sm"
-                  value={nova.ouro} onChange={e => setNova({ ...nova, ouro: +e.target.value })}/>
-              </label>
-              <label className="text-xs text-muted-foreground">XP
-                <input type="number" className="mt-1 w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-sm"
-                  value={nova.xp} onChange={e => setNova({ ...nova, xp: +e.target.value })}/>
-              </label>
-              <label className="text-xs text-muted-foreground">Vida
-                <input type="number" className="mt-1 w-full bg-secondary border border-border rounded-md px-2 py-1.5 text-sm"
-                  value={nova.vida} onChange={e => setNova({ ...nova, vida: +e.target.value })}/>
-              </label>
-            </div>
-            <button onClick={criar} className="w-full bg-primary text-primary-foreground py-2 rounded-md text-sm font-display tracking-wider">Criar</button>
+              value={titulo}
+              onChange={e => setTitulo(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") void criar(); }}
+              autoFocus
+            />
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              A recompensa é sorteada automaticamente ao criar: <span className="text-foreground">5–10 XP</span>, <span className="text-foreground">5–10 Ouro</span> e <span className="text-foreground">1–2 Vida</span>.
+            </p>
+            <button onClick={() => void criar()} disabled={!titulo.trim()} className="w-full bg-primary text-primary-foreground py-2 rounded-md text-sm font-display tracking-wider disabled:opacity-50">Criar Mini Vitória</button>
           </div>
         )}
 
@@ -83,7 +90,7 @@ export default function MiniVitoriasPage() {
               </p>
             </div>
             {!mv.concluida && (
-              <button onClick={() => concluir(mv.id)} className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-display tracking-wide">
+              <button onClick={() => void concluir(mv.id)} className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-display tracking-wide">
                 Concluir
               </button>
             )}
