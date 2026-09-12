@@ -1,7 +1,5 @@
--- Permite que um administrador aplique pelo próprio painel as colunas
--- necessárias ao rastreador de água e aos marcadores de reset de jejum/água.
--- A função é SECURITY DEFINER porque ALTER TABLE não pode ser executado
--- diretamente pelo cliente via PostgREST.
+-- Instala a função administrativa que permite reaplicar/verificar o schema
+-- pelo painel Admin depois que esta migration for executada no Supabase.
 
 create or replace function public.admin_aplicar_schema_agua_jejum()
 returns jsonb
@@ -31,8 +29,6 @@ begin
   comment on column public.users.agua_meta_ml is 'Meta diaria de hidratacao personalizada por usuario, em ml.';
   comment on column public.users.agua_reset_at is 'Marcador administrativo para limpar o rastreador local de agua do usuario.';
   comment on column public.users.jejum_reset_at is 'Marcador administrativo para limpar o historico local de jejum do usuario.';
-
-  notify pgrst, 'reload schema';
 
   return jsonb_build_object(
     'ok', true,
