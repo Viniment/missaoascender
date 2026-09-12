@@ -71,10 +71,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
               const active = isActive(to);
               return (
                 <Link key={to} to={to} onClick={mobile ? closeMenu : undefined} aria-label={label} title={!mobile && !desktopExpanded ? label : undefined}
-                  className={cn("group/item relative flex items-center overflow-hidden rounded-xl border transition-all duration-200", mobile ? "min-h-11 gap-3 px-3" : desktopExpanded ? "h-10.5 gap-3 px-2.5" : "h-[50px] mx-2 justify-center px-2",
+                  className={cn("group/item relative flex items-center overflow-hidden rounded-xl border transition-all duration-200", mobile ? "min-h-11 gap-3 px-3" : desktopExpanded ? "h-10.5 gap-3 px-2.5" : "h-[50px] justify-center px-2",
                     active ? "border-primary/55 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary shadow-[0_0_22px_hsl(var(--primary)/0.18),inset_0_0_18px_hsl(var(--primary)/0.07)]" : "border-transparent text-muted-foreground hover:border-primary/20 hover:bg-white/[0.025] hover:text-foreground")}>
                   {active && <span className="absolute left-0 top-1/2 h-8 w-0.5 -translate-y-1/2 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.95)]" />}
-                  <span className={cn("relative z-10 flex shrink-0 items-center justify-center rounded-lg border transition-all", mobile ? "h-8 w-8" : desktopExpanded ? "h-8 w-8" : "h-10 w-10", active ? "border-primary/50 bg-primary/20 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.15)]" : "border-border/40 bg-background/30 group-hover/item:border-primary/30 group-hover/item:bg-primary/10 group-hover/item:text-primary")}>
+                  <span className={cn("relative z-10 flex shrink-0 items-center justify-center rounded-lg border transition-all", mobile ? "h-8 w-8" : desktopExpanded ? "h-8 w-8" : "h-10 w-10 p-2.5", active ? "border-primary/50 bg-primary/20 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.15)]" : "border-border/40 bg-background/30 group-hover/item:border-primary/30 group-hover/item:bg-primary/10 group-hover/item:text-primary")}>
                     <Icon className={cn(mobile ? "h-4 w-4" : desktopExpanded ? "h-[18px] w-[18px]" : "h-[22px] w-[22px]")} />
                   </span>
                   <span className={cn("relative z-10 min-w-0 flex-1 truncate font-display font-black uppercase tracking-[0.16em] text-[9px]", !mobile && !desktopExpanded && "sr-only")}>{label}</span>
@@ -115,9 +115,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div className="new-lifeup-scroll h-full overflow-y-auto pr-3 pl-1 py-1">{renderNav()}</div>
           </div>
           <div className="mt-3 shrink-0 border-t border-primary/10 pt-2.5">
-            <button type="button" onClick={() => setDesktopExpanded((value) => !value)} aria-label={desktopExpanded ? "Recolher menu" : "Expandir menu"} title={desktopExpanded ? "Recolher menu" : "Expandir menu"} className={cn("flex h-10 w-full items-center rounded-lg border border-transparent text-muted-foreground transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary", desktopExpanded ? "justify-end px-2" : "justify-center")}>
-              {desktopExpanded ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
-              {desktopExpanded && <span className="ml-2 font-display text-[8px] font-black uppercase tracking-[0.16em]">Recolher painel</span>}
+            <button type="button" onClick={() => setDesktopExpanded((value) => !value)} aria-label={desktopExpanded ? "Recolher menu" : "Expandir menu"} title={desktopExpanded ? "Recolher menu" : "Expandir menu"} className={cn("relative flex h-10 w-full items-center rounded-lg border border-transparent text-muted-foreground transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary", desktopExpanded ? "justify-center px-2" : "justify-center")}>
+              {desktopExpanded && <PanelLeftClose className="absolute left-2 h-4 w-4" />}
+              {desktopExpanded ? <span className="font-display text-center text-[8px] font-black uppercase tracking-[0.16em]">Recolher painel</span> : <PanelLeftOpen className="h-4 w-4" />}
             </button>
             {desktopExpanded && <p className="mt-1 text-center text-[6px] uppercase tracking-[0.2em] text-muted-foreground/35">SISTEMA ONLINE</p>}
           </div>
