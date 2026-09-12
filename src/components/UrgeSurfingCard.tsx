@@ -11,7 +11,6 @@ const WAVE_STORAGE = (uid: string) => `ascensao:urge-surfing:${uid}`;
 const WATER_STORAGE = (uid: string, day: string) => `ascensao:agua:${uid}:${day}`;
 const WATER_TARGET_STORAGE = (uid: string) => `ascensao:agua-meta:${uid}`;
 const DEFAULT_WATER_TARGET = 4000;
-const WATER_CUPS = [100, 200, 400];
 const TRIGGERS: { id: Trigger; label: string }[] = [
   { id: "fome", label: "Fome" }, { id: "sede", label: "Sede" }, { id: "tedio", label: "Tédio" },
   { id: "ansiedade", label: "Ansiedade" }, { id: "habito", label: "Hábito" }, { id: "comida", label: "Comida À Vista" }, { id: "outro", label: "Outro" },
@@ -22,10 +21,7 @@ function loadWaves(uid: string): Wave[] { try { return JSON.parse(localStorage.g
 function saveWaves(uid: string, waves: Wave[]) { localStorage.setItem(WAVE_STORAGE(uid), JSON.stringify(waves.slice(0, 100))); }
 function loadWater(uid: string) { return Number(localStorage.getItem(WATER_STORAGE(uid, today())) || 0); }
 function saveWater(uid: string, ml: number) { localStorage.setItem(WATER_STORAGE(uid, today()), String(Math.max(0, ml))); }
-function loadTarget(uid: string) {
-  const saved = Number(localStorage.getItem(WATER_TARGET_STORAGE(uid)) || 0);
-  return saved > 0 ? saved : DEFAULT_WATER_TARGET;
-}
+function loadTarget(uid: string) { return Number(localStorage.getItem(WATER_TARGET_STORAGE(uid)) || DEFAULT_WATER_TARGET); }
 function formatTime(seconds: number) { return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`; }
 
 export default function UrgeSurfingCard() {
@@ -103,8 +99,10 @@ export default function UrgeSurfingCard() {
       <div className="rounded-md border border-primary/20 bg-primary/5 p-3">
         <div className="flex items-center gap-2 mb-2"><Droplets className="w-4 h-4 text-primary" /><p className="text-[10px] uppercase tracking-[.25em] text-muted-foreground">Hidratação De Hoje</p><span className="ml-auto font-display text-xs">{water} / {waterTarget} ml</span></div>
         <div className="h-2 rounded-full bg-secondary overflow-hidden"><motion.div className="h-full bg-primary" animate={{ width: `${progress}%` }} /></div>
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          {WATER_CUPS.map(ml => <button key={ml} onClick={() => addWater(ml)} className="border border-border rounded-md py-1.5 text-[10px] hover:border-primary/50"><Plus className="w-3 h-3 inline" /> {ml} ml</button>)}
+        <div className="flex gap-2 mt-2">
+          <button onClick={() => addWater(100)} className="flex-1 border border-border rounded-md py-1.5 text-[10px] hover:border-primary/50"><Plus className="w-3 h-3 inline" /> 100 ml</button>
+          <button onClick={() => addWater(200)} className="flex-1 border border-border rounded-md py-1.5 text-[10px] hover:border-primary/50"><Plus className="w-3 h-3 inline" /> 200 ml</button>
+          <button onClick={() => addWater(400)} className="flex-1 border border-border rounded-md py-1.5 text-[10px] hover:border-primary/50"><Plus className="w-3 h-3 inline" /> 400 ml</button>
         </div>
       </div>
 
@@ -118,7 +116,7 @@ export default function UrgeSurfingCard() {
       <div className="text-center"><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Tempo De Observação</p><p className="font-display text-4xl text-primary tracking-widest">{formatTime(seconds)}</p><p className="text-[10px] text-muted-foreground">{seconds < 600 ? `Continue por mais ${formatTime(600 - seconds)}` : "10 minutos completos"}</p></div>
       <div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Intensidade Inicial: {initial}/10</p><input type="range" min="1" max="10" value={initial} onChange={e => setInitial(Number(e.target.value))} className="w-full accent-primary" /></div>
       <div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Possível Gatilho</p><div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{TRIGGERS.map(t => <button key={t.id} onClick={() => setTrigger(t.id)} className={`rounded-md border px-2 py-2 text-[10px] ${trigger === t.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{t.label}</button>)}</div></div>
-      <div className="rounded-md border border-primary/20 bg-primary/5 p-3"><p className="text-[10px] text-muted-foreground flex items-center gap-2"><Droplets className="w-4 h-4 text-primary" /> Água registrada hoje: <strong>{water} ml</strong></p><div className="grid grid-cols-3 gap-2 mt-2">{WATER_CUPS.map(ml => <button key={ml} onClick={() => addWater(ml)} className="border border-border rounded-md py-1.5 text-[10px]">+{ml} ml</button>)}</div></div>
+      <div className="rounded-md border border-primary/20 bg-primary/5 p-3"><p className="text-[10px] text-muted-foreground flex items-center gap-2"><Droplets className="w-4 h-4 text-primary" /> Água registrada hoje: <strong>{water} ml</strong></p><div className="flex gap-2 mt-2"><button onClick={() => addWater(100)} className="flex-1 border border-border rounded-md py-1.5 text-[10px]">+100 ml</button><button onClick={() => addWater(200)} className="flex-1 border border-border rounded-md py-1.5 text-[10px]">+200 ml</button><button onClick={() => addWater(400)} className="flex-1 border border-border rounded-md py-1.5 text-[10px]">+400 ml</button></div></div>
       {seconds >= 600 ? <><div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Intensidade Agora: {finalIntensity}/10</p><input type="range" min="1" max="10" value={finalIntensity} onChange={e => setFinalIntensity(Number(e.target.value))} className="w-full accent-primary" /></div><div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Como A Onda Terminou?</p><div className="grid grid-cols-3 gap-2"><button disabled={saving} onClick={() => finishWave("diminuiu")} className="border border-primary/40 rounded-md p-2 text-xs text-primary"><TrendingDown className="w-4 h-4 mx-auto mb-1" />Diminuiu</button><button disabled={saving} onClick={() => finishWave("igual")} className="border border-border rounded-md p-2 text-xs"><Minus className="w-4 h-4 mx-auto mb-1" />Igual</button><button disabled={saving} onClick={() => finishWave("aumentou")} className="border border-destructive/40 rounded-md p-2 text-xs text-destructive"><TrendingUp className="w-4 h-4 mx-auto mb-1" />Aumentou</button></div></div></> : <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><TimerReset className="w-4 h-4" /> Primeiro observe por 10 minutos.</div>}
       <div className="flex items-center gap-2 text-[10px] text-muted-foreground"><Brain className="w-4 h-4 text-primary" /> Registrar a onda não significa que você precisa continuar ou interromper o jejum; significa apenas observar e escolher conscientemente.</div>
       <button onClick={() => { setStartedAt(null); setOpen(false); }} className="w-full border border-border rounded-md py-2 text-xs">Fechar Sem Registrar</button>
