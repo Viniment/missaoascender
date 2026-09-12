@@ -84,42 +84,35 @@ export default function UrgeSurfingCard() {
     saveWaves(uid, next); setWaves(next); setStartedAt(null); setOpen(false); setSaving(false);
   };
 
-  return <div className="rpg-panel border-primary/20 overflow-hidden">
-    <div className="p-3 space-y-3">
-      <div className="flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-md grid place-items-center bg-primary/10 border border-primary/30 text-primary"><Waves className="w-4 h-4" /></div>
-        <div className="min-w-0 flex-1"><p className="text-[9px] uppercase tracking-[.3em] text-primary">URGE SURFING</p><h3 className="font-display text-sm tracking-widest">Surfar A Vontade</h3><p className="text-[10px] text-muted-foreground">Observe a onda antes de decidir.</p></div>
-      </div>
-
-      <button onClick={startWave} disabled={!fasting || Boolean(startedAt)} className="w-full btn-pixel py-2.5 rounded-md flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
-        <Waves className="w-4 h-4" /> {startedAt ? `Onda Em Andamento · ${formatTime(seconds)}` : "⚡ Estou Com Vontade"}
-      </button>
-      {!fasting && <p className="text-[9px] text-center text-muted-foreground">Inicie um jejum para ativar o Urge Surfing.</p>}
-
-      <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5">
-        <div className="flex items-center gap-2 mb-1.5"><Droplets className="w-3.5 h-3.5 text-primary" /><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Hidratação De Hoje</p><span className="ml-auto font-display text-[11px]">{water} / {waterTarget} ml</span></div>
-        <div className="h-1.5 rounded-full bg-secondary overflow-hidden"><motion.div className="h-full bg-primary" animate={{ width: `${progress}%` }} /></div>
-        <div className="flex gap-1.5 mt-1.5">
-          <button onClick={() => addWater(100)} className="flex-1 border border-border rounded-md py-1 text-[9px] hover:border-primary/50"><Plus className="w-2.5 h-2.5 inline" /> 100 ml</button>
-          <button onClick={() => addWater(200)} className="flex-1 border border-border rounded-md py-1 text-[9px] hover:border-primary/50"><Plus className="w-2.5 h-2.5 inline" /> 200 ml</button>
-          <button onClick={() => addWater(400)} className="flex-1 border border-border rounded-md py-1 text-[9px] hover:border-primary/50"><Plus className="w-2.5 h-2.5 inline" /> 400 ml</button>
+  return <>
+    <div className="rpg-panel border-primary/20 overflow-hidden">
+      <div className="p-2.5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-md grid place-items-center bg-primary/10 border border-primary/30 text-primary shrink-0"><Waves className="w-4 h-4" /></div>
+          <div className="min-w-0 flex-1"><p className="text-[8px] uppercase tracking-[.28em] text-primary">URGE SURFING</p><p className="font-display text-xs tracking-widest">VONTADE ≠ COMANDO</p></div>
+          <button onClick={startWave} disabled={!fasting || Boolean(startedAt)} className="btn-pixel px-3 py-2 rounded-md text-[10px] flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"><Waves className="w-3.5 h-3.5" /> {startedAt ? formatTime(seconds) : "Estou Com Vontade"}</button>
         </div>
+        {!fasting && <p className="text-[8px] text-center text-muted-foreground mt-1.5">Inicie um jejum para ativar.</p>}
+
+        <div className="mt-2 rounded-md border border-primary/20 bg-primary/5 p-2">
+          <div className="flex items-center gap-1.5"><Droplets className="w-3 h-3 text-primary" /><span className="text-[8px] uppercase tracking-[.22em] text-muted-foreground">Água</span><span className="ml-auto font-display text-[10px]">{water} / {waterTarget} ml</span></div>
+          <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-1"><motion.div className="h-full bg-primary" animate={{ width: `${progress}%` }} /></div>
+          <div className="flex gap-1 mt-1.5"><button onClick={() => addWater(100)} className="flex-1 border border-border rounded py-0.5 text-[8px]">+100</button><button onClick={() => addWater(200)} className="flex-1 border border-border rounded py-0.5 text-[8px]">+200</button><button onClick={() => addWater(400)} className="flex-1 border border-border rounded py-0.5 text-[8px]">+400 ml</button></div>
+        </div>
+
+        {waves.length > 0 && <div className="grid grid-cols-3 gap-1 mt-2 text-center"><div className="border border-border rounded p-1"><b className="font-display text-sm">{waves.length}</b><span className="block text-[7px] text-muted-foreground uppercase">Ondas</span></div><div className="border border-border rounded p-1"><b className="font-display text-sm">{decreaseRate}%</b><span className="block text-[7px] text-muted-foreground uppercase">Diminuíram</span></div><div className="border border-border rounded p-1"><b className="font-display text-sm">{todayWaves.length}</b><span className="block text-[7px] text-muted-foreground uppercase">Hoje</span></div></div>}
       </div>
-
-      {waves.length > 0 && <div className="grid grid-cols-3 gap-1.5 text-center"><div className="rounded-md border border-border p-1.5"><p className="font-display text-base">{waves.length}</p><p className="text-[8px] text-muted-foreground uppercase">Ondas</p></div><div className="rounded-md border border-border p-1.5"><p className="font-display text-base">{decreaseRate}%</p><p className="text-[8px] text-muted-foreground uppercase">Diminuíram</p></div><div className="rounded-md border border-border p-1.5"><p className="font-display text-base">{todayWaves.length}</p><p className="text-[8px] text-muted-foreground uppercase">Hoje</p></div></div>}
-
-      {graph.length > 0 && <div className="space-y-1.5"><div className="flex items-center gap-2"><BarChart3 className="w-3.5 h-3.5 text-primary" /><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Últimas Ondas</p></div><div className="space-y-1">{graph.map(w => <div key={w.id} className="flex items-center gap-2 text-[9px]"><span className="w-6 text-muted-foreground">{w.initial}</span><div className="h-1.5 flex-1 rounded-full bg-secondary overflow-hidden"><div className="h-full bg-primary" style={{ width: `${Math.max(4, (w.final / 10) * 100)}%` }} /></div><span className="w-6 text-right">{w.final}</span><span className="w-4">{w.result === "diminuiu" ? "↓" : w.result === "aumentou" ? "↑" : "→"}</span></div>)}</div></div>}
     </div>
 
-    <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[95] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4"><motion.div initial={{ y: 20, scale: .98 }} animate={{ y: 0, scale: 1 }} className="w-full max-w-lg rpg-panel border-primary/40 p-5 space-y-5">
+    <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[95] bg-background/85 backdrop-blur-sm flex items-center justify-center p-4"><motion.div initial={{ y: 20, scale: .98 }} animate={{ y: 0, scale: 1 }} className="w-full max-w-lg max-h-[90vh] overflow-y-auto rpg-panel border-primary/40 p-5 space-y-5">
       <div className="text-center"><Waves className="w-8 h-8 mx-auto text-primary" /><p className="text-[10px] uppercase tracking-[.3em] text-primary mt-2">SURFE A VONTADE</p><h2 className="font-display text-2xl tracking-widest mt-1">VONTADE ≠ COMANDO</h2><p className="text-xs text-muted-foreground mt-2">Apenas observe. A onda pode mudar sem que você precise obedecê-la.</p></div>
       <div className="text-center"><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Tempo De Observação</p><p className="font-display text-4xl text-primary tracking-widest">{formatTime(seconds)}</p><p className="text-[10px] text-muted-foreground">{seconds < 600 ? `Continue por mais ${formatTime(600 - seconds)}` : "10 minutos completos"}</p></div>
       <div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Intensidade Inicial: {initial}/10</p><input type="range" min="1" max="10" value={initial} onChange={e => setInitial(Number(e.target.value))} className="w-full accent-primary" /></div>
       <div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Possível Gatilho</p><div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{TRIGGERS.map(t => <button key={t.id} onClick={() => setTrigger(t.id)} className={`rounded-md border px-2 py-2 text-[10px] ${trigger === t.id ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}>{t.label}</button>)}</div></div>
       <div className="rounded-md border border-primary/20 bg-primary/5 p-3"><p className="text-[10px] text-muted-foreground flex items-center gap-2"><Droplets className="w-4 h-4 text-primary" /> Água registrada hoje: <strong>{water} ml</strong></p><div className="flex gap-2 mt-2"><button onClick={() => addWater(100)} className="flex-1 border border-border rounded-md py-1.5 text-[10px]">+100 ml</button><button onClick={() => addWater(200)} className="flex-1 border border-border rounded-md py-1.5 text-[10px]">+200 ml</button><button onClick={() => addWater(400)} className="flex-1 border border-border rounded-md py-1.5 text-[10px]">+400 ml</button></div></div>
       {seconds >= 600 ? <><div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Intensidade Agora: {finalIntensity}/10</p><input type="range" min="1" max="10" value={finalIntensity} onChange={e => setFinalIntensity(Number(e.target.value))} className="w-full accent-primary" /></div><div><p className="text-[10px] uppercase tracking-[.2em] text-muted-foreground mb-2">Como A Onda Terminou?</p><div className="grid grid-cols-3 gap-2"><button disabled={saving} onClick={() => finishWave("diminuiu")} className="border border-primary/40 rounded-md p-2 text-xs text-primary"><TrendingDown className="w-4 h-4 mx-auto mb-1" />Diminuiu</button><button disabled={saving} onClick={() => finishWave("igual")} className="border border-border rounded-md p-2 text-xs"><Minus className="w-4 h-4 mx-auto mb-1" />Igual</button><button disabled={saving} onClick={() => finishWave("aumentou")} className="border border-destructive/40 rounded-md p-2 text-xs text-destructive"><TrendingUp className="w-4 h-4 mx-auto mb-1" />Aumentou</button></div></div></> : <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><TimerReset className="w-4 h-4" /> Primeiro observe por 10 minutos.</div>}
-      <div className="flex items-center gap-2 text-[10px] text-muted-foreground"><Brain className="w-4 h-4 text-primary" /> Registrar a onda não significa que você precisa continuar ou interromper o jejum; significa apenas observar e escolher conscientemente.</div>
+      <div className="flex items-center gap-2 text-[10px] text-muted-foreground"><Brain className="w-4 h-4 text-primary" /> Registrar a onda significa observar e escolher conscientemente.</div>
       <button onClick={() => { setStartedAt(null); setOpen(false); }} className="w-full border border-border rounded-md py-2 text-xs">Fechar Sem Registrar</button>
     </motion.div></motion.div>}</AnimatePresence>
-  </div>;
+  </>;
 }
