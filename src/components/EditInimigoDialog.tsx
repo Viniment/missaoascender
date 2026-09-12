@@ -21,6 +21,12 @@ export default function EditInimigoDialog({
   const [novaMentira, setNovaMentira] = useState("");
   const [hpMax, setHpMax] = useState(100);
   const [saving, setSaving] = useState(false);
+  const [tipo, setTipo] = useState<"foto" | "icone">("icone");
+  const [emoji, setEmoji] = useState("😈");
+  const [fotoUrl, setFotoUrl] = useState<string | undefined>();
+  const [fotoPath, setFotoPath] = useState<string | undefined>();
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!inimigo) return;
@@ -28,7 +34,34 @@ export default function EditInimigoDialog({
     setGatilho(inimigo.gatilho ?? "");
     setMentiras(inimigo.mentiras ?? []);
     setHpMax(inimigo.hp_max);
+    const cfg = (inimigo.avatar_config ?? {}) as any;
+    setEmoji(cfg.emoji ?? "😈");
+    setFotoUrl(cfg.foto_url);
+    setFotoPath(cfg.foto_path);
+    setTipo(cfg.tipo === "foto" && cfg.foto_url ? "foto" : "icone");
   }, [inimigo, open]);
+
+  const enviarFoto = async (file: File) => {
+    setUploading(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) throw new Error("Sessão expirada.");
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${uid}/boss-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("boss").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data, error: e2 } = await supabase.storage.from("boss").createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (e2) throw e2;
+      setFotoPath(path);
+      setFotoUrl(data.signedUrl);
+      setTipo("foto");
+      toast.success("Foto carregada.");
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro no upload");
+    } finally { setUploading(false); }
+  };
+
 
   const addMentira = () => {
     const t = novaMentira.trim();
