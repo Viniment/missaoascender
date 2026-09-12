@@ -93,7 +93,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <style>{`.xp-bar-fill .bar-sheen, .life-bar-fill .bar-sheen { display: none !important; animation: none !important; } .new-lifeup-scroll::-webkit-scrollbar { width: 6px; } .new-lifeup-scroll::-webkit-scrollbar-track { background: hsl(var(--primary) / 0.035); border-left: 1px solid hsl(var(--primary) / 0.08); margin: 10px 4px; border-radius: 999px; } .new-lifeup-scroll::-webkit-scrollbar-thumb { background: linear-gradient(180deg, hsl(var(--primary) / 0.48), hsl(var(--primary) / 0.16)); border: 1px solid hsl(var(--primary) / 0.22); border-radius: 999px; box-shadow: 0 0 8px hsl(var(--primary) / 0.18); } .new-lifeup-scroll::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.65); } .new-lifeup-scroll { scrollbar-width: thin; scrollbar-color: hsl(var(--primary) / 0.42) hsl(var(--primary) / 0.035); }`}</style>
-      {appBg ? <><div className={cn("app-bg-layer", appBg.className)} aria-hidden="true"><span className="app-bg-depth app-bg-depth-one" /><span className="app-bg-depth app-bg-depth-two" /><span className="app-bg-depth app-bg-depth-three" /><span className="app-bg-vignette" /></div><div className="app-bg-scrim" aria-hidden="true" /></> : !lowPower && <div className="fixed inset-0 pointer-events-none opacity-70"><ParticleBackground density={35} /></div>}
+      {appBg ? <><div className={cn("app-bg-layer", appBg.className)} aria-hidden="true"><span className="app-bg-depth app-bg-depth-one" /><span className="app-bg-depth app-bg-depth-two" /><span className="app-bg-depth app-bg-depth-three" /><span className="app-bg-vignette" /></> : !lowPower && <div className="fixed inset-0 pointer-events-none opacity-70"><ParticleBackground density={35} /></div>}
       <RewardBurstLayer />
       <InstallPWAPrompt />
 
@@ -113,7 +113,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <aside className={cn("fixed left-0 top-14 bottom-0 z-40 hidden border-r border-primary/15 bg-background/82 backdrop-blur-2xl transition-[width,box-shadow] duration-300 ease-out lg:flex lg:flex-col xl:top-16", desktopExpanded ? "w-[250px] shadow-[14px_0_45px_rgba(0,0,0,.24)]" : "w-[88px]")}>
         <div className="flex h-full w-full min-h-0 flex-col px-3 py-3">
           <div className="min-h-0 flex-1 overflow-hidden px-1">
-            <div className="new-lifeup-scroll h-full overflow-y-auto pr-3 pl-1 py-1">{renderNav()}</div>
+            <div className="new-lifeup-scroll h-full overflow-y-auto pr-4 pl-1 py-1">{renderNav()}</div>
           </div>
           <div className="mt-3 shrink-0 border-t border-primary/10 pt-2.5">
             <button type="button" onClick={() => setDesktopExpanded((value) => !value)} aria-label={desktopExpanded ? "Recolher menu" : "Expandir menu"} title={desktopExpanded ? "Recolher menu" : "Expandir menu"} className={cn("relative flex h-10 w-full items-center rounded-lg border border-transparent text-muted-foreground transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary", desktopExpanded ? "justify-center px-2" : "justify-center")}>
