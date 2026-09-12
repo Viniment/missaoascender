@@ -43,7 +43,7 @@ export default function DashboardComJejum() {
   return <>
     <Dashboard />
     {target ? createPortal(
-      <div className="space-y-1 pt-0.5">
+      <div className="space-y-3 pt-0.5">
         <JejumCard />
         <UrgeSurfingCard />
       </div>,
