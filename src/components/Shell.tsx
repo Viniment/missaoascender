@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt, Shield, Brain, BookOpen, Menu, X, ChevronRight, FolderKanban, Sparkles, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Swords, Home, Trophy, ListChecks, User, LogOut, Store, Shirt, Shield, Brain, BookOpen, Menu, X, ChevronRight, FolderKanban, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -70,25 +70,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             {items.map(({ to, label, Icon }) => {
               const active = isActive(to);
               return (
-                <Link
-                  key={to}
-                  to={to}
-                  onClick={mobile ? closeMenu : undefined}
-                  aria-label={label}
-                  title={!mobile && !desktopExpanded ? label : undefined}
-                  className={cn(
-                    "group/item relative flex items-center overflow-hidden rounded-xl border transition-all duration-200",
-                    mobile ? "min-h-11 gap-3 px-3" : desktopExpanded ? "h-10.5 gap-3 px-2.5" : "h-12 justify-center px-2",
-                    active
-                      ? "border-primary/55 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary shadow-[0_0_22px_hsl(var(--primary)/0.18),inset_0_0_18px_hsl(var(--primary)/0.07)]"
-                      : "border-transparent text-muted-foreground hover:border-primary/20 hover:bg-white/[0.025] hover:text-foreground"
-                  )}
-                >
+                <Link key={to} to={to} onClick={mobile ? closeMenu : undefined} aria-label={label} title={!mobile && !desktopExpanded ? label : undefined}
+                  className={cn("group/item relative flex items-center overflow-hidden rounded-xl border transition-all duration-200", mobile ? "min-h-11 gap-3 px-3" : desktopExpanded ? "h-10.5 gap-3 px-2.5" : "h-12 justify-center px-2",
+                    active ? "border-primary/55 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary shadow-[0_0_22px_hsl(var(--primary)/0.18),inset_0_0_18px_hsl(var(--primary)/0.07)]" : "border-transparent text-muted-foreground hover:border-primary/20 hover:bg-white/[0.025] hover:text-foreground")}>
                   {active && <span className="absolute left-0 top-1/2 h-8 w-0.5 -translate-y-1/2 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.95)]" />}
                   <span className={cn("relative z-10 flex shrink-0 items-center justify-center rounded-lg border transition-all", mobile ? "h-8 w-8" : desktopExpanded ? "h-8 w-8" : "h-9 w-9", active ? "border-primary/50 bg-primary/20 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.15)]" : "border-border/40 bg-background/30 group-hover/item:border-primary/30 group-hover/item:bg-primary/10 group-hover/item:text-primary")}>
                     <Icon className={cn(mobile ? "h-4 w-4" : desktopExpanded ? "h-[18px] w-[18px]" : "h-5 w-5")} />
                   </span>
-                  <span className={cn("relative z-10 min-w-0 flex-1 truncate font-display font-black uppercase tracking-[0.16em]", mobile ? "text-[9px]" : "text-[9px]", !mobile && !desktopExpanded && "sr-only")}>{label}</span>
+                  <span className={cn("relative z-10 min-w-0 flex-1 truncate font-display font-black uppercase tracking-[0.16em] text-[9px]", !mobile && !desktopExpanded && "sr-only")}>{label}</span>
                   {(mobile || desktopExpanded) && <ChevronRight className={cn("relative z-10 h-3 w-3 transition-all", active ? "text-primary opacity-100" : "opacity-0 group-hover/item:opacity-50 group-hover/item:translate-x-0.5")} />}
                   {active && <span className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-primary/10 to-transparent" />}
                 </Link>
@@ -122,15 +111,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       <aside className={cn("fixed left-0 top-14 bottom-0 z-40 hidden border-r border-primary/15 bg-background/82 backdrop-blur-2xl transition-[width,box-shadow] duration-300 ease-out lg:flex lg:flex-col xl:top-16", desktopExpanded ? "w-[250px] shadow-[14px_0_45px_rgba(0,0,0,.24)]" : "w-[88px]")}>
         <div className="flex h-full w-full min-h-0 flex-col px-3 py-3">
-          <div className={cn("mb-3 flex shrink-0 items-center rounded-xl border border-primary/15 bg-gradient-to-r from-primary/10 to-transparent px-2.5 py-2.5", !desktopExpanded && "justify-center px-1.5")}>
-            <span className={cn("flex shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary shadow-[0_0_14px_hsl(var(--primary)/0.15)]", desktopExpanded ? "h-8 w-8" : "h-10 w-10")}><Sparkles className={cn(desktopExpanded ? "h-3.5 w-3.5" : "h-5 w-5")} /></span>
-            <div className={cn("min-w-0 overflow-hidden pl-2.5 transition-all duration-200", !desktopExpanded && "w-0 p-0 opacity-0")}><p className="whitespace-nowrap font-display text-[8px] font-black uppercase tracking-[0.2em] text-primary">NEW LIFEUP</p><p className="mt-0.5 whitespace-nowrap text-[7px] uppercase tracking-[0.12em] text-muted-foreground">Painel de comando</p></div>
-          </div>
-
           <div className="min-h-0 flex-1 overflow-hidden px-1">
             <div className="new-lifeup-scroll h-full overflow-y-auto pr-3 pl-1 py-1">{renderNav()}</div>
           </div>
-
           <div className="mt-3 shrink-0 border-t border-primary/10 pt-2.5">
             <button type="button" onClick={() => setDesktopExpanded((value) => !value)} aria-label={desktopExpanded ? "Recolher menu" : "Expandir menu"} title={desktopExpanded ? "Recolher menu" : "Expandir menu"} className={cn("flex h-10 w-full items-center rounded-lg border border-transparent text-muted-foreground transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary", desktopExpanded ? "justify-end px-2" : "justify-center")}>
               {desktopExpanded ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
