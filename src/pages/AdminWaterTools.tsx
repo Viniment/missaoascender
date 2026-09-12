@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Droplets, Trash2, Clock3, RotateCcw, Save, Shield } from "lucide-react";
+import { Droplets, Trash2, Clock3, RotateCcw, Save, Shield, Database } from "lucide-react";
 
 type Props = { uid: string; nome: string; busy: boolean; setBusy: (v: boolean) => void };
 
@@ -19,6 +19,20 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
   });
   const [meta, setMeta] = useState("");
   useEffect(() => { if (data?.agua_meta_ml != null) setMeta(String(data.agua_meta_ml)); }, [data?.agua_meta_ml]);
+
+  const aplicarSchema = async () => {
+    setBusy(true);
+    try {
+      const { data: result, error } = await supabase.rpc("admin_aplicar_schema_agua_jejum");
+      if (error) throw error;
+      toast.success(result?.message ?? "Configuração do banco aplicada com sucesso.");
+      await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] });
+    } catch (e: any) {
+      toast.error(`Não foi possível aplicar o schema: ${e.message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const saveMeta = async () => {
     const value = Number(meta);
@@ -44,6 +58,7 @@ export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
   };
 
   return <div className="space-y-3">
+    <div className="rpg-panel p-4 space-y-3 border-primary/30"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Database className="w-3 h-3" /> BANCO DE DADOS</p><p className="text-xs text-muted-foreground">Corrige automaticamente o schema do Supabase criando as colunas de água e jejum necessárias. O SQL fica registrado na migration e é executado com segurança pelo banco, somente para administradores.</p><button onClick={aplicarSchema} disabled={busy} className="w-full btn-pixel py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Database className="w-4 h-4" /> Aplicar Configuração Do Banco</button></div>
     <div className="rpg-panel p-4 space-y-3"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Droplets className="w-3 h-3" /> ÁGUA — CONFIGURAÇÃO INDIVIDUAL</p><p className="text-xs text-muted-foreground">A meta é definida manualmente para este usuário. Não existem metas pré-definidas.</p><div className="flex gap-2"><input type="number" min="1" max="1000000" step="1" value={meta} onChange={e => setMeta(e.target.value)} className="flex-1 bg-secondary border border-border rounded-md px-3 py-2 text-sm" placeholder="Ex.: 5000" /><button onClick={saveMeta} disabled={busy} className="btn-pixel px-4 rounded-md text-xs flex items-center gap-2"><Save className="w-4 h-4" /> Salvar ml</button></div><p className="text-[9px] text-muted-foreground">Meta atual: <strong className="text-cyan-300">{data?.agua_meta_ml ?? "—"} ml</strong></p></div>
     <div className="rpg-panel p-4 space-y-2"><p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">LIMPEZA DO RASTREADOR</p><button onClick={resetAgua} disabled={busy} className="w-full border border-destructive/40 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><RotateCcw className="w-4 h-4" /> Zerar histórico de água</button></div>
     <div className="rpg-panel p-4 space-y-2 border-amber-400/20"><p className="text-[10px] uppercase tracking-[0.25em] text-amber-300 flex items-center gap-1"><Clock3 className="w-3 h-3" /> JEJUM</p><p className="text-xs text-muted-foreground">Remove o histórico local, o maior tempo, o estado ativo e as conquistas de jejum no próximo acesso do usuário.</p><button onClick={resetJejum} disabled={busy} className="w-full border border-destructive/50 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Apagar histórico de jejum</button></div>
