@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Waves, TrendingDown, Minus, TrendingUp, Eye, RotateCcw, Trash2, GlassWater, X, Play, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
