@@ -82,6 +82,13 @@ export default function EditInimigoDialog({
         mentiras: mentiras.map(m => m.trim()).filter(Boolean),
         hp_max: newHpMax,
         hp_atual,
+        avatar_config: {
+          ...(inimigo.avatar_config ?? {}),
+          tipo: tipo === "foto" && fotoUrl ? "foto" : "icone",
+          emoji,
+          foto_url: fotoUrl ?? null,
+          foto_path: fotoPath ?? null,
+        },
       });
       toast.success("Inimigo atualizado.");
       onSaved(); onClose();
