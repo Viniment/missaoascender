@@ -119,6 +119,56 @@ export default function EditInimigoDialog({
             </div>
 
             <div>
+              <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Imagem do inimigo</label>
+              <div className="mt-1 flex items-center gap-3">
+                {tipo === "foto" && fotoUrl ? (
+                  <img src={fotoUrl} alt="Foto do inimigo" className="w-16 h-16 rounded-lg object-cover border border-destructive/40" />
+                ) : (
+                  <div className="w-16 h-16 grid place-items-center rounded-lg border border-destructive/30 bg-destructive/5 text-3xl">{emoji}</div>
+                )}
+                <div className="flex-1 grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button" onClick={() => setTipo("icone")}
+                    className={`rounded-md border px-2 py-1.5 text-[11px] ${tipo === "icone" ? "border-destructive text-destructive bg-destructive/10" : "border-border text-muted-foreground"}`}
+                  >Ícone</button>
+                  <button
+                    type="button" onClick={() => (fotoUrl ? setTipo("foto") : fileRef.current?.click())}
+                    className={`rounded-md border px-2 py-1.5 text-[11px] ${tipo === "foto" ? "border-destructive text-destructive bg-destructive/10" : "border-border text-muted-foreground"}`}
+                  >Foto</button>
+                </div>
+              </div>
+              <input
+                ref={fileRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) void enviarFoto(f); e.target.value = ""; }}
+              />
+              {tipo === "icone" ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {ICONES.map(ic => (
+                    <button
+                      key={ic} type="button" onClick={() => setEmoji(ic)}
+                      className={`w-9 h-9 rounded-md border text-lg ${emoji === ic ? "border-destructive bg-destructive/10" : "border-border"}`}
+                    >{ic}</button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button" disabled={uploading} onClick={() => fileRef.current?.click()}
+                    className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] text-muted-foreground disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} {fotoUrl ? "Trocar foto" : "Enviar foto"}
+                  </button>
+                  {fotoUrl && (
+                    <button
+                      type="button" onClick={() => { setFotoUrl(undefined); setFotoPath(undefined); setTipo("icone"); }}
+                      className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] text-muted-foreground"
+                    ><Trash2 className="w-3.5 h-3.5" /> Remover</button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
               <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Nome</label>
               <input
                 maxLength={40}
