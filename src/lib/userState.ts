@@ -11,6 +11,26 @@ export async function getUserState<T>(userId: string, chave: string, fallback: T
   return (data.valor as T) ?? fallback;
 }
 
+export async function getOrMigrateLegacyState<T>(userId: string, chave: string, legacyKey: string, fallback: T): Promise<T> {
+  const { data, error } = await supabase
+    .from("user_app_state")
+    .select("valor")
+    .eq("user_id", userId)
+    .eq("chave", chave)
+    .maybeSingle();
+  if (data && !error) return (data.valor as T) ?? fallback;
+  try {
+    const raw = localStorage.getItem(legacyKey);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as T;
+    await setUserState(userId, chave, parsed);
+    localStorage.removeItem(legacyKey);
+    return parsed;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function setUserState<T>(userId: string, chave: string, valor: T): Promise<void> {
   const { error } = await supabase.from("user_app_state").upsert(
     { user_id: userId, chave, valor: valor as any },
