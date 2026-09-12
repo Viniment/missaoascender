@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, Plus, Trash2, Skull } from "lucide-react";
+import { X, Loader2, Plus, Trash2, Skull, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { updateInimigo, type Inimigo } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+
+const ICONES = ["😈", "👹", "💀", "🕷️", "🐍", "🐺", "🔥", "⛓️", "🍔", "🍺", "📱", "🌀"];
 
 export default function EditInimigoDialog({
   inimigo, open, onClose, onSaved,
