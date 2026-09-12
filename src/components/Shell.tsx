@@ -41,6 +41,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <style>{`.xp-bar-fill .bar-sheen, .life-bar-fill .bar-sheen { display: none !important; animation: none !important; }`}</style>
       {appBg ? <><div className={cn("app-bg-layer", appBg.className)} aria-hidden="true"><span className="app-bg-depth app-bg-depth-one" /><span className="app-bg-depth app-bg-depth-two" /><span className="app-bg-depth app-bg-depth-three" /><span className="app-bg-vignette" /></div><div className="app-bg-scrim" aria-hidden="true" /></> : !lowPower && <div className="fixed inset-0 pointer-events-none opacity-70"><ParticleBackground density={35} /></div>}
       <RewardBurstLayer />
       <InstallPWAPrompt />
