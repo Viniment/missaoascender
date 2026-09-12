@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { applyXp, fetchHeroi, rollLifeReward } from "@/lib/api";
+import { applyXp, fetchHeroi } from "@/lib/api";
 import { fireReward } from "@/components/fx/RewardBurst";
 import { Clock3, ChevronDown, ChevronUp, CircleCheck, Play, Square, Brain, Waves, Smile, Meh, Frown, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,7 +9,7 @@ import UrgeSurfingCard from "@/components/UrgeSurfingCard";
 
 type Mood = "tranquila" | "normal" | "vontade" | "dificil";
 type HourState = { hour: number; mood: Mood; at: string };
-type Reward = { xp: number; ouro: number; vida: number; atributo: string; atributoDelta: number; horas: number; niveis: number[] };
+type Reward = { xp: number; ouro: number; vida: number; atributo: string; atributoDelta: number; horas: number };
 type Session = { id: string; startedAt: string; endedAt: string; minutes: number; hourlyStates: HourState[]; reward?: Reward };
 
 const STORAGE = (uid: string) => `ascensao:jejum:${uid}`;
@@ -26,7 +26,7 @@ function loadSessions(uid: string): Session[] { try { return JSON.parse(localSto
 function saveSessions(uid: string, sessions: Session[]) { localStorage.setItem(STORAGE(uid), JSON.stringify(sessions)); }
 function getMinutes(start: string, end: string) { return Math.max(0, Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 60000)); }
 function tituloPorHoras(h: number) { return h >= 8 ? `${Math.floor(h / 8) * 8} Horas de Jejum` : "Jejum Em Andamento"; }
-function rollHourlyRewardLevel() { const r = Math.random(); if (r < 0.65) return 1; if (r < 0.92) return 2; return 3; }
+function randomPerHour() { return Math.floor(Math.random() * 3) + 1; }
 
 export default function JejumCard() {
   const { user } = useAuth(); const uid = user?.id;
@@ -55,8 +55,11 @@ export default function JejumCard() {
 
   const confirmFinish = async () => {
     if (!active || !uid) return; const endedAt = new Date(finishValue).toISOString(); const minutes = getMinutes(active.startedAt, endedAt); if (minutes <= 0) return;
-    const fullHours = Math.floor(minutes / 60); const levels = Array.from({ length: fullHours }, () => rollHourlyRewardLevel());
-    const xp = levels.reduce((sum, level) => sum + level * 25, 0); const ouro = levels.reduce((sum, level) => sum + level * 8, 0); const vida = levels.reduce((sum) => sum + rollLifeReward(), 0); const atributoDelta = levels.reduce((sum, level) => sum + level, 0);
+    const fullHours = Math.floor(minutes / 60);
+    const xp = Array.from({ length: fullHours }, () => randomPerHour()).reduce((sum, value) => sum + value, 0);
+    const ouro = Array.from({ length: fullHours }, () => randomPerHour()).reduce((sum, value) => sum + value, 0);
+    const vida = fullHours;
+    const atributoDelta = Array.from({ length: fullHours }, () => randomPerHour()).reduce((sum, value) => sum + value, 0);
     setSaving(true);
     try {
       const current = await fetchHeroi(uid); if (!current) throw new Error("Herói não encontrado."); const nextXp = applyXp(current, xp); const nextVida = Math.min(current.vida_max, current.vida_atual + vida);
@@ -66,7 +69,7 @@ export default function JejumCard() {
       await (supabase as any).from("hero_attributes").upsert({ user_id: uid, consciencia: attr?.consciencia ?? 0, foco: attr?.foco ?? 0, autodominio: (attr?.autodominio ?? 0) + atributoDelta, coragem: attr?.coragem ?? 0, disciplina: attr?.disciplina ?? 0, gestao: attr?.gestao ?? 0, resiliencia: attr?.resiliencia ?? 0 });
       if (nextXp.conquistas.length) await supabase.from("conquistas").upsert(nextXp.conquistas.map(c => ({ user_id: uid, tipo: c.tipo, titulo: c.titulo, descricao: c.descricao })), { onConflict: "user_id,tipo", ignoreDuplicates: true });
       const hourlyStates = [...active.hourlyStates]; for (let h = 1; h <= fullHours; h++) if (!hourlyStates.some(x => x.hour === h)) hourlyStates.push({ hour: h, mood, at: new Date(new Date(active.startedAt).getTime() + h * 3600000).toISOString() });
-      const reward: Reward = { xp, ouro, vida, atributo: "autodominio", atributoDelta, horas: fullHours, niveis: levels }; const session: Session = { id: crypto.randomUUID(), startedAt: active.startedAt, endedAt, minutes, hourlyStates, reward }; const nextSessions = [session, ...sessions];
+      const reward: Reward = { xp, ouro, vida, atributo: "autodominio", atributoDelta, horas: fullHours }; const session: Session = { id: crypto.randomUUID(), startedAt: active.startedAt, endedAt, minutes, hourlyStates, reward }; const nextSessions = [session, ...sessions];
       saveSessions(uid, nextSessions); setSessions(nextSessions); localStorage.removeItem(`${STORAGE(uid)}:active`); setActive(null); setFinishOpen(false); setFinishConfirmOpen(false);
       if (fullHours > 0) { fireReward(`+${xp} XP`, "#a855f7"); setTimeout(() => fireReward(`+${ouro} Ouro`, "#facc15"), 180); setTimeout(() => fireReward(`+${vida} Vida`, "#ef4444"), 360); setTimeout(() => fireReward(`+${atributoDelta} Autodomínio`, "#22c55e"), 540); }
     } finally { setSaving(false); }
@@ -84,7 +87,7 @@ export default function JejumCard() {
     <AnimatePresence initial={false}>{expanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-border"><div className="p-3 space-y-3">
       {!active ? <>
         <div className="flex items-center justify-between gap-3"><div><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Maior Jejum</p><p className="font-display text-lg">{maxHours ? durationText(Math.round(maxHours * 60)) : "Nenhum Registro"}</p></div><Trophy className="w-5 h-5 text-gold" /></div>
-        <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5"><p className="font-display text-xs tracking-widest">RECOMPENSA POR HORA</p><p className="text-[9px] text-muted-foreground mt-1">Cada hora completa sorteia um nível de 1 a 3. Nível 3 é mais raro e rende mais. Menos de 1 hora não gera XP, ouro, vida ou atributo.</p></div>
+        <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5"><p className="font-display text-xs tracking-widest">RECOMPENSA POR HORA</p><p className="text-[9px] text-muted-foreground mt-1">Cada hora completa rende recompensas aleatórias. Menos de 1 hora não gera recompensa.</p></div>
         <button onClick={() => { setStartValue(toInputValue(new Date())); setStartOpen(true); }} className="w-full btn-pixel py-2 rounded-md flex items-center justify-center gap-2 text-xs"><Play className="w-3.5 h-3.5" /> Começar Jejum</button>
       </> : <>
         <div className="text-center py-0.5"><p className="text-[8px] uppercase tracking-[.3em] text-muted-foreground">Cronômetro</p><p className="font-display text-2xl sm:text-3xl tracking-widest text-primary">{hoursDisplay}</p><p className="text-[9px] text-muted-foreground mt-1">Início: {formatDate(active.startedAt)}</p></div>
@@ -94,12 +97,12 @@ export default function JejumCard() {
         <button onClick={openFinish} className="w-full border border-destructive/40 text-destructive hover:bg-destructive/10 py-2 rounded-md flex items-center justify-center gap-2 text-xs"><Square className="w-3.5 h-3.5" /> Encerrar Jejum</button>
         {active.hourlyStates.length > 0 && <div className="space-y-1.5"><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Linha Do Tempo</p>{active.hourlyStates.map(x => { const m = MOODS.find(v => v.id === x.mood); const Icon = m?.icon ?? Brain; return <div key={`${x.hour}-${x.at}`} className="flex items-center gap-2 text-[10px]"><span className="font-display w-10">{x.hour}h</span><Icon className="w-3 h-3 text-primary" /><span>{m?.label}</span><span className="ml-auto text-[8px] text-muted-foreground">{formatDate(x.at)}</span></div>; })}</div>}
       </>}
-      {sessions.length > 0 && !active && <div className="space-y-1.5"><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Histórico</p>{sessions.slice(0, 5).map(s => <div key={s.id} className="rounded-md border border-border p-2 flex items-center gap-2"><Clock3 className="w-3.5 h-3.5 text-primary" /><div className="min-w-0 flex-1"><p className="text-[10px] font-display">{durationText(s.minutes)}</p><p className="text-[8px] text-muted-foreground">{formatDate(s.startedAt)} → {formatDate(s.endedAt)}</p></div><span className="text-[9px] text-primary">{s.reward?.horas ? `+${s.reward.xp} XP · ${s.reward.niveis.join("/")}` : "Sem recompensa"}</span></div>)}</div>}
+      {sessions.length > 0 && !active && <div className="space-y-1.5"><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Histórico</p>{sessions.slice(0, 5).map(s => <div key={s.id} className="rounded-md border border-border p-2 flex items-center gap-2"><Clock3 className="w-3.5 h-3.5 text-primary" /><div className="min-w-0 flex-1"><p className="text-[10px] font-display">{durationText(s.minutes)}</p><p className="text-[8px] text-muted-foreground">{formatDate(s.startedAt)} → {formatDate(s.endedAt)}</p></div><span className="text-[9px] text-primary">{s.reward?.horas ? `+${s.reward.xp} XP` : "Sem recompensa"}</span></div>)}</div>}
     </div></motion.div>}</AnimatePresence>
 
     <ConfirmDialog open={startOpen} title="Começar Jejum" onCancel={() => setStartOpen(false)} onConfirm={start} confirmLabel="Confirmar Início"><label className="block text-xs text-muted-foreground">Data e Hora De Início<input type="datetime-local" value={startValue} onChange={e => setStartValue(e.target.value)} className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm" /></label></ConfirmDialog>
     <ConfirmDialog open={finishOpen} title="Encerrar Jejum" onCancel={() => setFinishOpen(false)} onConfirm={() => { setFinishOpen(false); setFinishConfirmOpen(true); }} confirmLabel="Continuar"><label className="block text-xs text-muted-foreground">Data e Hora De Término<input type="datetime-local" value={finishValue} onChange={e => setFinishValue(e.target.value)} className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm" /></label></ConfirmDialog>
-    <ConfirmDialog open={finishConfirmOpen} title="Confirmar Encerramento" onCancel={() => setFinishConfirmOpen(false)} onConfirm={confirmFinish} confirmLabel={saving ? "Salvando..." : "Confirmar Jejum"}><div className="text-center space-y-2"><CircleCheck className="w-8 h-8 mx-auto text-primary" /><p className="font-display text-lg">{active ? durationText(getMinutes(active.startedAt, new Date(finishValue).toISOString())) : "—"}</p><p className="text-xs text-muted-foreground">Somente horas completas geram recompensas. O nível de cada hora é sorteado de 1 a 3.</p></div></ConfirmDialog>
+    <ConfirmDialog open={finishConfirmOpen} title="Confirmar Encerramento" onCancel={() => setFinishConfirmOpen(false)} onConfirm={confirmFinish} confirmLabel={saving ? "Salvando..." : "Confirmar Jejum"}><div className="text-center space-y-2"><CircleCheck className="w-8 h-8 mx-auto text-primary" /><p className="font-display text-lg">{active ? durationText(getMinutes(active.startedAt, new Date(finishValue).toISOString())) : "—"}</p><p className="text-xs text-muted-foreground">Somente horas completas geram recompensas.</p></div></ConfirmDialog>
   </div>;
 }
 
