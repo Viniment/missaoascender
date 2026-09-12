@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { hasRecentSaveFailure } from "@/lib/reliability";
 
 type Burst = { id: number; label: string; color: string; x: number; y: number };
 
@@ -6,6 +7,11 @@ let counter = 0;
 const listeners = new Set<(b: Burst) => void>();
 
 export function fireReward(label: string, color = "#facc15") {
+  // Recompensas visuais só podem aparecer depois de uma operação confirmada.
+  // Se a última gravação falhou, não mostramos XP/ouro/vida para não criar a
+  // impressão de que o progresso foi salvo quando não foi.
+  if (hasRecentSaveFailure()) return;
+
   const b: Burst = {
     id: ++counter,
     label,
