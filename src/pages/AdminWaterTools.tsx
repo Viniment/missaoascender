@@ -5,111 +5,21 @@ import { toast } from "sonner";
 import { Droplets, Trash2, Clock3, RotateCcw, Save, Shield, Database, Copy, Check } from "lucide-react";
 
 type Props = { uid: string; nome: string; busy: boolean; setBusy: (v: boolean) => void };
-
-const SCHEMA_SQL = `create or replace function public.admin_aplicar_schema_agua_jejum()
-returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  is_admin boolean;
-begin
-  select exists (
-    select 1 from public.user_roles
-    where user_id = auth.uid() and role = 'admin'
-  ) into is_admin;
-
-  if not is_admin then
-    raise exception 'Acesso negado: somente administradores podem aplicar esta configuração.';
-  end if;
-
-  alter table if exists public.users
-    add column if not exists agua_meta_ml integer,
-    add column if not exists agua_reset_at timestamptz,
-    add column if not exists jejum_reset_at timestamptz;
-
-  comment on column public.users.agua_meta_ml is 'Meta diaria de hidratacao personalizada por usuario, em ml.';
-  comment on column public.users.agua_reset_at is 'Marcador administrativo para limpar o rastreador local de agua do usuario.';
-  comment on column public.users.jejum_reset_at is 'Marcador administrativo para limpar o historico local de jejum do usuario.';
-
-  return jsonb_build_object('ok', true, 'message', 'Colunas de água e jejum verificadas/aplicadas com sucesso.');
-end;
-$$;
-
-revoke all on function public.admin_aplicar_schema_agua_jejum() from public;
-grant execute on function public.admin_aplicar_schema_agua_jejum() to authenticated;
-
-notify pgrst, 'reload schema';`;
+const SCHEMA_SQL = `create or replace function public.admin_aplicar_schema_agua_jejum() returns jsonb language plpgsql security definer set search_path = public as $$ declare is_admin boolean; begin select exists (select 1 from public.user_roles where user_id = auth.uid() and role = 'admin') into is_admin; if not is_admin then raise exception 'Acesso negado: somente administradores podem aplicar esta configuração.'; end if; alter table if exists public.users add column if not exists agua_meta_ml integer, add column if not exists agua_reset_at timestamptz, add column if not exists jejum_reset_at timestamptz; return jsonb_build_object('ok', true, 'message', 'Colunas de água e jejum verificadas/aplicadas com sucesso.'); end; $$; revoke all on function public.admin_aplicar_schema_agua_jejum() from public; grant execute on function public.admin_aplicar_schema_agua_jejum() to authenticated; notify pgrst, 'reload schema';`;
 
 export default function AdminWaterTools({ uid, nome, busy, setBusy }: Props) {
   const qc = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ["admin-water-jejum-config", uid],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).from("users").select("agua_meta_ml, jejum_reset_at, agua_reset_at").eq("id", uid).single();
-      if (error) throw error;
-      return data as { agua_meta_ml: number | null; jejum_reset_at: string | null; agua_reset_at: string | null };
-    },
-    enabled: !!uid,
-  });
+  const { data } = useQuery({ queryKey: ["admin-water-jejum-config", uid], queryFn: async () => { const { data, error } = await (supabase as any).from("users").select("agua_meta_ml, jejum_reset_at, agua_reset_at").eq("id", uid).single(); if (error) throw error; return data as { agua_meta_ml: number | null; jejum_reset_at: string | null; agua_reset_at: string | null }; }, enabled: !!uid });
   const [meta, setMeta] = useState("");
   const [copied, setCopied] = useState(false);
   useEffect(() => { if (data?.agua_meta_ml != null) setMeta(String(data.agua_meta_ml)); }, [data?.agua_meta_ml]);
-
-  const copiarSql = async () => {
-    await navigator.clipboard.writeText(SCHEMA_SQL);
-    setCopied(true);
-    toast.success("SQL copiado. Cole no SQL Editor do Supabase e execute uma vez.");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const aplicarSchema = async () => {
-    setBusy(true);
-    try {
-      const { data: result, error } = await supabase.rpc("admin_aplicar_schema_agua_jejum");
-      if (error) throw error;
-      toast.success(result?.message ?? "Configuração do banco aplicada com sucesso.");
-      await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] });
-    } catch (e: any) {
-      toast.error(`Não foi possível aplicar o schema: ${e.message}`);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const saveMeta = async () => {
-    const value = Number(meta);
-    if (!Number.isInteger(value) || value <= 0 || value > 1000000) { toast.error("Informe uma meta inteira entre 1 e 1.000.000 ml."); return; }
-    setBusy(true);
-    const { error } = await (supabase as any).from("users").update({ agua_meta_ml: value }).eq("id", uid);
-    if (error) toast.error(error.message); else toast.success(`Meta de água de ${value} ml salva para ${nome}`);
-    await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); setBusy(false);
-  };
-  const resetJejum = async () => {
-    if (!confirm(`Apagar TODO o histórico de jejum de ${nome}? Isso também apagará o maior jejum, o estado ativo e as conquistas de jejum.`)) return;
-    setBusy(true);
-    const now = new Date().toISOString();
-    const { error } = await (supabase as any).from("users").update({ jejum_reset_at: now }).eq("id", uid);
-    await (supabase as any).from("conquistas").delete().eq("user_id", uid).like("tipo", "jejum_%");
-    if (error) toast.error(error.message); else toast.success("Histórico, maior jejum e conquistas de jejum marcados para limpeza");
-    await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); await qc.invalidateQueries({ queryKey: ["admin-conq", uid] }); setBusy(false);
-  };
-  const resetAgua = async () => {
-    if (!confirm(`Zerar os registros locais de água de ${nome}?`)) return;
-    setBusy(true); const { error } = await (supabase as any).from("users").update({ agua_reset_at: new Date().toISOString() }).eq("id", uid);
-    if (error) toast.error(error.message); else toast.success("Rastreador de água marcado para limpeza"); await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); setBusy(false);
-  };
-
+  const copiarSql = async () => { await navigator.clipboard.writeText(SCHEMA_SQL); setCopied(true); toast.success("SQL copiado. Cole no SQL Editor do Supabase e execute uma vez."); setTimeout(() => setCopied(false), 2000); };
+  const aplicarSchema = async () => { setBusy(true); try { const { data: result, error } = await supabase.rpc("admin_aplicar_schema_agua_jejum"); if (error) throw error; toast.success(result?.message ?? "Configuração do banco aplicada com sucesso."); await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); } catch (e: any) { toast.error(`Não foi possível aplicar o schema: ${e.message}`); } finally { setBusy(false); } };
+  const saveMeta = async () => { const value = Number(meta); if (!Number.isInteger(value) || value <= 0 || value > 1000000) { toast.error("Informe uma meta inteira entre 1 e 1.000.000 ml."); return; } setBusy(true); const { error } = await (supabase as any).from("users").update({ agua_meta_ml: value }).eq("id", uid); if (error) toast.error(error.message); else toast.success(`Meta de água de ${value} ml salva para ${nome}`); await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); setBusy(false); };
+  const resetJejum = async () => { if (!confirm(`Apagar TODO o histórico de jejum de ${nome}? Isso também apagará o maior jejum, o estado ativo e as conquistas de jejum.`)) return; setBusy(true); const now = new Date().toISOString(); const { error } = await (supabase as any).from("users").update({ jejum_reset_at: now }).eq("id", uid); await (supabase as any).from("conquistas").delete().eq("user_id", uid).like("tipo", "jejum_%"); if (error) toast.error(error.message); else toast.success("Histórico, maior jejum e conquistas de jejum marcados para limpeza"); await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); await qc.invalidateQueries({ queryKey: ["admin-conq", uid] }); setBusy(false); };
+  const resetAgua = async () => { if (!confirm(`Zerar os registros locais de água de ${nome}?`)) return; setBusy(true); const { error } = await (supabase as any).from("users").update({ agua_reset_at: new Date().toISOString() }).eq("id", uid); if (error) toast.error(error.message); else toast.success("Rastreador de água marcado para limpeza"); await qc.invalidateQueries({ queryKey: ["admin-water-jejum-config", uid] }); setBusy(false); };
   return <div className="space-y-3">
-    <div className="rpg-panel p-4 space-y-3 border-primary/30">
-      <p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Database className="w-3 h-3" /> BANCO DE DADOS</p>
-      <p className="text-xs text-muted-foreground">O botão Aplicar usa uma função SQL instalada no banco. Como o navegador não possui permissão para criar funções ou executar ALTER TABLE, a instalação inicial precisa ser feita uma única vez no SQL Editor.</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <button onClick={copiarSql} className="border border-border hover:bg-secondary py-2.5 rounded-md text-xs flex items-center justify-center gap-2">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? "SQL Copiado" : "Copiar SQL De Instalação"}</button>
-        <button onClick={aplicarSchema} disabled={busy} className="btn-pixel py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Database className="w-4 h-4" /> Aplicar Configuração</button>
-      </div>
-    </div>
+    <div className="rpg-panel p-4 space-y-3 border-primary/30"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Database className="w-3 h-3" /> BANCO DE DADOS</p><p className="text-xs text-muted-foreground">A instalação inicial da função precisa ser feita uma única vez no SQL Editor, pois o navegador não pode criar funções ou executar ALTER TABLE. Depois disso, o botão Aplicar funciona diretamente pelo Admin.</p><div className="grid grid-cols-1 sm:grid-cols-2 gap-2"><button onClick={copiarSql} className="border border-border hover:bg-secondary py-2.5 rounded-md text-xs flex items-center justify-center gap-2">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? "SQL Copiado" : "Copiar SQL De Instalação"}</button><button onClick={aplicarSchema} disabled={busy} className="btn-pixel py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Database className="w-4 h-4" /> Aplicar Configuração</button></div></div>
     <div className="rpg-panel p-4 space-y-3"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Droplets className="w-3 h-3" /> ÁGUA — CONFIGURAÇÃO INDIVIDUAL</p><p className="text-xs text-muted-foreground">A meta é definida manualmente para este usuário. Não existem metas pré-definidas.</p><div className="flex gap-2"><input type="number" min="1" max="1000000" step="1" value={meta} onChange={e => setMeta(e.target.value)} className="flex-1 bg-secondary border border-border rounded-md px-3 py-2 text-sm" placeholder="Ex.: 5000" /><button onClick={saveMeta} disabled={busy} className="btn-pixel px-4 rounded-md text-xs flex items-center gap-2"><Save className="w-4 h-4" /> Salvar ml</button></div><p className="text-[9px] text-muted-foreground">Meta atual: <strong className="text-cyan-300">{data?.agua_meta_ml ?? "—"} ml</strong></p></div>
     <div className="rpg-panel p-4 space-y-2"><p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">LIMPEZA DO RASTREADOR</p><button onClick={resetAgua} disabled={busy} className="w-full border border-destructive/40 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><RotateCcw className="w-4 h-4" /> Zerar histórico de água</button></div>
     <div className="rpg-panel p-4 space-y-2 border-amber-400/20"><p className="text-[10px] uppercase tracking-[0.25em] text-amber-300 flex items-center gap-1"><Clock3 className="w-3 h-3" /> JEJUM</p><p className="text-xs text-muted-foreground">Remove o histórico local, o maior tempo, o estado ativo e as conquistas de jejum no próximo acesso do usuário.</p><button onClick={resetJejum} disabled={busy} className="w-full border border-destructive/50 text-destructive hover:bg-destructive/10 py-2.5 rounded-md text-xs flex items-center justify-center gap-2"><Trash2 className="w-4 h-4" /> Apagar histórico de jejum</button></div>
