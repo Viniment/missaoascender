@@ -17,7 +17,7 @@ export type Habito = {
 export type Inimigo = {
   id: string;
   nome: string;
-  avatar_config: { emoji?: string } | null;
+  avatar_config: { emoji?: string; tipo?: "foto" | "icone"; foto_url?: string; foto_path?: string } | null;
   hp_max: number;
   hp_atual: number;
   mentiras: string[];
