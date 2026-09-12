@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import Dashboard from "./Dashboard";
 import JejumCard from "@/components/JejumCard";
 import ConquistaJejumPopup from "@/components/ConquistaJejumPopup";
+import UrgeSurfingCard from "@/components/UrgeSurfingCard";
 
 export default function DashboardComJejum() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -25,7 +26,7 @@ export default function DashboardComJejum() {
 
   return <>
     <Dashboard />
-    {target ? createPortal(<JejumCard />, target) : null}
+    {target ? createPortal(<div className="space-y-4"><JejumCard /><UrgeSurfingCard /></div>, target) : null}
     <ConquistaJejumPopup />
   </>;
 }
