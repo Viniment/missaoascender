@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { applyXp, fetchHeroi } from "@/lib/api";
-import { getUserState, setUserState, deleteUserState } from "@/lib/userState";
+import { getOrMigrateLegacyState, setUserState, deleteUserState } from "@/lib/userState";
 import { supabase } from "@/integrations/supabase/client";
 import { fireReward } from "@/components/fx/RewardBurst";
 import { Clock3, ChevronDown, ChevronUp, Play, Square, Trophy, X } from "lucide-react";
@@ -13,6 +13,8 @@ type Session = { id: string; startedAt: string; endedAt: string; minutes: number
 type ActiveFast = { startedAt: string };
 const SESSION_KEY = "jejum_sessoes";
 const ACTIVE_KEY = "jejum_ativo";
+const legacySessionKey = (uid: string) => `ascensao:jejum:${uid}`;
+const legacyActiveKey = (uid: string) => `${legacySessionKey(uid)}:active`;
 const MILESTONES = Array.from({ length: 63 }, (_, i) => (i + 1) * 8);
 function pad(n: number) { return String(n).padStart(2, "0"); }
 function toInputValue(date: Date) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`; }
@@ -26,7 +28,7 @@ export default function JejumCard() {
   const { user } = useAuth(); const uid = user?.id;
   const [active, setActive] = useState<ActiveFast | null>(null); const [sessions, setSessions] = useState<Session[]>([]); const [now, setNow] = useState(Date.now()); const [expanded, setExpanded] = useState(false);
   const [startOpen, setStartOpen] = useState(false); const [finishOpen, setFinishOpen] = useState(false); const [startValue, setStartValue] = useState(toInputValue(new Date())); const [finishValue, setFinishValue] = useState(toInputValue(new Date())); const [saving, setSaving] = useState(false);
-  useEffect(() => { if (!uid) return; void Promise.all([getUserState<Session[]>(uid, SESSION_KEY, []), getUserState<ActiveFast | null>(uid, ACTIVE_KEY, null)]).then(([savedSessions, savedActive]) => { setSessions(savedSessions); setActive(savedActive?.startedAt ? savedActive : null); }); }, [uid]);
+  useEffect(() => { if (!uid) return; void Promise.all([getOrMigrateLegacyState<Session[]>(uid, SESSION_KEY, legacySessionKey(uid), []), getOrMigrateLegacyState<ActiveFast | null>(uid, ACTIVE_KEY, legacyActiveKey(uid), null)]).then(([savedSessions, savedActive]) => { setSessions(savedSessions); setActive(savedActive?.startedAt ? savedActive : null); }); }, [uid]);
   useEffect(() => { if (!active) return; const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, [active]);
   const elapsedMinutes = active ? getMinutes(active.startedAt, new Date(now).toISOString()) : 0; const elapsedHours = Math.floor(elapsedMinutes / 60); const nextMilestone = MILESTONES.find(x => x > elapsedHours) ?? null; const progress = nextMilestone ? Math.min(100, elapsedMinutes / (nextMilestone * 60) * 100) : 100; const maxHours = useMemo(() => Math.max(0, ...sessions.map(s => s.minutes / 60), active ? elapsedMinutes / 60 : 0), [sessions, active, elapsedMinutes]);
   const start = async () => { if (!uid) return; const next: ActiveFast = { startedAt: new Date(startValue).toISOString() }; try { await setUserState(uid, ACTIVE_KEY, next); setActive(next); setNow(Date.now()); setStartOpen(false); setExpanded(true); window.dispatchEvent(new Event("ascensao:jejum-active-changed")); } catch (error) { console.error(error); } };
