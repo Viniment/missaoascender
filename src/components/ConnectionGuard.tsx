@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { WifiOff, RefreshCw, ShieldAlert } from "lucide-react";
+import { WifiOff, RefreshCw } from "lucide-react";
 import { CONNECTION_CHECK_INTERVAL_MS, SAVE_RETRY_ATTEMPTS, markSaveFailure, markSaveRetry, notifyOffline, notifySaveFailure, notifySaveRetry } from "@/lib/reliability";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -107,22 +107,35 @@ export default function ConnectionGuard({ children }: { children: React.ReactNod
   if (connected) return <>{children}</>;
 
   return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-background/96 px-5 backdrop-blur-xl">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-primary/25 bg-background/95 p-6 text-center shadow-[0_0_70px_hsl(var(--primary)/0.16)]">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/10 text-destructive shadow-[0_0_25px_hsl(var(--destructive)/0.12)]">
-          <WifiOff className="h-8 w-8" />
+    <div className="fixed inset-0 z-[9999] grid place-items-center bg-background px-5">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-1/2 top-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.06] blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.035)_0,transparent_55%)]" />
+      </div>
+
+      <div className="relative w-full max-w-sm text-center">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.6rem] border border-primary/20 bg-primary/[0.06] text-primary shadow-[0_0_45px_hsl(var(--primary)/0.10)]">
+          <WifiOff className="h-9 w-9" strokeWidth={1.5} />
         </div>
-        <div className="mb-2 flex items-center justify-center gap-2 text-primary">
-          <ShieldAlert className="h-4 w-4" />
-          <span className="font-display text-[9px] font-black uppercase tracking-[0.28em]">Sistema bloqueado</span>
+
+        <div className="mb-3 flex items-center justify-center gap-2">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.9)]" />
+          <span className="font-display text-[9px] font-black uppercase tracking-[0.32em] text-primary/70">
+            NEW LIFEUP
+          </span>
         </div>
-        <h2 className="font-display text-xl font-black uppercase tracking-[0.12em]">Conexão interrompida</h2>
+
+        <h2 className="font-display text-2xl font-black uppercase tracking-[0.12em] text-foreground">
+          Conexão perdida
+        </h2>
+
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          O NEW LIFEUP pausou suas ações para proteger seu progresso. Nenhuma recompensa será confirmada enquanto o banco de dados não puder ser alcançado.
+          Reconectando ao sistema...
         </p>
-        <div className="mt-5 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">
-          <RefreshCw className={`h-3.5 w-3.5 ${checking ? "animate-spin" : ""}`} />
-          Verificando conexão automaticamente...
+
+        <div className="mx-auto mt-7 flex w-fit items-center gap-2 rounded-full border border-border/40 bg-background/40 px-4 py-2 text-[8px] font-black uppercase tracking-[0.22em] text-muted-foreground/70 backdrop-blur-sm">
+          <RefreshCw className={`h-3.5 w-3.5 text-primary ${checking ? "animate-spin" : ""}`} />
+          Aguardando conexão
         </div>
       </div>
     </div>
