@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchHeroi, fetchMiniVitorias, concluirMiniVitoria } from "@/lib/api";
+import { fetchHeroi, fetchMiniVitorias } from "@/lib/api";
+import { concluirMiniVitoria } from "@/lib/miniVitorias";
 import { toast } from "sonner";
 import { Plus, Sparkles } from "lucide-react";
 
@@ -39,11 +40,11 @@ export default function MiniVitoriasPage() {
 
   const concluir = async (id: string) => {
     if (!heroi || !mvs) return;
-    const mv = mvs.find(m => m.id === id)!;
-    if (mv.concluida) return;
+    const mv = mvs.find(m => m.id === id);
+    if (!mv || mv.concluida) return;
     try {
-      await concluirMiniVitoria(heroi.id, heroi, mv);
-      toast.success(`+${mv.recompensa_xp} XP · +${mv.recompensa_ouro} 🪙 · +${mv.recompensa_vida} HP`);
+      const recompensa = await concluirMiniVitoria(heroi, mv);
+      toast.success(`+${recompensa.xp} XP · +${recompensa.ouro} 🪙 · +${recompensa.vida} HP`);
       await qc.invalidateQueries();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível concluir a mini vitória.");
