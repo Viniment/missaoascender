@@ -14,7 +14,7 @@ const GROUPS=[{id:"todas",label:"Todas",icon:Trophy},{id:"jornada",label:"Jornad
 const RARITY:Record<Raridade,{label:string;className:string}>={comum:{label:"COMUM",className:"border-border text-muted-foreground"},rara:{label:"RARA",className:"border-cyan-400/50 text-cyan-300"},epica:{label:"ÉPICA",className:"border-purple-400/60 text-purple-300"},lendaria:{label:"LENDÁRIA",className:"border-amber-300/70 text-amber-200"}};
 const JEJUM_MAX_HOURS=21*24;
 const JEJUM_MILESTONES=Array.from({length:Math.floor(JEJUM_MAX_HOURS/8)},(_,i)=>(i+1)*8);
-const JEJUM_TITLES=Object.fromEntries(JEJUM_MILESTONES.map(h=>[h,`${h} Horas De Jejum`])) as Record<number,string>;
+const JEJUM_TITLES=Object.fromEntries(JEJUM_MILESTONES.map(h=>[h,`${h} Horas de Jejum`])) as Record<number,string>;
 function loadDiary(uid:string){try{return JSON.parse(localStorage.getItem(`ascensao:diario:${uid}`)||"[]") as any[]}catch{return[]}}
 function loadMaxFast(uid:string){try{const s=JSON.parse(localStorage.getItem(`ascensao:jejum:${uid}`)||"[]") as Array<{minutes:number}>;return Math.max(0,...s.map(x=>(x.minutes||0)/60))}catch{return 0}}
 function rarity(h:number):Raridade{return h>=168?"lendaria":h>=72?"epica":h>=32?"rara":"comum"}
