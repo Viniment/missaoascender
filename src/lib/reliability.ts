@@ -37,9 +37,6 @@ export function notifySaveRetry(attempt: number) {
 }
 
 export function notifyOffline() {
-  toast.error("Sem conexão", {
-    description: "O NEW LIFEUP foi bloqueado para proteger seus dados até a conexão voltar.",
-    id: "new-lifeup-offline",
-    duration: Infinity,
-  });
+  // The full-screen ConnectionGuard is the single visual connection state.
+  // Avoid a second floating toast covering the page.
 }
