@@ -19,8 +19,8 @@ const MOODS = [
 ] as const;
 const MILESTONES = Array.from({ length: 63 }, (_, i) => (i + 1) * 8);
 function pad(n: number) { return String(n).padStart(2, "0"); }
-function toInputValue(date: Date) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
-function formatDate(iso: string) { return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }); }
+function toInputValue(date: Date) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`; }
+function formatDate(iso: string) { return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "medium" }); }
 function durationText(minutes: number) { return `${Math.floor(minutes / 60)}h ${pad(minutes % 60)}min`; }
 function loadSessions(uid: string): Session[] { try { return JSON.parse(localStorage.getItem(STORAGE(uid)) || "[]"); } catch { return []; } }
 function saveSessions(uid: string, sessions: Session[]) { localStorage.setItem(STORAGE(uid), JSON.stringify(sessions)); }
@@ -100,8 +100,8 @@ export default function JejumCard() {
       {sessions.length > 0 && !active && <div className="space-y-1.5"><p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Histórico</p>{sessions.slice(0, 5).map(s => <div key={s.id} className="rounded-md border border-border p-2 flex items-center gap-2"><Clock3 className="w-3.5 h-3.5 text-primary" /><div className="min-w-0 flex-1"><p className="text-[10px] font-display">{durationText(s.minutes)}</p><p className="text-[8px] text-muted-foreground">{formatDate(s.startedAt)} → {formatDate(s.endedAt)}</p></div><span className="text-[9px] text-primary">{s.reward?.horas ? `+${s.reward.xp} XP` : "Sem recompensa"}</span></div>)}</div>}
     </div></motion.div>}</AnimatePresence>
 
-    <ConfirmDialog open={startOpen} title="Começar Jejum" onCancel={() => setStartOpen(false)} onConfirm={start} confirmLabel="Confirmar Início"><label className="block text-xs text-muted-foreground">Data e Hora De Início<input type="datetime-local" value={startValue} onChange={e => setStartValue(e.target.value)} className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm" /></label></ConfirmDialog>
-    <ConfirmDialog open={finishOpen} title="Encerrar Jejum" onCancel={() => setFinishOpen(false)} onConfirm={() => { setFinishOpen(false); setFinishConfirmOpen(true); }} confirmLabel="Continuar"><label className="block text-xs text-muted-foreground">Data e Hora De Término<input type="datetime-local" value={finishValue} onChange={e => setFinishValue(e.target.value)} className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm" /></label></ConfirmDialog>
+    <ConfirmDialog open={startOpen} title="Começar Jejum" onCancel={() => setStartOpen(false)} onConfirm={start} confirmLabel="Confirmar Início"><label className="block text-xs text-muted-foreground">Data e Hora De Início<input type="datetime-local" step="1" value={startValue} onChange={e => setStartValue(e.target.value)} className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm" /></label></ConfirmDialog>
+    <ConfirmDialog open={finishOpen} title="Encerrar Jejum" onCancel={() => setFinishOpen(false)} onConfirm={() => { setFinishOpen(false); setFinishConfirmOpen(true); }} confirmLabel="Continuar"><label className="block text-xs text-muted-foreground">Data e Hora De Término<input type="datetime-local" step="1" value={finishValue} onChange={e => setFinishValue(e.target.value)} className="mt-1 w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm" /></label></ConfirmDialog>
     <ConfirmDialog open={finishConfirmOpen} title="Confirmar Encerramento" onCancel={() => setFinishConfirmOpen(false)} onConfirm={confirmFinish} confirmLabel={saving ? "Salvando..." : "Confirmar Jejum"}><div className="text-center space-y-2"><CircleCheck className="w-8 h-8 mx-auto text-primary" /><p className="font-display text-lg">{active ? durationText(getMinutes(active.startedAt, new Date(finishValue).toISOString())) : "—"}</p><p className="text-xs text-muted-foreground">Somente horas completas geram recompensas.</p></div></ConfirmDialog>
   </div>;
 }
