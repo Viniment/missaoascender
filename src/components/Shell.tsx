@@ -111,7 +111,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <div className="flex h-14 w-full items-center justify-between gap-2 px-3 sm:h-16 sm:px-4">
           <div className="flex min-w-0 items-center gap-2">
             <button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/5 text-primary shadow-[0_0_14px_hsl(var(--primary)/0.12)] transition-all hover:border-primary/60 hover:bg-primary/10 active:scale-95 lg:hidden"><Menu className="h-4 w-4 sm:h-5 sm:w-5" /></button>
-            <Link to="/" className="group flex min-w-0 items-center gap-2">
+            <Link to="/" className="group flex min-w-0 items-center gap-2 lg:hidden">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/35 bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.2)] sm:h-9 sm:w-9">⚔</span>
               <span className="truncate font-display text-sm font-black tracking-[0.14em] text-primary glow-text-purple sm:text-base sm:tracking-[0.2em]">NEW LIFEUP</span>
             </Link>
@@ -125,6 +125,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       <aside className="fixed left-0 top-14 bottom-0 z-40 hidden w-[250px] border-r border-primary/15 bg-background/82 backdrop-blur-2xl shadow-[14px_0_45px_rgba(0,0,0,.24)] lg:flex lg:flex-col xl:top-16">
         <div className="flex h-full w-full min-h-0 flex-col px-3 py-3">
+          <Link to="/" className="group mb-3 flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/15 bg-primary/[0.035] px-3 transition-all hover:border-primary/30 hover:bg-primary/[0.07]">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/35 bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.18)]">⚔</span>
+            <span className="truncate font-display text-[11px] font-black tracking-[0.16em] text-primary glow-text-purple">NEW LIFEUP</span>
+          </Link>
           <div className="min-h-0 flex-1 overflow-hidden px-1">
             <div className="new-lifeup-scroll h-full overflow-y-auto py-1 pr-4 pl-1">{renderNav()}</div>
           </div>
