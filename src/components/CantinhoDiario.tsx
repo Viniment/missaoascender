@@ -8,7 +8,6 @@ type Diario = { id: string; area_id: string; titulo: string; conteudo: string; d
 const hoje = () => new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 const isoHoje = () => new Date().toISOString().slice(0, 10);
 const formatDate = (s: string) => { const [y, m, d] = s.split("-"); return d && m && y ? `${d}/${m}/${y}` : s; };
-const TUTORIAL_KEY = "new-lifeup-cantinho-diario-tutorial-v1";
 
 export default function CantinhoDiario({ area, userId, close }: { area: Area; userId: string; close: () => void }) {
   const [entries, setEntries] = useState<Diario[]>([]);
@@ -17,7 +16,8 @@ export default function CantinhoDiario({ area, userId, close }: { area: Area; us
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [tutorial, setTutorial] = useState(() => { try { return localStorage.getItem(TUTORIAL_KEY) !== "1"; } catch { return true; } });
+  const [tutorial, setTutorial] = useState(false);
+  const [tutorialLoaded, setTutorialLoaded] = useState(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
 
   const load = async () => {
@@ -26,12 +26,28 @@ export default function CantinhoDiario({ area, userId, close }: { area: Area; us
     if (r.error) { alert(`Não foi possível carregar o diário: ${r.error.message}`); setLoading(false); return; }
     setEntries((r.data || []) as Diario[]); setLoading(false);
   };
-  useEffect(() => { load(); }, [userId, area.id]);
 
-  const hideTutorial = () => { setTutorial(false); try { localStorage.setItem(TUTORIAL_KEY, "1"); } catch {} };
+  useEffect(() => {
+    load();
+    let active = true;
+    (async () => {
+      const r = await supabase.from("cantinho_diario_preferencias" as any).select("tutorial_visto").eq("user_id", userId).maybeSingle();
+      if (!active) return;
+      if (r.error) { console.error("Erro ao carregar preferência do tutorial:", r.error); setTutorial(false); setTutorialLoaded(true); return; }
+      setTutorial(r.data?.tutorial_visto !== true);
+      setTutorialLoaded(true);
+    })();
+    return () => { active = false; };
+  }, [userId, area.id]);
+
+  const hideTutorial = async () => {
+    setTutorial(false);
+    const r = await supabase.rpc("marcar_cantinho_diario_tutorial_visto" as any);
+    if (r.error) console.error("Não foi possível registrar tutorial visto:", r.error);
+  };
   const showTutorial = () => setTutorial(true);
-  const startNew = () => { setSelected(null); setTitle(`Diário de ${hoje()}`); setContent(""); hideTutorial(); window.setTimeout(() => editorRef.current?.focus(), 80); };
-  const openEntry = (entry: Diario) => { setSelected(entry); setTitle(entry.titulo); setContent(entry.conteudo); hideTutorial(); window.setTimeout(() => editorRef.current?.focus(), 80); };
+  const startNew = () => { setSelected(null); setTitle(`Diário de ${hoje()}`); setContent(""); void hideTutorial(); window.setTimeout(() => editorRef.current?.focus(), 100); };
+  const openEntry = (entry: Diario) => { setSelected(entry); setTitle(entry.titulo); setContent(entry.conteudo); void hideTutorial(); window.setTimeout(() => editorRef.current?.focus(), 100); };
 
   const save = async () => {
     if (!content.trim()) { alert("Escreva sua experiência antes de salvar."); return; }
@@ -53,7 +69,7 @@ export default function CantinhoDiario({ area, userId, close }: { area: Area; us
         <button type="button" onClick={startNew} className="rounded-xl bg-fuchsia-500 px-3 py-2.5 text-[9px] font-black uppercase shadow-lg shadow-fuchsia-950/30"><PenLine className="mr-1 inline h-4 w-4" /> Novo dia</button>
       </div></header>
       <main className="relative mx-auto max-w-6xl px-4 py-6 sm:px-7 sm:py-8">
-        {tutorial && <div className="mb-6 rounded-3xl border border-fuchsia-300/20 bg-gradient-to-br from-fuchsia-500/10 via-white/[.025] to-transparent p-5 shadow-2xl shadow-fuchsia-950/20 sm:p-6">
+        {tutorial && tutorialLoaded && <div className="mb-6 rounded-3xl border border-fuchsia-300/20 bg-gradient-to-br from-fuchsia-500/10 via-white/[.025] to-transparent p-5 shadow-2xl shadow-fuchsia-950/20 sm:p-6">
           <div className="flex items-start gap-4"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-fuchsia-500/15 text-fuchsia-200"><Lightbulb className="h-6 w-6" /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[.3em] text-fuchsia-300">Como usar seu diário</div><h2 className="mt-2 font-display text-lg tracking-wide">Escreva como se você já estivesse vivendo essa vida.</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">Não escreva “eu quero”. Imagine que você já está vivendo essa realidade e registre como foi seu dia: o que aconteceu, quem estava com você, o que viu, o que sentiu e os pequenos detalhes que tornam essa vida real.</p><div className="mt-4 grid gap-2 sm:grid-cols-3"><div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-[11px] text-white/60"><b className="text-white">01.</b> Comece pela cena: “Hoje...”</div><div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-[11px] text-white/60"><b className="text-white">02.</b> Conte o dia, não explique o sonho.</div><div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-[11px] text-white/60"><b className="text-white">03.</b> Escreva no presente, como se estivesse lá.</div></div><div className="mt-4 flex flex-wrap items-center gap-4"><button type="button" onClick={startNew} className="rounded-xl bg-fuchsia-500 px-5 py-2.5 text-[9px] font-black uppercase text-white shadow-lg shadow-fuchsia-950/30"><PenLine className="mr-1 inline h-4 w-4" /> Começar a escrever</button><button type="button" onClick={hideTutorial} className="text-[9px] font-black uppercase tracking-wider text-fuchsia-300 hover:text-white">Entendi, ocultar ajuda →</button></div></div></div>}
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="rounded-3xl border border-white/10 bg-white/[.025] p-3 lg:sticky lg:top-24 lg:h-fit"><div className="flex items-center justify-between px-2 pb-3"><div><div className="text-[8px] font-black uppercase tracking-[.25em] text-white/35">Histórico</div><div className="mt-1 text-xs text-white/70">{entries.length} {entries.length === 1 ? "dia registrado" : "dias registrados"}</div></div><Clock3 className="h-4 w-4 text-fuchsia-300/70" /></div>
