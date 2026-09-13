@@ -14,7 +14,8 @@ async function checkConnection(): Promise<boolean> {
     // NOT be interpreted as loss of connection.
     const { error } = await supabase.from("users").select("id").limit(1);
     if (!error) return true;
-    return typeof error.status === "number" && error.status > 0;
+    const status = (error as { status?: number }).status;
+    return typeof status === "number" && status > 0;
   } catch {
     return false;
   }
