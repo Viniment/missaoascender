@@ -60,7 +60,12 @@ export async function concluirMiniVitoria(heroi: Heroi, mv: MiniVitoria) {
   if (tipo === "quantidade") {
     const meta = Math.max(1, tarefa.quantidade_meta ?? 1);
     const atual = Math.min(meta, Math.max(0, tarefa.quantidade_atual ?? 0));
-    if (mv.concluida || atual >= meta) return { completed: false, alreadyCompleted: true, progress: meta, target: meta };
+    if (mv.concluida) return { completed: false, alreadyCompleted: true, progress: meta, target: meta };
+
+    if (atual >= meta) {
+      const recompensa = await distribuirRecompensa(heroi, mv);
+      return { completed: true, alreadyCompleted: false, progress: meta, target: meta, ...recompensa };
+    }
 
     const proximo = Math.min(meta, atual + 1);
     const { error } = await supabase.from("mini_vitorias").update({ quantidade_atual: proximo }).eq("id", mv.id).eq("user_id", heroi.id).eq("concluida", false);
