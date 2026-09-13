@@ -1,10 +1,11 @@
-/* Ações de Batalha — visual alinhado às Mini Vitórias */
+/* Ações de Batalha — cards premium */
 .rpg-panel:has(button[title="Editar"]) {
+  position: relative;
   padding: 1rem;
-  border-radius: 0.8rem;
+  border-radius: 1rem;
   border-color: hsl(var(--primary) / 0.28);
   background:
-    radial-gradient(420px 120px at 0% 0%, hsl(var(--primary) / 0.09), transparent 65%),
+    radial-gradient(520px 160px at 0% 0%, hsl(var(--primary) / 0.09), transparent 65%),
     linear-gradient(135deg, hsl(var(--card-gradient-from)), hsl(var(--card-gradient-to)));
   box-shadow: inset 0 0 22px hsl(var(--primary) / 0.035), 0 8px 24px hsl(0 0% 0% / 0.16);
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
@@ -12,43 +13,47 @@
 
 .rpg-panel:has(button[title="Editar"]):hover {
   border-color: hsl(var(--primary) / 0.55);
-  box-shadow: 0 0 22px hsl(var(--primary) / 0.10), inset 0 0 20px hsl(var(--primary) / 0.035);
+  box-shadow: 0 0 26px hsl(var(--primary) / 0.10), inset 0 0 20px hsl(var(--primary) / 0.035);
+  transform: translateY(-1px);
 }
 
+/* Ataques = roxo/primário; armadilhas = vermelho */
 .rpg-panel:has(button[title="Editar"]):has(.text-yellow-300) {
-  border-color: hsl(45 93% 58% / 0.28);
+  border-color: hsl(263 93% 58% / 0.28);
   background:
-    radial-gradient(420px 120px at 0% 0%, hsl(263 93% 58% / 0.10), transparent 62%),
+    radial-gradient(520px 160px at 0% 0%, hsl(263 93% 58% / 0.10), transparent 62%),
     linear-gradient(135deg, hsl(var(--card-gradient-from)), hsl(var(--card-gradient-to)));
 }
 
-.rpg-panel:has(button[title="Editar"]):has(.text-yellow-300):hover {
-  border-color: hsl(263 93% 58% / 0.55);
-}
+.rpg-panel:has(button[title="Editar"]):has(.text-yellow-300):hover { border-color: hsl(263 93% 58% / 0.55); }
 
 .rpg-panel:has(button[title="Editar"]):not(:has(.text-yellow-300)) {
   border-color: hsl(0 72% 51% / 0.25);
   background:
-    radial-gradient(420px 120px at 0% 0%, hsl(0 72% 51% / 0.08), transparent 62%),
+    radial-gradient(520px 160px at 0% 0%, hsl(0 72% 51% / 0.08), transparent 62%),
     linear-gradient(135deg, hsl(var(--card-gradient-from)), hsl(var(--card-gradient-to)));
 }
 
 .rpg-panel:has(button[title="Editar"]):not(:has(.text-yellow-300)):hover {
   border-color: hsl(0 72% 51% / 0.5);
-  box-shadow: 0 0 22px hsl(0 72% 51% / 0.10), inset 0 0 20px hsl(0 72% 51% / 0.035);
+  box-shadow: 0 0 26px hsl(0 72% 51% / 0.10), inset 0 0 20px hsl(0 72% 51% / 0.035);
 }
 
-/* Check / +1 vira o "ícone da missão", como nas Mini Vitórias */
+/* Botão principal da ação */
 .rpg-panel:has(button[title="Editar"]) > button:first-child {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: .75rem;
+  width: 2.8rem;
+  height: 2.8rem;
+  flex: 0 0 auto;
+  border-radius: .8rem;
   border-width: 1px;
   border-color: hsl(var(--primary) / 0.35);
   background: hsl(var(--primary) / 0.08);
   color: hsl(var(--primary));
   box-shadow: inset 0 0 12px hsl(var(--primary) / 0.06);
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
+
+.rpg-panel:has(button[title="Editar"]) > button:first-child:hover { transform: scale(1.04); }
 
 .rpg-panel:has(button[title="Editar"]):has(.text-yellow-300) > button:first-child {
   border-color: hsl(var(--primary) / 0.4);
@@ -63,30 +68,76 @@
   box-shadow: 0 0 14px hsl(0 72% 51% / 0.08), inset 0 0 12px hsl(0 72% 51% / 0.06);
 }
 
+/* Cabeçalho da ação: nome/status de um lado, controles do outro */
 .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child {
   align-items: center;
+  gap: .65rem;
 }
 
-/* Nome da ação */
 .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) p.text-sm {
   font-family: 'Rajdhani', sans-serif;
-  font-size: .95rem;
-  font-weight: 600;
+  font-size: .98rem;
+  font-weight: 700;
   letter-spacing: .025em;
 }
 
-/* Progresso 0/3 ganha aparência de contador de missão */
+/* Grupo dos controles: editar + excluir passam a parecer uma única central de comando */
+.rpg-panel:has(button[title="Editar"]) button[title="Editar"],
+.rpg-panel:has(button[title="Editar"]) button[title="Excluir"] {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: .6rem;
+  border: 1px solid hsl(var(--border) / .75);
+  background: hsl(var(--background) / .42);
+  transition: all .18s ease;
+}
+
+.rpg-panel:has(button[title="Editar"]) button[title="Editar"] {
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / .24);
+}
+
+.rpg-panel:has(button[title="Editar"]) button[title="Editar"]:hover {
+  background: hsl(var(--primary) / .12);
+  border-color: hsl(var(--primary) / .55);
+  box-shadow: 0 0 12px hsl(var(--primary) / .12);
+  transform: translateY(-1px);
+}
+
+.rpg-panel:has(button[title="Editar"]) button[title="Excluir"] {
+  color: hsl(0 72% 65%);
+  border-color: hsl(0 72% 51% / .22);
+}
+
+.rpg-panel:has(button[title="Editar"]) button[title="Excluir"]:hover {
+  background: hsl(0 72% 51% / .11);
+  border-color: hsl(0 72% 51% / .52);
+  box-shadow: 0 0 12px hsl(0 72% 51% / .10);
+  transform: translateY(-1px);
+}
+
+/* Pequena linha divisória visual antes dos controles quando estão juntos */
+.rpg-panel:has(button[title="Editar"]) button[title="Editar"]::before { content: ""; }
+
+/* Progresso de quantidade */
 .rpg-panel:has(button[title="Editar"]) span.shrink-0.text-primary {
-  padding: .25rem .55rem;
+  padding: .25rem .6rem;
   border-radius: 999px;
   background: hsl(var(--primary) / .10);
   border-color: hsl(var(--primary) / .35);
   box-shadow: inset 0 0 8px hsl(var(--primary) / .05);
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 800;
 }
 
-/* Recompensas ficam com o mesmo "chip" visual das Mini Vitórias */
+/* Recompensas como chips de HUD */
 .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div.flex.flex-wrap {
-  margin-top: .6rem;
+  margin-top: .65rem;
   gap: .4rem;
 }
 
@@ -96,7 +147,7 @@
   min-height: 1.65rem;
   padding: .2rem .55rem;
   border: 1px solid hsl(var(--border) / .8);
-  border-radius: .45rem;
+  border-radius: .5rem;
   background: hsl(var(--background) / .38);
   font-size: 9px;
   font-family: 'Orbitron', monospace;
@@ -126,5 +177,7 @@
 @media (max-width: 480px) {
   .rpg-panel:has(button[title="Editar"]) { padding: .8rem; gap: .65rem; }
   .rpg-panel:has(button[title="Editar"]) > button:first-child { width: 2.55rem; height: 2.55rem; }
+  .rpg-panel:has(button[title="Editar"]) button[title="Editar"],
+  .rpg-panel:has(button[title="Editar"]) button[title="Excluir"] { width: 1.9rem; height: 1.9rem; min-width: 1.9rem; }
   .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div.flex.flex-wrap > span { padding: .18rem .45rem; font-size: 8px; }
 }
