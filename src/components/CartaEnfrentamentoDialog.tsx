@@ -22,18 +22,28 @@ export default function CartaEnfrentamentoDialog({ open, onClose, heroi, inimigo
   const [leituras, setLeituras] = useState(0);
   const [loot, setLoot] = useState<{ vida: number; ouro: number; xp: number; frase: string } | null>(null);
 
-  const chaveLeituras = heroi ? `ascensao:carta-leituras:${heroi.id}:${todayISO()}` : "";
-  const lerContador = () => {
-    if (!chaveLeituras) return 0;
-    const n = Number(localStorage.getItem(chaveLeituras) || 0);
-    return Number.isFinite(n) ? Math.min(n, MAX_LEITURAS_DIA) : 0;
+  const carregarLeituras = async () => {
+    if (!heroi) return 0;
+    const { data, error } = await supabase
+      .from("carta_enfrentamento_leituras" as any)
+      .select("quantidade")
+      .eq("user_id", heroi.id)
+      .eq("data", todayISO())
+      .maybeSingle();
+    if (error) throw error;
+    const n = Math.max(0, Math.min(MAX_LEITURAS_DIA, Number((data as any)?.quantidade ?? 0)));
+    setLeituras(n);
+    return n;
   };
 
   useEffect(() => {
     if (!open) return;
     setLoot(null);
-    setLeituras(lerContador());
     setModo(carta ? "ler" : "vazio");
+    carregarLeituras().catch(() => {
+      setLeituras(0);
+      toast.error("Não foi possível carregar as leituras de hoje.");
+    });
   }, [open, heroi?.id, carta]);
 
   const salvar = async (t: string) => {
@@ -65,14 +75,21 @@ export default function CartaEnfrentamentoDialog({ open, onClose, heroi, inimigo
 
   const lerCarta = async () => {
     if (!heroi || saving) return;
-    const atual = lerContador();
-    if (atual >= MAX_LEITURAS_DIA) { toast.info("As 3 recompensas da Carta de hoje já foram recebidas. Você pode continuar lendo sem ganhar mais pontos."); return; }
     setSaving(true);
     try {
-      const r = await registrarEnfrentamento(heroi);
-      const novoContador = atual + 1;
-      localStorage.setItem(chaveLeituras, String(novoContador));
+      const { data, error } = await supabase.rpc("registrar_leitura_carta_enfrentamento" as any, { p_data: todayISO() });
+      if (error) throw error;
+      const registro = Array.isArray(data) ? data[0] : data;
+      const novoContador = Math.max(0, Math.min(MAX_LEITURAS_DIA, Number(registro?.quantidade ?? 0)));
+      const premiada = registro?.premiada === true;
       setLeituras(novoContador);
+
+      if (!premiada) {
+        toast.info("Você já recebeu as 3 recompensas da Carta de hoje. A leitura continua registrada, mas sem nova recompensa.");
+        return;
+      }
+
+      const r = await registrarEnfrentamento(heroi);
       await onChanged();
       fireReward(`+${r.xp} XP`);
       setTimeout(() => fireReward(`+${r.ouro} ouro`), 160);
