@@ -2,35 +2,13 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AlignCenter, AlignLeft, AlignRight, Bold, CheckSquare, Code2, Highlighter, Italic, Link2, List, ListOrdered, Minus, Palette, Quote, Redo2, Strikethrough, Undo2, Underline } from "lucide-react";
 
 type Props = { value: string; onChange: (value: string) => void; placeholder?: string; minHeight?: string };
-
 const COLORS = ["#ffffff", "#f0abfc", "#e879f9", "#c084fc", "#60a5fa", "#34d399", "#facc15", "#fb923c", "#f87171"];
 const HIGHLIGHTS = ["#3b0764", "#701a75", "#1e3a8a", "#14532d", "#713f12", "#7f1d1d"];
-
-function sanitizeHtml(html: string) {
-  if (typeof window === "undefined") return html;
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script,style,iframe,object,embed,form,svg,math").forEach(n => n.remove());
-  doc.querySelectorAll("*").forEach(el => {
-    [...el.attributes].forEach(attr => {
-      const name = attr.name.toLowerCase();
-      const value = attr.value.trim();
-      if (name.startsWith("on") || (name === "href" && !/^(https?:|mailto:|tel:|#)/i.test(value)) || (name === "src" && !/^(https?:|data:image\/)/i.test(value))) el.removeAttribute(attr.name);
-    });
-  });
-  return doc.body.innerHTML;
-}
-
+function sanitizeHtml(html: string) { if (typeof window === "undefined") return html; const doc = new DOMParser().parseFromString(html, "text/html"); doc.querySelectorAll("script,style,iframe,object,embed,form,svg,math").forEach(n => n.remove()); doc.querySelectorAll("*").forEach(el => [...el.attributes].forEach(attr => { const name = attr.name.toLowerCase(); const value = attr.value.trim(); if (name.startsWith("on") || (name === "href" && !/^(https?:|mailto:|tel:|#)/i.test(value)) || (name === "src" && !/^(https?:|data:image\/)/i.test(value))) el.removeAttribute(attr.name); })); return doc.body.innerHTML; }
 function exec(command: string, value?: string) { document.execCommand(command, false, value); }
-
-function ToolButton({ title, onClick, children }: { title: string; onClick: () => void; children: ReactNode }) {
-  return <button type="button" title={title} onMouseDown={e => e.preventDefault()} onClick={onClick} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/5 text-white/45 transition hover:border-fuchsia-300/20 hover:bg-fuchsia-500/10 hover:text-fuchsia-200">{children}</button>;
-}
-
+function ToolButton({ title, onClick, children }: { title: string; onClick: () => void; children: ReactNode }) { return <button type="button" title={title} onMouseDown={e => e.preventDefault()} onClick={onClick} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/5 text-white/45 transition hover:border-fuchsia-300/20 hover:bg-fuchsia-500/10 hover:text-fuchsia-200">{children}</button>; }
 export default function RichTextEditor({ value, onChange, placeholder = "Escreva suas anotações...", minHeight = "280px" }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
-  const savedSelection = useRef<Range | null>(null);
-  const [showColors, setShowColors] = useState(false);
-  const [showHighlights, setShowHighlights] = useState(false);
+  const ref = useRef<HTMLDivElement>(null); const savedSelection = useRef<Range | null>(null); const [showColors, setShowColors] = useState(false); const [showHighlights, setShowHighlights] = useState(false);
   useEffect(() => { if (ref.current && ref.current.innerHTML !== value) ref.current.innerHTML = sanitizeHtml(value); }, [value]);
   const emit = () => { if (ref.current) onChange(sanitizeHtml(ref.current.innerHTML)); };
   const rememberSelection = () => { const sel = window.getSelection(); if (sel && sel.rangeCount) savedSelection.current = sel.getRangeAt(0).cloneRange(); };
@@ -39,11 +17,11 @@ export default function RichTextEditor({ value, onChange, placeholder = "Escreva
   const link = () => { restoreSelection(); const url = window.prompt("URL do link:", "https://"); if (url) exec("createLink", url); ref.current?.focus(); emit(); };
   const emoji = () => { const value = window.prompt("Emoji para inserir:", "🔥"); if (!value) return; restoreSelection(); exec("insertText", value); ref.current?.focus(); emit(); };
   const block = (type: string) => command("formatBlock", type);
-
   return <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#090910] shadow-inner shadow-black/30">
     <div className="flex flex-wrap items-center gap-1 border-b border-white/10 bg-white/[.025] p-2">
       <div className="flex items-center gap-1 border-r border-white/10 pr-1"><ToolButton title="Desfazer" onClick={() => command("undo")}><Undo2 className="h-3.5 w-3.5" /></ToolButton><ToolButton title="Refazer" onClick={() => command("redo")}><Redo2 className="h-3.5 w-3.5" /></ToolButton></div>
       <select onChange={e => block(e.target.value)} defaultValue="p" className="h-8 rounded-lg border border-white/5 bg-white/[.03] px-2 text-[9px] font-bold text-white/60 outline-none"><option value="p">Texto</option><option value="h1">Título 1</option><option value="h2">Título 2</option><option value="h3">Título 3</option><option value="blockquote">Citação</option><option value="pre">Código</option></select>
+      <select onChange={e => command("fontName", e.target.value)} defaultValue="Arial" className="h-8 max-w-28 rounded-lg border border-white/5 bg-white/[.03] px-2 text-[9px] font-bold text-white/60 outline-none"><option>Arial</option><option>Georgia</option><option>Verdana</option><option>Tahoma</option><option>Courier New</option><option>Trebuchet MS</option></select>
       <select onChange={e => command("fontSize", e.target.value)} defaultValue="3" className="h-8 rounded-lg border border-white/5 bg-white/[.03] px-2 text-[9px] font-bold text-white/60 outline-none"><option value="2">Pequeno</option><option value="3">Normal</option><option value="4">Grande</option><option value="5">Muito grande</option><option value="6">Enorme</option></select>
       <div className="flex items-center gap-1 border-r border-white/10 pr-1"><ToolButton title="Negrito" onClick={() => command("bold")}><Bold className="h-3.5 w-3.5" /></ToolButton><ToolButton title="Itálico" onClick={() => command("italic")}><Italic className="h-3.5 w-3.5" /></ToolButton><ToolButton title="Sublinhado" onClick={() => command("underline")}><Underline className="h-3.5 w-3.5" /></ToolButton><ToolButton title="Tachado" onClick={() => command("strikeThrough")}><Strikethrough className="h-3.5 w-3.5" /></ToolButton></div>
       <div className="relative flex items-center gap-1 border-r border-white/10 pr-1"><ToolButton title="Cor do texto" onClick={() => { setShowColors(v => !v); setShowHighlights(false); }}><Palette className="h-3.5 w-3.5" /></ToolButton><ToolButton title="Marca-texto" onClick={() => { setShowHighlights(v => !v); setShowColors(false); }}><Highlighter className="h-3.5 w-3.5" /></ToolButton>{showColors && <div className="absolute left-0 top-10 z-20 flex w-48 flex-wrap gap-1.5 rounded-xl border border-white/10 bg-[#11111a] p-2 shadow-2xl">{COLORS.map(c => <button key={c} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { command("foreColor", c); setShowColors(false); }} className="h-6 w-6 rounded-full border border-white/20" style={{ background: c }} />)}</div>}{showHighlights && <div className="absolute left-0 top-10 z-20 flex w-44 flex-wrap gap-1.5 rounded-xl border border-white/10 bg-[#11111a] p-2 shadow-2xl">{HIGHLIGHTS.map(c => <button key={c} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { command("hiliteColor", c); setShowHighlights(false); }} className="h-6 w-6 rounded-md border border-white/20" style={{ background: c }} />)}</div>}</div>
