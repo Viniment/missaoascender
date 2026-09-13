@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { LowPowerProvider } from "@/hooks/useLowPower";
 import ConnectionGuard from "@/components/ConnectionGuard";
+import PresencaAutomatica from "@/components/PresencaAutomatica";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/DashboardComJejum";
 import Onboarding from "@/pages/Onboarding";
@@ -34,7 +35,7 @@ function Protected({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-  return <ConnectionGuard>{children}</ConnectionGuard>;
+  return <ConnectionGuard><><PresencaAutomatica userId={user.id} />{children}</></ConnectionGuard>;
 }
 
 export default function App() {
