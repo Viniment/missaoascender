@@ -70,6 +70,149 @@ export type Database = {
           },
         ]
       }
+      cantinho_areas: {
+        Row: {
+          created_at: string
+          descricao: string
+          emoji: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string
+          emoji?: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          emoji?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cantinho_diarios: {
+        Row: {
+          area_id: string
+          atualizado_em: string
+          conteudo: string
+          created_at: string
+          criado_em: string
+          data: string
+          id: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_id: string
+          atualizado_em?: string
+          conteudo?: string
+          created_at?: string
+          criado_em?: string
+          data?: string
+          id?: string
+          titulo?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_id?: string
+          atualizado_em?: string
+          conteudo?: string
+          created_at?: string
+          criado_em?: string
+          data?: string
+          id?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cantinho_diarios_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "cantinho_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cantinho_diarios_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cantinho_media: {
+        Row: {
+          area_id: string
+          created_at: string
+          id: string
+          legenda: string
+          mime_type: string | null
+          origem: string
+          significado: string
+          storage_path: string | null
+          tamanho_bytes: number | null
+          tipo: string
+          titulo: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          id?: string
+          legenda?: string
+          mime_type?: string | null
+          origem?: string
+          significado?: string
+          storage_path?: string | null
+          tamanho_bytes?: number | null
+          tipo: string
+          titulo?: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          id?: string
+          legenda?: string
+          mime_type?: string | null
+          origem?: string
+          significado?: string
+          storage_path?: string | null
+          tamanho_bytes?: number | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cantinho_media_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "cantinho_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conquista_recompensas: {
         Row: {
           atributo: string
