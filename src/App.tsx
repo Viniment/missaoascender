@@ -23,7 +23,7 @@ import Laboratorio from "@/pages/Laboratorio";
 import Predicao from "@/pages/Predicao";
 import Mente from "@/pages/Mente";
 import NoiteZero from "@/pages/NoiteZero";
-import MeuCantinho from "@/pages/MeuCantinhoUpload";
+import MeuCantinho from "@/pages/MeuCantinhoBanco";
 import Trataka from "@/pages/Trataka";
 import Japamala from "@/pages/Japamala";
 import Estudos from "@/pages/Estudos";
