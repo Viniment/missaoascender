@@ -22,6 +22,7 @@ import UrgeSurfing from "@/pages/UrgeSurfing";
 import Laboratorio from "@/pages/Laboratorio";
 import Predicao from "@/pages/Predicao";
 import Mente from "@/pages/Mente";
+import NoiteZero from "@/pages/NoiteZero";
 import Trataka from "@/pages/Trataka";
 import Japamala from "@/pages/Japamala";
 import Estudos from "@/pages/Estudos";
@@ -63,6 +64,7 @@ export default function App() {
               <Route path="/laboratorio" element={<Protected><Laboratorio /></Protected>} />
               <Route path="/predicao" element={<Protected><Predicao /></Protected>} />
               <Route path="/mente" element={<Protected><Mente /></Protected>} />
+              <Route path="/noite-zero" element={<Protected><NoiteZero /></Protected>} />
               <Route path="/projetos" element={<Protected><Projetos /></Protected>} />
               <Route path="/trataka" element={<Protected><Trataka /></Protected>} />
               <Route path="/japamala" element={<Protected><Japamala /></Protected>} />
