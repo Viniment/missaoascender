@@ -4,6 +4,7 @@ import { X, Sparkles, Loader2, Coins, Zap, Swords, Heart, Target } from "lucide-
 import { toast } from "sonner";
 import { updateHabito, type Habito, type Inimigo } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import "@/styles/acoes-batalha.css";
 
 export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose, onSaved }: { habito: Habito | null; inimigo: Inimigo | null; onboarding: any; onClose: () => void; onSaved: () => void; }) {
   const [nome, setNome] = useState("");
