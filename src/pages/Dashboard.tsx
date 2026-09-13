@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,6 +50,7 @@ export default function Dashboard() {
   const { data: inimigo } = useQuery({ queryKey: ["inimigo", uid], queryFn: () => fetchInimigoAtivo(uid!), enabled: !!uid });
   const { data: habitos } = useQuery({ queryKey: ["habitos", uid], queryFn: () => fetchHabitos(uid!), enabled: !!uid });
   const { data: conquistas } = useQuery({ queryKey: ["conq", uid], queryFn: () => fetchConquistas(uid!), enabled: !!uid });
+  const { data: transacoes } = useQuery({ queryKey: ["transacoes-conquistas", uid], queryFn: async () => { const { data, error } = await supabase.from("transacoes_ouro").select("valor, origem").eq("user_id", uid!); if (error) throw error; return data ?? []; }, enabled: !!uid });
   const [dataSelecionada, setDataSelecionada] = useState<string>(todayISO());
   const isHoje = dataSelecionada === todayISO();
   const { data: logs } = useQuery({ queryKey: ["logs", uid, dataSelecionada], queryFn: () => fetchLogsData(uid!, dataSelecionada), enabled: !!uid });
@@ -91,6 +92,43 @@ export default function Dashboard() {
   };
   const excluirHabito = async (id: string) => { await supabase.from("habitos").update({ ativo: false }).eq("id", id); if (uid) { await recalcularHpMaxInimigo(uid); await qc.invalidateQueries({ queryKey: ["inimigo", uid] }); } await qc.invalidateQueries({ queryKey: ["habitos", uid] }); };
   if (!heroi) return <Shell><p className="text-muted-foreground">Carregando...</p></Shell>;
+
+  // O Player Card precisa contar as mesmas conquistas dinâmicas exibidas em Conquistas.tsx,
+  // não apenas as linhas já persistidas na tabela. Assim o número não fica em 1 enquanto a
+  // página de Conquistas ainda não teve a chance de sincronizar os marcos desbloqueados.
+  const totalConquistas = useMemo(() => {
+    const desbloqueadas = new Set((conquistas ?? []).map(c => c.tipo));
+    const addIf = (tipo: string, unlocked: boolean) => { if (unlocked) desbloqueadas.add(tipo); };
+    const nivel = heroi.nivel ?? 1;
+    const streak = heroi.streak_atual ?? 0;
+    const ouro = heroi.ouro ?? 0;
+    let diario: any[] = [];
+    let maxFast = 0;
+    if (uid && typeof window !== "undefined") {
+      try { diario = JSON.parse(localStorage.getItem(`ascensao:diario:${uid}`) || "[]") as any[]; } catch {}
+      try { const s = JSON.parse(localStorage.getItem(`ascensao:jejum:${uid}`) || "[]") as Array<{ minutes: number }>; maxFast = Math.max(0, ...s.map(x => (x.minutes || 0) / 60)); } catch {}
+    }
+    const datas = new Set(diario.map(x => x.date)).size;
+    const urges = diario.filter(x => x.type === "urge").length;
+    const pensamentos = diario.filter(x => /PENSAMENTO:/i.test(x.text || "")).length;
+    const ganho = (transacoes ?? []).filter(x => (x.valor ?? 0) > 0).reduce((a, x) => a + (x.valor ?? 0), 0);
+    const compras = (transacoes ?? []).filter(x => x.origem === "loja").length;
+
+    for (const n of [2,3,4,5,7,10,15,20,30,50,75,100]) addIf(`nivel_${n}`, nivel >= n);
+    for (const n of [1,2,3,5,7,10,15,20,30,45,60,100]) addIf(`diario_${n}`, diario.length >= n);
+    for (const n of [1,2,3,5,7,14,30]) addIf(`dias_mente_${n}`, datas >= n);
+    for (const n of [1,3,5,10]) addIf(`pensamentos_${n}`, pensamentos >= n);
+    for (const n of [1,2,3,5,10]) addIf(`vontades_${n}`, urges >= n);
+    for (const n of [1,2,3,5,7,10,15,20,30,45,60,100]) addIf(`streak_${n}`, streak >= n);
+    for (const n of [100,250,500,1000,2500,5000,10000]) addIf(`ouro_ganho_${n}`, ganho >= n);
+    for (const n of [100,250,500,1000,2000,5000]) addIf(`ouro_cofre_${n}`, ouro >= n);
+    for (const n of [1,2,3,5,10,15,30]) addIf(`compras_${n}`, compras >= n);
+    const jejumMax = 21 * 24;
+    for (let h = 8; h <= jejumMax; h += 8) addIf(`jejum_${h}h`, maxFast >= h);
+
+    return desbloqueadas.size;
+  }, [conquistas, heroi, uid, transacoes]);
+
   const xpPct = Math.min(100, (heroi.xp_atual / heroi.xp_proximo_nivel) * 100); const hpPct = (heroi.vida_atual / heroi.vida_max) * 100; const enemyPct = inimigo ? (inimigo.hp_atual / inimigo.hp_max) * 100 : 0; const bauAberto = heroi.ultimo_bau_data === todayISO(); const positivos = (habitos ?? []).filter(h => h.tipo === "positivo"); const negativos = (habitos ?? []).filter(h => h.tipo === "negativo");
   return <Shell>
     <BattleOverlay battle={battle} onClose={() => setBattle(null)} inimigo={inimigo} /><LevelUpOverlay nivel={levelUp} onClose={() => setLevelUp(null)} /><VictoryScreen inimigoNome={victory} onClose={() => setVictory(null)} /><HabitFX />
@@ -98,7 +136,7 @@ export default function Dashboard() {
       <AvisosBanner />
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="player-card scanlines p-3.5 sm:p-5">
         {(() => { const cardBgId = (heroi.avatar_equipado as any)?.cardBg as string | undefined; const bg = cardBgId ? CARD_BACKGROUNDS[cardBgId] : null; return bg ? <div className={`card-bg-layer ${bg.className}`} /> : null; })()}
-        <div className="flex items-center gap-3 sm:gap-4"><Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative"><div className="avatar-ring"><div className="avatar-inner"><Avatar equipado={heroi.avatar_equipado} size="md" /></div></div><div className="level-badge level-badge-sm absolute -bottom-2 -right-2 shadow-lg"><div className="flex flex-col items-center justify-center px-1"><small>LVL</small><span className="text-sm sm:text-base leading-none">{heroi.nivel}</span></div></div></Link><div className="flex-1 min-w-0 space-y-1"><p className="text-[9px] sm:text-[10px] text-primary/80 uppercase tracking-[0.3em] flex items-center gap-1.5"><Shield className="w-3 h-3" /> HERÓI</p><h2 className="font-display text-lg sm:text-2xl tracking-widest text-foreground glow-text-purple truncate leading-tight">{heroi.nome}</h2>{heroi.titulo && <div className="stat-chip title"><Sparkles className="w-3 h-3" /> {heroi.titulo}</div>}<div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1"><span className="stat-chip gold"><Coins className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <AnimatedCounter value={heroi.ouro} /></span><span className="stat-chip streak"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {heroi.streak_atual}d</span><Link to="/conquistas" className="stat-chip trophy hover:brightness-125 transition"><Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {conquistas?.length ?? 0}</Link></div></div></div>
+        <div className="flex items-center gap-3 sm:gap-4"><Link to="/personalizar" className="shrink-0 hover:scale-105 transition-transform relative"><div className="avatar-ring"><div className="avatar-inner"><Avatar equipado={heroi.avatar_equipado} size="md" /></div></div><div className="level-badge level-badge-sm absolute -bottom-2 -right-2 shadow-lg"><div className="flex flex-col items-center justify-center px-1"><small>LVL</small><span className="text-sm sm:text-base leading-none">{heroi.nivel}</span></div></div></Link><div className="flex-1 min-w-0 space-y-1"><p className="text-[9px] sm:text-[10px] text-primary/80 uppercase tracking-[0.3em] flex items-center gap-1.5"><Shield className="w-3 h-3" /> HERÓI</p><h2 className="font-display text-lg sm:text-2xl tracking-widest text-foreground glow-text-purple truncate leading-tight">{heroi.nome}</h2>{heroi.titulo && <div className="stat-chip title"><Sparkles className="w-3 h-3" /> {heroi.titulo}</div>}<div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1"><span className="stat-chip gold"><Coins className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <AnimatedCounter value={heroi.ouro} /></span><span className="stat-chip streak"><Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {heroi.streak_atual}d</span><Link to="/conquistas" className="stat-chip trophy hover:brightness-125 transition"><Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {totalConquistas}</Link></div></div></div>
         <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4"><Bar label="XP" pct={xpPct} value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} fillClass="xp-bar-fill" icon={<Zap className="w-3.5 h-3.5" />} /><Bar label="VIDA" pct={hpPct} value={`${heroi.vida_atual}/${heroi.vida_max}`} fillClass="life-bar-fill" icon={<Heart className="w-3.5 h-3.5" />} /></div>
       </motion.div>
       {inimigo && <motion.div animate={shakeEnemy ? { x: [0, -6, 6, -4, 4, 0] } : {}} transition={{ duration: 0.4 }} className="rpg-panel danger-glow scanlines border-destructive/40 p-4 sm:p-5 space-y-3 overflow-hidden"><div className="flex items-center justify-between"><div className="flex items-center gap-3 min-w-0 flex-1">{(inimigo.avatar_config as any)?.tipo === "foto" && (inimigo.avatar_config as any)?.foto_url ? <img src={(inimigo.avatar_config as any).foto_url} alt={`Imagem do inimigo ${inimigo.nome}`} className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border border-destructive/40 shadow-[0_0_14px_rgba(255,0,0,0.35)] shrink-0" /> : <div className="w-16 h-16 sm:w-20 sm:h-20 grid place-items-center rounded-lg border border-destructive/30 bg-destructive/5 text-4xl sm:text-5xl drop-shadow-[0_0_10px_rgba(255,0,0,0.6)] shrink-0">{(inimigo.avatar_config as any)?.emoji ?? "😈"}</div>}<div className="min-w-0 flex-1"><p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> BOSS</p><h3 className="font-display text-sm sm:text-xl tracking-widest sm:tracking-widest text-foreground break-words leading-tight">{inimigo.nome}</h3></div></div><div className="flex items-center gap-1"><button onClick={() => setEditInimigoOpen(true)} className="p-1.5 rounded-md border border-destructive/30 hover:border-destructive/60 hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title="Editar inimigo"><Pencil className="w-3.5 h-3.5" /></button><button onClick={() => nav("/inimigo")} className="text-xs text-muted-foreground hover:text-primary px-2">detalhes →</button></div></div><Bar label="HP" pct={enemyPct} value={`${inimigo.hp_atual}/${inimigo.hp_max}`} fillClass="hp-bar-fill" icon={<Swords className="w-3 h-3" />} /></motion.div>}
