@@ -55,7 +55,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Escreva
     const rect = sel.getRangeAt(0).getBoundingClientRect();
     const editorRect = ref.current.getBoundingClientRect();
     const x = Math.max(8, Math.min(editorRect.width - 300, rect.left - editorRect.left + rect.width / 2 - 150));
-    const y = Math.max(8, rect.top - editorRect.top - 52);
+    // A barra fica ABAIXO do texto selecionado, nunca por cima dele.
+    const y = Math.max(8, rect.bottom - editorRect.top + 8);
     setInlineToolbar({ visible: true, x, y });
   };
 
