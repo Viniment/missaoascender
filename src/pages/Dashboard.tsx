@@ -27,6 +27,22 @@ import { CARD_BACKGROUNDS } from "@/lib/itens";
 
 type Battle = { positivo: boolean; habito: string; xp: number; dano: number; ouro: number; vidaDelta: number; msg: string; loading: boolean; quantidadeAtual?: number; quantidadeMeta?: number };
 
+const VITORIA_MENSAGENS = [
+  "🔥 Excelente! Você cumpriu sua ação.",
+  "⚔️ Golpe confirmado! Continue avançando.",
+  "🏆 Muito bem! Mais uma vitória contra o inimigo.",
+  "💪 Execução concluída. Você está construindo consistência.",
+  "✨ Vitória registrada! Não pare agora."
+];
+const DERROTA_MENSAGENS = [
+  "💀 O inimigo conseguiu uma abertura.",
+  "⚠️ Você caiu nesta rodada. Levante e retome.",
+  "🩸 O inimigo ganhou força desta vez.",
+  "😈 Armadilha acionada. A batalha continua.",
+  "🔥 Derrota registrada. Ainda dá para voltar ao combate."
+];
+function mensagemAleatoria(lista: string[]) { return lista[Math.floor(Math.random() * lista.length)]; }
+
 export default function Dashboard() {
   const { user } = useAuth(); const nav = useNavigate(); const qc = useQueryClient(); const uid = user?.id;
   const { data: ob } = useQuery({ queryKey: ["ob", uid], queryFn: () => fetchOnboarding(uid!), enabled: !!uid });
@@ -38,7 +54,6 @@ export default function Dashboard() {
   const isHoje = dataSelecionada === todayISO();
   const { data: logs } = useQuery({ queryKey: ["logs", uid, dataSelecionada], queryFn: () => fetchLogsData(uid!, dataSelecionada), enabled: !!uid });
   const { data: quantidadeLogs } = useQuery({ queryKey: ["quantidade-acoes", uid, dataSelecionada], queryFn: () => fetchQuantidadeAcoes(uid!, dataSelecionada), enabled: !!uid });
-  const [msg, setMsg] = useState<string>("");
   const [novoHabito, setNovoHabito] = useState({ nome: "", tipo: "positivo" as "positivo" | "negativo", tipoTarefa: "unica" as "unica" | "quantidade", quantidadeMeta: 1 });
   const [showForm, setShowForm] = useState(false); const [creating, setCreating] = useState(false); const [battle, setBattle] = useState<Battle | null>(null); const [shakeEnemy, setShakeEnemy] = useState(false); const [levelUp, setLevelUp] = useState<number | null>(null); const [victory, setVictory] = useState<string | null>(null); const [chestOpen, setChestOpen] = useState(false); const [chestGold, setChestGold] = useState<number | null>(null); const [editHabito, setEditHabito] = useState<Habito | null>(null); const [editInimigoOpen, setEditInimigoOpen] = useState(false); const [cartaOpen, setCartaOpen] = useState(false);
   const prevNivel = useRef<number | null>(null); const prevEnemyHp = useRef<number | null>(null);
@@ -46,7 +61,6 @@ export default function Dashboard() {
   useEffect(() => { if (!inimigo) return; if (prevEnemyHp.current !== null && prevEnemyHp.current > 0 && inimigo.hp_atual <= 0) setVictory(inimigo.nome); prevEnemyHp.current = inimigo.hp_atual; }, [inimigo?.hp_atual]);
   useEffect(() => { if (ob === null) nav("/onboarding"); }, [ob, nav]);
   useEffect(() => { if (ob && inimigo === null) nav("/criar-inimigo"); }, [ob, inimigo, nav]);
-  useEffect(() => { if (!heroi || !inimigo) return; supabase.functions.invoke("mensagem-reforco", { body: { heroi_nome: heroi.nome, inimigo_nome: inimigo.nome, sonho: (ob as any)?.sonho ?? null, streak: heroi.streak_atual, habito_nome: null, hp_atual: inimigo.hp_atual, hp_max: inimigo.hp_max } }).then(r => { if (r.data?.msg) setMsg(r.data.msg); }); }, [heroi?.id, inimigo?.id, (ob as any)?.sonho]);
 
   const onToggle = async (habitoId: string) => {
     if (!heroi || !habitos) return;
@@ -57,13 +71,11 @@ export default function Dashboard() {
       await qc.invalidateQueries(); if (marcado && !porQuantidade) return;
       fireHabitFX(positivo ? "positive" : "negative");
       const xpReal = Math.abs(Number(resultado?.xpDelta ?? (positivo ? h.peso_xp : -h.peso_xp))); const ouroReal = Math.abs(Number(resultado?.ouroDelta ?? 0)); const vidaReal = Number(resultado?.vidaDelta ?? (positivo ? 0 : -Math.max(2, Math.round(h.peso_dano_cura / 3))));
-      setBattle({ positivo, habito: h.nome, xp: xpReal, dano: h.peso_dano_cura, ouro: ouroReal, vidaDelta: vidaReal, quantidadeAtual: resultado?.quantidadeAtual, quantidadeMeta: resultado?.quantidadeMeta, msg: "", loading: true });
+      const mensagem = positivo ? mensagemAleatoria(VITORIA_MENSAGENS) : mensagemAleatoria(DERROTA_MENSAGENS);
+      setBattle({ positivo, habito: h.nome, xp: xpReal, dano: h.peso_dano_cura, ouro: ouroReal, vidaDelta: vidaReal, quantidadeAtual: resultado?.quantidadeAtual, quantidadeMeta: resultado?.quantidadeMeta, msg: mensagem, loading: false });
       if (positivo) {
         setShakeEnemy(true); setTimeout(() => setShakeEnemy(false), 400);
         fireReward(`+${xpReal} XP`, "#a855f7"); if (ouroReal > 0) setTimeout(() => fireReward(`+${ouroReal} 🪙`, "#facc15"), 120); setTimeout(() => fireReward(`-${h.peso_dano_cura} HP`, "#ef4444"), 240);
-        supabase.functions.invoke("mensagem-reforco", { body: { heroi_nome: heroi.nome, inimigo_nome: inimigo?.nome, sonho: (ob as any)?.sonho ?? null, streak: heroi.streak_atual, habito_nome: h.nome, hp_atual: (inimigo?.hp_atual ?? 100) - h.peso_dano_cura, hp_max: inimigo?.hp_max ?? 100 } }).then(r => setBattle(b => b ? { ...b, msg: r.data?.msg ?? "Golpe certeiro. Continue.", loading: false } : null)).catch(() => setBattle(b => b ? { ...b, msg: "Golpe certeiro. Continue.", loading: false } : null));
-      } else {
-        supabase.functions.invoke("mensagem-inimigo", { body: { heroi_nome: heroi.nome, inimigo_nome: inimigo?.nome, sonho: (ob as any)?.sonho ?? null, streak: heroi.streak_atual, habito: h.nome, mentiras: inimigo?.mentiras ?? [] } }).then(r => setBattle(b => b ? { ...b, msg: r.data?.msg ?? "Você recuou.", loading: false } : null)).catch(() => setBattle(b => b ? { ...b, msg: "Você recuou.", loading: false } : null));
       }
     } catch (e: any) { toast.error(e.message); }
   };
@@ -106,8 +118,8 @@ export default function Dashboard() {
           <button onClick={criarHabito} disabled={creating || !novoHabito.nome.trim()} className="w-full btn-pixel py-3 rounded-lg text-sm disabled:opacity-50 flex items-center justify-center gap-2">{creating ? <><Loader2 className="w-4 h-4 animate-spin" /> Forjando recompensa...</> : <><Swords className="w-4 h-4" /> Forjar ação</>}</button>
         </div>}
         {(habitos ?? []).length === 0 && <p className="text-xs text-muted-foreground text-center py-6">Nenhuma ação ainda. Crie a primeira.</p>}
-        {positivos.length > 0 && <div className="space-y-2.5"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1 px-1"><Swords className="w-3 h-3" /> Ataques ao inimigo</p>{positivos.map(h => { const meta = (h as any).tipo_tarefa === "quantidade" ? Math.max(1, Number((h as any).quantidade_meta ?? 1)) : 1; const qtd = quantidadeLogs?.get(h.id)?.quantidadeAtual ?? (logs?.has(h.id) ? 1 : 0); return <HabitoRow key={h.id} h={h} marcado={meta === 1 ? (logs?.has(h.id) ?? false) : qtd >= meta} quantidadeAtual={qtd} quantidadeMeta={meta} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} onEdit={() => setEditHabito(h)} />; })}</div>}
-        {negativos.length > 0 && <div className="space-y-2.5"><p className="text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1 px-1"><Skull className="w-3 h-3" /> Armadilhas do inimigo</p>{negativos.map(h => { const meta = (h as any).tipo_tarefa === "quantidade" ? Math.max(1, Number((h as any).quantidade_meta ?? 1)) : 1; const qtd = quantidadeLogs?.get(h.id)?.quantidadeAtual ?? (logs?.has(h.id) ? 1 : 0); return <HabitoRow key={h.id} h={h} marcado={meta === 1 ? (logs?.has(h.id) ?? false) : qtd >= meta} quantidadeAtual={qtd} quantidadeMeta={meta} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} onEdit={() => setEditHabito(h)} negativo />; })}</div>}
+        {positivos.length > 0 && <div className="space-y-2"><p className="text-[10px] uppercase tracking-[0.3em] text-primary flex items-center gap-1"><Swords className="w-3 h-3" /> Ataques ao inimigo</p>{positivos.map(h => { const meta = (h as any).tipo_tarefa === "quantidade" ? Math.max(1, Number((h as any).quantidade_meta ?? 1)) : 1; const qtd = quantidadeLogs?.get(h.id)?.quantidadeAtual ?? (logs?.has(h.id) ? 1 : 0); return <HabitoRow key={h.id} h={h} marcado={meta === 1 ? (logs?.has(h.id) ?? false) : qtd >= meta} quantidadeAtual={qtd} quantidadeMeta={meta} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} onEdit={() => setEditHabito(h)} />; })}</div>}
+        {negativos.length > 0 && <div className="space-y-2"><p className="text-[10px] uppercase tracking-[0.3em] text-destructive flex items-center gap-1"><Skull className="w-3 h-3" /> Armadilhas do inimigo</p>{negativos.map(h => { const meta = (h as any).tipo_tarefa === "quantidade" ? Math.max(1, Number((h as any).quantidade_meta ?? 1)) : 1; const qtd = quantidadeLogs?.get(h.id)?.quantidadeAtual ?? (logs?.has(h.id) ? 1 : 0); return <HabitoRow key={h.id} h={h} marcado={meta === 1 ? (logs?.has(h.id) ?? false) : qtd >= meta} quantidadeAtual={qtd} quantidadeMeta={meta} onToggle={() => onToggle(h.id)} onDelete={() => excluirHabito(h.id)} onEdit={() => setEditHabito(h)} negativo />; })}</div>}
       </div>
       <button onClick={abrirBau} disabled={bauAberto} className="w-full rpg-panel p-4 flex items-center justify-between hover:border-gold transition-colors disabled:opacity-50"><div className="flex items-center gap-3"><Gift className="w-6 h-6 text-gold" /><div className="text-left"><p className="font-display tracking-widest text-sm text-gold">BAÚ DO DIA</p><p className="text-xs text-muted-foreground">{bauAberto ? "Já aberto hoje" : "Toque para abrir"}</p></div></div><span className="text-xs text-gold font-display">1-10 🪙</span></button>
     </div>
@@ -126,32 +138,23 @@ function HabitoRow({ h, marcado, quantidadeAtual = 0, quantidadeMeta = 1, onTogg
   const borda = negativo ? "border-destructive/30" : "border-primary/30";
   const fundo = negativo ? "bg-destructive/5" : "bg-primary/5";
   const icone = negativo ? <Heart className="w-4 h-4 fill-current" /> : <Swords className="w-4 h-4" />;
-  return <motion.div whileTap={{ scale: 0.985 }} className={`group relative overflow-hidden rounded-2xl border ${concluida ? "border-primary/25 opacity-65" : borda} ${fundo} p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_hsl(var(--primary)/.08)]`}>
-    <div className={`absolute inset-x-0 top-0 h-px ${negativo ? "bg-destructive/50" : "bg-primary/50"}`} />
-    <div className="flex items-stretch gap-3">
-      <button onClick={onToggle} disabled={porQuantidade && concluida} aria-label={concluida ? "Ação concluída" : porQuantidade ? "Registrar execução" : "Concluir ação"} className={`relative mt-0.5 w-11 h-11 rounded-xl border-2 flex items-center justify-center transition-all shrink-0 self-start ${concluida ? negativo ? "bg-destructive border-destructive text-white shadow-[0_0_16px_hsl(0_90%_55%/.45)]" : "bg-primary border-primary text-white shadow-[0_0_16px_hsl(var(--primary)/.45)]" : negativo ? "border-destructive/50 bg-destructive/5 text-destructive hover:bg-destructive/15 hover:border-destructive" : "border-primary/50 bg-primary/5 text-primary hover:bg-primary/15 hover:border-primary"}`}>
+  return <motion.div whileTap={{ scale: 0.985 }} className={`relative overflow-hidden rounded-xl border ${concluida ? "border-primary/25 opacity-65" : borda} ${fundo} p-3.5 sm:p-4 transition-all hover:shadow-[0_0_22px_hsl(var(--primary)/.08)]`}>
+    <div className="flex items-start gap-3">
+      <button onClick={onToggle} disabled={porQuantidade && concluida} className={`mt-0.5 w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all shrink-0 ${concluida ? negativo ? "bg-destructive border-destructive text-white shadow-[0_0_16px_hsl(0_90%_55%/.45)]" : "bg-primary border-primary text-white shadow-[0_0_16px_hsl(var(--primary)/.45)]" : negativo ? "border-destructive/50 bg-destructive/5 text-destructive hover:bg-destructive/15 hover:border-destructive" : "border-primary/50 bg-primary/5 text-primary hover:bg-primary/15 hover:border-primary"}`}>
         {porQuantidade ? <span className="font-display text-[11px] font-bold">{concluida ? "✓" : "+1"}</span> : concluida && <span className="text-sm font-bold">✓</span>}
       </button>
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex items-start gap-2.5">
-            <div className={`mt-0.5 w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${negativo ? "border-destructive/25 bg-destructive/10" : "border-primary/25 bg-primary/10"} ${cor}`}>{icone}</div>
-            <div className="min-w-0">
-              <p className={`font-display text-sm sm:text-[15px] tracking-wide truncate ${concluida ? "line-through" : ""}`}>{h.nome}</p>
-              <p className={`text-[9px] uppercase tracking-[0.2em] mt-1 ${cor}`}>{negativo ? "Armadilha detectada" : porQuantidade ? "Missão de repetição" : "Golpe contra o inimigo"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-0.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">
-            {onEdit && <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-background/50 text-muted-foreground hover:text-primary transition" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>}
-            <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition" title="Excluir"><Trash2 className="w-3.5 h-3.5" /></button>
-          </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex items-center gap-2"><div className={`shrink-0 ${cor}`}>{icone}</div><div className="min-w-0"><p className={`font-display text-sm sm:text-[15px] tracking-wide truncate ${concluida ? "line-through" : ""}`}>{h.nome}</p><p className={`text-[9px] uppercase tracking-[0.2em] mt-0.5 ${cor}`}>{negativo ? "Armadilha detectada" : porQuantidade ? "Missão de repetição" : "Golpe contra o inimigo"}</p></div></div>
+          {onEdit && <button onClick={onEdit} className="text-muted-foreground hover:text-primary p-1.5 shrink-0" title="Editar"><Pencil className="w-3.5 h-3.5" /></button>}
+          <button onClick={onDelete} className="text-muted-foreground hover:text-destructive p-1.5 shrink-0" title="Excluir"><Trash2 className="w-3.5 h-3.5" /></button>
         </div>
-        <div className="mt-3 pt-3 border-t border-border/40 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           <span className="inline-flex items-center gap-1 rounded-md border border-purple-400/30 bg-purple-500/10 px-2 py-1 text-[10px] font-display font-bold tracking-wide text-purple-300"><Zap className="w-3 h-3" /> {negativo ? `−${h.peso_xp}` : `+${h.peso_xp}`} XP</span>
           {!negativo && <span className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold/10 px-2 py-1 text-[10px] font-display font-bold tracking-wide text-gold"><Coins className="w-3 h-3" /> +{h.peso_ouro ?? 0} Ouro</span>}
           {negativo ? <span className="inline-flex items-center gap-1 rounded-md border border-destructive/35 bg-destructive/10 px-2 py-1 text-[10px] font-display font-bold tracking-wide text-destructive"><Heart className="w-3 h-3 fill-current" /> −{Math.max(1, Math.round(h.peso_dano_cura / 3))} Vida</span> : <span className="inline-flex items-center gap-1 rounded-md border border-destructive/35 bg-destructive/10 px-2 py-1 text-[10px] font-display font-bold tracking-wide text-destructive"><Heart className="w-3 h-3 fill-current" /> −{h.peso_dano_cura} HP Boss</span>}
         </div>
-        {porQuantidade && <div className="mt-3 rounded-xl border border-primary/20 bg-background/30 p-2.5"><div className="flex items-center justify-between mb-1.5"><span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground"><Target className="w-3 h-3" /> Progresso diário</span><span className={`font-display text-xs ${concluida ? "text-primary" : "text-foreground"}`}>{quantidadeAtual} / {quantidadeMeta}</span></div><div className="h-1.5 rounded-full bg-background/80 overflow-hidden"><motion.div className={`h-full ${concluida ? "bg-primary" : "bg-primary/70"}`} initial={{ width: 0 }} animate={{ width: `${Math.min(100, (quantidadeAtual / quantidadeMeta) * 100)}%` }} transition={{ duration: 0.35 }} /></div><p className={`mt-1.5 text-[9px] ${concluida ? "text-primary" : "text-muted-foreground"}`}>{concluida ? "✓ META DIÁRIA CONCLUÍDA" : `Faltam ${Math.max(0, quantidadeMeta - quantidadeAtual)} execução(ões) para concluir`}</p></div>}
+        {porQuantidade && <div className="mt-3 rounded-lg border border-primary/25 bg-background/30 p-2.5"><div className="flex items-center justify-between mb-1.5"><span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em] text-muted-foreground"><Target className="w-3 h-3" /> Progresso diário</span><span className={`font-display text-xs ${concluida ? "text-primary" : "text-foreground"}`}>{quantidadeAtual} / {quantidadeMeta}</span></div><div className="h-1.5 rounded-full bg-background/80 overflow-hidden"><motion.div className={`h-full ${concluida ? "bg-primary" : "bg-primary/70"}`} initial={{ width: 0 }} animate={{ width: `${Math.min(100, (quantidadeAtual / quantidadeMeta) * 100)}%` }} transition={{ duration: 0.35 }} /></div><p className={`mt-1.5 text-[9px] ${concluida ? "text-primary" : "text-muted-foreground"}`}>{concluida ? "✓ META DIÁRIA CONCLUÍDA" : `Faltam ${Math.max(0, quantidadeMeta - quantidadeAtual)} execução(ões) para concluir`}</p></div>}
       </div>
     </div>
   </motion.div>;
@@ -161,6 +164,6 @@ function BattleOverlay({ battle, onClose, inimigo }: { battle: Battle | null; on
   <div className="text-center pr-7"><p className={`text-[9px] uppercase tracking-[0.45em] ${battle.positivo ? "text-primary" : "text-destructive"}`}>{battle.positivo ? "⚔ RECOMPENSA DE BATALHA" : "💀 PENALIDADE DE BATALHA"}</p><h3 className="font-display text-lg tracking-widest mt-1">{battle.habito}</h3></div>
   <div className="rounded-2xl border border-border/60 bg-background/35 p-3"><div className="grid grid-cols-3 gap-2">{battle.positivo ? <><RewardStat icon={<Zap className="w-4 h-4" />} label="XP" value={`+${battle.xp}`} color="text-primary" /><RewardStat icon={<Coins className="w-4 h-4" />} label="OURO" value={`+${battle.ouro}`} color="text-yellow-300" /><RewardStat icon={<Heart className="w-4 h-4 fill-current" />} label="HP BOSS" value={`−${battle.dano}`} color="text-destructive" /></> : <><RewardStat icon={<Zap className="w-4 h-4" />} label="XP" value={`−${battle.xp}`} color="text-destructive" /><RewardStat icon={<Heart className="w-4 h-4 fill-current" />} label="VIDA" value={`${battle.vidaDelta}`} color="text-destructive" /><RewardStat icon={<Skull className="w-4 h-4" />} label="HP BOSS" value={`+${battle.dano}`} color="text-destructive" /></>}</div></div>
   {battle.quantidadeMeta && battle.quantidadeMeta > 1 && <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-3"><div className="flex items-center justify-between"><span className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.25em] text-muted-foreground"><Target className="w-3 h-3" /> Progresso da missão</span><span className="font-display text-primary">{battle.quantidadeAtual} / {battle.quantidadeMeta}</span></div><div className="mt-2 h-1.5 rounded-full bg-background/70 overflow-hidden"><div className="h-full bg-primary" style={{ width: `${Math.min(100, ((battle.quantidadeAtual ?? 0) / battle.quantidadeMeta) * 100)}%` }} /></div><p className="text-[9px] text-muted-foreground mt-2">{(battle.quantidadeAtual ?? 0) >= battle.quantidadeMeta ? "✓ Missão concluída — meta diária atingida" : `Mais ${battle.quantidadeMeta - (battle.quantidadeAtual ?? 0)} execução(ões) para concluir`}</p></div>}
-  <div className={`rounded-xl border p-3.5 text-sm italic text-center min-h-[58px] flex items-center justify-center ${battle.positivo ? "border-primary/40 bg-primary/5" : "border-destructive/40 bg-destructive/5"}`}>{battle.loading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : `“${battle.msg}”`}</div>
+  <div className={`rounded-xl border p-3.5 text-sm italic text-center min-h-[58px] flex items-center justify-center ${battle.positivo ? "border-primary/40 bg-primary/5" : "border-destructive/40 bg-destructive/5"}`}>{battle.msg}</div>
   <button onClick={onClose} className="w-full btn-pixel py-3 rounded-lg text-xs tracking-widest">CONTINUAR</button>
 </motion.div></motion.div>}</AnimatePresence>; }
