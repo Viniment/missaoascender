@@ -48,13 +48,26 @@ begin
   end if;
 
   insert into public.carta_enfrentamento_leituras (user_id, data, quantidade)
-  values (v_user, p_data, 1)
-  on conflict (user_id, data) do update
-    set quantidade = least(public.carta_enfrentamento_leituras.quantidade + 1, 3),
-        updated_at = now()
-  returning carta_enfrentamento_leituras.quantidade into v_quantidade;
+  values (v_user, p_data, 0)
+  on conflict (user_id, data) do nothing;
 
-  v_premiada := v_quantidade <= 3;
+  select cel.quantidade
+    into v_quantidade
+    from public.carta_enfrentamento_leituras cel
+   where cel.user_id = v_user
+     and cel.data = p_data
+   for update;
+
+  if v_quantidade < 3 then
+    v_quantidade := v_quantidade + 1;
+    v_premiada := true;
+    update public.carta_enfrentamento_leituras
+       set quantidade = v_quantidade,
+           updated_at = now()
+     where user_id = v_user
+       and data = p_data;
+  end if;
+
   return query select v_quantidade, v_premiada;
 end;
 $$;
