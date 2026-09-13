@@ -20,44 +20,69 @@
 .rpg-panel:has(button[title="Editar"]):has(.text-yellow-300) > button:first-child { border-color: hsl(var(--primary) / 0.4); background: hsl(var(--primary) / 0.12); box-shadow: 0 0 14px hsl(var(--primary) / 0.10), inset 0 0 12px hsl(var(--primary) / 0.08); }
 .rpg-panel:has(button[title="Editar"]):not(:has(.text-yellow-300)) > button:first-child { border-color: hsl(0 72% 51% / 0.4); background: hsl(0 72% 51% / 0.10); color: hsl(0 72% 65%); box-shadow: 0 0 14px hsl(0 72% 51% / 0.08), inset 0 0 12px hsl(0 72% 51% / 0.06); }
 
-/* Cabeçalho da ação */
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child { position: relative; align-items: center; gap: .65rem; padding-right: 4.2rem; }
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) p.text-sm { font-family: 'Rajdhani', sans-serif; font-size: .98rem; font-weight: 700; letter-spacing: .025em; }
+/* Cabeçalho da ação — estrutura atual do JSX */
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child { align-items: center; gap: .65rem; }
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child p.text-sm { font-family: 'Rajdhani', sans-serif; font-size: .98rem; font-weight: 700; letter-spacing: .025em; }
 
-/* CONTROLES: Editar + Excluir são um bloco único, sem espaço */
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"],
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Excluir"] {
-  position: absolute !important;
-  top: 50% !important;
-  z-index: 5;
-  width: 2rem !important;
-  height: 2rem !important;
-  min-width: 2rem !important;
-  margin: 0 !important;
+/* Controles: grupo compacto, com pequeno respiro lateral entre os comandos */
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: .38rem;
+  flex: 0 0 auto;
+  margin-left: .45rem;
+}
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Editar"],
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Excluir"] {
+  position: relative !important;
+  inset: auto !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  min-width: 2.25rem !important;
   padding: 0 !important;
+  margin: 0 !important;
   display: inline-flex !important;
-  flex: 0 0 2rem !important;
   align-items: center;
   justify-content: center;
-  border-radius: .55rem;
-  background: hsl(var(--background) / .42);
-  transform: translateY(-50%);
-  transition: all .18s ease;
+  flex: 0 0 2.25rem !important;
+  border-radius: .68rem;
+  overflow: hidden;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
-
-/* As bordas se encostam: 2rem + 2rem, sem gap */
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"] {
-  right: 2rem !important;
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Editar"] {
   color: hsl(var(--primary));
-  border: 1px solid hsl(var(--primary) / .24);
+  border: 1px solid hsl(var(--primary) / .34);
+  background: linear-gradient(145deg, hsl(var(--primary) / .13), hsl(var(--background) / .55));
+  box-shadow: inset 0 0 12px hsl(var(--primary) / .06), 0 0 0 1px hsl(var(--primary) / .025);
 }
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Excluir"] {
-  right: 0 !important;
-  color: hsl(0 72% 65%);
-  border: 1px solid hsl(0 72% 51% / .22);
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Excluir"] {
+  color: hsl(0 78% 69%);
+  border: 1px solid hsl(0 72% 51% / .34);
+  background: linear-gradient(145deg, hsl(0 72% 51% / .13), hsl(var(--background) / .55));
+  box-shadow: inset 0 0 12px hsl(0 72% 51% / .05), 0 0 0 1px hsl(0 72% 51% / .025);
 }
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"]:hover { background: hsl(var(--primary) / .12); border-color: hsl(var(--primary) / .55); box-shadow: 0 0 12px hsl(var(--primary) / .12); transform: translateY(-50%) translateY(-1px); }
-.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Excluir"]:hover { background: hsl(0 72% 51% / .11); border-color: hsl(0 72% 51% / .52); color: hsl(0 72% 70%); box-shadow: 0 0 12px hsl(0 72% 51% / .10); transform: translateY(-50%) translateY(-1px); }
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button:hover {
+  transform: translateY(-1px) scale(1.045);
+}
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Editar"]:hover {
+  background: linear-gradient(145deg, hsl(var(--primary) / .22), hsl(var(--background) / .65));
+  border-color: hsl(var(--primary) / .68);
+  box-shadow: 0 0 16px hsl(var(--primary) / .16), inset 0 0 12px hsl(var(--primary) / .08);
+}
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Excluir"]:hover {
+  background: linear-gradient(145deg, hsl(0 72% 51% / .20), hsl(var(--background) / .65));
+  border-color: hsl(0 72% 51% / .68);
+  color: hsl(0 82% 76%);
+  box-shadow: 0 0 16px hsl(0 72% 51% / .14), inset 0 0 12px hsl(0 72% 51% / .07);
+}
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button svg {
+  width: 1.05rem !important;
+  height: 1.05rem !important;
+  stroke-width: 2.25;
+  transition: transform .18s ease, filter .18s ease;
+}
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Editar"]:hover svg { transform: rotate(-8deg) scale(1.08); filter: drop-shadow(0 0 5px hsl(var(--primary) / .45)); }
+.rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Excluir"]:hover svg { transform: scale(1.08); filter: drop-shadow(0 0 5px hsl(0 72% 51% / .45)); }
 
 /* Progresso de quantidade */
 .rpg-panel:has(button[title="Editar"]) span.shrink-0.text-primary { padding: .25rem .6rem; border-radius: 999px; background: hsl(var(--primary) / .10); border-color: hsl(var(--primary) / .35); box-shadow: inset 0 0 8px hsl(var(--primary) / .05); font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 800; }
@@ -72,10 +97,9 @@
 @media (max-width: 480px) {
   .rpg-panel:has(button[title="Editar"]) { padding: .8rem; gap: .65rem; }
   .rpg-panel:has(button[title="Editar"]) > button:first-child { width: 2.55rem; height: 2.55rem; }
-  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child { padding-right: 4.2rem; }
-  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"],
-  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Excluir"] { width: 1.9rem !important; height: 1.9rem !important; min-width: 1.9rem !important; flex-basis: 1.9rem !important; }
-  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"] { right: 1.9rem !important; }
-  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Excluir"] { right: 0 !important; }
+  .rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child { gap: .3rem; margin-left: .3rem; }
+  .rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Editar"],
+  .rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button[title="Excluir"] { width: 2.1rem !important; height: 2.1rem !important; min-width: 2.1rem !important; flex-basis: 2.1rem !important; }
+  .rpg-panel:has(button[title="Editar"]) > div:first-child > div:first-child > div:last-child > button svg { width: 1rem !important; height: 1rem !important; }
   .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div.flex.flex-wrap > span { padding: .18rem .45rem; font-size: 8px; }
 }
