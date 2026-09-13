@@ -24,7 +24,7 @@ export default function CantinhoDiario({ area, userId, close }: { area: Area; us
     setLoading(true);
     const r = await supabase.from("cantinho_diarios" as any).select("id,area_id,titulo,conteudo,data,created_at,updated_at").eq("user_id", userId).eq("area_id", area.id).order("data", { ascending: false }).order("created_at", { ascending: false });
     if (r.error) { alert(`Não foi possível carregar o diário: ${r.error.message}`); setLoading(false); return; }
-    setEntries((r.data || []) as Diario[]); setLoading(false);
+    setEntries((r.data || []) as unknown as Diario[]); setLoading(false);
   };
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function CantinhoDiario({ area, userId, close }: { area: Area; us
       const r = await supabase.from("cantinho_diario_preferencias" as any).select("tutorial_visto").eq("user_id", userId).maybeSingle();
       if (!active) return;
       if (r.error) { console.error("Erro ao carregar preferência do tutorial:", r.error); setTutorial(false); setTutorialLoaded(true); return; }
-      setTutorial(r.data?.tutorial_visto !== true);
+      setTutorial((r.data as any)?.tutorial_visto !== true);
       setTutorialLoaded(true);
     })();
     return () => { active = false; };
@@ -55,7 +55,7 @@ export default function CantinhoDiario({ area, userId, close }: { area: Area; us
     const payload = { user_id: userId, area_id: area.id, titulo: title.trim() || `Diário de ${hoje()}`, conteudo: content.trim(), data: selected?.data || isoHoje() };
     const r = selected ? await supabase.from("cantinho_diarios" as any).update(payload).eq("id", selected.id).eq("user_id", userId).select("id,area_id,titulo,conteudo,data,created_at,updated_at").single() : await supabase.from("cantinho_diarios" as any).insert(payload).select("id,area_id,titulo,conteudo,data,created_at,updated_at").single();
     setSaving(false); if (r.error) { alert(`Erro ao salvar diário: ${r.error.message}`); return; }
-    const saved = r.data as Diario; setSelected(saved); setTitle(saved.titulo); setContent(saved.conteudo); await load();
+    const saved = r.data as unknown as Diario; setSelected(saved); setTitle(saved.titulo); setContent(saved.conteudo); await load();
   };
   const del = async () => { if (!selected || !window.confirm("Excluir esta entrada do diário? Esta ação não pode ser desfeita.")) return; const r = await supabase.from("cantinho_diarios" as any).delete().eq("id", selected.id).eq("user_id", userId); if (r.error) { alert(`Erro ao excluir: ${r.error.message}`); return; } setSelected(null); setTitle(""); setContent(""); await load(); };
 
