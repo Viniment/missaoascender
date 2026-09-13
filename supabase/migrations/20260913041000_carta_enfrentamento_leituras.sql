@@ -41,6 +41,7 @@ as $$
 declare
   v_user uuid := auth.uid();
   v_quantidade integer;
+  v_premiada boolean := false;
 begin
   if v_user is null then
     raise exception 'Não autenticado';
@@ -53,7 +54,8 @@ begin
         updated_at = now()
   returning carta_enfrentamento_leituras.quantidade into v_quantidade;
 
-  return query select v_quantidade, v_quantidade <= 3 and v_quantidade > 0;
+  v_premiada := v_quantidade <= 3;
+  return query select v_quantidade, v_premiada;
 end;
 $$;
 
