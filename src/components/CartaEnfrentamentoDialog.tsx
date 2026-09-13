@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { fireReward } from "@/components/fx/RewardBurst";
 import { registrarEnfrentamento, salvarCartaEnfrentamento, type Heroi, type Inimigo, type Habito } from "@/lib/api";
 import { todayISO } from "@/lib/utils";
-import NextMiniVitoriaCard from "@/components/NextMiniVitoriaCard";
 
 type Modo = "vazio" | "ler" | "editar" | "gerando" | "revisar" | "vitoria";
 const FRASES_VITORIA = ["Eu escolhi não me abandonar.", "Eu senti a vontade e não obedeci.", "Eu permaneci leal a quem estou me tornando.", "Eu não troquei meu futuro por alívio.", "Eu venci esta escolha."];
@@ -86,7 +85,6 @@ export default function CartaEnfrentamentoDialog({ open, onClose, heroi, inimigo
   const fecharSeguro = () => { if (modo !== "gerando") onClose(); };
 
   return <>
-    <NextMiniVitoriaCard />
     <AnimatePresence>{open && <motion.div className="fx-essential fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="absolute inset-0 bg-background/90 backdrop-blur-md" onClick={fecharSeguro} />
       <motion.div initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, opacity: 0 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-2xl rpg-panel danger-glow scanlines border-destructive/40 p-4 sm:p-5 space-y-4 max-h-[90vh] overflow-y-auto">
