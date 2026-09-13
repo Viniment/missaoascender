@@ -91,7 +91,6 @@ export default function Dashboard() {
     } catch (e: any) { toast.error(e.message ?? "Erro ao criar ação"); } finally { setCreating(false); }
   };
   const excluirHabito = async (id: string) => { await supabase.from("habitos").update({ ativo: false }).eq("id", id); if (uid) { await recalcularHpMaxInimigo(uid); await qc.invalidateQueries({ queryKey: ["inimigo", uid] }); } await qc.invalidateQueries({ queryKey: ["habitos", uid] }); };
-  if (!heroi) return <Shell><p className="text-muted-foreground">Carregando...</p></Shell>;
 
   // O Player Card precisa contar as mesmas conquistas dinâmicas exibidas em Conquistas.tsx,
   // não apenas as linhas já persistidas na tabela. Assim o número não fica em 1 enquanto a
@@ -99,9 +98,9 @@ export default function Dashboard() {
   const totalConquistas = useMemo(() => {
     const desbloqueadas = new Set((conquistas ?? []).map(c => c.tipo));
     const addIf = (tipo: string, unlocked: boolean) => { if (unlocked) desbloqueadas.add(tipo); };
-    const nivel = heroi.nivel ?? 1;
-    const streak = heroi.streak_atual ?? 0;
-    const ouro = heroi.ouro ?? 0;
+    const nivel = heroi?.nivel ?? 1;
+    const streak = heroi?.streak_atual ?? 0;
+    const ouro = heroi?.ouro ?? 0;
     let diario: any[] = [];
     let maxFast = 0;
     if (uid && typeof window !== "undefined") {
@@ -128,6 +127,8 @@ export default function Dashboard() {
 
     return desbloqueadas.size;
   }, [conquistas, heroi, uid, transacoes]);
+
+  if (!heroi) return <Shell><p className="text-muted-foreground">Carregando...</p></Shell>;
 
   const xpPct = Math.min(100, (heroi.xp_atual / heroi.xp_proximo_nivel) * 100); const hpPct = (heroi.vida_atual / heroi.vida_max) * 100; const enemyPct = inimigo ? (inimigo.hp_atual / inimigo.hp_max) * 100 : 0; const bauAberto = heroi.ultimo_bau_data === todayISO(); const positivos = (habitos ?? []).filter(h => h.tipo === "positivo"); const negativos = (habitos ?? []).filter(h => h.tipo === "negativo");
   return <Shell>

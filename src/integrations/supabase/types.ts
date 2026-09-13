@@ -316,6 +316,7 @@ export type Database = {
           data: string
           habito_id: string
           id: string
+          quantidade_atual: number
           user_id: string
         }
         Insert: {
@@ -324,6 +325,7 @@ export type Database = {
           data?: string
           habito_id: string
           id?: string
+          quantidade_atual?: number
           user_id: string
         }
         Update: {
@@ -332,6 +334,7 @@ export type Database = {
           data?: string
           habito_id?: string
           id?: string
+          quantidade_atual?: number
           user_id?: string
         }
         Relationships: [
@@ -353,7 +356,9 @@ export type Database = {
           peso_dano_cura: number
           peso_ouro: number
           peso_xp: number
+          quantidade_meta: number
           tipo: string
+          tipo_tarefa: string
           updated_at: string
           user_id: string
         }
@@ -365,7 +370,9 @@ export type Database = {
           peso_dano_cura?: number
           peso_ouro?: number
           peso_xp?: number
+          quantidade_meta?: number
           tipo: string
+          tipo_tarefa?: string
           updated_at?: string
           user_id: string
         }
@@ -377,7 +384,9 @@ export type Database = {
           peso_dano_cura?: number
           peso_ouro?: number
           peso_xp?: number
+          quantidade_meta?: number
           tipo?: string
+          tipo_tarefa?: string
           updated_at?: string
           user_id?: string
         }
