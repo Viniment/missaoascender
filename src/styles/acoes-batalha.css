@@ -68,10 +68,12 @@
   box-shadow: 0 0 14px hsl(0 72% 51% / 0.08), inset 0 0 12px hsl(0 72% 51% / 0.06);
 }
 
-/* Cabeçalho da ação: nome/status de um lado, controles do outro */
+/* Cabeçalho da ação */
 .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child {
+  position: relative;
   align-items: center;
   gap: .65rem;
+  padding-right: 5rem;
 }
 
 .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) p.text-sm {
@@ -81,47 +83,51 @@
   letter-spacing: .025em;
 }
 
-/* Grupo dos controles: editar + excluir passam a parecer uma única central de comando */
-.rpg-panel:has(button[title="Editar"]) button[title="Editar"],
-.rpg-panel:has(button[title="Editar"]) button[title="Excluir"] {
+/* Editar + excluir formam um único bloco de comando no canto */
+.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"],
+.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child + button[title="Excluir"] {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
   width: 2rem;
   height: 2rem;
   min-width: 2rem;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: .6rem;
-  border: 1px solid hsl(var(--border) / .75);
   background: hsl(var(--background) / .42);
   transition: all .18s ease;
 }
 
-.rpg-panel:has(button[title="Editar"]) button[title="Editar"] {
+.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"] {
+  right: 2.55rem;
   color: hsl(var(--primary));
-  border-color: hsl(var(--primary) / .24);
+  border: 1px solid hsl(var(--primary) / .24);
 }
 
-.rpg-panel:has(button[title="Editar"]) button[title="Editar"]:hover {
+.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"]:hover {
   background: hsl(var(--primary) / .12);
   border-color: hsl(var(--primary) / .55);
   box-shadow: 0 0 12px hsl(var(--primary) / .12);
-  transform: translateY(-1px);
+  transform: translateY(-50%) translateY(-1px);
 }
 
-.rpg-panel:has(button[title="Editar"]) button[title="Excluir"] {
+.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child + button[title="Excluir"] {
+  right: .2rem;
   color: hsl(0 72% 65%);
-  border-color: hsl(0 72% 51% / .22);
+  border: 1px solid hsl(0 72% 51% / .22);
 }
 
-.rpg-panel:has(button[title="Editar"]) button[title="Excluir"]:hover {
+.rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child + button[title="Excluir"]:hover {
   background: hsl(0 72% 51% / .11);
   border-color: hsl(0 72% 51% / .52);
+  color: hsl(0 72% 70%);
   box-shadow: 0 0 12px hsl(0 72% 51% / .10);
-  transform: translateY(-1px);
+  transform: translateY(-50%) translateY(-1px);
 }
-
-/* Pequena linha divisória visual antes dos controles quando estão juntos */
-.rpg-panel:has(button[title="Editar"]) button[title="Editar"]::before { content: ""; }
 
 /* Progresso de quantidade */
 .rpg-panel:has(button[title="Editar"]) span.shrink-0.text-primary {
@@ -177,7 +183,8 @@
 @media (max-width: 480px) {
   .rpg-panel:has(button[title="Editar"]) { padding: .8rem; gap: .65rem; }
   .rpg-panel:has(button[title="Editar"]) > button:first-child { width: 2.55rem; height: 2.55rem; }
-  .rpg-panel:has(button[title="Editar"]) button[title="Editar"],
-  .rpg-panel:has(button[title="Editar"]) button[title="Excluir"] { width: 1.9rem; height: 1.9rem; min-width: 1.9rem; }
+  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child { padding-right: 4.5rem; }
+  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child > button[title="Editar"] { right: 2.25rem; width: 1.9rem; height: 1.9rem; min-width: 1.9rem; }
+  .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div:first-child + button[title="Excluir"] { right: .15rem; width: 1.9rem; height: 1.9rem; min-width: 1.9rem; }
   .rpg-panel:has(button[title="Editar"]) > div:nth-child(2) > div.flex.flex-wrap > span { padding: .18rem .45rem; font-size: 8px; }
 }
