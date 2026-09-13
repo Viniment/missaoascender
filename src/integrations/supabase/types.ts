@@ -634,6 +634,35 @@ export type Database = {
         }
         Relationships: []
       }
+      presencas_diarias: {
+        Row: {
+          criado_em: string
+          data: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          criado_em?: string
+          data: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          criado_em?: string
+          data?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presencas_diarias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transacoes_ouro: {
         Row: {
           data: string
@@ -866,6 +895,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      registrar_presenca_diaria: { Args: { p_data: string }; Returns: number }
       xp_for_level_reward: { Args: { p_level: number }; Returns: number }
     }
     Enums: {
