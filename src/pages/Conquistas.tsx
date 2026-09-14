@@ -4,19 +4,22 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Shell from "@/components/Shell";
 import { fetchConquistas, fetchHeroi } from "@/lib/api";
+import { getOrMigrateLegacyState } from "@/lib/userState";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, Lock, Brain, Swords, Flame, Coins, Shield, Sparkles, BookOpen, Compass, Waves, CheckCircle2, Gift, Clock3 } from "lucide-react";
 
 type Grupo = "todas" | "mente" | "jornada" | "consistencia" | "batalha" | "riqueza" | "autodomínio" | "jejum";
 type Raridade = "comum" | "rara" | "epica" | "lendaria";
 type Item = { tipo:string; titulo:string; descricao:string; como:string; unlocked:boolean; progresso?:string; percent:number; grupo:Exclude<Grupo,"todas">; raridade:Raridade; icon:any; atributo:string };
+type Session = { id: string; startedAt: string; endedAt: string; minutes: number };
+type ActiveFast = { startedAt: string };
 const GROUPS=[{id:"todas",label:"Todas",icon:Trophy},{id:"jornada",label:"Jornada",icon:Compass},{id:"mente",label:"Mente",icon:Brain},{id:"consistencia",label:"Constância",icon:Flame},{id:"batalha",label:"Batalha",icon:Swords},{id:"autodomínio",label:"Autodomínio",icon:Shield},{id:"riqueza",label:"Riqueza",icon:Coins},{id:"jejum",label:"Jejum",icon:Clock3}] as const;
 const RARITY:Record<Raridade,{label:string;className:string}>={comum:{label:"COMUM",className:"border-border text-muted-foreground"},rara:{label:"RARA",className:"border-cyan-400/50 text-cyan-300"},epica:{label:"ÉPICA",className:"border-purple-400/60 text-purple-300"},lendaria:{label:"LENDÁRIA",className:"border-amber-300/70 text-amber-200"}};
 const JEJUM_MAX_HOURS=21*24;
 const JEJUM_MILESTONES=Array.from({length:Math.floor(JEJUM_MAX_HOURS/8)},(_,i)=>(i+1)*8);
 const JEJUM_TITLES=Object.fromEntries(JEJUM_MILESTONES.map(h=>[h,`${h} Horas de Jejum`])) as Record<number,string>;
 function loadDiary(uid:string){try{return JSON.parse(localStorage.getItem(`ascensao:diario:${uid}`)||"[]") as any[]}catch{return[]}}
-function loadMaxFast(uid:string){try{const s=JSON.parse(localStorage.getItem(`ascensao:jejum:${uid}`)||"[]") as Array<{minutes:number}>;return Math.max(0,...s.map(x=>(x.minutes||0)/60))}catch{return 0}}
+function loadMaxFastLegacy(uid:string){try{const s=JSON.parse(localStorage.getItem(`ascensao:jejum:${uid}`)||"[]") as Array<{minutes:number}>;return Math.max(0,...s.map(x=>(x.minutes||0)/60))}catch{return 0}}
 function rarity(h:number):Raridade{return h>=168?"lendaria":h>=72?"epica":h>=32?"rara":"comum"}
 
 export default function ConquistasPage(){
@@ -24,8 +27,10 @@ export default function ConquistasPage(){
  const {data:cs,isLoading}=useQuery({queryKey:["conq",uid],queryFn:()=>fetchConquistas(uid!),enabled:!!uid});
  const {data:hero}=useQuery({queryKey:["heroi",uid],queryFn:()=>fetchHeroi(uid!),enabled:!!uid});
  const {data:econ}=useQuery({queryKey:["econ-conq",uid],queryFn:async()=>{const {data}=await supabase.from("transacoes_ouro").select("valor,origem").eq("user_id",uid!);const rows=data??[];return{ganho:rows.filter(x=>(x.valor??0)>0).reduce((a,x)=>a+(x.valor??0),0),compras:rows.filter(x=>x.origem==="loja").length}},enabled:!!uid});
- useEffect(()=>{if(uid){setDiary(loadDiary(uid));setMaxFast(loadMaxFast(uid))}},[uid]);
- useEffect(()=>{if(!uid||maxFast<8)return;let cancelled=false;(async()=>{const {error}=await (supabase.rpc as any)("sync_jejum_conquistas",{p_user_id:uid,p_max_hours:maxFast});if(!cancelled&&!error){await qc.invalidateQueries({queryKey:["conq",uid]})}})();return()=>{cancelled=true}},[uid,maxFast,qc]);
+ const {data:fastState}=useQuery({queryKey:["jejum-conquistas",uid],queryFn:async()=>{if(!uid)return{sessions:[] as Session[],active:null as ActiveFast|null};const [sessions,active]=await Promise.all([getOrMigrateLegacyState<Session[]>(uid,"jejum_sessoes",`ascensao:jejum:${uid}`,[]),getOrMigrateLegacyState<ActiveFast|null>(uid,"jejum_ativo",`ascensao:jejum:${uid}:active`,null)]);return{sessions,active}},enabled:!!uid,staleTime:1000});
+ useEffect(()=>{if(uid){setDiary(loadDiary(uid))}},[uid]);
+ useEffect(()=>{if(!uid)return;const sessions=fastState?.sessions??[];const active=fastState?.active;const completedMax=Math.max(0,...sessions.map(s=>(s.minutes||0)/60));const activeHours=active?Math.max(0,(Date.now()-new Date(active.startedAt).getTime())/3600000):0;const currentMax=Math.max(completedMax,activeHours,loadMaxFastLegacy(uid));setMaxFast(currentMax)},[uid,fastState]);
+ useEffect(()=>{if(!uid||maxFast<8)return;let cancelled=false;(async()=>{const {error}=await (supabase.rpc as any)("sync_jejum_conquistas",{p_user_id:uid,p_max_hours:maxFast});if(!cancelled&&!error)await qc.invalidateQueries({queryKey:["conq",uid]})})();return()=>{cancelled=true}},[uid,maxFast,qc]);
  const items=useMemo<Item[]>(()=>{if(!hero)return[];const unlocked=new Set((cs??[]).map(x=>x.tipo));const result:Item[]=[];const add=(tipo:string,titulo:string,desc:string,como:string,current:number,goal:number,grupo:Exclude<Grupo,"todas">,raridade:Raridade,icon:any,atributo:string)=>result.push({tipo,titulo,descricao:desc,como,unlocked:current>=goal||unlocked.has(tipo),progresso:current>=goal||unlocked.has(tipo)?undefined:`${Math.min(current,goal)}/${goal}`,percent:Math.min(100,current/goal*100),grupo,raridade,icon,atributo});const nivel=hero.nivel??1,streak=hero.streak_atual??0,ouro=hero.ouro??0,count=diary.length,dates=new Set(diary.map(x=>x.date)).size,urges=diary.filter(x=>x.type==="urge").length,thoughts=diary.filter(x=>/PENSAMENTO:/i.test(x.text||"")).length,ganho=econ?.ganho??0,compras=econ?.compras??0;
  for(const n of [2,3,4,5,7,10,15,20,30,50,75,100])add(`nivel_${n}`,`Nível ${n}`,`Alcance o nível ${n}.`,`Continue acumulando XP.`,nivel,n,"jornada",n>=50?"lendaria":n>=20?"epica":n>=10?"rara":"comum",Sparkles,"resiliencia");
  for(const n of [1,2,3,5,7,10,15,20,30,45,60,100])add(`diario_${n}`,`Diário ${n}`,`Seu diário faz parte da campanha.`,`Faça ${n} registros.`,count,n,"jornada",n>=30?"epica":n>=10?"rara":"comum",BookOpen,"resiliencia");
