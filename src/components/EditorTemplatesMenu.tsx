@@ -28,10 +28,45 @@ export default function EditorTemplatesMenu({ value, onApply }: Props) {
 
   const saveTemplate = async () => {
     if (!user || !name.trim()) return;
+    const normalizedName = name.trim();
     setSaving(true); setError("");
-    const { data, error: dbError } = await supabase.from("editor_templates" as any).upsert({ user_id: user.id, nome: name.trim(), conteudo_html: value }, { onConflict: "user_id,nome" }).select("id,nome,conteudo_html,updated_at").single();
-    if (dbError) setError(dbError.code === "23505" ? "Já existe um template com esse nome." : "Não foi possível salvar o template.");
-    else { setTemplates(current => [data as Template, ...current.filter(t => t.id !== (data as Template).id)]); setName(""); setMode("list"); }
+
+    // The DB has a unique expression index on lower(trim(nome)), so it
+    // cannot be used as PostgREST's upsert onConflict target.
+    const existing = templates.find(t => t.nome.trim().toLowerCase() === normalizedName.toLowerCase());
+
+    if (existing) {
+      const { data, error: dbError } = await supabase
+        .from("editor_templates" as any)
+        .update({ nome: normalizedName, conteudo_html: value })
+        .eq("id", existing.id)
+        .eq("user_id", user.id)
+        .select("id,nome,conteudo_html,updated_at")
+        .single();
+
+      if (dbError) setError("Não foi possível salvar o template.");
+      else {
+        const updated = data as Template;
+        setTemplates(current => [updated, ...current.filter(t => t.id !== updated.id)].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
+        setName(""); setMode("list");
+      }
+      setSaving(false);
+      return;
+    }
+
+    const { data, error: dbError } = await supabase
+      .from("editor_templates" as any)
+      .insert({ user_id: user.id, nome: normalizedName, conteudo_html: value })
+      .select("id,nome,conteudo_html,updated_at")
+      .single();
+
+    if (dbError) {
+      setError(dbError.code === "23505" ? "Já existe um template com esse nome." : "Não foi possível salvar o template.");
+    } else {
+      const created = data as Template;
+      setTemplates(current => [created, ...current]);
+      setName(""); setMode("list");
+    }
     setSaving(false);
   };
   const applyTemplate = (template: Template) => {
