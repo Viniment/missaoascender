@@ -213,6 +213,41 @@ export type Database = {
           },
         ]
       }
+      carta_enfrentamento_leituras: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          quantidade: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          quantidade?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          quantidade?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carta_enfrentamento_leituras_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conquista_recompensas: {
         Row: {
           atributo: string
@@ -1037,6 +1072,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      registrar_leitura_carta_enfrentamento: {
+        Args: { p_data?: string }
+        Returns: {
+          premiada: boolean
+          quantidade: number
+        }[]
       }
       registrar_presenca_diaria: { Args: { p_data: string }; Returns: number }
       xp_for_level_reward: { Args: { p_level: number }; Returns: number }
