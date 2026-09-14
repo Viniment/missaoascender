@@ -7,6 +7,105 @@
     <meta name="description" content="New LifeUp: RPG de hábitos. Derrote o inimigo interno que sabota seus sonhos, ganhe XP, ouro e nível construindo hábitos reais.">
     <meta name="author" content="Lovable" />
 
+    <!-- Estilos globais do editor rico: comportamento visual inspirado em Word -->
+    <style>
+      .rich-notes-editor h1,
+      .rich-notes-editor h2,
+      .rich-notes-editor h3 {
+        display: block;
+        font-weight: 800 !important;
+        line-height: 1.18 !important;
+        letter-spacing: -0.02em;
+        color: #fff;
+      }
+
+      /* Quanto menor o número, maior o título. */
+      .rich-notes-editor h1 {
+        font-size: 2rem !important;
+        margin: 1.25rem 0 .65rem !important;
+      }
+      .rich-notes-editor h2 {
+        font-size: 1.55rem !important;
+        margin: 1.05rem 0 .55rem !important;
+      }
+      .rich-notes-editor h3 {
+        font-size: 1.25rem !important;
+        margin: .9rem 0 .45rem !important;
+      }
+
+      .rich-notes-editor p {
+        margin: .35rem 0;
+        line-height: 1.65;
+      }
+
+      /* Citação: bloco destacado, com aspas decorativas ao redor do conteúdo. */
+      .rich-notes-editor blockquote {
+        position: relative;
+        margin: 1rem 0;
+        padding: .85rem 1.15rem .85rem 1.35rem;
+        border-left: 4px solid rgba(217, 70, 239, .75);
+        border-radius: 0 14px 14px 0;
+        background: linear-gradient(90deg, rgba(217, 70, 239, .12), rgba(255,255,255,.025));
+        color: rgba(255,255,255,.78);
+        font-style: italic;
+        box-shadow: inset 0 0 28px rgba(217,70,239,.045);
+      }
+      .rich-notes-editor blockquote::before {
+        content: "“";
+        display: inline;
+        margin-right: .25rem;
+        color: rgba(232,121,249,.9);
+        font-size: 1.65em;
+        font-weight: 900;
+        line-height: 0;
+        vertical-align: -.2em;
+      }
+      .rich-notes-editor blockquote::after {
+        content: "”";
+        display: inline;
+        margin-left: .2rem;
+        color: rgba(232,121,249,.9);
+        font-size: 1.65em;
+        font-weight: 900;
+        line-height: 0;
+        vertical-align: -.2em;
+      }
+
+      /* Código: aparência de bloco de código real, separado do texto comum. */
+      .rich-notes-editor pre {
+        display: block;
+        margin: 1rem 0;
+        padding: 1rem 1.1rem;
+        overflow-x: auto;
+        border: 1px solid rgba(139,92,246,.28);
+        border-radius: 14px;
+        background: #11111a;
+        color: #e9d5ff;
+        font-family: "Courier New", Courier, monospace !important;
+        font-size: .9rem !important;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        box-shadow: inset 0 0 24px rgba(0,0,0,.35), 0 6px 24px rgba(0,0,0,.18);
+      }
+
+      .rich-notes-editor pre code {
+        font-family: inherit !important;
+        color: inherit;
+      }
+
+      .rich-notes-editor h1:first-child,
+      .rich-notes-editor h2:first-child,
+      .rich-notes-editor h3:first-child {
+        margin-top: .15rem !important;
+      }
+
+      @media (max-width: 640px) {
+        .rich-notes-editor h1 { font-size: 1.7rem !important; }
+        .rich-notes-editor h2 { font-size: 1.4rem !important; }
+        .rich-notes-editor h3 { font-size: 1.18rem !important; }
+      }
+    </style>
+
     <!-- TODO: Update og:title to match your application name -->
     
     
