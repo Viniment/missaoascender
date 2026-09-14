@@ -21,7 +21,7 @@ export default function EditorTemplatesMenu({ value, onApply }: Props) {
     if (!user) return;
     setLoading(true); setError("");
     const { data, error: dbError } = await supabase.from("editor_templates" as any).select("id,nome,conteudo_html,updated_at").eq("user_id", user.id).order("updated_at", { ascending: false });
-    if (dbError) setError("Não foi possível carregar os templates."); else setTemplates((data ?? []) as Template[]);
+    if (dbError) setError(`Não foi possível carregar os templates: ${dbError.message}`); else setTemplates((data ?? []) as Template[]);
     setLoading(false);
   };
   useEffect(() => { if (open) loadTemplates(); }, [open, user?.id]);
@@ -31,53 +31,48 @@ export default function EditorTemplatesMenu({ value, onApply }: Props) {
     const normalizedName = name.trim();
     setSaving(true); setError("");
 
-    // The DB has a unique expression index on lower(trim(nome)), so it
-    // cannot be used as PostgREST's upsert onConflict target.
     const existing = templates.find(t => t.nome.trim().toLowerCase() === normalizedName.toLowerCase());
 
     if (existing) {
-      const { data, error: dbError } = await supabase
+      const { error: dbError } = await supabase
         .from("editor_templates" as any)
         .update({ nome: normalizedName, conteudo_html: value })
         .eq("id", existing.id)
-        .eq("user_id", user.id)
-        .select("id,nome,conteudo_html,updated_at")
-        .single();
+        .eq("user_id", user.id);
 
-      if (dbError) setError("Não foi possível salvar o template.");
-      else {
-        const updated = data as Template;
-        setTemplates(current => [updated, ...current.filter(t => t.id !== updated.id)].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
-        setName(""); setMode("list");
+      if (dbError) {
+        setError(`Não foi possível salvar o template: ${dbError.message}`);
+      } else {
+        setName(""); setMode("list"); await loadTemplates();
       }
       setSaving(false);
       return;
     }
 
-    const { data, error: dbError } = await supabase
+    const { error: dbError } = await supabase
       .from("editor_templates" as any)
-      .insert({ user_id: user.id, nome: normalizedName, conteudo_html: value })
-      .select("id,nome,conteudo_html,updated_at")
-      .single();
+      .insert({ user_id: user.id, nome: normalizedName, conteudo_html: value });
 
     if (dbError) {
-      setError(dbError.code === "23505" ? "Já existe um template com esse nome." : "Não foi possível salvar o template.");
+      setError(dbError.code === "23505"
+        ? "Já existe um template com esse nome."
+        : `Não foi possível salvar o template: ${dbError.message}`);
     } else {
-      const created = data as Template;
-      setTemplates(current => [created, ...current]);
-      setName(""); setMode("list");
+      setName(""); setMode("list"); await loadTemplates();
     }
     setSaving(false);
   };
+
   const applyTemplate = (template: Template) => {
     if (value.replace(/<[^>]*>/g, "").trim() && !window.confirm(`Aplicar “${template.nome}” vai substituir o conteúdo atual do editor.\n\nDeseja continuar?`)) return;
     onApply(template.conteudo_html); setOpen(false);
   };
+
   const deleteTemplate = async (template: Template) => {
     if (!window.confirm(`Excluir o template “${template.nome}”?`)) return;
     setSelectedId(template.id);
     const { error: dbError } = await supabase.from("editor_templates" as any).delete().eq("id", template.id).eq("user_id", user?.id);
-    if (dbError) setError("Não foi possível excluir o template."); else setTemplates(current => current.filter(t => t.id !== template.id));
+    if (dbError) setError(`Não foi possível excluir o template: ${dbError.message}`); else setTemplates(current => current.filter(t => t.id !== template.id));
     setSelectedId(null);
   };
 
