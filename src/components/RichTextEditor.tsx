@@ -82,9 +82,32 @@ export default function RichTextEditor({ value, onChange, placeholder = "Escreva
   const restoreSelection = () => { if (!savedSelection.current || !ref.current) return; const sel=window.getSelection(); sel?.removeAllRanges(); sel?.addRange(savedSelection.current); syncActive(); };
   const command = (name:string,arg?:string) => { restoreSelection(); exec(name,arg); ref.current?.focus(); emit(); syncActive(); window.setTimeout(rememberSelection,0); };
 
-  // Choosing a block type is a structural action and overrides manual font-size styling.
-  const applyBlock = (type:string) => { restoreSelection(); exec("formatBlock",`<${type}>`); ref.current?.focus(); emit(); syncActive(); window.setTimeout(rememberSelection,0); };
-  // Choosing font size/font is a more recent direct text-style action, so headings become normal text.
+  // Every block type owns a fixed preset. Changing type resets size/weight/style from the previous block.
+  const applyBlock = (type:string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    const anchor = sel?.anchorNode;
+    const block = anchor instanceof Element ? anchor.closest("p,h1,h2,h3,h4,h5,h6,blockquote,pre") : anchor?.parentElement?.closest("p,h1,h2,h3,h4,h5,h6,blockquote,pre");
+    if (block) {
+      block.querySelectorAll("font").forEach(font => {
+        font.removeAttribute("size");
+        (font as HTMLElement).style.removeProperty("font-size");
+        (font as HTMLElement).style.removeProperty("font-weight");
+      });
+      block.querySelectorAll("[style]").forEach(el => {
+        const node = el as HTMLElement;
+        node.style.removeProperty("font-size");
+        node.style.removeProperty("font-weight");
+        if (!node.getAttribute("style")?.trim()) node.removeAttribute("style");
+      });
+    }
+    exec("formatBlock",`<${type}>`);
+    ref.current?.focus();
+    emit();
+    syncActive();
+    window.setTimeout(rememberSelection,0);
+  };
+  // Manual size/font is still the most recent direct formatting action and converts headings to normal text.
   const applySize = (size:string) => { restoreSelection(); const block=String(document.queryCommandValue("formatBlock")||"p").replace(/[<>]/g,"").toLowerCase(); if(/^h[1-6]$/.test(block)) exec("formatBlock","<p>"); exec("fontSize",size); ref.current?.focus(); emit(); syncActive(); window.setTimeout(rememberSelection,0); };
   const applyFont = (font:string) => { restoreSelection(); const block=String(document.queryCommandValue("formatBlock")||"p").replace(/[<>]/g,"").toLowerCase(); if(/^h[1-6]$/.test(block)) exec("formatBlock","<p>"); exec("fontName",font); ref.current?.focus(); emit(); syncActive(); window.setTimeout(rememberSelection,0); };
   const link=()=>{restoreSelection();const url=window.prompt("URL do link:","https://");if(url)exec("createLink",url);ref.current?.focus();emit();syncActive();};
