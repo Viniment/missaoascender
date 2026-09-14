@@ -30,36 +30,16 @@ export default function EditorTemplatesMenu({ value, onApply }: Props) {
     if (!user || !name.trim()) return;
     const normalizedName = name.trim();
     setSaving(true); setError("");
-
     const existing = templates.find(t => t.nome.trim().toLowerCase() === normalizedName.toLowerCase());
-
     if (existing) {
-      const { error: dbError } = await supabase
-        .from("editor_templates" as any)
-        .update({ nome: normalizedName, conteudo_html: value })
-        .eq("id", existing.id)
-        .eq("user_id", user.id);
-
-      if (dbError) {
-        setError(`Não foi possível salvar o template: ${dbError.message}`);
-      } else {
-        setName(""); setMode("list"); await loadTemplates();
-      }
-      setSaving(false);
-      return;
+      const { error: dbError } = await supabase.from("editor_templates" as any).update({ nome: normalizedName, conteudo_html: value }).eq("id", existing.id).eq("user_id", user.id);
+      if (dbError) setError(`Não foi possível salvar o template: ${dbError.message}`);
+      else { setName(""); setMode("list"); await loadTemplates(); }
+      setSaving(false); return;
     }
-
-    const { error: dbError } = await supabase
-      .from("editor_templates" as any)
-      .insert({ user_id: user.id, nome: normalizedName, conteudo_html: value });
-
-    if (dbError) {
-      setError(dbError.code === "23505"
-        ? "Já existe um template com esse nome."
-        : `Não foi possível salvar o template: ${dbError.message}`);
-    } else {
-      setName(""); setMode("list"); await loadTemplates();
-    }
+    const { error: dbError } = await supabase.from("editor_templates" as any).insert({ user_id: user.id, nome: normalizedName, conteudo_html: value });
+    if (dbError) setError(dbError.code === "23505" ? "Já existe um template com esse nome." : `Não foi possível salvar o template: ${dbError.message}`);
+    else { setName(""); setMode("list"); await loadTemplates(); }
     setSaving(false);
   };
 
@@ -69,11 +49,27 @@ export default function EditorTemplatesMenu({ value, onApply }: Props) {
   };
 
   const deleteTemplate = async (template: Template) => {
+    if (!user) { setError("Não foi possível identificar o usuário atual."); return; }
     if (!window.confirm(`Excluir o template “${template.nome}”?`)) return;
-    setSelectedId(template.id);
-    const { error: dbError } = await supabase.from("editor_templates" as any).delete().eq("id", template.id).eq("user_id", user?.id);
-    if (dbError) setError(`Não foi possível excluir o template: ${dbError.message}`); else setTemplates(current => current.filter(t => t.id !== template.id));
-    setSelectedId(null);
+    setSelectedId(template.id); setError("");
+    try {
+      // A política RLS da tabela já garante que somente o dono pode excluir.
+      const { data, error: dbError } = await supabase.from("editor_templates" as any).delete().eq("id", template.id).select("id");
+      if (dbError) {
+        setError(`Não foi possível excluir o template: ${dbError.message}`);
+        return;
+      }
+      if (!data || data.length === 0) {
+        setError("O template não foi excluído. Verifique as permissões da tabela editor_templates.");
+        await loadTemplates();
+        return;
+      }
+      await loadTemplates();
+    } catch (err) {
+      setError(`Não foi possível excluir o template: ${err instanceof Error ? err.message : "erro desconhecido"}`);
+    } finally {
+      setSelectedId(null);
+    }
   };
 
   return <div className="relative">
