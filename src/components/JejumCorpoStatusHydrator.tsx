@@ -14,114 +14,21 @@ type Phase = {
 };
 
 const PHASES: Phase[] = [
-  {
-    max: 4,
-    title: "Energia da Última Refeição",
-    summary: "Seu corpo ainda está usando principalmente a energia que acabou de receber.",
-    icon: Activity,
-    detail: "Nesse início, a energia da refeição recente ainda tem grande participação no abastecimento do organismo.",
-    benefit: "⚡ Foco: utilização da energia recém-disponibilizada.",
-    note: "A transição entre fontes de energia é gradual e varia de pessoa para pessoa.",
-  },
-  {
-    max: 8,
-    title: "Começando a Usar Reservas",
-    summary: "A energia da refeição anterior vai diminuindo e o corpo começa a recorrer mais às próprias reservas.",
-    icon: Gauge,
-    detail: "Conforme a energia da última refeição deixa de ser a principal fonte, o organismo aumenta progressivamente o uso das reservas armazenadas.",
-    benefit: "🔋 Foco: transição gradual para as reservas energéticas.",
-    note: "O momento exato dessa mudança depende da refeição anterior, atividade física e metabolismo individual.",
-  },
-  {
-    max: 12,
-    title: "Modo Queima de Gordura",
-    summary: "A utilização de gordura como combustível começa a ganhar espaço.",
-    icon: Flame,
-    detail: "A mobilização de ácidos graxos do tecido adiposo aumenta e a gordura passa a participar mais do fornecimento de energia.",
-    benefit: "🔥 Foco: maior utilização de gordura como combustível.",
-    note: "Usar mais gordura como combustível durante o jejum não significa, sozinho, perda líquida de gordura corporal.",
-  },
-  {
-    max: 16,
-    title: "Troca de Combustível",
-    summary: "O corpo aumenta gradualmente a participação da gordura enquanto reduz a dependência do glicogênio.",
-    icon: Zap,
-    detail: "O organismo começa a mudar a proporção entre suas fontes de energia, aumentando a oxidação de gordura conforme o jejum avança.",
-    benefit: "🔄 Foco: adaptação progressiva para outras fontes de energia.",
-    note: "Não existe uma hora exata em que essa troca acontece igual para todas as pessoas.",
-  },
-  {
-    max: 20,
-    title: "Cetonas Entrando em Cena",
-    summary: "O fígado começa a produzir mais cetonas a partir da gordura.",
-    icon: Zap,
-    detail: "Parte dos ácidos graxos é convertida pelo fígado em corpos cetônicos, que passam a ampliar as fontes de energia disponíveis.",
-    benefit: "⚡ Foco: produção crescente de um combustível alternativo.",
-    note: "A velocidade e a intensidade da produção de cetonas variam bastante entre pessoas.",
-  },
-  {
-    max: 24,
-    title: "Gordura Ganhando Espaço",
-    summary: "A gordura e a produção interna de glicose assumem um papel cada vez mais importante.",
-    icon: Flame,
-    detail: "Com o avanço do jejum, a mobilização de gordura aumenta e a produção interna de glicose ganha importância para manter a glicemia.",
-    benefit: "🔥 Foco: gordura participando cada vez mais do fornecimento de energia.",
-    note: "Maior uso de gordura durante o jejum não significa necessariamente maior perda de gordura corporal no resultado final.",
-  },
-  {
-    max: 36,
-    title: "Combustível Alternativo",
-    summary: "Gordura e cetonas ganham ainda mais importância como fontes de energia.",
-    icon: Zap,
-    detail: "O organismo passa a depender mais da oxidação de gordura e da produção de corpos cetônicos, enquanto a gliconeogênese ajuda a manter a glicose disponível.",
-    benefit: "⚡ Foco: adaptação a uma disponibilidade menor de energia alimentar.",
-    note: "A resposta individual pode ser bastante diferente nessa faixa de duração.",
-  },
-  {
-    max: 48,
-    title: "Modo Cetônico",
-    summary: "As cetonas podem estar mais elevadas e o cérebro passa a aproveitá-las mais.",
-    icon: Brain,
-    detail: "Com o prolongamento do jejum, o cérebro aumenta progressivamente o aproveitamento de corpos cetônicos como combustível.",
-    benefit: "🧠 Foco: maior participação das cetonas no metabolismo energético.",
-    note: "Os níveis de cetonas apresentam grande variação individual.",
-  },
-  {
-    max: 72,
-    title: "Corpo se Adaptando",
-    summary: "A utilização de gordura e cetonas ganha ainda mais importância durante o jejum prolongado.",
-    icon: Activity,
-    detail: "O organismo continua ajustando o uso de gordura, cetonas e produção interna de glicose para lidar com a ausência prolongada de alimento.",
-    benefit: "🧬 Foco: adaptação metabólica progressiva.",
-    note: "Jejuns prolongados têm características e riscos diferentes de jejuns curtos.",
-  },
-  {
-    max: 120,
-    title: "Adaptação ao Jejum Prolongado",
-    summary: "O organismo permanece adaptado à baixa disponibilidade de energia e depende mais de gordura e cetonas.",
-    icon: ShieldCheck,
-    detail: "A utilização de gordura e cetonas continua relevante, enquanto o organismo mantém mecanismos para fornecer glicose aos tecidos que precisam dela.",
-    benefit: "🛡️ Foco: manutenção das funções essenciais durante a baixa disponibilidade energética.",
-    note: "Quanto maior a duração do jejum, maior a importância de considerar segurança e acompanhamento adequado.",
-  },
-  {
-    max: Infinity,
-    title: "Adaptação Prolongada",
-    summary: "O corpo mantém mecanismos de utilização de gordura, cetonas e produção contínua de glicose.",
-    icon: HeartPulse,
-    detail: "Em jejuns muito prolongados, o organismo continua utilizando gordura e cetonas e produzindo glicose internamente para sustentar os tecidos que dependem dela.",
-    benefit: "❤️ Foco: preservar o funcionamento do organismo diante da baixa disponibilidade energética.",
-    note: "Jejuns muito prolongados não devem ser tratados como uma simples extensão de um jejum comum.",
-  },
+  { max: 4, title: "Energia da Última Refeição", summary: "Seu corpo ainda está usando principalmente a energia que acabou de receber.", icon: Activity, detail: "Nesse início, a energia da refeição recente ainda tem grande participação no abastecimento do organismo.", benefit: "⚡ Foco: utilização da energia recém-disponibilizada.", note: "A transição entre fontes de energia é gradual e varia de pessoa para pessoa." },
+  { max: 8, title: "Começando a Usar Reservas", summary: "A energia da refeição anterior vai diminuindo e o corpo começa a recorrer mais às próprias reservas.", icon: Gauge, detail: "Conforme a energia da última refeição deixa de ser a principal fonte, o organismo aumenta progressivamente o uso das reservas armazenadas.", benefit: "🔋 Foco: transição gradual para as reservas energéticas.", note: "O momento exato dessa mudança depende da refeição anterior, atividade física e metabolismo individual." },
+  { max: 12, title: "Modo Queima de Gordura", summary: "A utilização de gordura como combustível começa a ganhar espaço.", icon: Flame, detail: "A mobilização de ácidos graxos do tecido adiposo aumenta e a gordura passa a participar mais do fornecimento de energia.", benefit: "🔥 Foco: maior utilização de gordura como combustível.", note: "Usar mais gordura como combustível durante o jejum não significa, sozinho, perda líquida de gordura corporal." },
+  { max: 16, title: "Troca de Combustível", summary: "O corpo aumenta gradualmente a participação da gordura enquanto reduz a dependência do glicogênio.", icon: Zap, detail: "O organismo começa a mudar a proporção entre suas fontes de energia, aumentando a oxidação de gordura conforme o jejum avança.", benefit: "🔄 Foco: adaptação progressiva para outras fontes de energia.", note: "Não existe uma hora exata em que essa troca acontece igual para todas as pessoas." },
+  { max: 20, title: "Cetonas Entrando em Cena", summary: "O fígado começa a produzir mais cetonas a partir da gordura.", icon: Zap, detail: "Parte dos ácidos graxos é convertida pelo fígado em corpos cetônicos, que passam a ampliar as fontes de energia disponíveis.", benefit: "⚡ Foco: produção crescente de um combustível alternativo.", note: "A velocidade e a intensidade da produção de cetonas variam bastante entre pessoas." },
+  { max: 24, title: "Gordura Ganhando Espaço", summary: "A gordura e a produção interna de glicose assumem um papel cada vez mais importante.", icon: Flame, detail: "Com o avanço do jejum, a mobilização de gordura aumenta e a produção interna de glicose ganha importância para manter a glicemia.", benefit: "🔥 Foco: gordura participando cada vez mais do fornecimento de energia.", note: "Maior uso de gordura durante o jejum não significa necessariamente maior perda de gordura corporal no resultado final." },
+  { max: 36, title: "Combustível Alternativo", summary: "Gordura e cetonas ganham ainda mais importância como fontes de energia.", icon: Zap, detail: "O organismo passa a depender mais da oxidação de gordura e da produção de corpos cetônicos, enquanto a gliconeogênese ajuda a manter a glicose disponível.", benefit: "⚡ Foco: adaptação a uma disponibilidade menor de energia alimentar.", note: "A resposta individual pode ser bastante diferente nessa faixa de duração." },
+  { max: 48, title: "Modo Cetônico", summary: "As cetonas podem estar mais elevadas e o cérebro passa a aproveitá-las mais.", icon: Brain, detail: "Com o prolongamento do jejum, o cérebro aumenta progressivamente o aproveitamento de corpos cetônicos como combustível.", benefit: "🧠 Foco: maior participação das cetonas no metabolismo energético.", note: "Os níveis de cetonas apresentam grande variação individual." },
+  { max: 72, title: "Corpo se Adaptando", summary: "A utilização de gordura e cetonas ganha ainda mais importância durante o jejum prolongado.", icon: Activity, detail: "O organismo continua ajustando o uso de gordura, cetonas e produção interna de glicose para lidar com a ausência prolongada de alimento.", benefit: "🧬 Foco: adaptação metabólica progressiva.", note: "Jejuns prolongados têm características e riscos diferentes de jejuns curtos." },
+  { max: 120, title: "Adaptação ao Jejum Prolongado", summary: "O organismo permanece adaptado à baixa disponibilidade de energia e depende mais de gordura e cetonas.", icon: ShieldCheck, detail: "A utilização de gordura e cetonas continua relevante, enquanto o organismo mantém mecanismos para fornecer glicose aos tecidos que precisam dela.", benefit: "🛡️ Foco: manutenção das funções essenciais durante a baixa disponibilidade energética.", note: "Quanto maior a duração do jejum, maior a importância de considerar segurança e acompanhamento adequado." },
+  { max: Infinity, title: "Adaptação Prolongada", summary: "O corpo mantém mecanismos de utilização de gordura, cetonas e produção contínua de glicose.", icon: HeartPulse, detail: "Em jejuns muito prolongados, o organismo continua utilizando gordura e cetonas e produzindo glicose internamente para sustentar os tecidos que dependem dela.", benefit: "❤️ Foco: preservar o funcionamento do organismo diante da baixa disponibilidade energética.", note: "Jejuns muito prolongados não devem ser tratados como uma simples extensão de um jejum comum." },
 ];
 
-function phaseFor(hours: number) {
-  return PHASES.find((phase) => hours < phase.max) ?? PHASES[PHASES.length - 1];
-}
-
-function minutesBetween(a: string, b: string) {
-  return Math.max(0, Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 60000));
-}
+function phaseFor(hours: number) { return PHASES.find((phase) => hours < phase.max) ?? PHASES[PHASES.length - 1]; }
+function minutesBetween(a: string, b: string) { return Math.max(0, Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 60000)); }
 
 export default function JejumCorpoStatusHydrator({ userId }: { userId: string }) {
   const [host, setHost] = useState<HTMLElement | null>(null);
@@ -133,25 +40,13 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
   useEffect(() => {
     const findHost = () => {
       const candidates = Array.from(document.querySelectorAll("div.rounded-xl.border.border-primary\\/25.bg-primary\\/5"));
-      const el = candidates.find(
-        (node) => node.textContent?.includes("O QUE ESTÁ ACONTECENDO") || node.textContent?.includes("FASE ATUAL"),
-      ) as HTMLElement | undefined;
-
-      if (!el) {
-        setHost(null);
-        return;
-      }
-
+      const el = candidates.find((node) => node.textContent?.includes("O QUE ESTÁ ACONTECENDO") || node.textContent?.includes("FASE ATUAL")) as HTMLElement | undefined;
+      if (!el) { setHost(null); return; }
       el.style.display = "none";
       let mount = el.parentElement?.querySelector("[data-jejum-corpo-status]") as HTMLElement | null;
-      if (!mount && el.parentElement) {
-        mount = document.createElement("div");
-        mount.dataset.jejumCorpoStatus = "1";
-        el.parentElement.insertBefore(mount, el.nextSibling);
-      }
+      if (!mount && el.parentElement) { mount = document.createElement("div"); mount.dataset.jejumCorpoStatus = "1"; el.parentElement.insertBefore(mount, el.nextSibling); }
       setHost(mount);
     };
-
     findHost();
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });
@@ -164,21 +59,12 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
         supabase.from("jejum_ativo").select("inicio").eq("user_id", userId).maybeSingle(),
         supabase.from("jejum_sessoes").select("inicio,fim,minutos").eq("user_id", userId).order("inicio", { ascending: false }),
       ]);
-
       setActiveStart(active?.inicio ?? null);
       setMaxHours(Math.max(0, ...(sessions ?? []).map((session: any) => Number(session.minutos ?? 0) / 60)));
     };
-
     void load();
-    const channel = supabase
-      .channel(`jejum-corpo-status-${userId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "jejum_ativo", filter: `user_id=eq.${userId}` }, () => void load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "jejum_sessoes", filter: `user_id=eq.${userId}` }, () => void load())
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    const channel = supabase.channel(`jejum-corpo-status-${userId}`).on("postgres_changes", { event: "*", schema: "public", table: "jejum_ativo", filter: `user_id=eq.${userId}` }, () => void load()).on("postgres_changes", { event: "*", schema: "public", table: "jejum_sessoes", filter: `user_id=eq.${userId}` }, () => void load()).subscribe();
+    return () => { void supabase.removeChannel(channel); };
   }, [userId]);
 
   useEffect(() => {
@@ -191,61 +77,34 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
   const hours = minutes / 60;
   const phase = useMemo(() => phaseFor(hours), [hours]);
   const Icon = phase.icon;
-
   if (!host) return null;
 
   return createPortal(
     <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.045] via-background/20 to-background/5 p-3.5 shadow-[0_12px_40px_-28px_hsl(var(--primary)/0.5)]">
       <div className="mb-3.5 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
-          <HeartPulse className="h-4 w-4 text-primary" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-semibold uppercase tracking-[.25em] text-primary">COMO SEU CORPO ESTÁ REAGINDO</p>
-          <p className="mt-0.5 text-[8px] uppercase tracking-[.14em] text-muted-foreground/70">Etapa atual do seu jejum</p>
-        </div>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10"><HeartPulse className="h-4 w-4 text-primary" /></div>
+        <div className="min-w-0 flex-1"><p className="text-[9px] font-semibold uppercase tracking-[.25em] text-primary">COMO SEU CORPO ESTÁ REAGINDO</p><p className="mt-0.5 text-[8px] uppercase tracking-[.14em] text-muted-foreground/70">Etapa atual do seu jejum</p></div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setExpanded((current) => !current)}
-        className={`group w-full overflow-hidden rounded-xl border text-left transition-all duration-200 ${expanded ? "border-primary/35 bg-primary/[0.045] shadow-[0_8px_28px_-22px_hsl(var(--primary)/0.65)]" : "border-border/55 bg-background/25 hover:border-primary/20 hover:bg-background/40"}`}
-        aria-expanded={expanded}
-      >
+      <button type="button" onClick={() => setExpanded((current) => !current)} className={`group w-full overflow-hidden rounded-xl border text-left transition-all duration-200 ${expanded ? "border-primary/35 bg-primary/[0.045] shadow-[0_8px_28px_-22px_hsl(var(--primary)/0.65)]" : "border-border/55 bg-background/25 hover:border-primary/20 hover:bg-background/40"}`} aria-expanded={expanded}>
         <div className="flex items-center gap-3 px-3.5 py-3.5">
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${expanded ? "border-primary/30 bg-primary/10" : "border-border/50 bg-background/35 group-hover:border-primary/20"}`}>
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold leading-tight tracking-wide text-foreground/95">{phase.title}</p>
-            <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{phase.summary}</p>
-          </div>
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${expanded ? "border-primary/30 bg-primary/10" : "border-border/50 bg-background/35 group-hover:border-primary/20"}`}><Icon className="h-5 w-5 text-primary" /></div>
+          <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold leading-tight tracking-wide text-foreground/95">{phase.title}</p><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{phase.summary}</p></div>
           <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground/70 transition-transform duration-200 ${expanded ? "rotate-180 text-primary" : ""}`} />
         </div>
 
         {expanded && (
           <div className="border-t border-primary/10 px-3.5 pb-3.5 pt-3">
             <div className="rounded-lg border border-primary/10 bg-background/35 p-3">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[8px] font-semibold uppercase tracking-[.2em] text-primary">Estado agora</p>
-                <span className="rounded-full border border-primary/15 bg-primary/5 px-2 py-1 text-[8px] text-primary">
-                  {activeStart ? "Jejum em andamento" : "Último jejum registrado"}
-                </span>
-              </div>
+              <div className="flex items-center justify-between gap-3"><p className="text-[8px] font-semibold uppercase tracking-[.2em] text-primary">Estado agora</p><span className="rounded-full border border-primary/15 bg-primary/5 px-2 py-1 text-[8px] text-primary">{activeStart ? "Jejum em andamento" : "Último jejum registrado"}</span></div>
               <p className="mt-2 text-[10px] leading-relaxed text-foreground/85">{phase.detail}</p>
               <p className="mt-2.5 text-[10px] font-medium leading-relaxed text-foreground/80">{phase.benefit}</p>
               <p className="mt-2 border-t border-border/40 pt-2 text-[9px] leading-relaxed text-muted-foreground">{phase.note}</p>
             </div>
 
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 text-[9px]">
-              <div className="rounded-xl border border-border/45 bg-background/20 p-3">
-                <div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div>
-                <p className="mt-1.5 leading-relaxed text-muted-foreground">Esta é a etapa correspondente ao tempo atual do seu jejum. A transição metabólica é progressiva, não um cronômetro biológico exato.</p>
-              </div>
-              <div className="rounded-xl border border-border/45 bg-background/20 p-3">
-                <div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div>
-                <p className="mt-1.5 leading-relaxed text-muted-foreground">Refeição anterior, atividade física, estoque de glicogênio e metabolismo individual podem alterar a velocidade dessas mudanças.</p>
-              </div>
+            <div className="mt-2 space-y-2 text-[9px]">
+              <div className="rounded-xl border border-border/45 bg-background/20 p-3"><div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div><p className="mt-1.5 leading-relaxed text-muted-foreground">Esta é a etapa correspondente ao tempo atual do seu jejum. A transição metabólica é progressiva, não um cronômetro biológico exato.</p></div>
+              <div className="rounded-xl border border-border/45 bg-background/20 p-3"><div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div><p className="mt-1.5 leading-relaxed text-muted-foreground">Refeição anterior, atividade física, estoque de glicogênio e metabolismo individual podem alterar a velocidade dessas mudanças.</p></div>
             </div>
           </div>
         )}
