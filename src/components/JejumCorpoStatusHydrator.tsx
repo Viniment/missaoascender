@@ -71,6 +71,7 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
   const minutes = activeStart ? minutesBetween(activeStart, new Date(now).toISOString()) : Math.round(maxHours * 60);
   const hours = minutes / 60;
   const phase = phaseFor(hours);
+
   const fat = hours < 4 ? "Baixa → moderada" : hours < 8 ? "Começando a aumentar" : hours < 12 ? "Em aumento" : hours < 24 ? "Alta / crescente" : hours < 48 ? "Predominante entre os combustíveis" : "Muito elevada";
   const ketones = hours < 8 ? "Baixas" : hours < 12 ? "Começando a subir" : hours < 24 ? "Em ascensão" : hours < 48 ? "Mais evidentes" : "Elevadas — grande variação individual";
   const glycogen = hours < 8 ? "Ainda relevante" : hours < 16 ? "Sendo utilizado" : hours < 24 ? "Bastante reduzido" : hours < 36 ? "Muito reduzido" : "Contribuição hepática muito menor";
@@ -79,57 +80,59 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
   const brain = hours < 12 ? "Principalmente glicose" : hours < 24 ? "Começa a receber mais cetonas" : hours < 48 ? "Uso crescente de cetonas" : "Maior participação das cetonas";
 
   const cards = useMemo(() => [
-    { icon: Flame, label: "Modo Queima de Gordura", value: fat, intro: "Seu corpo está aumentando a participação da gordura como fonte de energia.", detail: "Ácidos graxos liberados do tecido adiposo passam a participar cada vez mais do combustível usado pelos tecidos." },
-    { icon: Zap, label: "Cetonas Entrando em Cena", value: ketones, intro: "O fígado começa a transformar gordura em um combustível alternativo.", detail: "Parte dos ácidos graxos é convertida em corpos cetônicos, como beta-hidroxibutirato e acetoacetato." },
-    { icon: Gauge, label: "Reservas Rápidas em Baixa", value: glycogen, intro: "O estoque de glicogênio do fígado está sendo usado para manter a glicose disponível.", detail: "Conforme o jejum avança, o glicogênio hepático é progressivamente mobilizado e sua contribuição diminui." },
-    { icon: Activity, label: "Insulina Mais Baixa", value: insulin, intro: "O ambiente hormonal fica mais favorável à liberação e ao uso de gordura.", detail: "A queda da insulina favorece a lipólise, enquanto glucagon e outros sinais de contrarregulação ganham importância." },
-    { icon: Droplets, label: "Glicose Sendo Mantida", value: glucose, intro: "Mesmo sem comer, o organismo continua fornecendo glicose aos tecidos que precisam dela.", detail: "O corpo utiliza o glicogênio hepático e, progressivamente, aumenta a produção interna de glicose por gliconeogênese." },
-    { icon: Brain, label: "Cérebro Usando Outro Combustível", value: brain, intro: "Com o prolongamento do jejum, as cetonas ganham participação como combustível cerebral.", detail: "O cérebro passa progressivamente a aproveitar mais corpos cetônicos, reduzindo parte da dependência exclusiva de glicose." },
+    { icon: Flame, label: "Gordura Ganhando Espaço", summary: "A gordura passa a participar cada vez mais do combustível usado pelo corpo.", value: fat, detail: "A mobilização de ácidos graxos do tecido adiposo aumenta conforme a insulina diminui. Esses ácidos graxos podem ser oxidados pelos tecidos para produzir energia.", benefit: "🔥 Foco: maior utilização de gordura como combustível.", note: "Usar mais gordura como combustível durante o jejum não significa, sozinho, perda líquida de gordura corporal. Isso depende do balanço energético ao longo do tempo." },
+    { icon: Zap, label: "Cetonas Entrando em Cena", summary: "O fígado começa a produzir um combustível alternativo a partir da gordura.", value: ketones, detail: "Parte dos ácidos graxos é convertida pelo fígado em corpos cetônicos, principalmente beta-hidroxibutirato e acetoacetato.", benefit: "⚡ Foco: ampliar as fontes de energia disponíveis.", note: "A velocidade e a intensidade dessa mudança variam bastante entre pessoas." },
+    { icon: Gauge, label: "Reservas Rápidas em Baixa", summary: "O estoque de glicogênio do fígado vai sendo utilizado para manter a glicose disponível.", value: glycogen, detail: "O glicogênio hepático é mobilizado para ajudar a manter a glicose sanguínea. Com o avanço do jejum, sua contribuição diminui e a produção interna de glicose ganha importância.", benefit: "🔋 Foco: transição das reservas rápidas para outras fontes de energia.", note: "A quantidade inicial de glicogênio varia conforme alimentação, atividade física e metabolismo individual." },
+    { icon: Activity, label: "Insulina Mais Baixa", summary: "O ambiente hormonal fica mais favorável à liberação e ao uso de gordura.", value: insulin, detail: "A queda da insulina favorece a lipólise. Outros sinais hormonais, como o glucagon, ajudam o organismo a manter a disponibilidade de energia.", benefit: "🧬 Foco: facilitar a mobilização das reservas energéticas.", note: "Isso é uma mudança fisiológica progressiva, não um interruptor que muda em uma hora exata." },
+    { icon: Droplets, label: "Glicose Sendo Mantida", summary: "Mesmo sem comer, o organismo continua fornecendo glicose aos tecidos que precisam dela.", value: glucose, detail: "O corpo utiliza inicialmente o glicogênio hepático e aumenta progressivamente a gliconeogênese, produzindo glicose a partir de outros substratos.", benefit: "🛡️ Foco: manter a glicose disponível para os tecidos que dependem dela.", note: "O organismo não simplesmente fica sem glicose durante o jejum." },
+    { icon: Brain, label: "Cérebro Usando Outro Combustível", summary: "Com o prolongamento do jejum, as cetonas ganham participação como combustível cerebral.", value: brain, detail: "O cérebro passa progressivamente a utilizar mais corpos cetônicos, reduzindo parte da necessidade de obter toda a sua energia exclusivamente da glicose.", benefit: "🧠 Foco: adaptação progressiva do cérebro às cetonas.", note: "A participação das cetonas aumenta gradualmente e varia conforme a duração do jejum e as características individuais." },
   ], [fat, ketones, glycogen, insulin, glucose, brain]);
 
   if (!host) return null;
   return createPortal(
-    <div className="rounded-xl border border-primary/25 bg-gradient-to-br from-primary/[0.07] via-background/30 to-background/10 p-3 space-y-3">
-      <div className="flex items-start gap-2">
-        <HeartPulse className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <div className="min-w-0 flex-1">
-          <p className="text-[9px] uppercase tracking-[.24em] text-primary">COMO SEU CORPO ESTÁ REAGINDO</p>
-          <p className="mt-1 font-display text-sm tracking-wide">{phase.title}</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{phase.summary}</p>
+    <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.045] via-background/20 to-background/5 p-3.5 shadow-[0_12px_40px_-28px_hsl(var(--primary)/0.5)]">
+      <div className="mb-3.5 flex items-center gap-2.5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
+          <HeartPulse className="h-4 w-4 text-primary" />
         </div>
-        <span className="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] uppercase tracking-widest text-primary">{formatDuration(minutes)}</span>
-      </div>
-
-      <div className="rounded-lg border border-orange-400/15 bg-orange-500/[0.035] p-2.5">
-        <div className="flex items-center gap-2"><Flame className="h-4 w-4 text-orange-300" /><p className="text-[9px] uppercase tracking-[.22em] text-orange-200">Foco principal: queima de gordura</p></div>
-        <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{hours >= 12 ? "A mobilização e a oxidação de gordura estão mais favorecidas do que no estado alimentado. Isso significa que seu corpo está usando mais gordura como combustível — não que toda essa gordura oxidada necessariamente represente perda líquida de gordura corporal, que depende do balanço energético ao longo do tempo." : "A mobilização de gordura já começa a aumentar gradualmente conforme a insulina cai, mas a contribuição relativa de cada combustível ainda depende da duração do jejum, da refeição anterior, atividade e reservas de glicogênio."}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] font-semibold uppercase tracking-[.25em] text-primary">COMO SEU CORPO ESTÁ REAGINDO</p>
+          <p className="mt-0.5 text-[8px] uppercase tracking-[.14em] text-muted-foreground/70">Toque em um item para entender melhor</p>
+        </div>
       </div>
 
       <div className="space-y-2">
-        {cards.map(({ icon: Icon, label, value, intro, detail }) => {
+        {cards.map(({ icon: Icon, label, summary, value, detail, benefit, note }) => {
           const isOpen = expanded === label;
           return (
             <button
               key={label}
               type="button"
               onClick={() => setExpanded(current => current === label ? null : label)}
-              className={`w-full text-left rounded-lg border transition-all duration-200 ${isOpen ? "border-primary/35 bg-primary/[0.055]" : "border-border/60 bg-background/30 hover:border-primary/20 hover:bg-background/45"}`}
+              className={`group w-full overflow-hidden rounded-xl border text-left transition-all duration-200 ${isOpen ? "border-primary/35 bg-primary/[0.045] shadow-[0_8px_28px_-22px_hsl(var(--primary)/0.65)]" : "border-border/55 bg-background/25 hover:border-primary/20 hover:bg-background/40"}`}
               aria-expanded={isOpen}
             >
-              <div className="flex items-center gap-3 p-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/[0.08]"><Icon className="h-4 w-4 text-primary" /></div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[.13em] text-foreground/90">{label}</p>
-                  <p className="mt-0.5 text-[9px] text-muted-foreground">{value}</p>
+              <div className="flex items-center gap-3 px-3.5 py-3.5">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors ${isOpen ? "border-primary/30 bg-primary/10" : "border-border/50 bg-background/35 group-hover:border-primary/20"}`}>
+                  <Icon className="h-4 w-4 text-primary" />
                 </div>
-                <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180 text-primary" : ""}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold leading-tight tracking-wide text-foreground/95">{label}</p>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{summary}</p>
+                </div>
+                <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground/70 transition-transform duration-200 ${isOpen ? "rotate-180 text-primary" : ""}`} />
               </div>
+
               {isOpen && (
-                <div className="border-t border-border/50 px-3 pb-3 pt-2.5">
-                  <p className="text-[10px] leading-relaxed text-foreground/85">{intro}</p>
-                  <div className="mt-2 rounded-md border border-border/40 bg-background/35 p-2.5">
-                    <p className="text-[8px] uppercase tracking-[.18em] text-primary">O que está acontecendo</p>
-                    <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{detail}</p>
+                <div className="border-t border-primary/10 px-3.5 pb-3.5 pt-3">
+                  <div className="rounded-lg border border-primary/10 bg-background/35 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[8px] font-semibold uppercase tracking-[.2em] text-primary">Estado agora</p>
+                      <span className="rounded-full border border-primary/15 bg-primary/5 px-2 py-1 text-[8px] text-primary">{value}</span>
+                    </div>
+                    <p className="mt-2 text-[10px] leading-relaxed text-foreground/85">{detail}</p>
+                    <p className="mt-2.5 text-[10px] font-medium leading-relaxed text-foreground/80">{benefit}</p>
+                    <p className="mt-2 border-t border-border/40 pt-2 text-[9px] leading-relaxed text-muted-foreground">{note}</p>
                   </div>
                 </div>
               )}
@@ -138,10 +141,18 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
         })}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px]">
-        <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div><p className="mt-1 text-muted-foreground">O metabolismo não vira uma chave instantaneamente: a troca de combustível é progressiva e individual. A literatura situa o metabolic switch, em geral, em torno de 12–36h.</p></div>
-        <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div><p className="mt-1 text-muted-foreground">Os horários são estimativas fisiológicas, não um cronômetro biológico exato. A última refeição, atividade física, glicogênio e metabolismo individual alteram a velocidade das mudanças.</p></div>
-      </div>
+      {expanded && (
+        <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2 text-[9px]">
+          <div className="rounded-xl border border-border/45 bg-background/20 p-3">
+            <div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div>
+            <p className="mt-1.5 leading-relaxed text-muted-foreground">A troca de combustível é progressiva e individual. A literatura situa o chamado metabolic switch, em geral, em torno de 12–36h.</p>
+          </div>
+          <div className="rounded-xl border border-border/45 bg-background/20 p-3">
+            <div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div>
+            <p className="mt-1.5 leading-relaxed text-muted-foreground">Os horários são estimativas fisiológicas, não um cronômetro biológico exato. Refeição anterior, atividade física, glicogênio e metabolismo individual alteram a velocidade das mudanças.</p>
+          </div>
+        </div>
+      )}
     </div>,
     host
   );
