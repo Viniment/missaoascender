@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Loader2, Coins, Zap, Swords, Heart, Target, ShieldAlert } from "lucide-react";
+import { X, Sparkles, Loader2, Coins, Zap, Swords, Target, ShieldAlert, FileText, Play, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateHabito, type Habito, type Inimigo } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
+import RichTextEditor from "@/components/RichTextEditor";
 import "@/styles/acoes-batalha.css";
+
+function normalizeYoutubeUrl(value: string) {
+  const raw = value.trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    if (!u.hostname.includes("youtube.com") && !u.hostname.includes("youtu.be")) throw new Error("Use um link do YouTube.");
+    return u.toString();
+  } catch (e: any) {
+    throw new Error(e?.message === "Use um link do YouTube." ? e.message : "URL de vídeo inválida.");
+  }
+}
 
 export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose, onSaved }: { habito: Habito | null; inimigo: Inimigo | null; onboarding: any; onClose: () => void; onSaved: () => void; }) {
   const [nome, setNome] = useState("");
@@ -14,6 +27,8 @@ export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose,
   const [pesoDano, setPesoDano] = useState(6);
   const [pesoXp, setPesoXp] = useState(10);
   const [pesoOuro, setPesoOuro] = useState(2);
+  const [textoApoio, setTextoApoio] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [recalculando, setRecalculando] = useState(false);
 
@@ -23,6 +38,8 @@ export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose,
     setTipoTarefa(((habito as any).tipo_tarefa ?? "unica") as any);
     setQuantidadeMeta(Math.max(1, Number((habito as any).quantidade_meta ?? 1)));
     setPesoDano(habito.peso_dano_cura); setPesoXp(habito.peso_xp); setPesoOuro(habito.peso_ouro ?? 2);
+    setTextoApoio(String((habito as any).texto_apoio_html ?? ""));
+    setYoutubeUrl(String((habito as any).youtube_url ?? ""));
   }, [habito]);
 
   const recalcular = async () => {
@@ -48,7 +65,13 @@ export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose,
         peso_xp: Math.max(5, Math.min(25, pesoXp)),
         peso_ouro: Math.max(1, Math.min(6, pesoOuro)),
       });
-      const { error } = await supabase.from("habitos").update({ tipo_tarefa: tipoTarefa, quantidade_meta: tipoTarefa === "quantidade" ? Math.max(1, Math.floor(quantidadeMeta)) : 1 }).eq("id", habito.id);
+      const youtube = normalizeYoutubeUrl(youtubeUrl);
+      const { error } = await supabase.from("habitos").update({
+        tipo_tarefa: tipoTarefa,
+        quantidade_meta: tipoTarefa === "quantidade" ? Math.max(1, Math.floor(quantidadeMeta)) : 1,
+        texto_apoio_html: textoApoio.trim() || null,
+        youtube_url: youtube || null,
+      }).eq("id", habito.id);
       if (error) throw error;
       toast.success("Ação atualizada."); onSaved(); onClose();
     } catch (e: any) { toast.error(e.message ?? "Erro ao salvar"); }
@@ -57,12 +80,12 @@ export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose,
 
   return <AnimatePresence>{habito && <motion.div className="fixed inset-0 z-[80] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
     <div className="absolute inset-0 bg-background/85 backdrop-blur-md" onClick={onClose} />
-    <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-lg rpg-panel neon-glow p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+    <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", stiffness: 260, damping: 22 }} className="relative w-full max-w-2xl rpg-panel neon-glow p-5 space-y-4 max-h-[92vh] overflow-y-auto">
       <button onClick={onClose} className="absolute top-3 right-3 h-9 w-9 rounded-xl border border-border/60 bg-background/40 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors" aria-label="Fechar"><X className="w-4 h-4 mx-auto" /></button>
 
       <div className="pr-12">
         <div className="flex items-center gap-2 text-primary"><span className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-primary/10"><Swords className="w-4 h-4" /></span><div><p className="text-[9px] uppercase tracking-[0.32em] text-primary">Editar ação de combate</p><h3 className="font-display text-lg tracking-widest mt-0.5">Configurar batalha</h3></div></div>
-        <p className="text-[10px] text-muted-foreground mt-2">Altere o nome, tipo, formato, meta diária e recompensas sem sair da batalha.</p>
+        <p className="text-[10px] text-muted-foreground mt-2">Além da execução e das recompensas, você pode preparar o material que vai te ajudar a vencer a ação.</p>
       </div>
 
       <div className="grid gap-3">
@@ -95,6 +118,17 @@ export default function EditHabitoDialog({ habito, inimigo, onboarding, onClose,
           <Slider label="Dano ao inimigo" value={pesoDano} setValue={setPesoDano} min={2} max={15} color="text-destructive" />
           <Slider label="XP" value={pesoXp} setValue={setPesoXp} min={5} max={25} color="text-primary" />
           {tipo === "positivo" && <Slider label="Ouro" value={pesoOuro} setValue={setPesoOuro} min={1} max={6} color="text-yellow-300" />}
+        </div>
+
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.055] to-background/20 p-3.5 space-y-3">
+          <div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary"><FileText className="w-4 h-4" /></span><div><p className="text-[9px] uppercase tracking-[0.25em] text-primary">Texto de apoio</p><p className="text-[10px] text-muted-foreground">Guia rico para você consultar durante a execução.</p></div></div>
+          <RichTextEditor value={textoApoio} onChange={setTextoApoio} placeholder="Escreva o passo a passo, lembrete, técnica, oração, estratégia..." minHeight="260px" />
+        </div>
+
+        <div className="rounded-2xl border border-red-400/15 bg-red-500/[0.025] p-3.5 space-y-3">
+          <div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-400/25 bg-red-500/10 text-red-300"><Play className="w-4 h-4 fill-current" /></span><div><p className="text-[9px] uppercase tracking-[0.25em] text-red-300">Vídeo de apoio</p><p className="text-[10px] text-muted-foreground">Cole um link do YouTube para assistir sem sair da ação.</p></div></div>
+          <div className="relative"><Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input aria-label="URL do vídeo do YouTube" className="w-full bg-background/65 border border-border/70 rounded-xl pl-9 pr-3.5 py-3 text-sm outline-none focus:border-red-400/50 focus:ring-1 focus:ring-red-400/10 transition-colors" placeholder="https://www.youtube.com/watch?v=..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} /></div>
+          {youtubeUrl && <p className="text-[9px] text-muted-foreground">O botão ▶ Vídeo aparecerá automaticamente na ação depois de salvar.</p>}
         </div>
       </div>
 
