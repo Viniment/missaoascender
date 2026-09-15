@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Activity, Brain, Droplets, Flame, Gauge, HeartPulse, Moon, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { Activity, Brain, Droplets, Flame, Gauge, HeartPulse, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Phase = { max: number; title: string; summary: string };
@@ -44,7 +44,7 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
     findHost();
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => { observer.disconnect(); if (host) { const original = host.previousElementSibling as HTMLElement | null; if (original) original.style.display = ""; } };
+    return () => observer.disconnect();
   }, [host]);
 
   useEffect(() => {
@@ -107,6 +107,5 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
       <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div><p className="mt-1 text-muted-foreground">O metabolismo não vira uma chave instantaneamente: a troca de combustível é progressiva e individual. A literatura situa o metabolic switch, em geral, em torno de 12–36h.</p></div>
       <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div><p className="mt-1 text-muted-foreground">Os horários são estimativas fisiológicas, não um cronômetro biológico exato. A última refeição, atividade física, glicogênio e metabolismo individual alteram a velocidade das mudanças.</p></div>
     </div>
-    <p className="text-[8px] leading-relaxed text-muted-foreground/80">Base fisiológica: durante o jejum, a oxidação de gordura e a produção de cetonas aumentam à medida que o glicogênio hepático é mobilizado; a magnitude varia entre pessoas. cite não é exibido aqui no app, mas o conteúdo foi revisado com literatura científica. </p>
   </div>, host);
 }
