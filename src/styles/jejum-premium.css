@@ -3,77 +3,133 @@
   .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl {
     position: relative;
     overflow: hidden;
-    border-color: hsl(var(--primary) / .32) !important;
+    padding: 18px !important;
+    border-color: hsl(var(--primary) / .28) !important;
+    border-radius: 16px !important;
     background:
-      radial-gradient(circle at 100% 0%, hsl(var(--primary) / .14), transparent 38%),
-      linear-gradient(135deg, hsl(var(--primary) / .07), hsl(var(--background) / .2));
+      radial-gradient(circle at 8% 18%, hsl(var(--primary) / .13), transparent 34%),
+      radial-gradient(circle at 96% 100%, hsl(var(--neon-cyan) / .055), transparent 34%),
+      linear-gradient(145deg, hsl(var(--card) / .98), hsl(var(--secondary) / .72));
     box-shadow:
-      inset 0 1px 0 hsl(var(--foreground) / .06),
-      0 12px 32px hsl(var(--primary) / .08),
-      0 0 24px hsl(var(--primary) / .06);
-    transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+      inset 0 1px 0 hsl(var(--foreground) / .055),
+      0 14px 34px hsl(0 0% 0% / .2);
+    transition: border-color .25s ease, box-shadow .25s ease;
   }
 
   .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl:hover {
-    border-color: hsl(var(--primary) / .5) !important;
+    border-color: hsl(var(--primary) / .42) !important;
     box-shadow:
-      inset 0 1px 0 hsl(var(--foreground) / .08),
-      0 16px 40px hsl(var(--primary) / .1),
-      0 0 30px hsl(var(--primary) / .1);
+      inset 0 1px 0 hsl(var(--foreground) / .07),
+      0 16px 40px hsl(0 0% 0% / .24),
+      0 0 24px hsl(var(--primary) / .07);
   }
 
+  /* Subtle static HUD detail — no scan/sweep animation. */
   .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl::before {
     content: "";
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 18px;
+    right: 18px;
+    height: 1px;
     pointer-events: none;
-    background: linear-gradient(110deg, transparent 20%, hsl(var(--foreground) / .035) 48%, transparent 72%);
-    transform: translateX(-100%);
-    animation: fasting-status-shimmer 5s ease-in-out infinite;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / .5), transparent);
   }
 
+  /* The existing inner row becomes a spacious icon + content composition. */
   .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl > div {
     position: relative;
     z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
   }
 
-  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl svg {
-    filter: drop-shadow(0 0 7px hsl(var(--primary) / .5));
-    animation: fasting-icon-pulse 2.8s ease-in-out infinite;
+  /* Give the phase icon a real visual presence on the left. */
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl > div > svg {
+    flex: 0 0 auto;
+    width: 50px !important;
+    height: 50px !important;
+    margin-top: 1px !important;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid hsl(var(--primary) / .3);
+    background: linear-gradient(145deg, hsl(var(--primary) / .17), hsl(var(--neon-cyan) / .05));
+    color: hsl(var(--primary));
+    filter: drop-shadow(0 0 8px hsl(var(--primary) / .35));
+    animation: fasting-icon-pulse 3.2s ease-in-out infinite;
   }
 
+  /* Keep the text column comfortable instead of compressed. */
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl > div > div {
+    min-width: 0;
+    flex: 1;
+    padding-top: 1px;
+  }
+
+  /* Rename the tiny kicker visually without touching the component logic. */
   .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="tracking-[.24em]"] {
-    color: hsl(var(--primary) / .82) !important;
+    color: hsl(var(--primary) / .9) !important;
+    font-family: 'Orbitron', monospace;
     font-weight: 800;
-    letter-spacing: .24em;
-    text-shadow: 0 0 14px hsl(var(--primary) / .22);
-  }
-
-  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="tracking-wide"] {
-    font-size: 1rem;
-    line-height: 1.25;
-    font-weight: 800;
-    letter-spacing: .055em;
-    text-shadow: 0 0 18px hsl(var(--primary) / .14);
-  }
-
-  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="leading-relaxed"] {
-    max-width: 58ch;
+    font-size: 8px;
+    letter-spacing: .22em;
+    text-shadow: 0 0 14px hsl(var(--primary) / .2);
+    line-height: 1.4;
   }
 
   .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="tracking-[.24em]"]::after {
     content: "  •  CIÊNCIA";
-    opacity: .52;
+    opacity: .5;
     font-size: .72em;
+  }
+
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="tracking-wide"] {
+    margin-top: 6px !important;
+    font-size: 1.05rem;
+    line-height: 1.3;
+    font-weight: 800;
+    letter-spacing: .045em;
+    color: hsl(var(--foreground));
+    text-shadow: 0 0 18px hsl(var(--primary) / .13);
+  }
+
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="leading-relaxed"] {
+    max-width: 68ch;
+    line-height: 1.65;
+  }
+
+  /* Separate the scientific explanation visually without creating another cramped box. */
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="mt-2.text-\[10px\]"] {
+    margin-top: 11px !important;
+    padding-top: 11px;
+    border-top: 1px solid hsl(var(--border) / .7);
   }
 }
 
-@keyframes fasting-status-shimmer {
-  0%, 55%, 100% { transform: translateX(-100%); }
-  75% { transform: translateX(100%); }
+@keyframes fasting-icon-pulse {
+  0%, 100% { transform: scale(1); opacity: .9; }
+  50% { transform: scale(1.035); opacity: 1; }
 }
 
-@keyframes fasting-icon-pulse {
-  0%, 100% { transform: scale(1); opacity: .88; }
-  50% { transform: scale(1.08); opacity: 1; }
+@media (max-width: 640px) {
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl {
+    padding: 15px !important;
+    border-radius: 14px !important;
+  }
+
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl > div {
+    gap: 12px;
+  }
+
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl > div > svg {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .rpg-panel:has(.rounded-xl [class*="tracking-[.24em]"]) .rounded-xl [class*="tracking-wide"] {
+    font-size: .92rem;
+  }
 }
