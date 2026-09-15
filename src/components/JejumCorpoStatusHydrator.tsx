@@ -1,22 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Activity, Brain, Droplets, Flame, Gauge, HeartPulse, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { Activity, Brain, ChevronDown, Droplets, Flame, Gauge, HeartPulse, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Phase = { max: number; title: string; summary: string };
 const PHASES: Phase[] = [
-  { max: 4, title: "Pós-refeição / absorção", summary: "A energia da última refeição ainda domina o cenário metabólico." },
-  { max: 8, title: "Estado pós-absortivo", summary: "A insulina começa a cair e o fígado passa a sustentar a glicose usando glicogênio." },
-  { max: 12, title: "Mobilização de gordura", summary: "A liberação de ácidos graxos aumenta e as cetonas começam a subir gradualmente." },
-  { max: 16, title: "Transição metabólica", summary: "A participação da gordura como combustível cresce enquanto a dependência do glicogênio diminui." },
-  { max: 20, title: "Cetogênese em ascensão", summary: "O fígado transforma parte dos ácidos graxos em corpos cetônicos para ampliar as fontes de energia." },
-  { max: 24, title: "Glicogênio hepático bem reduzido", summary: "A gordura e a gliconeogênese ganham importância para manter o fornecimento energético." },
-  { max: 36, title: "Mudança de combustível", summary: "O organismo entra progressivamente no chamado metabolic switch: mais ácidos graxos e cetonas." },
-  { max: 48, title: "Cetose mais evidente", summary: "As cetonas podem estar bem mais elevadas e o cérebro passa a utilizá-las mais." },
-  { max: 72, title: "Adaptação ao jejum prolongado", summary: "A utilização de gordura e cetonas fica mais importante e mecanismos de conservação de glicose se intensificam." },
-  { max: 120, title: "Jejum prolongado", summary: "A fisiologia está profundamente adaptada à baixa disponibilidade de energia." },
-  { max: Infinity, title: "Adaptação prolongada", summary: "O corpo mantém forte dependência de gordura e cetonas, com produção contínua de glicose." },
+  { max: 4, title: "Energia da Última Refeição", summary: "Seu corpo ainda está usando principalmente a energia que acabou de receber." },
+  { max: 8, title: "Começando a Usar Reservas", summary: "A energia da refeição anterior vai diminuindo e o corpo começa a recorrer mais às próprias reservas." },
+  { max: 12, title: "Modo Queima de Gordura", summary: "A utilização de gordura como combustível começa a ganhar espaço." },
+  { max: 16, title: "Troca de Combustível", summary: "O corpo aumenta gradualmente a participação da gordura enquanto reduz a dependência do glicogênio." },
+  { max: 20, title: "Cetonas Entrando em Cena", summary: "O fígado começa a produzir mais cetonas a partir da gordura para ampliar as fontes de energia." },
+  { max: 24, title: "Gordura Ganhando Espaço", summary: "A gordura e a produção interna de glicose assumem um papel cada vez mais importante." },
+  { max: 36, title: "Combustível Alternativo", summary: "O organismo está cada vez mais adaptado a utilizar gordura e cetonas como fontes de energia." },
+  { max: 48, title: "Modo Cetônico", summary: "As cetonas podem estar mais elevadas e o cérebro passa a aproveitá-las mais." },
+  { max: 72, title: "Corpo se Adaptando", summary: "A utilização de gordura e cetonas ganha ainda mais importância durante o jejum prolongado." },
+  { max: 120, title: "Adaptação ao Jejum Prolongado", summary: "O organismo permanece adaptado à baixa disponibilidade de energia e aumenta a dependência de gordura e cetonas." },
+  { max: Infinity, title: "Adaptação Prolongada", summary: "O corpo mantém mecanismos de utilização de gordura, cetonas e produção contínua de glicose." },
 ];
+
 function phaseFor(hours: number) { return PHASES.find(p => hours < p.max) ?? PHASES[PHASES.length - 1]; }
 function minutesBetween(a: string, b: string) { return Math.max(0, Math.floor((new Date(b).getTime() - new Date(a).getTime()) / 60000)); }
 function formatDuration(min: number) { return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, "0")}min`; }
@@ -26,6 +27,7 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
   const [activeStart, setActiveStart] = useState<string | null>(null);
   const [maxHours, setMaxHours] = useState(0);
   const [now, setNow] = useState(Date.now());
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     const findHost = () => {
@@ -77,35 +79,70 @@ export default function JejumCorpoStatusHydrator({ userId }: { userId: string })
   const brain = hours < 12 ? "Principalmente glicose" : hours < 24 ? "Começa a receber mais cetonas" : hours < 48 ? "Uso crescente de cetonas" : "Maior participação das cetonas";
 
   const cards = useMemo(() => [
-    { icon: Flame, label: "OXIDAÇÃO DE GORDURA", value: fat, detail: "Ácidos graxos liberados do tecido adiposo passam a participar cada vez mais do combustível usado pelos tecidos." },
-    { icon: Zap, label: "CETONAS", value: ketones, detail: "O fígado converte parte dos ácidos graxos em beta-hidroxibutirato e acetoacetato." },
-    { icon: Gauge, label: "GLICOGÊNIO HEPÁTICO", value: glycogen, detail: "O estoque de glicogênio do fígado vai sendo mobilizado para ajudar a manter a glicose sanguínea." },
-    { icon: Activity, label: "INSULINA / HORMÔNIOS", value: insulin, detail: "A queda da insulina favorece lipólise; glucagon e outros sinais de contrarregulação ganham importância." },
-    { icon: Droplets, label: "COMO A GLICOSE É MANTIDA", value: glucose, detail: "Mesmo em jejum, o corpo continua produzindo glicose para tecidos que precisam dela." },
-    { icon: Brain, label: "COMBUSTÍVEL DO CÉREBRO", value: brain, detail: "Com o prolongamento do jejum, o cérebro passa progressivamente a aproveitar mais corpos cetônicos." },
+    { icon: Flame, label: "Modo Queima de Gordura", value: fat, intro: "Seu corpo está aumentando a participação da gordura como fonte de energia.", detail: "Ácidos graxos liberados do tecido adiposo passam a participar cada vez mais do combustível usado pelos tecidos." },
+    { icon: Zap, label: "Cetonas Entrando em Cena", value: ketones, intro: "O fígado começa a transformar gordura em um combustível alternativo.", detail: "Parte dos ácidos graxos é convertida em corpos cetônicos, como beta-hidroxibutirato e acetoacetato." },
+    { icon: Gauge, label: "Reservas Rápidas em Baixa", value: glycogen, intro: "O estoque de glicogênio do fígado está sendo usado para manter a glicose disponível.", detail: "Conforme o jejum avança, o glicogênio hepático é progressivamente mobilizado e sua contribuição diminui." },
+    { icon: Activity, label: "Insulina Mais Baixa", value: insulin, intro: "O ambiente hormonal fica mais favorável à liberação e ao uso de gordura.", detail: "A queda da insulina favorece a lipólise, enquanto glucagon e outros sinais de contrarregulação ganham importância." },
+    { icon: Droplets, label: "Glicose Sendo Mantida", value: glucose, intro: "Mesmo sem comer, o organismo continua fornecendo glicose aos tecidos que precisam dela.", detail: "O corpo utiliza o glicogênio hepático e, progressivamente, aumenta a produção interna de glicose por gliconeogênese." },
+    { icon: Brain, label: "Cérebro Usando Outro Combustível", value: brain, intro: "Com o prolongamento do jejum, as cetonas ganham participação como combustível cerebral.", detail: "O cérebro passa progressivamente a aproveitar mais corpos cetônicos, reduzindo parte da dependência exclusiva de glicose." },
   ], [fat, ketones, glycogen, insulin, glucose, brain]);
 
   if (!host) return null;
-  return createPortal(<div className="rounded-xl border border-primary/25 bg-gradient-to-br from-primary/[0.07] via-background/30 to-background/10 p-3 space-y-3">
-    <div className="flex items-start gap-2">
-      <HeartPulse className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-      <div className="min-w-0 flex-1">
-        <p className="text-[9px] uppercase tracking-[.24em] text-primary">O QUE ESTÁ ACONTECENDO NO SEU CORPO</p>
-        <p className="mt-1 font-display text-sm tracking-wide">{phase.title}</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{phase.summary}</p>
+  return createPortal(
+    <div className="rounded-xl border border-primary/25 bg-gradient-to-br from-primary/[0.07] via-background/30 to-background/10 p-3 space-y-3">
+      <div className="flex items-start gap-2">
+        <HeartPulse className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] uppercase tracking-[.24em] text-primary">COMO SEU CORPO ESTÁ REAGINDO</p>
+          <p className="mt-1 font-display text-sm tracking-wide">{phase.title}</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{phase.summary}</p>
+        </div>
+        <span className="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] uppercase tracking-widest text-primary">{formatDuration(minutes)}</span>
       </div>
-      <span className="shrink-0 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] uppercase tracking-widest text-primary">{formatDuration(minutes)}</span>
-    </div>
-    <div className="rounded-lg border border-orange-400/15 bg-orange-500/[0.035] p-2.5">
-      <div className="flex items-center gap-2"><Flame className="h-4 w-4 text-orange-300" /><p className="text-[9px] uppercase tracking-[.22em] text-orange-200">Foco principal: queima de gordura</p></div>
-      <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{hours >= 12 ? "A mobilização e a oxidação de gordura estão mais favorecidas do que no estado alimentado. Isso significa que seu corpo está usando mais gordura como combustível — não que toda essa gordura oxidada necessariamente represente perda líquida de gordura corporal, que depende do balanço energético ao longo do tempo." : "A mobilização de gordura já começa a aumentar gradualmente conforme a insulina cai, mas a contribuição relativa de cada combustível ainda depende da duração do jejum, da refeição anterior, atividade e reservas de glicogênio."}</p>
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {cards.map(({ icon: Icon, label, value, detail }) => <div key={label} className="rounded-lg border border-border/60 bg-background/35 p-2.5"><div className="flex items-center gap-2"><Icon className="h-3.5 w-3.5 text-primary" /><p className="text-[8px] uppercase tracking-[.18em] text-muted-foreground">{label}</p></div><p className="mt-1.5 text-[10px] font-medium text-foreground/90">{value}</p><p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{detail}</p></div>)}
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px]">
-      <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div><p className="mt-1 text-muted-foreground">O metabolismo não vira uma chave instantaneamente: a troca de combustível é progressiva e individual. A literatura situa o metabolic switch, em geral, em torno de 12–36h.</p></div>
-      <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div><p className="mt-1 text-muted-foreground">Os horários são estimativas fisiológicas, não um cronômetro biológico exato. A última refeição, atividade física, glicogênio e metabolismo individual alteram a velocidade das mudanças.</p></div>
-    </div>
-  </div>, host);
+
+      <div className="rounded-lg border border-orange-400/15 bg-orange-500/[0.035] p-2.5">
+        <div className="flex items-center gap-2"><Flame className="h-4 w-4 text-orange-300" /><p className="text-[9px] uppercase tracking-[.22em] text-orange-200">Foco principal: queima de gordura</p></div>
+        <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">{hours >= 12 ? "A mobilização e a oxidação de gordura estão mais favorecidas do que no estado alimentado. Isso significa que seu corpo está usando mais gordura como combustível — não que toda essa gordura oxidada necessariamente represente perda líquida de gordura corporal, que depende do balanço energético ao longo do tempo." : "A mobilização de gordura já começa a aumentar gradualmente conforme a insulina cai, mas a contribuição relativa de cada combustível ainda depende da duração do jejum, da refeição anterior, atividade e reservas de glicogênio."}</p>
+      </div>
+
+      <div className="space-y-2">
+        {cards.map(({ icon: Icon, label, value, intro, detail }) => {
+          const isOpen = expanded === label;
+          return (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setExpanded(current => current === label ? null : label)}
+              className={`w-full text-left rounded-lg border transition-all duration-200 ${isOpen ? "border-primary/35 bg-primary/[0.055]" : "border-border/60 bg-background/30 hover:border-primary/20 hover:bg-background/45"}`}
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-3 p-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-primary/[0.08]"><Icon className="h-4 w-4 text-primary" /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[.13em] text-foreground/90">{label}</p>
+                  <p className="mt-0.5 text-[9px] text-muted-foreground">{value}</p>
+                </div>
+                <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180 text-primary" : ""}`} />
+              </div>
+              {isOpen && (
+                <div className="border-t border-border/50 px-3 pb-3 pt-2.5">
+                  <p className="text-[10px] leading-relaxed text-foreground/85">{intro}</p>
+                  <div className="mt-2 rounded-md border border-border/40 bg-background/35 p-2.5">
+                    <p className="text-[8px] uppercase tracking-[.18em] text-primary">O que está acontecendo</p>
+                    <p className="mt-1 text-[9px] leading-relaxed text-muted-foreground">{detail}</p>
+                  </div>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[9px]">
+        <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">O que muda agora</span></div><p className="mt-1 text-muted-foreground">O metabolismo não vira uma chave instantaneamente: a troca de combustível é progressiva e individual. A literatura situa o metabolic switch, em geral, em torno de 12–36h.</p></div>
+        <div className="rounded-lg border border-border/50 bg-background/25 p-2.5"><div className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-primary" /><span className="uppercase tracking-[.18em] text-muted-foreground">Importante</span></div><p className="mt-1 text-muted-foreground">Os horários são estimativas fisiológicas, não um cronômetro biológico exato. A última refeição, atividade física, glicogênio e metabolismo individual alteram a velocidade das mudanças.</p></div>
+      </div>
+    </div>,
+    host
+  );
 }
