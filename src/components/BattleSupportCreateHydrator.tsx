@@ -35,7 +35,9 @@ export default function BattleSupportCreateHydrator({ userId }: { userId: string
       if (!support) {
         support = document.createElement("div");
         support.dataset.battleCreateSupport = "1";
-        form.appendChild(support);
+        const button = Array.from(form.querySelectorAll("button")).find(b => b.textContent?.includes("Forjar ação"));
+        if (button) form.insertBefore(support, button);
+        else form.appendChild(support);
       }
       setHost(support);
     };
