@@ -7,6 +7,7 @@ import ConnectionGuard from "@/components/ConnectionGuard";
 import PresencaAutomatica from "@/components/PresencaAutomatica";
 import GlobalDataSync from "@/components/GlobalDataSync";
 import GlobalAchievementPopup from "@/components/GlobalAchievementPopup";
+import BattleSupportHydrator from "@/components/BattleSupportHydrator";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/DashboardComJejum";
 import Onboarding from "@/pages/Onboarding";
@@ -38,7 +39,7 @@ function Protected({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-  return <ConnectionGuard><><PresencaAutomatica userId={user.id} /><GlobalDataSync userId={user.id} /><GlobalAchievementPopup userId={user.id} />{children}</></ConnectionGuard>;
+  return <ConnectionGuard><><PresencaAutomatica userId={user.id} /><GlobalDataSync userId={user.id} /><GlobalAchievementPopup userId={user.id} /><BattleSupportHydrator userId={user.id} />{children}</></ConnectionGuard>;
 }
 export default function App() { return <QueryClientProvider client={qc}><AuthProvider><LowPowerProvider><BrowserRouter><Toaster theme="dark" position="top-center" richColors/><Routes>
 <Route path="/auth" element={<Auth/>}/><Route path="/onboarding" element={<Protected><Onboarding/></Protected>}/><Route path="/criar-inimigo" element={<Protected><CriarInimigo/></Protected>}/><Route path="/" element={<Protected><Dashboard/></Protected>}/><Route path="/inimigo" element={<Protected><InimigoPage/></Protected>}/><Route path="/mini-vitorias" element={<Protected><MiniVitoriasPage/></Protected>}/><Route path="/conquistas" element={<Protected><ConquistasPage/></Protected>}/><Route path="/fissura" element={<Protected><FissuraPage/></Protected>}/><Route path="/loja" element={<Protected><LojaPage/></Protected>}/><Route path="/personalizar" element={<Protected><PersonalizarPage/></Protected>}/><Route path="/perfil" element={<Protected><PerfilPage/></Protected>}/><Route path="/admin" element={<Protected><AdminPage/></Protected>}/><Route path="/reestruturacao" element={<Protected><Reestruturacao/></Protected>}/><Route path="/urge-surfing" element={<Protected><UrgeSurfing/></Protected>}/><Route path="/laboratorio" element={<Protected><Laboratorio/></Protected>}/><Route path="/predicao" element={<Protected><Predicao/></Protected>}/><Route path="/mente" element={<Protected><Mente/></Protected>}/><Route path="/noite-zero" element={<Protected><NoiteZero/></Protected>}/><Route path="/meu-cantinho" element={<Protected><MeuCantinho/></Protected>}/><Route path="/projetos" element={<Protected><Projetos/></Protected>}/><Route path="/trataka" element={<Protected><Trataka/></Protected>}/><Route path="/japamala" element={<Protected><Japamala/></Protected>}/><Route path="/estudos" element={<Protected><Estudos/></Protected>}/><Route path="/estudos/:id" element={<Protected><EstudoCategoria/></Protected>}/><Route path="/imersao" element={<Protected><Imersao/></Protected>}/><Route path="/diario" element={<Protected><Imersao/></Protected>}/><Route path="*" element={<Navigate to="/" replace/>}/>
