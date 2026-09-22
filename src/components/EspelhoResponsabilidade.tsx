@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ChevronDown, ChevronRight, Cookie, Mirror, Plus, Trash2, X } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, Cookie, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Espelho = {
