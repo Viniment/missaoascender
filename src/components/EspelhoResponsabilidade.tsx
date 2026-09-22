@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ChevronDown, ChevronRight, Cookie, Plus, Trash2, X } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Espelho = {
@@ -10,7 +10,6 @@ type Espelho = {
   buscava: string;
   sob_controle: string;
   proxima_vez: string;
-  pote_biscoito_id: string | null;
   created_at: string;
 };
 
@@ -32,11 +31,10 @@ export default function EspelhoResponsabilidade({ userId }: { userId: string }) 
   const [categoria, setCategoria] = useState("Outro");
   const [form, setForm] = useState({ aconteceu: "", fiz: "", buscava: "", sob_controle: "", proxima_vez: "" });
   const [saving, setSaving] = useState(false);
-  const [savingCookie, setSavingCookie] = useState(false);
 
   const load = async () => {
     const { data } = await supabase.from("espelhos_responsabilidade")
-      .select("id,categoria,aconteceu,fiz,buscava,sob_controle,proxima_vez,pote_biscoito_id,created_at")
+      .select("id,categoria,aconteceu,fiz,buscava,sob_controle,proxima_vez,created_at")
       .eq("user_id", userId).order("created_at", { ascending: false });
     setItems(data ?? []);
   };
@@ -59,7 +57,7 @@ export default function EspelhoResponsabilidade({ userId }: { userId: string }) 
     setSaving(true);
     const { data, error } = await supabase.from("espelhos_responsabilidade").insert({
       user_id: userId, categoria, ...form
-    }).select("id,categoria,aconteceu,fiz,buscava,sob_controle,proxima_vez,pote_biscoito_id,created_at").single();
+    }).select("id,categoria,aconteceu,fiz,buscava,sob_controle,proxima_vez,created_at").single();
     setSaving(false);
     if (error || !data) return;
     setItems(prev => [data, ...prev]);
@@ -67,29 +65,6 @@ export default function EspelhoResponsabilidade({ userId }: { userId: string }) 
     setFormOpen(false);
     setOpen(true);
     setSelected(data);
-  };
-
-  const guardarBiscoito = async () => {
-    if (!selected || selected.pote_biscoito_id || savingCookie) return;
-    setSavingCookie(true);
-    const titulo = `${selected.categoria} — eu assumi minha parte`;
-    const descricao = [
-      `O que aconteceu: ${selected.aconteceu}`,
-      `O que eu fiz: ${selected.fiz}`,
-      `O que estava sob meu controle: ${selected.sob_controle}`,
-      `O que farei diferente: ${selected.proxima_vez}`,
-    ].join("\n\n");
-    const { data: cookie, error } = await supabase.from("pote_biscoitos")
-      .insert({ user_id: userId, titulo, descricao })
-      .select("id").single();
-    if (!error && cookie) {
-      await supabase.from("espelhos_responsabilidade")
-        .update({ pote_biscoito_id: cookie.id }).eq("id", selected.id).eq("user_id", userId);
-      const updated = { ...selected, pote_biscoito_id: cookie.id };
-      setSelected(updated);
-      setItems(prev => prev.map(x => x.id === updated.id ? updated : x));
-    }
-    setSavingCookie(false);
   };
 
   const remove = async (id: string) => {
@@ -138,7 +113,7 @@ export default function EspelhoResponsabilidade({ userId }: { userId: string }) 
         {items.length === 0 ? <div className="rounded-xl border border-dashed border-violet-400/20 bg-background/20 p-4 text-center"><BookOpen className="mx-auto h-7 w-7 text-violet-300/60" /><p className="mt-2 text-xs font-bold">Seu diário ainda está vazio.</p><p className="mt-1 text-[10px] text-muted-foreground">O primeiro espelho pode começar por uma situação pequena.</p></div> :
           items.map(item => <button key={item.id} type="button" onClick={() => setSelected(item)} className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/25 p-3 text-left hover:border-violet-400/30 hover:bg-violet-500/[0.04]">
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-violet-400/20 bg-violet-500/10 text-violet-300"><BookOpen className="h-4 w-4" /></div>
-            <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-xs font-bold">{item.categoria}</p>{item.pote_biscoito_id && <Cookie className="h-3.5 w-3.5 text-amber-300" />}</div><p className="mt-0.5 truncate text-[10px] text-muted-foreground">{item.fiz}</p></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold">{item.categoria}</p><p className="mt-0.5 truncate text-[10px] text-muted-foreground">{item.fiz}</p></div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>)}
       </div>
@@ -150,12 +125,7 @@ export default function EspelhoResponsabilidade({ userId }: { userId: string }) 
         <div className="mt-5 space-y-4">
           {perguntas.map(([key, label]) => <div key={key} className="rounded-xl border border-border/50 bg-background/30 p-3"><div className="text-[9px] font-black uppercase tracking-wider text-violet-300">{label}</div><p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{selected[key]}</p></div>)}
         </div>
-        <div className="mt-5 rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-3">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-amber-200"><Cookie className="h-4 w-4" /> Pote de Biscoitos</div>
-          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">{selected.pote_biscoito_id ? "Esta reflexão já virou uma prova de resiliência no seu pote." : "Se esta reflexão contém uma vitória concreta, guarde-a como prova para lembrar quando sua mente duvidar de você."}</p>
-          {!selected.pote_biscoito_id && <button type="button" disabled={savingCookie} onClick={() => void guardarBiscoito()} className="mt-2 inline-flex items-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-[10px] font-black text-black disabled:opacity-40"><Cookie className="h-3.5 w-3.5" />{savingCookie ? "Guardando..." : "Guardar no Pote"}</button>}
-        </div>
-        <div className="mt-5 flex justify-between border-t border-border/50 pt-3"><span className="text-[9px] text-muted-foreground">Responsabilidade sem autopunição.</span><button type="button" onClick={() => void remove(selected.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-3 py-2 text-[10px] font-bold text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /> Excluir</button></div>
+        <div className="mt-5 flex justify-end border-t border-border/50 pt-3"><button type="button" onClick={() => void remove(selected.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-3 py-2 text-[10px] font-bold text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /> Excluir</button></div>
       </div>
     </div>}
   </section>;
