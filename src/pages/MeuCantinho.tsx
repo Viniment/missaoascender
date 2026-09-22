@@ -12,7 +12,40 @@ const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 function load<T>(key: string, fallback: T): T { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
 function save(key: string, value: unknown) { localStorage.setItem(key, JSON.stringify(value)); }
-function youtubeEmbed(url: string) { try { const u = new URL(url); let id = u.searchParams.get("v"); if (u.hostname.includes("youtu.be")) id = u.pathname.slice(1); if (u.pathname.includes("/shorts/")) id = u.pathname.split("/shorts/")[1]?.split("/")[0]; return id ? `https://www.youtube.com/embed/${id}` : null; } catch { return null; } }
+function youtubeEmbed(url: string) {
+  try {
+    const raw = url.trim();
+    if (!raw) return null;
+
+    // Aceita os formatos mais comuns do YouTube, incluindo links do YouTube Music:
+    // watch?v=, youtu.be/, shorts/, embed/ e live/.
+    const u = new URL(raw);
+    const host = u.hostname.toLowerCase().replace(/^www\\./, "");
+    const isYoutube = host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com" || host === "youtu.be" || host === "youtube-nocookie.com";
+    if (!isYoutube) return null;
+
+    let id: string | null = null;
+
+    if (host === "youtu.be") {
+      id = u.pathname.split("/").filter(Boolean)[0] ?? null;
+    } else {
+      id =
+        u.searchParams.get("v") ||
+        u.pathname.match(/^\\/(?:shorts|embed|live)\\/([^/?#]+)/i)?.[1] ||
+        null;
+    }
+
+    if (!id) return null;
+
+    // IDs de vídeos do YouTube têm 11 caracteres; a validação evita
+    // transformar uma URL inválida em um <video>/<audio> quebrado.
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
+
+    return `https://www.youtube.com/embed/${id}?rel=0`;
+  } catch {
+    return null;
+  }
+}
 
 export default function MeuCantinho() {
   const [areas, setAreas] = useState<Area[]>(() => load(AREAS_KEY, []));
@@ -69,7 +102,13 @@ function MediaModal({initial,areaId,onClose,onSave}:{initial:Media|null;areaId:s
  const file = (f:File) => { setFileName(f.name); const reader=new FileReader(); reader.onload=()=>setSrc(String(reader.result)); reader.readAsDataURL(f); };
  return <Modal title={initial?"Editar conteúdo":"Adicionar conteúdo"} onClose={onClose}><div className="grid grid-cols-3 gap-2">{(["foto","video","musica"] as const).map(t=><button key={t} onClick={()=>{setTipo(t);setOrigem(t==="foto"?"upload":"upload");}} className={`rounded-xl border px-2 py-2 text-[10px] font-black uppercase ${tipo===t?"border-primary bg-primary/10 text-primary":"border-border text-muted-foreground"}`}>{t==="foto"?<ImagePlus className="mx-auto mb-1 h-4 w-4"/>:t==="video"?<Video className="mx-auto mb-1 h-4 w-4"/>:<Music2 className="mx-auto mb-1 h-4 w-4"/>}{t}</button>)}</div><div className="mt-3 grid grid-cols-3 gap-2">{(tipo==="foto"?["upload"]:["upload","youtube"]).map(o=><button key={o} onClick={()=>setOrigem(o as Media["origem"])} className={`rounded-lg border px-2 py-1.5 text-[9px] font-bold uppercase ${origem===o?"border-primary/60 bg-primary/5 text-primary":"border-border text-muted-foreground"}`}>{o==="youtube"?<Youtube className="mr-1 inline h-3 w-3"/>:<Link2 className="mr-1 inline h-3 w-3"/>}{o}</button>)}</div>{origem==="upload"?<label className="mt-3 block cursor-pointer rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 text-center text-xs text-muted-foreground hover:border-primary/60"><input type="file" accept={accept} className="hidden" onChange={e=>e.target.files?.[0]&&file(e.target.files[0])}/><ImagePlus className="mx-auto h-5 w-5 text-primary"/><span className="mt-1 block">{fileName||"Escolher arquivo"}</span><span className="mt-1 block text-[10px]">{tipo==="foto"?"Imagem":tipo==="video"?"MP4":"MP3 ou MP4"}</span></label>:<Field label="Link do YouTube" value={src} onChange={setSrc} placeholder="Cole o link do vídeo ou música"/>}<Field label="Título" value={titulo} onChange={setTitulo} placeholder="Ex.: A casa que quero construir"/><Field label="Legenda" value={legenda} onChange={setLegenda} placeholder="O que você vê aqui?"/><Field label="O que isso representa para mim?" value={significado} onChange={setSignificado} placeholder="Por que isso importa para você?"/><button disabled={!src} onClick={()=>onSave({areaId,tipo,src,titulo,legenda,significado,origem})} className="mt-4 w-full rounded-xl bg-primary py-2.5 text-xs font-black uppercase tracking-wider text-primary-foreground disabled:opacity-40">Salvar conteúdo</button></Modal>; }
 
-function EnsaioModal({areas,media,onClose}:{areas:Area[];media:Media[];onClose:()=>void}) { const all=areas.flatMap(a=>media.filter(m=>m.areaId===a.id).map(m=>({...m,area:a}))); const [i,setI]=useState(0); const item=all[i]; return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3"><div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-primary/30 bg-background shadow-[0_0_60px_hsl(var(--primary)/0.18)]"><button onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-2 text-white"><X className="h-4 w-4"/></button>{item ? <><div className="aspect-video bg-black">{item.tipo==="foto"?<img src={item.src} className="h-full w-full object-contain"/>:item.origem==="youtube"?<iframe src={youtubeEmbed(item.src)||""} className="h-full w-full" allow="autoplay; encrypted-media" allowFullScreen/>:item.tipo==="video"?<video src={item.src} controls autoPlay className="h-full w-full"/>:<audio src={item.src} controls autoPlay className="w-full"/>}</div><div className="p-5"><div className="text-[9px] font-black uppercase tracking-[0.25em] text-primary">{item.area.emoji} {item.area.nome}</div><h2 className="mt-1 font-display text-lg tracking-widest">{item.titulo||"Meu porquê"}</h2>{item.legenda&&<p className="mt-2 text-sm">{item.legenda}</p>}{item.significado&&<p className="mt-3 border-l-2 border-primary/50 pl-3 text-xs leading-relaxed text-muted-foreground">{item.significado}</p>}<div className="mt-5 flex justify-between"><button disabled={i===0} onClick={()=>setI(v=>v-1)} className="rounded-xl border border-border px-4 py-2 text-xs font-bold disabled:opacity-30">Anterior</button><span className="self-center text-[10px] font-bold text-muted-foreground">{i+1} / {all.length}</span><button disabled={i===all.length-1} onClick={()=>setI(v=>v+1)} className="rounded-xl bg-primary px-4 py-2 text-xs font-black text-primary-foreground disabled:opacity-30" >Próximo</button></div></div></>:<div className="p-10 text-center"><p className="text-sm">Adicione conteúdos ao seu Cantinho primeiro.</p></div>}</div></div>; }
+function EnsaioModal({areas,media,onClose}:{areas:Area[];media:Media[];onClose:()=>void}) {
+  const all=areas.flatMap(a=>media.filter(m=>m.areaId===a.id).map(m=>({...m,area:a})));
+  const [i,setI]=useState(0);
+  const item=all[i];
+  const embed=item?.origem==="youtube" ? youtubeEmbed(item.src) : null;
+  return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-3"><div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-primary/30 bg-background shadow-[0_0_60px_hsl(var(--primary)/0.18)]"><button onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-2 text-white"><X className="h-4 w-4"/></button>{item ? <><div className="aspect-video bg-black">{item.tipo==="foto"?<img src={item.src} className="h-full w-full object-contain"/>:item.origem==="youtube"&&embed?<iframe src={embed} title={item.titulo||"YouTube"} className="h-full w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>:item.tipo==="video"?<video src={item.src} controls autoPlay className="h-full w-full"/>:item.tipo==="musica"?<div className="flex h-full items-center justify-center p-6"><audio src={item.src} controls autoPlay className="w-full"/> </div>:<div className="flex h-full items-center justify-center p-6 text-center text-xs text-muted-foreground">Não foi possível reconhecer este link do YouTube.</div>}</div><div className="p-5"><div className="text-[9px] font-black uppercase tracking-[0.25em] text-primary">{item.area.emoji} {item.area.nome}</div><h2 className="mt-1 font-display text-lg tracking-widest">{item.titulo||"Meu porquê"}</h2>{item.legenda&&<p className="mt-2 text-sm">{item.legenda}</p>}{item.significado&&<p className="mt-3 border-l-2 border-primary/50 pl-3 text-xs leading-relaxed text-muted-foreground">{item.significado}</p>}<div className="mt-5 flex justify-between"><button disabled={i===0} onClick={()=>setI(v=>v-1)} className="rounded-xl border border-border px-4 py-2 text-xs font-bold disabled:opacity-30">Anterior</button><span className="self-center text-[10px] font-bold text-muted-foreground">{i+1} / {all.length}</span><button disabled={i===all.length-1} onClick={()=>setI(v=>v+1)} className="rounded-xl bg-primary px-4 py-2 text-xs font-black text-primary-foreground disabled:opacity-30" >Próximo</button></div></div></>:<div className="p-10 text-center"><p className="text-sm">Adicione conteúdos ao seu Cantinho primeiro.</p></div>}</div></div>;
+}
 
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:React.ReactNode}) { return <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-3"><div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-primary/25 bg-background p-5 shadow-2xl"><div className="flex items-center justify-between gap-3"><h2 className="font-display text-base tracking-widest">{title}</h2><button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:text-foreground"><X className="h-4 w-4"/></button></div>{children}</div></div>; }
 function Field({label,value,onChange,placeholder}:{label:string;value:string;onChange:(v:string)=>void;placeholder:string}) { return <label className="mt-3 block"><span className="mb-1 block text-[9px] font-black uppercase tracking-wider text-muted-foreground">{label}</span><input value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-xl border border-border bg-background/50 px-3 py-2.5 text-xs outline-none focus:border-primary"/></label>; }
