@@ -10,7 +10,7 @@ import { ArrowLeft, BookOpen, Camera, ChevronRight, Edit3, Heart, ImagePlus, Lay
 type Area={id:string;nome:string;emoji:string;descricao:string};
 type Media={id:string;area_id:string;tipo:"foto"|"video"|"musica";origem:"upload"|"youtube";storage_path:string|null;url:string|null;titulo:string;legenda:string;significado:string;mime_type:string|null;src:string};
 const ICONES=["❤️","👨‍👩‍👦","💪","💰","✈️","🏠","💼","🧠","🙏","🚀","👑","🌎","⭐","🔥","🎯","💎","🌙","☀️","🌱","🦋","🎓","🎨","🎵","📸","🏆","⚡","🧭","🛡️","💡","🌌","🤝","🎮"];
-const yt=(s:string)=>{try{const raw=String(s??"").trim().replace(/&amp;/gi,"&").replace(/^["']|["']$/g,"");const direct=raw.match(/(?:youtube\\.com\\/(?:watch\\?[^#]*?v=|shorts\\/|embed\\/|live\\/)|youtu\\.be\\/)([A-Za-z0-9_-]{11})/i)?.[1]||raw.match(/[?&]v=([A-Za-z0-9_-]{11})/i)?.[1];if(!direct)return null;return "https://www.youtube.com/embed/"+direct+"?rel=0&playsinline=1"}catch{return null}};
+const yt=(s:string)=>{try{const raw=String(s??"").trim().replace(/&amp;/gi,"&").replace(/^["']|["']$/g,"");const direct=raw.match(/(?:youtube\.com\/(?:watch\?[^#]*?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i)?.[1]||raw.match(/[?&]v=([A-Za-z0-9_-]{11})/i)?.[1];if(!direct)return null;return "https://www.youtube.com/embed/"+direct+"?rel=0&playsinline=1"}catch{return null}};
 const clean=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"-").slice(-100);
 
 export default function MeuCantinhoBanco(){

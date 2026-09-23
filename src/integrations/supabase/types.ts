@@ -248,6 +248,27 @@ export type Database = {
           },
         ]
       }
+      conquista_notificacoes: {
+        Row: {
+          conquista_tipo: string
+          id: string
+          recebido_em: string
+          user_id: string
+        }
+        Insert: {
+          conquista_tipo: string
+          id?: string
+          recebido_em?: string
+          user_id: string
+        }
+        Update: {
+          conquista_tipo?: string
+          id?: string
+          recebido_em?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conquista_recompensas: {
         Row: {
           atributo: string
@@ -328,6 +349,137 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      editor_templates: {
+        Row: {
+          conteudo_html: string
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo_html?: string
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo_html?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      espelhos_autotraicao: {
+        Row: {
+          arrependimento: string
+          categoria: string
+          created_at: string
+          distancia: string
+          futuro: string
+          id: string
+          instante: string
+          negociacao: string
+          pacto: string
+          preco: string
+          promessa: string
+          reconquista: string
+          sabia: string
+          sonhos: string
+          user_id: string
+          verdade: string
+        }
+        Insert: {
+          arrependimento: string
+          categoria?: string
+          created_at?: string
+          distancia: string
+          futuro: string
+          id?: string
+          instante: string
+          negociacao: string
+          pacto: string
+          preco: string
+          promessa: string
+          reconquista: string
+          sabia: string
+          sonhos: string
+          user_id: string
+          verdade: string
+        }
+        Update: {
+          arrependimento?: string
+          categoria?: string
+          created_at?: string
+          distancia?: string
+          futuro?: string
+          id?: string
+          instante?: string
+          negociacao?: string
+          pacto?: string
+          preco?: string
+          promessa?: string
+          reconquista?: string
+          sabia?: string
+          sonhos?: string
+          user_id?: string
+          verdade?: string
+        }
+        Relationships: []
+      }
+      espelhos_responsabilidade: {
+        Row: {
+          aconteceu: string
+          buscava: string
+          categoria: string
+          created_at: string
+          fiz: string
+          id: string
+          pote_biscoito_id: string | null
+          proxima_vez: string
+          sob_controle: string
+          user_id: string
+        }
+        Insert: {
+          aconteceu: string
+          buscava: string
+          categoria?: string
+          created_at?: string
+          fiz: string
+          id?: string
+          pote_biscoito_id?: string | null
+          proxima_vez: string
+          sob_controle: string
+          user_id: string
+        }
+        Update: {
+          aconteceu?: string
+          buscava?: string
+          categoria?: string
+          created_at?: string
+          fiz?: string
+          id?: string
+          pote_biscoito_id?: string | null
+          proxima_vez?: string
+          sob_controle?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "espelhos_responsabilidade_pote_biscoito_id_fkey"
+            columns: ["pote_biscoito_id"]
+            isOneToOne: false
+            referencedRelation: "pote_biscoitos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       estudo_categorias: {
         Row: {
@@ -535,10 +687,12 @@ export type Database = {
           peso_ouro: number
           peso_xp: number
           quantidade_meta: number
+          texto_apoio_html: string | null
           tipo: string
           tipo_tarefa: string
           updated_at: string
           user_id: string
+          youtube_url: string | null
         }
         Insert: {
           ativo?: boolean
@@ -549,10 +703,12 @@ export type Database = {
           peso_ouro?: number
           peso_xp?: number
           quantidade_meta?: number
+          texto_apoio_html?: string | null
           tipo: string
           tipo_tarefa?: string
           updated_at?: string
           user_id: string
+          youtube_url?: string | null
         }
         Update: {
           ativo?: boolean
@@ -563,10 +719,12 @@ export type Database = {
           peso_ouro?: number
           peso_xp?: number
           quantidade_meta?: number
+          texto_apoio_html?: string | null
           tipo?: string
           tipo_tarefa?: string
           updated_at?: string
           user_id?: string
+          youtube_url?: string | null
         }
         Relationships: []
       }
@@ -656,6 +814,63 @@ export type Database = {
           nome?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      jejum_ativo: {
+        Row: {
+          atualizado_em: string
+          inicio: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          inicio: string
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          inicio?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      jejum_sessoes: {
+        Row: {
+          autodominio: number
+          criado_em: string
+          fim: string
+          id: string
+          inicio: string
+          minutos: number
+          ouro: number
+          user_id: string
+          vida: number
+          xp: number
+        }
+        Insert: {
+          autodominio?: number
+          criado_em?: string
+          fim: string
+          id?: string
+          inicio: string
+          minutos: number
+          ouro?: number
+          user_id: string
+          vida?: number
+          xp?: number
+        }
+        Update: {
+          autodominio?: number
+          criado_em?: string
+          fim?: string
+          id?: string
+          inicio?: string
+          minutos?: number
+          ouro?: number
+          user_id?: string
+          vida?: number
+          xp?: number
         }
         Relationships: []
       }
@@ -808,6 +1023,30 @@ export type Database = {
           sem_alternativo?: boolean
           situacao?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pote_biscoitos: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          titulo?: string
           user_id?: string
         }
         Relationships: []
@@ -1066,6 +1305,10 @@ export type Database = {
         Args: { p_conquista_id: string; p_user_id: string }
         Returns: Json
       }
+      delete_editor_template: {
+        Args: { p_template_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1081,6 +1324,10 @@ export type Database = {
         }[]
       }
       registrar_presenca_diaria: { Args: { p_data: string }; Returns: number }
+      registrar_recebimento_conquista: {
+        Args: { p_conquista_tipo: string }
+        Returns: boolean
+      }
       xp_for_level_reward: { Args: { p_level: number }; Returns: number }
     }
     Enums: {
