@@ -32,7 +32,7 @@ function normalizeColor(value: string, fallback: string) {
   const m = raw.match(/rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)/i);
   return m ? `#${[m[1],m[2],m[3]].map(v => Number(v).toString(16).padStart(2,"0")).join("")}` : fallback;
 }
-function ToolButton({ title, onClick, children, active = false }: { title: string; onClick: () => void; children: ReactNode; active?: boolean }) {
+function ToolButton({ title, onClick, children, active = false }: { title: string; onClick: (e: React.MouseEvent<HTMLButtonElement>) => void; children: ReactNode; active?: boolean }) {
   return <button type="button" title={title} onMouseDown={e => e.preventDefault()} onClick={onClick} className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition ${active ? "border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 shadow-[0_0_14px_rgba(217,70,239,.22)]" : "border-white/5 text-white/45 hover:border-fuchsia-300/20 hover:bg-fuchsia-500/10 hover:text-fuchsia-200"}`}>{children}</button>;
 }
 

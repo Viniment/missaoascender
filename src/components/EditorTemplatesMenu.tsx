@@ -21,7 +21,7 @@ export default function EditorTemplatesMenu({ value, onApply }: Props) {
     if (!user) return;
     setLoading(true); setError("");
     const { data, error: dbError } = await supabase.from("editor_templates" as any).select("id,nome,conteudo_html,updated_at").eq("user_id", user.id).order("updated_at", { ascending: false });
-    if (dbError) setError(`Não foi possível carregar os templates: ${dbError.message}`); else setTemplates((data ?? []) as Template[]);
+    if (dbError) setError(`Não foi possível carregar os templates: ${dbError.message}`); else setTemplates((data ?? []) as unknown as Template[]);
     setLoading(false);
   };
 

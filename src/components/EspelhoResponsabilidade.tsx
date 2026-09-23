@@ -80,7 +80,7 @@ export default function EspelhoResponsabilidade({ userId }: { userId: string }) 
     setSaving(true);
     const { data, error } = await supabase.from("espelhos_autotraicao").insert({
       user_id: userId, categoria, ...form
-    }).select("id,categoria,promessa,sabia,instante,negociacao,verdade,distancia,sonhos,preco,futuro,arrependimento,reconquista,pacto,created_at").single();
+    } as any).select("id,categoria,promessa,sabia,instante,negociacao,verdade,distancia,sonhos,preco,futuro,arrependimento,reconquista,pacto,created_at").single();
     setSaving(false);
     if (error || !data) return;
     setItems(prev => [data, ...prev]);
