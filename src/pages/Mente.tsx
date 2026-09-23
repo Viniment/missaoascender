@@ -23,23 +23,60 @@ export default function Mente() {
   return <Shell><div className="mx-auto max-w-4xl space-y-5">
     <header className="rpg-panel overflow-hidden p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-primary"><Brain className="h-4 w-4" /> Central da Mente</div><h1 className="mt-2 font-display text-2xl tracking-widest">MENTE</h1><p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">Perceba, registre e aja. O que você faz aqui também faz parte da evolução do seu personagem.</p></div><Link to="/diario" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:opacity-90"><BookMarked className="h-4 w-4" /> Abrir Diário</Link></div>{heroi && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Stat label="Nível" value={String(heroi.nivel)} icon={<Sparkles className="h-3 w-3" />} /><Stat label="XP" value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} /><Stat label="Ouro" value={String(heroi.ouro ?? 0)} icon={<Coins className="h-3 w-3" />} /><Stat label="Foco" value="Evolução" icon={<Target className="h-3 w-3" />} /></div>}</header>
 
-    <PoteBiscoitos userId={user!.id} />
-
     <Trataka />
 
-    <EspelhoResponsabilidade userId={user!.id} />
+    <section className="space-y-3">
+      <SectionTitle eyebrow="OBSERVE" title="Percepção" description="Primeiro perceba o que acontece dentro de você." />
+      <EspelhoResponsabilidade userId={user!.id} />
+    </section>
 
-    <button type="button" onClick={() => setCartaOpen(true)} className="rpg-panel group flex w-full items-center gap-4 border-destructive/35 p-4 text-left transition hover:-translate-y-0.5 hover:border-destructive/70"><div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-destructive/40 bg-destructive/10 text-destructive group-hover:scale-105 transition"><Swords className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[0.22em] text-destructive">LEMBRETE DIÁRIO</div><h3 className="mt-1 font-display text-sm tracking-widest">Carta de Enfrentamento</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Abra a Carta aqui mesmo para ler seu lembrete diário e registrar sua leitura.</p></div><ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:translate-x-1 group-hover:text-destructive" /></button>
+    <section className="space-y-3">
+      <SectionTitle eyebrow="ATRAVESSE" title="Autocontrole" description="Treine a capacidade de sentir uma vontade sem precisar obedecê-la." />
+      <PoteBiscoitos userId={user!.id} />
+      <button type="button" onClick={() => setCartaOpen(true)} className="rpg-panel group flex w-full items-center gap-4 border-destructive/35 p-4 text-left transition hover:-translate-y-0.5 hover:border-destructive/70">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-destructive/40 bg-destructive/10 text-destructive transition group-hover:scale-105"><Swords className="h-5 w-5" /></div>
+        <div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[0.22em] text-destructive">LEMBRETE</div><h3 className="mt-1 font-display text-sm tracking-widest">Carta de Enfrentamento</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Releia seu compromisso quando precisar lembrar quem está escolhendo ser.</p></div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:translate-x-1 group-hover:text-destructive" />
+      </button>
+    </section>
 
-    <Link to="/noite-zero" className="rpg-panel group flex w-full items-center gap-4 border-primary/30 bg-primary/5 p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/70 hover:shadow-[0_0_25px_hsl(var(--primary)/0.14)]"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-primary/40 bg-primary/10 text-primary transition group-hover:scale-105"><Moon className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[0.25em] text-primary">EXPERIÊNCIA ESPECIAL</div><h3 className="mt-1 font-display text-base tracking-widest">NOITE ZERO</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Pare, reflita, escolha uma direção e transforme sua decisão em ações reais.</p></div><ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" /></Link>
+    <section className="space-y-3">
+      <SectionTitle eyebrow="AÇÃO" title="Transforme percepção em comportamento" description="Pensar sobre mudança é diferente de agir. Escolha uma ferramenta e faça." />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {tools.map(({ to, icon: Icon, eyebrow, title, description, reward, className }) => <Link key={to} to={to} className="rpg-panel group flex gap-4 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(var(--primary)/0.14)]">
+          <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${className} transition group-hover:scale-105`}><Icon className="h-5 w-5" /></div>
+          <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="text-[9px] font-black uppercase tracking-[0.22em] text-muted-foreground">{eyebrow}</span><span className="rounded-full border border-border bg-background/30 px-2 py-0.5 text-[9px] font-bold text-primary">{reward}</span></div><h3 className="mt-1 font-display text-sm tracking-widest">{title}</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{description}</p></div>
+          <ChevronRight className="mt-3 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+        </Link>)}
+      </div>
+    </section>
 
-    <Link to="/meu-cantinho" className="rpg-panel group flex w-full items-center gap-4 border-fuchsia-400/30 bg-fuchsia-500/5 p-4 text-left transition hover:-translate-y-0.5 hover:border-fuchsia-400/70 hover:shadow-[0_0_25px_hsl(300_80%_60%/0.12)]"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300 transition group-hover:scale-105"><Images className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[0.25em] text-fuchsia-300">VISÃO DE FUTURO</div><h3 className="mt-1 font-display text-base tracking-widest">MEU CANTINHO DE MANIFESTAÇÃO</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Guarde fotos, vídeos e músicas que representam a vida que você deseja construir.</p></div><ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-fuchsia-300" /></Link>
+    <section className="space-y-3">
+      <SectionTitle eyebrow="DIREÇÃO" title="Lembre-se do que está construindo" description="Mantenha o futuro presente sem transformar desejo em fuga da realidade." />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link to="/noite-zero" className="rpg-panel group flex w-full items-center gap-4 border-primary/30 bg-primary/5 p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/70">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-primary/40 bg-primary/10 text-primary transition group-hover:scale-105"><Moon className="h-5 w-5" /></div>
+          <div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[0.25em] text-primary">EXPERIÊNCIA</div><h3 className="mt-1 font-display text-base tracking-widest">NOITE ZERO</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Pare, reflita, escolha uma direção e transforme decisão em ação.</p></div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+        </Link>
+        <Link to="/meu-cantinho" className="rpg-panel group flex w-full items-center gap-4 border-fuchsia-400/30 bg-fuchsia-500/5 p-4 text-left transition hover:-translate-y-0.5 hover:border-fuchsia-400/70">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300 transition group-hover:scale-105"><Images className="h-5 w-5" /></div>
+          <div className="min-w-0 flex-1"><div className="text-[9px] font-black uppercase tracking-[0.25em] text-fuchsia-300">VISÃO DE FUTURO</div><h3 className="mt-1 font-display text-base tracking-widest">MEU CANTINHO</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Guarde referências da vida que deseja construir.</p></div>
+          <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-fuchsia-300" />
+        </Link>
+      </div>
+    </section>
 
-    <section><div className="mb-3"><h2 className="font-display text-sm tracking-widest">COMO VOCÊ QUER EVOLUIR?</h2><p className="mt-1 text-[11px] text-muted-foreground">Escolha uma ação. A progressão usa o mesmo personagem, XP, Ouro e Vida do Ascensão.</p></div><div className="grid gap-3 sm:grid-cols-2">{tools.map(({ to, icon: Icon, eyebrow, title, description, reward, className }) => <Link key={to} to={to} className={`rpg-panel group flex gap-4 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(var(--primary)/0.14)] ${to === "/diario" ? "sm:col-span-2" : ""}`}><div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${className} transition group-hover:scale-105`}><Icon className="h-5 w-5" /></div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="text-[9px] font-black uppercase tracking-[0.22em] text-muted-foreground">{eyebrow}</span><span className="rounded-full border border-border bg-background/30 px-2 py-0.5 text-[9px] font-bold text-primary">{reward}</span></div><h3 className="mt-1 font-display text-sm tracking-widest">{title}</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{description}</p></div><ChevronRight className="mt-3 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" /></Link>)}</div></section>
+    <section className="rpg-panel border-primary/20 bg-primary/5 p-5">
+      <div className="text-[9px] font-black uppercase tracking-[0.28em] text-primary">PRINCÍPIO DA MENTE</div>
+      <p className="mt-2 font-display text-base tracking-wider">PERCEBER. ESCOLHER. AGIR.</p>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Você não precisa controlar tudo o que surge na mente. Treine perceber o que surgiu e escolher sua próxima ação.</p>
+    </section>
 
-    <section className="rpg-panel p-4"><div className="flex items-start gap-3"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Shield className="h-4 w-4" /></div><div><h3 className="text-xs font-black uppercase tracking-wider">Regra simples</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Você não precisa usar tudo. Escolha a ferramenta que faz sentido agora. Registre, aja e deixe a consistência virar progressão.</p></div></div></section>
+
   </div>
   <CartaEnfrentamentoDialog open={cartaOpen} onClose={() => setCartaOpen(false)} heroi={heroi} inimigo={undefined} habitos={undefined} onboarding={undefined} onChanged={async () => { await fetchHeroi(user!.id); }} />
   </Shell>;
 }
+function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) { return <div><div className="text-[9px] font-black uppercase tracking-[0.25em] text-muted-foreground">{eyebrow}</div><h2 className="mt-1 font-display text-sm tracking-widest">{title}</h2><p className="mt-1 text-[11px] text-muted-foreground">{description}</p></div>; }
 function Stat({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) { return <div className="rounded-2xl border border-border bg-background/30 p-3"><div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-muted-foreground">{icon}{label}</div><div className="mt-1 text-xl font-black">{value}</div></div>; }
