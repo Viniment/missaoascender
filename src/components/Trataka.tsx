@@ -84,7 +84,7 @@ export default function Trataka() {
             <div className="text-[9px] font-black uppercase tracking-[0.25em] text-primary">METACOGNIÇÃO · FOCO</div>
             <h2 className="mt-1 font-display text-lg tracking-widest">TRATAKA</h2>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              Um ponto. Uma mente. Perceba quando sua atenção sair e escolha retornar.
+              Um ponto. Uma mente. Perceba, escolha e retorne.
             </p>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function Trataka() {
           <>
             <div className="mt-5 rounded-xl border border-border bg-background/30 p-4">
               <p className="text-xs font-semibold leading-relaxed">
-                Pensamentos vão surgir. Não lute contra eles. Não tente expulsá-los. Não os julgue.
+                Pensamentos vão surgir. Você não precisa combatê-los, expulsá-los ou controlá-los.
               </p>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Apenas perceba. Quando notar que sua atenção foi para outro lugar, escolha gentilmente
@@ -165,7 +165,7 @@ export default function Trataka() {
           </button>
 
           <div className="absolute bottom-7 left-1/2 max-w-[90vw] -translate-x-1/2 text-center text-[10px] leading-relaxed text-white/20">
-            Perceba. Não julgue. Escolha retornar.
+            PERCEBA · NÃO JULGUE · ESCOLHA · RETORNE
           </div>
         </div>
       )}
