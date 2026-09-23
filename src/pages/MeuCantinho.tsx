@@ -17,11 +17,15 @@ function youtubeEmbed(url: string) {
     const raw = url.trim();
     if (!raw) return null;
 
-    // Aceita os formatos mais comuns do YouTube, incluindo links do YouTube Music:
-    // watch?v=, youtu.be/, shorts/, embed/ e live/.
     const u = new URL(raw);
-    const host = u.hostname.toLowerCase().replace(/^www\\./, "");
-    const isYoutube = host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com" || host === "youtu.be" || host === "youtube-nocookie.com";
+    const host = u.hostname.toLowerCase().replace(/^www\./, "");
+    const isYoutube =
+      host === "youtube.com" ||
+      host === "m.youtube.com" ||
+      host === "music.youtube.com" ||
+      host === "youtu.be" ||
+      host === "youtube-nocookie.com";
+
     if (!isYoutube) return null;
 
     let id: string | null = null;
@@ -31,17 +35,17 @@ function youtubeEmbed(url: string) {
     } else {
       id =
         u.searchParams.get("v") ||
-        u.pathname.match(/^\\/(?:shorts|embed|live)\\/([^/?#]+)/i)?.[1] ||
+        u.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/i)?.[1] ||
         null;
     }
 
     if (!id) return null;
-
-    // IDs de vídeos do YouTube têm 11 caracteres; a validação evita
-    // transformar uma URL inválida em um <video>/<audio> quebrado.
     if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
 
-    return `https://www.youtube.com/embed/${id}?rel=0`;
+    // O modo de música usa um iframe real do YouTube, inclusive para
+    // links vindos do YouTube Music. O endpoint nocookie evita que a
+    // URL do YouTube Music seja tratada como um arquivo de áudio.
+    return `https://www.youtube-nocookie.com/embed/${id}?rel=0&playsinline=1`;
   } catch {
     return null;
   }
