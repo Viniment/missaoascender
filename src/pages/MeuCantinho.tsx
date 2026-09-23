@@ -13,9 +13,23 @@ const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 function load<T>(key: string, fallback: T): T { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
 function save(key: string, value: unknown) { localStorage.setItem(key, JSON.stringify(value)); }
 function youtubeEmbed(url: string) {
+  // Alguns registros antigos podem ter sido salvos com &amp; ou com espaços/aspas.
+  // Normalize primeiro e detecte o ID diretamente para não depender do campo "origem".
   try {
-    const raw = url.trim();
+    const raw = String(url ?? "")
+      .trim()
+      .replace(/&amp;/gi, "&")
+      .replace(/^["']|["']$/g, "");
     if (!raw) return null;
+
+    const directId =
+      raw.match(/(?:youtube\.com\/(?:watch\?[^#]*?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i)?.[1] ??
+      raw.match(/[?&]v=([A-Za-z0-9_-]{11})/i)?.[1] ??
+      null;
+
+    if (directId) {
+      return `https://www.youtube.com/embed/${directId}?rel=0&playsinline=1`;
+    }
 
     const u = new URL(raw);
     const host = u.hostname.toLowerCase().replace(/^www\./, "");
@@ -28,23 +42,14 @@ function youtubeEmbed(url: string) {
 
     if (!isYoutube) return null;
 
-    let id: string | null = null;
+    const id =
+      u.searchParams.get("v") ||
+      u.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/i)?.[1] ||
+      (host === "youtu.be" ? u.pathname.split("/").filter(Boolean)[0] : null);
 
-    if (host === "youtu.be") {
-      id = u.pathname.split("/").filter(Boolean)[0] ?? null;
-    } else {
-      id =
-        u.searchParams.get("v") ||
-        u.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/i)?.[1] ||
-        null;
-    }
-
-    if (!id) return null;
-    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
-
-    // O modo de música usa um iframe real do YouTube, inclusive para
-    // links vindos do YouTube Music. A URL do YouTube Music também é convertida para o player incorporado.
-    return `https://www.youtube.com/embed/${id}?rel=0&playsinline=1`;
+    return id && /^[A-Za-z0-9_-]{11}$/.test(id)
+      ? `https://www.youtube.com/embed/${id}?rel=0&playsinline=1`
+      : null;
   } catch {
     return null;
   }
