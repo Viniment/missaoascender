@@ -141,9 +141,9 @@ export default function Trataka() {
       {running && (
         <div
           ref={stageRef}
-          className="fixed inset-0 z-[9999] flex min-h-screen items-center justify-center overflow-hidden bg-black text-white"
+          className="fixed inset-0 z-[2147483647] flex min-h-screen items-center justify-center overflow-hidden bg-black text-white"
         >
-          <div className="absolute left-5 top-5 text-[9px] font-black uppercase tracking-[0.3em] text-white/30">
+          <div className="absolute left-5 top-5 text-[8px] font-black uppercase tracking-[0.3em] text-white/15">
             TRATAKA · METACOGNIÇÃO
           </div>
 
@@ -152,19 +152,19 @@ export default function Trataka() {
               aria-label="Ponto de foco"
               className="h-3 w-3 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.95),0_0_45px_rgba(255,255,255,0.35)]"
             />
-            <div className="mt-8 font-mono text-xs tracking-[0.25em] text-white/30">{format(remaining)}</div>
+            <div className="fixed bottom-7 left-1/2 -translate-x-1/2 font-mono text-[9px] tracking-[0.25em] text-white/15">{format(remaining)}</div>
           </div>
 
           <button
             type="button"
             onClick={leave}
             aria-label="Encerrar prática"
-            className="absolute right-5 top-5 rounded-full p-2 text-white/25 transition hover:bg-white/10 hover:text-white/70"
+            className="absolute right-5 top-5 rounded-full p-2 text-white/15 transition hover:bg-white/10 hover:text-white/60"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="absolute bottom-7 left-1/2 max-w-[90vw] -translate-x-1/2 text-center text-[10px] leading-relaxed text-white/20">
+          <div className="absolute bottom-3 left-1/2 max-w-[90vw] -translate-x-1/2 -translate-y-full text-center text-[8px] leading-relaxed text-white/10">
             PERCEBA · NÃO JULGUE · ESCOLHA · RETORNE
           </div>
         </div>
