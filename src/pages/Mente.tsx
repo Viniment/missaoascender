@@ -7,6 +7,7 @@ import { fetchHeroi } from "@/lib/api";
 import CartaEnfrentamentoDialog from "@/components/CartaEnfrentamentoDialog";
 import PoteBiscoitos from "@/components/PoteBiscoitos";
 import EspelhoResponsabilidade from "@/components/EspelhoResponsabilidade";
+import Trataka from "@/components/Trataka";
 import { useState } from "react";
 
 const tools = [
@@ -23,6 +24,8 @@ export default function Mente() {
     <header className="rpg-panel overflow-hidden p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.28em] text-primary"><Brain className="h-4 w-4" /> Central da Mente</div><h1 className="mt-2 font-display text-2xl tracking-widest">MENTE</h1><p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">Perceba, registre e aja. O que você faz aqui também faz parte da evolução do seu personagem.</p></div><Link to="/diario" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:opacity-90"><BookMarked className="h-4 w-4" /> Abrir Diário</Link></div>{heroi && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Stat label="Nível" value={String(heroi.nivel)} icon={<Sparkles className="h-3 w-3" />} /><Stat label="XP" value={`${heroi.xp_atual}/${heroi.xp_proximo_nivel}`} /><Stat label="Ouro" value={String(heroi.ouro ?? 0)} icon={<Coins className="h-3 w-3" />} /><Stat label="Foco" value="Evolução" icon={<Target className="h-3 w-3" />} /></div>}</header>
 
     <PoteBiscoitos userId={user!.id} />
+
+    <Trataka />
 
     <EspelhoResponsabilidade userId={user!.id} />
 
